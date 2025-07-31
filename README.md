@@ -6,7 +6,7 @@ This comprehensive repository serves as a complete resource for Data Engineering
 
 ## 📚 Repository Structure
 
-The repository is now organized into two main categories for better focus and learning progression:
+The repository is organized into two main categories for better focus and learning progression:
 
 ### 🔧 Core-Data-Engineering/
 **Essential tools and technologies for data engineering roles - START HERE**
@@ -29,6 +29,11 @@ Each topic folder contains:
 - [SQL](./Core-Data-Engineering/Programming-Languages/SQL/) - Essential for data manipulation
 - [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/) - Big data processing
 
+### Cloud Platforms
+- [AWS](./Core-Data-Engineering/Cloud/) - Complete AWS services (S3, EC2, Glue, Athena, Redshift, RDS, IAM)
+- [Azure](./Core-Data-Engineering/Cloud/Azure/) - Microsoft Azure services
+- [GCP](./Core-Data-Engineering/Cloud/GCP/) - Google Cloud Platform services
+
 ### Databases
 - [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/)
 - [MySQL](./Core-Data-Engineering/Databases/MySQL/)
@@ -36,31 +41,24 @@ Each topic folder contains:
 - [MS SQL Server](./Core-Data-Engineering/Databases/MS-SQL-Server/)
 - [Athena](./Core-Data-Engineering/Databases/Athena/)
 
-### Cloud Platforms
-- [AWS Services](./Core-Data-Engineering/Cloud-AWS/) (EC2, S3, Glue, Athena, Redshift, RDS, IAM)
-- [Azure](./Core-Data-Engineering/Cloud-Platforms/Azure/)
-- [GCP](./Core-Data-Engineering/Cloud-Platforms/GCP/)
-
-### Data Processing & Big Data
-- [Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
-- [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/)
+### Data Processing & Pipelines
+- **Big Data Processing**
+  - [Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
+  - [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/)
+- **Streaming Processing**
+  - [Apache Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/)
+  - [Apache Flink](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/)
+  - [Confluent Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/)
+- **ETL Tools**
+  - [Informatica](./Core-Data-Engineering/Data-Processing/ETL/Informatica/)
+  - [Snaplogic](./Core-Data-Engineering/Data-Processing/ETL/Snaplogic/)
+- **Orchestration**
+  - [Apache Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/)
+  - [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/)
 
 ### Data Warehousing
 - [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/)
 - [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/)
-
-### Workflow & Orchestration
-- [Apache Airflow](./Core-Data-Engineering/Workflow-Orchestration/Apache-Airflow/)
-- [DBT](./Core-Data-Engineering/Workflow-Orchestration/DBT/)
-
-### ETL & Integration
-- [Informatica](./Core-Data-Engineering/ETL-Integration/Informatica/)
-- [Snaplogic](./Core-Data-Engineering/ETL-Integration/Snaplogic/)
-
-### Streaming & Real-Time Processing
-- [Apache Kafka](./Core-Data-Engineering/Streaming-Processing/Apache-Kafka/)
-- [Confluent Kafka](./Core-Data-Engineering/Streaming-Processing/Confluent-Kafka/)
-- [Apache Flink](./Core-Data-Engineering/Streaming-Processing/Apache-Flink/)
 
 ### Data Architecture & Principles
 - [Data Vault 2.0](./Core-Data-Engineering/Data-Architecture/Data-Vault-2.0/)
@@ -89,23 +87,30 @@ Each topic folder contains:
 - [Kibana](./Supporting-Tools/Visualization-Reporting/Kibana/)
 - [Elastic Search](./Supporting-Tools/Visualization-Reporting/Elastic-Search/)
 
-### AI/ML & MLOps
-- [Machine Learning](./Supporting-Tools/AI-ML/Machine-Learning/)
-- [MLOps](./Supporting-Tools/AI-ML/MLOps/)
+### AI & Machine Learning
+- [Machine Learning](./Supporting-Tools/AI/Machine-Learning/)
+- [MLOps](./Supporting-Tools/AI/MLOps/)
+- **GenAI & LLMs**
+  - [GenAI Concepts](./Supporting-Tools/AI/GenAI/)
+  - [RAGs & Embeddings](./Supporting-Tools/AI/GenAI/)
+  - [LangChain](./Supporting-Tools/AI/GenAI/LangChain/)
+  - [OpenAI APIs](./Supporting-Tools/AI/GenAI/)
+  - [Vector Databases](./Supporting-Tools/AI/GenAI/)
 
-### GenAI & LLMs
-- [GenAI Concepts](./Supporting-Tools/GenAI-LLMs/GenAI/)
-- [RAGs & Embeddings](./Supporting-Tools/GenAI-LLMs/RAGs/)
-- [LangChain](./Supporting-Tools/GenAI-LLMs/LangChain/)
-- [OpenAI APIs](./Supporting-Tools/GenAI-LLMs/OpenAI-API/)
-- [Vector Databases](./Supporting-Tools/GenAI-LLMs/Vector-DB/)
+### Programming & Development
+- [Extended Languages](./Supporting-Tools/Programming/) (C/C++, C#, JavaScript, MATLAB)
+- [Data Structures & Algorithms](./Supporting-Tools/Programming/Data-Structures-Algorithms/)
+- [Design Patterns](./Supporting-Tools/Programming/Design-Patterns/)
+- [Web Development](./Supporting-Tools/Programming/Web/) (GraphQL, Node.js)
 
-### Web Development
-- [JavaScript Frameworks](./Supporting-Tools/Web-Development/JavaScript/)
-- [Node.js](./Supporting-Tools/Web-Development/Node-js/)
-- [GraphQL](./Supporting-Tools/Web-Development/GraphQL/)
+### Systems & Infrastructure
+- [Linux & Shell Scripting](./Supporting-Tools/Systems/Linux/)
+- [Windows](./Supporting-Tools/Systems/Windows/)
+- [Security & Compliance](./Supporting-Tools/Systems/Security/)
+- [System Design](./Supporting-Tools/Systems/System-Design/) (Distributed Systems, Microservices)
+- [Networking](./Supporting-Tools/Systems/Networking/) (TCP/IP, HTTP/HTTPS, DNS)
 
-### Cloud Monitoring
+### Monitoring & Management
 - [Datadog](./Supporting-Tools/Monitoring/Datadog/)
 - [Grafana](./Supporting-Tools/Monitoring/Grafana/)
 
@@ -114,37 +119,6 @@ Each topic folder contains:
 - [Jira & Confluence](./Supporting-Tools/Project-Management/Jira/)
 - [Kanban](./Supporting-Tools/Project-Management/Kanban/)
 - [ServiceNow](./Supporting-Tools/Project-Management/ServiceNow/)
-
-### Extended Programming Languages
-- [C/C++](./Supporting-Tools/Programming-Languages-Extended/C/)
-- [C#](./Supporting-Tools/Programming-Languages-Extended/CSharp/)
-- [JavaScript](./Supporting-Tools/Programming-Languages-Extended/JavaScript/)
-- [MATLAB](./Supporting-Tools/Programming-Languages-Extended/MATLAB/)
-- [Data Structures & Algorithms](./Supporting-Tools/Programming-Languages-Extended/Data-Structures-Algorithms/)
-- [Design Patterns](./Supporting-Tools/Programming-Languages-Extended/Design-Patterns/)
-
-### System Administration
-- [Linux](./Supporting-Tools/Operating-Systems/Linux/)
-- [Shell Scripting](./Supporting-Tools/Operating-Systems/Shell-Scripting/)
-- [Windows](./Supporting-Tools/Operating-Systems/Windows/)
-
-### Security & Compliance
-- [Access Control](./Supporting-Tools/Security-Compliance/Access-Control/)
-- [Data Privacy](./Supporting-Tools/Security-Compliance/Data-Privacy/)
-- [Encryption](./Supporting-Tools/Security-Compliance/Encryption/)
-- [GDPR Compliance](./Supporting-Tools/Security-Compliance/GDPR-Compliance/)
-
-### System Design
-- [Distributed Systems](./Supporting-Tools/System-Design/Distributed-Systems/)
-- [Microservices](./Supporting-Tools/System-Design/Microservices/)
-- [Load Balancing](./Supporting-Tools/System-Design/Load-Balancing/)
-- [Scalability](./Supporting-Tools/System-Design/Scalability/)
-
-### Networking
-- [TCP/IP](./Supporting-Tools/Networking/TCP-IP/)
-- [HTTP/HTTPS](./Supporting-Tools/Networking/HTTP-HTTPS/)
-- [DNS](./Supporting-Tools/Networking/DNS/)
-- [VPN](./Supporting-Tools/Networking/VPN/)
 
 ## 🚀 How to Use This Repository
 
@@ -189,8 +163,28 @@ Each topic folder contains:
 ### 🎓 **Priority 4: Specialized & Emerging**
 1. **AI/ML**: Machine Learning, MLOps
 2. **GenAI**: LLMs, RAGs, Vector Databases
-3. **Web Development**: APIs, GraphQL
-4. **System Design**: Distributed systems, microservices
+3. **Programming**: Advanced languages and patterns
+4. **Systems**: Security, networking, system design
+
+## 🎯 Quick Start Guide
+
+### New to Data Engineering?
+1. Start with [Python](./Core-Data-Engineering/Programming-Languages/Python/)
+2. Learn [SQL](./Core-Data-Engineering/Programming-Languages/SQL/)
+3. Understand [AWS basics](./Core-Data-Engineering/Cloud/)
+4. Practice with [Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
+
+### Preparing for Interviews?
+1. Review Core-Data-Engineering interview questions
+2. Practice coding problems in Python and SQL
+3. Understand data architecture principles
+4. Study cloud platform services (AWS/Azure/GCP)
+
+### Expanding Your Skills?
+1. Master the Core-Data-Engineering topics first
+2. Gradually explore Supporting-Tools based on your interests
+3. Focus on tools relevant to your target companies
+4. Build hands-on projects using multiple technologies
 
 ## 🤝 How to Contribute
 
@@ -198,13 +192,7 @@ We welcome contributions! Here's how you can help:
 
 1. **Fork** the repository
 2. **Create** a feature branch (`git checkout -b feature/new-topic`)
-3. **Add** your content following the established structure:
-   - `*_KEY_CONCEPTS.md` - Core concepts and theory
-   - `examples/` - Code snippets and practical examples
-   - `*_INTERVIEW_QUESTIONS.md` - Questions with detailed answers
-   - `*_BEST_PRACTICES.md` - Industry standards and recommendations
-   - `*_QUICK_REFERENCE.md` - Commands and syntax guides
-   - `*_RESOURCES.md` - Curated links and references
+3. **Add** your content following the established structure
 4. **Commit** your changes (`git commit -m 'Add new topic: XYZ'`)
 5. **Push** to the branch (`git push origin feature/new-topic`)
 6. **Open** a Pull Request
@@ -219,66 +207,12 @@ We welcome contributions! Here's how you can help:
 - Include links to official documentation
 - Categorize correctly: Core vs Supporting tools
 
-## 📝 Content Standards
-
-- **Accuracy**: All technical information should be current and correct
-- **Clarity**: Explanations should be clear and accessible
-- **Completeness**: Cover both theoretical concepts and practical applications
-- **Consistency**: Follow the established format and style
-- **Quality**: Include high-quality code examples and explanations
-- **Relevance**: Focus on data engineering use cases and scenarios
-
-## 🏷️ Tags and Labels
-
-Use these tags when contributing:
-- `core-data-engineering` - Essential DE skills
-- `supporting-tools` - Complementary skills
-- `beginner` - Suitable for newcomers
-- `intermediate` - Requires some experience
-- `advanced` - For experienced practitioners
-- `hands-on` - Includes practical exercises
-- `theory` - Conceptual content
-- `interview-prep` - Focused on interview preparation
-
-## 📞 Support
-
-If you have questions or need help:
-- Open an issue for bugs or content errors
-- Start a discussion for general questions
-- Check existing issues before creating new ones
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- Contributors who have helped build this resource
-- Open source community for tools and frameworks
-- Data engineering professionals who share their knowledge
-
 ---
 
 **Happy Learning!** 🎓
-
-## 🎯 Quick Start Guide
-
-### New to Data Engineering?
-1. Start with [Python](./Core-Data-Engineering/Programming-Languages/Python/)
-2. Learn [SQL](./Core-Data-Engineering/Programming-Languages/SQL/)
-3. Understand [AWS basics](./Core-Data-Engineering/Cloud-AWS/)
-4. Practice with [Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
-
-### Preparing for Interviews?
-1. Review Core-Data-Engineering interview questions
-2. Practice coding problems in Python and SQL
-3. Understand data architecture principles
-4. Study cloud platform services (AWS/Azure/GCP)
-
-### Expanding Your Skills?
-1. Master the Core-Data-Engineering topics first
-2. Gradually explore Supporting-Tools based on your interests
-3. Focus on tools relevant to your target companies
-4. Build hands-on projects using multiple technologies
 
 Remember: The best way to learn data engineering is through hands-on practice. Use this repository as your guide, but don't forget to build real projects and experiment with the tools and technologies covered here.
