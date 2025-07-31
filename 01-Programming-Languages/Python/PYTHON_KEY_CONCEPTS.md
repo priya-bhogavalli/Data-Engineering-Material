@@ -3,6 +3,14 @@
 ## 1. Data Structures
 **What they are**: Built-in types for organizing and storing data efficiently.
 
+**Why important**: Data structures are fundamental to data engineering as they determine how efficiently you can store, access, and manipulate data. Choosing the right data structure can dramatically impact performance, especially when processing large datasets.
+
+**When to use**: 
+- Lists for ordered data that needs modification
+- Dictionaries for key-value lookups and configuration
+- Sets for deduplication and membership testing
+- Tuples for immutable structured data
+
 **Lists - Ordered, Mutable Collections**:
 ```python
 # Creating and manipulating lists
@@ -67,7 +75,14 @@ print(f"X: {p.x}, Y: {p.y}")
 ```
 
 ## 2. Functions and Decorators
-**Functions**: Reusable blocks of code that perform specific tasks.
+**What they are**: Functions are reusable blocks of code that perform specific tasks. Decorators are a powerful feature that allows you to modify or extend function behavior without changing the function's code.
+
+**Why important**: Functions promote code reusability and modularity, essential for maintaining large data pipelines. Decorators enable cross-cutting concerns like logging, timing, retry logic, and authentication without cluttering business logic.
+
+**When to use**:
+- Functions for any repeatable logic
+- Decorators for logging, timing, retries, authentication
+- Lambda functions for simple transformations in map/filter operations
 
 **Function Definitions**:
 ```python
@@ -132,7 +147,15 @@ def fetch_data_from_api(url: str):
 ```
 
 ## 3. Object-Oriented Programming
-**Classes and Objects**: Organizing code into reusable, maintainable structures.
+**What it is**: A programming paradigm that organizes code into classes and objects, encapsulating data and behavior together.
+
+**Why important**: OOP enables building complex, maintainable data processing systems. It provides encapsulation, inheritance, and polymorphism, making code more organized and reusable. Essential for building data pipeline frameworks, ETL tools, and data processing engines.
+
+**When to use**:
+- Building data pipeline frameworks
+- Creating reusable data processing components
+- Implementing different data source connectors
+- Managing complex state in data applications
 
 **Class Definition**:
 ```python
@@ -211,7 +234,15 @@ class APIDataSource(DataSource):
 ```
 
 ## 4. Error Handling
-**Exception Management**: Robust error handling for data pipelines.
+**What it is**: A systematic approach to anticipating, catching, and handling errors that occur during program execution.
+
+**Why important**: Data pipelines often deal with unreliable external systems, malformed data, and network issues. Proper error handling ensures pipelines are resilient, can recover from failures, and provide meaningful feedback for debugging.
+
+**When to use**:
+- Always in production data pipelines
+- When dealing with external APIs or databases
+- File I/O operations
+- Data validation and transformation steps
 
 **Try-Except Patterns**:
 ```python
@@ -271,7 +302,16 @@ def validate_data(data):
 ```
 
 ## 5. File I/O and Data Formats
-**File Operations**: Reading and writing various data formats.
+**What it is**: Operations for reading from and writing to files in various formats like text, CSV, JSON, and binary formats.
+
+**Why important**: Data engineers constantly work with files - reading source data, writing processed results, and handling configuration files. Efficient file I/O is crucial for performance, especially with large datasets.
+
+**When to use**:
+- Reading source data files (CSV, JSON, XML)
+- Writing processed data to storage
+- Configuration management
+- Logging and audit trails
+- Batch processing workflows
 
 **Text Files**:
 ```python
@@ -334,7 +374,16 @@ def process_large_json(file_path: str):
 ```
 
 ## 6. Generators and Iterators
-**Memory-Efficient Processing**: Handle large datasets without loading everything into memory.
+**What they are**: Generators are functions that yield values one at a time, creating iterators that produce items on-demand rather than storing them all in memory.
+
+**Why important**: Essential for processing large datasets that don't fit in memory. Generators enable streaming data processing, reduce memory usage, and improve performance in data pipelines.
+
+**When to use**:
+- Processing large files line by line
+- Streaming data from APIs
+- ETL pipelines with large datasets
+- Real-time data processing
+- Memory-constrained environments
 
 **Generator Functions**:
 ```python
@@ -400,7 +449,17 @@ for batch in DataBatch(data, batch_size=10):
 ```
 
 ## 7. Context Managers
-**Resource Management**: Ensure proper cleanup of resources.
+**What they are**: Objects that define runtime context for executing code blocks, ensuring proper resource acquisition and cleanup.
+
+**Why important**: Critical for managing resources like file handles, database connections, and network connections. They guarantee cleanup even when errors occur, preventing resource leaks in long-running data pipelines.
+
+**When to use**:
+- File operations
+- Database connections
+- Network connections
+- Temporary resource allocation
+- Transaction management
+- Timing operations
 
 **Built-in Context Managers**:
 ```python
@@ -460,7 +519,15 @@ with timing_context("Data Processing"):
 ```
 
 ## 8. Concurrency and Parallelism
-**Concurrent Processing**: Handle multiple tasks simultaneously.
+**What they are**: Techniques for executing multiple tasks simultaneously. Concurrency handles multiple tasks at once (not necessarily simultaneously), while parallelism executes tasks simultaneously on multiple cores.
+
+**Why important**: Data processing often involves I/O-bound operations (API calls, file reads) and CPU-bound tasks (data transformations). Proper use of concurrency and parallelism can dramatically improve pipeline performance.
+
+**When to use**:
+- Threading for I/O-bound tasks (API calls, file operations)
+- Multiprocessing for CPU-bound tasks (data transformations)
+- Async/await for high-concurrency I/O operations
+- Parallel data processing and ETL operations
 
 **Threading for I/O-bound Tasks**:
 ```python
@@ -523,7 +590,15 @@ if __name__ == '__main__':
 ```
 
 ## 9. Type Hints and Documentation
-**Code Quality**: Making code more readable and maintainable.
+**What they are**: Type hints provide static type information to make code more readable and enable better tooling. Documentation includes docstrings, comments, and external documentation.
+
+**Why important**: In data engineering, code is often complex and maintained by teams. Type hints catch errors early, improve IDE support, and make code self-documenting. Good documentation is essential for maintaining data pipelines and onboarding team members.
+
+**When to use**:
+- All production code should have type hints
+- Public APIs and functions need comprehensive documentation
+- Complex data transformations require clear explanations
+- Team environments where code is shared
 
 **Type Hints**:
 ```python
@@ -574,7 +649,16 @@ class DataConfig:
 ```
 
 ## 10. Testing
-**Quality Assurance**: Ensuring code reliability through testing.
+**What it is**: The practice of writing code to verify that your application code works correctly under various conditions.
+
+**Why important**: Data pipelines process critical business data, and bugs can have serious consequences. Testing ensures data quality, catches regressions, and provides confidence when making changes to production systems.
+
+**When to use**:
+- Unit tests for individual functions and classes
+- Integration tests for data pipeline components
+- End-to-end tests for complete workflows
+- Data validation tests for quality assurance
+- Performance tests for optimization
 
 **Unit Testing**:
 ```python
