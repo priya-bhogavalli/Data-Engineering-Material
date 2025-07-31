@@ -35,11 +35,42 @@ Each topic folder contains:
 - [GCP](./Core-Data-Engineering/Cloud/GCP/) - Google Cloud Platform services
 
 ### Databases
-- [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/)
-- [MySQL](./Core-Data-Engineering/Databases/MySQL/)
-- [Oracle](./Core-Data-Engineering/Databases/Oracle/)
-- [MS SQL Server](./Core-Data-Engineering/Databases/MS-SQL-Server/)
-- [Athena](./Core-Data-Engineering/Databases/Athena/)
+**Comprehensive coverage of all database types - [Database Overview](./Core-Data-Engineering/Databases/DATABASE_OVERVIEW.md)**
+
+#### Relational Databases (RDBMS)
+- [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/) - Advanced open-source RDBMS
+- [MySQL](./Core-Data-Engineering/Databases/MySQL/) - Popular open-source database
+- [Oracle](./Core-Data-Engineering/Databases/Oracle/) - Enterprise-grade commercial database
+- [MS SQL Server](./Core-Data-Engineering/Databases/MS-SQL-Server/) - Microsoft's relational database
+- [Athena](./Core-Data-Engineering/Databases/Athena/) - AWS serverless query service
+
+#### NoSQL Databases
+- **Document Stores**
+  - [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/) - JSON-like document database
+  - [CouchDB](./Core-Data-Engineering/Databases/NoSQL/CouchDB/) - Multi-master document database
+- **Key-Value Stores**
+  - [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/) - In-memory data structure store
+  - [DynamoDB](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/) - AWS managed NoSQL database
+- **Column-Family**
+  - [Cassandra](./Core-Data-Engineering/Databases/NoSQL/Cassandra/) - Distributed wide-column database
+  - [HBase](./Core-Data-Engineering/Databases/NoSQL/HBase/) - Hadoop-based column database
+
+#### Specialized Databases
+- **Time-Series**
+  - [InfluxDB](./Core-Data-Engineering/Databases/Time-Series/InfluxDB/) - Purpose-built time-series database
+  - [TimescaleDB](./Core-Data-Engineering/Databases/Time-Series/TimescaleDB/) - PostgreSQL extension for time-series
+- **Search Engines**
+  - [Elasticsearch](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/) - Distributed search and analytics
+  - [Apache Solr](./Core-Data-Engineering/Databases/Search-Engines/Solr/) - Enterprise search platform
+- **Graph Databases**
+  - [Neo4j](./Core-Data-Engineering/Databases/Graph-Databases/Neo4j/) - Native graph database
+  - [Amazon Neptune](./Core-Data-Engineering/Databases/Graph-Databases/Amazon-Neptune/) - AWS managed graph database
+- **In-Memory**
+  - [Redis](./Core-Data-Engineering/Databases/In-Memory/Redis/) - In-memory data structure store
+  - [Memcached](./Core-Data-Engineering/Databases/In-Memory/Memcached/) - Distributed memory caching
+- **NewSQL**
+  - [CockroachDB](./Core-Data-Engineering/Databases/NewSQL/CockroachDB/) - Distributed SQL database
+  - [TiDB](./Core-Data-Engineering/Databases/NewSQL/TiDB/) - Hybrid transactional/analytical processing
 
 ### Data Processing & Pipelines
 - **Big Data Processing**
@@ -144,7 +175,7 @@ Each topic folder contains:
 2. **Cloud Platforms**: AWS (S3, Glue, Athena, Redshift)
 3. **Data Processing**: Apache Spark, Databricks
 4. **Orchestration**: Apache Airflow, DBT
-5. **Databases**: PostgreSQL, Snowflake
+5. **Databases**: PostgreSQL, MongoDB, Redis, Elasticsearch
 6. **Streaming**: Apache Kafka
 
 ### 🥈 **Priority 2: Advanced Data Engineering**
