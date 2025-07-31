@@ -290,6 +290,374 @@ def load_sat_customer_details(df, record_source):
         lambda row: generate_hash_key(*row.values), axis=1
     )
     
+    sat_df = df[['customer_hk', 'load_date', 'first_name', 'last_name', 
+                 'email', 'phone', 'birth_date', 'hash_diff', 'record_source']]
+    
+    return sat_df
+```
+
+## 4. Data Mesh Architecture
+**What it is**: A decentralized data architecture that treats data as a product, with domain-oriented ownership and self-serve data infrastructure.
+
+**Why important**: Data Mesh addresses the scalability and organizational challenges of centralized data platforms by distributing data ownership to domain teams while maintaining interoperability and governance.
+
+**When to use**:
+- Large organizations with multiple business domains
+- Companies struggling with centralized data team bottlenecks
+- Organizations wanting to scale data capabilities across teams
+- Environments requiring domain expertise for data products
+
+**Core Principles**:
+```yaml
+# Data Mesh Principles Configuration
+data_mesh_principles:
+  domain_ownership:
+    description: "Domain teams own their data products"
+    implementation:
+      - domain_data_teams
+      - business_logic_ownership
+      - end_to_end_responsibility
+  
+  data_as_product:
+    description: "Treat data with product thinking"
+    characteristics:
+      - discoverable
+      - addressable
+      - understandable
+      - trustworthy
+      - secure
+      - interoperable
+  
+  self_serve_platform:
+    description: "Infrastructure as a platform"
+    capabilities:
+      - data_pipeline_creation
+      - data_product_deployment
+      - monitoring_observability
+      - data_governance_tools
+  
+  federated_governance:
+    description: "Decentralized governance with global standards"
+    components:
+      - global_policies
+      - domain_specific_rules
+      - automated_compliance
+```
+
+**Data Product Implementation**:
+```python
+class DataProduct:
+    def __init__(self, domain, name, version):
+        self.domain = domain
+        self.name = name
+        self.version = version
+        self.metadata = self._load_metadata()
+    
+    def _load_metadata(self):
+        return {
+            'schema': self._get_schema(),
+            'sla': self._get_sla(),
+            'quality_metrics': self._get_quality_metrics(),
+            'lineage': self._get_lineage(),
+            'access_policies': self._get_access_policies()
+        }
+    
+    def _get_schema(self):
+        return {
+            'format': 'parquet',
+            'fields': [
+                {'name': 'customer_id', 'type': 'string', 'required': True},
+                {'name': 'order_date', 'type': 'timestamp', 'required': True},
+                {'name': 'total_amount', 'type': 'decimal', 'required': True}
+            ]
+        }
+    
+    def _get_sla(self):
+        return {
+            'freshness': '1 hour',
+            'availability': '99.9%',
+            'completeness': '95%',
+            'accuracy': '99%'
+        }
+    
+    def publish(self, data_platform):
+        """Publish data product to the mesh."""
+        data_platform.register_product(self)
+        data_platform.deploy_pipeline(self)
+        data_platform.setup_monitoring(self)
+```
+
+## 5. DataOps Methodology
+**What it is**: A methodology that applies DevOps principles to data analytics, emphasizing collaboration, automation, and continuous improvement.
+
+**Why important**: DataOps improves the speed, quality, and reliability of data analytics by implementing automated testing, continuous integration, and monitoring throughout the data lifecycle.
+
+**When to use**:
+- Organizations with complex data pipelines
+- Teams needing faster time-to-market for analytics
+- Environments requiring high data quality and reliability
+- Companies wanting to scale data operations
+
+**DataOps Pipeline**:
+```yaml
+# DataOps CI/CD Pipeline Configuration
+name: dataops-pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  data-quality-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Data Quality Tests
+        run: |
+          python -m pytest tests/data_quality/
+          python -m great_expectations checkpoint run data_quality_checkpoint
+  
+  schema-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Schema Changes
+        run: |
+          python scripts/validate_schema_evolution.py
+          python scripts/check_backward_compatibility.py
+  
+  deploy-to-staging:
+    needs: [data-quality-tests, schema-validation]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Staging
+        run: |
+          terraform apply -var-file=staging.tfvars
+          python scripts/run_integration_tests.py
+  
+  deploy-to-production:
+    needs: deploy-to-staging
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Production
+        run: |
+          terraform apply -var-file=production.tfvars
+          python scripts/smoke_tests.py
+```
+
+**Data Quality Testing**:
+```python
+import great_expectations as ge
+import pandas as pd
+from datetime import datetime, timedelta
+
+class DataQualityValidator:
+    def __init__(self, data_context_path):
+        self.context = ge.get_context(context_root_dir=data_context_path)
+    
+    def validate_customer_data(self, df):
+        """Validate customer data quality."""
+        suite_name = "customer_data_quality_suite"
+        
+        # Create expectation suite
+        suite = self.context.create_expectation_suite(
+            expectation_suite_name=suite_name,
+            overwrite_existing=True
+        )
+        
+        # Define expectations
+        validator = self.context.get_validator(
+            batch_request=self._create_batch_request(df),
+            expectation_suite_name=suite_name
+        )
+        
+        # Data quality expectations
+        validator.expect_column_to_exist("customer_id")
+        validator.expect_column_values_to_not_be_null("customer_id")
+        validator.expect_column_values_to_be_unique("customer_id")
+        validator.expect_column_values_to_match_regex(
+            "email", r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        )
+        validator.expect_column_values_to_be_between(
+            "age", min_value=0, max_value=120
+        )
+        
+        # Run validation
+        results = validator.validate()
+        return results
+    
+    def _create_batch_request(self, df):
+        return {
+            "datasource_name": "pandas_datasource",
+            "data_connector_name": "default_runtime_data_connector_name",
+            "data_asset_name": "customer_data",
+            "runtime_parameters": {"batch_data": df},
+            "batch_identifiers": {"default_identifier_name": "default_identifier"}
+        }
+```
+
+## 6. Lambda Architecture
+**What it is**: A data processing architecture that handles both batch and real-time data processing to provide comprehensive and accurate views.
+
+**Why important**: Lambda architecture enables organizations to process both historical batch data and real-time streaming data, providing both accuracy (batch layer) and low latency (speed layer).
+
+**When to use**:
+- Systems requiring both batch and real-time processing
+- Applications needing low-latency responses with eventual consistency
+- Environments with high-volume data streams
+- Use cases requiring reprocessing of historical data
+
+**Architecture Components**:
+```python
+# Lambda Architecture Implementation
+class LambdaArchitecture:
+    def __init__(self):
+        self.batch_layer = BatchLayer()
+        self.speed_layer = SpeedLayer()
+        self.serving_layer = ServingLayer()
+    
+    def process_data(self, data_stream):
+        """Process data through both batch and speed layers."""
+        # Batch layer processes all data
+        self.batch_layer.append_data(data_stream)
+        
+        # Speed layer processes real-time data
+        self.speed_layer.process_stream(data_stream)
+        
+        # Serving layer merges results
+        return self.serving_layer.query()
+
+class BatchLayer:
+    def __init__(self):
+        self.master_dataset = []
+    
+    def append_data(self, data):
+        """Append data to master dataset (immutable)."""
+        self.master_dataset.extend(data)
+    
+    def compute_batch_views(self):
+        """Compute batch views from master dataset."""
+        # Example: Compute daily aggregations
+        batch_views = {}
+        for record in self.master_dataset:
+            date = record['timestamp'].date()
+            if date not in batch_views:
+                batch_views[date] = {'count': 0, 'sum': 0}
+            batch_views[date]['count'] += 1
+            batch_views[date]['sum'] += record['value']
+        return batch_views
+
+class SpeedLayer:
+    def __init__(self):
+        self.real_time_views = {}
+    
+    def process_stream(self, data_stream):
+        """Process real-time data stream."""
+        for record in data_stream:
+            self._update_real_time_view(record)
+    
+    def _update_real_time_view(self, record):
+        """Update real-time views incrementally."""
+        key = record['key']
+        if key not in self.real_time_views:
+            self.real_time_views[key] = {'count': 0, 'sum': 0}
+        self.real_time_views[key]['count'] += 1
+        self.real_time_views[key]['sum'] += record['value']
+
+class ServingLayer:
+    def __init__(self, batch_layer, speed_layer):
+        self.batch_layer = batch_layer
+        self.speed_layer = speed_layer
+    
+    def query(self, key):
+        """Query combining batch and speed layer results."""
+        batch_result = self.batch_layer.get_view(key)
+        speed_result = self.speed_layer.get_view(key)
+        
+        # Merge results (speed layer overwrites batch for recent data)
+        return self._merge_views(batch_result, speed_result)
+```
+
+## 7. Kappa Architecture
+**What it is**: A simplified streaming architecture that processes all data as streams, eliminating the complexity of separate batch and speed layers.
+
+**Why important**: Kappa architecture reduces complexity by using a single stream processing engine for both real-time and batch processing, making it easier to maintain and reason about.
+
+**When to use**:
+- Stream-first organizations
+- Systems where reprocessing can be done via stream replay
+- Applications requiring consistent processing logic
+- Environments with strong stream processing capabilities
+
+**Implementation Example**:
+```python
+import apache_beam as beam
+from apache_beam.options.pipeline_options import PipelineOptions
+
+class KappaArchitecture:
+    def __init__(self, pipeline_options):
+        self.pipeline_options = pipeline_options
+    
+    def create_pipeline(self):
+        """Create unified stream processing pipeline."""
+        with beam.Pipeline(options=self.pipeline_options) as pipeline:
+            # Read from stream (can replay for batch processing)
+            events = (
+                pipeline
+                | 'Read from Kafka' >> beam.io.ReadFromKafka(
+                    consumer_config={'bootstrap.servers': 'localhost:9092'},
+                    topics=['user_events']
+                )
+                | 'Parse JSON' >> beam.Map(self._parse_json)
+            )
+            
+            # Real-time aggregations
+            real_time_metrics = (
+                events
+                | 'Window into fixed intervals' >> beam.WindowInto(
+                    beam.window.FixedWindows(60)  # 1-minute windows
+                )
+                | 'Group by key' >> beam.GroupByKey()
+                | 'Compute metrics' >> beam.Map(self._compute_metrics)
+                | 'Write to real-time store' >> beam.io.WriteToBigQuery(
+                    table='project:dataset.real_time_metrics'
+                )
+            )
+            
+            # Historical aggregations (same logic, different window)
+            historical_metrics = (
+                events
+                | 'Window into daily intervals' >> beam.WindowInto(
+                    beam.window.FixedWindows(24 * 60 * 60)  # Daily windows
+                )
+                | 'Group by key daily' >> beam.GroupByKey()
+                | 'Compute daily metrics' >> beam.Map(self._compute_metrics)
+                | 'Write to historical store' >> beam.io.WriteToBigQuery(
+                    table='project:dataset.historical_metrics'
+                )
+            )
+    
+    def _parse_json(self, kafka_message):
+        import json
+        return json.loads(kafka_message.value.decode('utf-8'))
+    
+    def _compute_metrics(self, grouped_data):
+        key, values = grouped_data
+        return {
+            'key': key,
+            'count': len(values),
+            'sum': sum(v['amount'] for v in values),
+            'avg': sum(v['amount'] for v in values) / len(values)
+        }
+```
+
+These key concepts form the foundation of modern data architecture, enabling organizations to build scalable, maintainable, and efficient data systems that can adapt to changing business requirements while ensuring data quality and governance.tribute_cols = ['first_name', 'last_name', 'email', 'phone', 'birth_date']
+    df['hash_diff'] = df[attribute_cols].apply(
+        lambda row: generate_hash_key(*row.values), axis=1
+    )
+    
     return df[['customer_hk', 'load_date'] + attribute_cols + ['hash_diff', 'record_source']]
 ```
 
