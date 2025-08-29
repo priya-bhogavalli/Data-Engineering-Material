@@ -1,5 +1,36 @@
 # Python Interview Questions
 
+## Table of Contents
+
+1. [Basic Python Questions](#basic-python-questions)
+   - [Python 2 vs Python 3](#1-what-are-the-key-differences-between-python-2-and-python-3)
+   - [Memory Management](#2-explain-pythons-memory-management-and-garbage-collection)
+   - [is vs ==](#3-what-is-the-difference-between-is-and-)
+   - [Lists vs Tuples](#4-what-are-the-key-differences-between-lists-and-tuples-in-python)
+   - [List Comprehensions vs Generators](#5-explain-list-comprehensions-vs-generator-expressions)
+2. [Intermediate Questions](#intermediate-questions)
+   - [Decorators](#6-what-are-decorators-and-how-do-they-work)
+   - [*args and **kwargs](#7-explain-the-difference-between-args-and-kwargs)
+   - [Global Interpreter Lock](#8-what-is-the-global-interpreter-lock-gil)
+   - [Method Resolution Order](#9-explain-pythons-method-resolution-order-mro)
+   - [Deep vs Shallow Copy](#10-explain-the-difference-between-deep-copy-and-shallow-copy)
+3. [Advanced Questions](#advanced-questions)
+   - [Singleton Pattern](#11-how-do-you-implement-a-singleton-pattern-in-python)
+   - [Context Managers](#12-explain-context-managers-and-the-with-statement)
+   - [Thread-Safe Singleton](#13-how-would-you-implement-a-thread-safe-singleton-pattern-for-database-connections)
+4. [Data Engineering Specific Questions](#data-engineering-specific-questions)
+   - [Large CSV Processing](#14-how-would-you-process-a-large-csv-file-that-doesnt-fit-in-memory)
+   - [Database Connections](#15-how-do-you-handle-database-connections-efficiently)
+   - [Async/Await](#16-explain-asyncawait-and-when-to-use-it-in-data-engineering)
+   - [Performance Optimization](#17-how-do-you-optimize-python-code-for-performance)
+   - [Error Handling and Logging](#18-how-do-you-handle-errors-and-logging-in-production-python-code)
+5. [Coding Challenges](#coding-challenges)
+   - [LRU Cache Implementation](#19-implement-a-lru-cache-from-scratch)
+   - [Most Frequent Elements](#20-write-a-function-to-find-the-most-frequent-elements-in-a-large-dataset)
+   - [Data Pipeline Implementation](#21-implement-a-comprehensive-data-pipeline-with-error-handling-and-monitoring)
+
+---
+
 ## Basic Python Questions
 
 ### 1. What are the key differences between Python 2 and Python 3?

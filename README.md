@@ -70,7 +70,7 @@ Each topic folder contains:
 - [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/) - Big data processing
 
 ### Cloud Platforms
-- [AWS](./Core-Data-Engineering/Cloud/) - Complete AWS services (S3, EC2, Glue, Athena, Redshift, RDS, IAM)
+- [AWS](./Core-Data-Engineering/Cloud/AWS/) - Complete AWS services (S3, EC2, Glue, Athena, Redshift, RDS, IAM)
 - [Azure](./Core-Data-Engineering/Cloud/Azure/) - Microsoft Azure services
 - [GCP](./Core-Data-Engineering/Cloud/GCP/) - Google Cloud Platform services
 
@@ -242,7 +242,7 @@ Each topic folder contains:
 ### New to Data Engineering?
 1. Start with [Python](./Core-Data-Engineering/Programming-Languages/Python/)
 2. Learn [SQL](./Core-Data-Engineering/Programming-Languages/SQL/)
-3. Understand [AWS basics](./Core-Data-Engineering/Cloud/)
+3. Understand [AWS basics](./Core-Data-Engineering/Cloud/AWS/)
 4. Practice with [Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
 
 ### Preparing for Interviews?

@@ -1,5 +1,30 @@
 # Python Best Practices for Data Engineering
 
+## Table of Contents
+
+1. [Code Style and Formatting](#code-style-and-formatting)
+   - [PEP 8 Compliance](#pep-8-compliance)
+   - [Import Organization](#import-organization)
+   - [Naming Conventions](#naming-conventions)
+2. [Error Handling and Logging](#error-handling-and-logging)
+   - [Comprehensive Error Handling](#comprehensive-error-handling)
+   - [Retry Logic with Exponential Backoff](#retry-logic-with-exponential-backoff)
+3. [Type Hints and Documentation](#type-hints-and-documentation)
+   - [Comprehensive Type Hints](#comprehensive-type-hints)
+   - [Documentation Standards](#documentation-standards)
+4. [Performance Optimization](#performance-optimization)
+   - [Memory-Efficient Data Processing](#memory-efficient-data-processing)
+   - [Database Best Practices](#database-best-practices)
+5. [Testing Best Practices](#testing-best-practices)
+   - [Comprehensive Testing Strategy](#comprehensive-testing-strategy)
+6. [Security Best Practices](#security-best-practices)
+   - [Secure Coding Practices](#secure-coding-practices)
+7. [Project Structure and Organization](#project-structure-and-organization)
+   - [Recommended Project Structure](#recommended-project-structure)
+   - [Configuration Management](#configuration-management)
+
+---
+
 ## Code Style and Formatting
 
 ### PEP 8 Compliance

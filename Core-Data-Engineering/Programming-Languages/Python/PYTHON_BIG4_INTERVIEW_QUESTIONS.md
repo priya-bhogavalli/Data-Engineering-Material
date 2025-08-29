@@ -1,5 +1,26 @@
 # Python Interview Questions - Big4 Companies (Google, Amazon, Microsoft, Meta)
 
+## Table of Contents
+
+1. [Google Interview Questions](#google-interview-questions)
+   - [URL Shortener Design](#1-design-a-url-shortener-like-bitly-google)
+   - [LRU Cache Implementation](#2-implement-lru-cache-with-o1-operations-google)
+   - [Anagram Grouping](#3-find-all-anagrams-in-a-list-of-strings-google)
+2. [Amazon Interview Questions](#amazon-interview-questions)
+   - [Logging System Design](#4-design-a-logging-system-amazon)
+   - [Rate Limiter Implementation](#5-implement-a-rate-limiter-amazon)
+   - [Distributed Cache Design](#6-design-a-distributed-cache-amazon)
+3. [Microsoft Interview Questions](#microsoft-interview-questions)
+   - [Thread-Safe Counter](#7-implement-a-thread-safe-counter-microsoft)
+   - [File System Design](#8-design-a-file-system-microsoft)
+4. [Meta (Facebook) Interview Questions](#meta-facebook-interview-questions)
+   - [Social Media Feed Ranking](#9-design-a-social-media-feed-ranking-system-meta)
+   - [Chat System with Message Ordering](#10-implement-a-chat-system-with-message-ordering-meta)
+5. [System Design Questions (All Big4)](#system-design-questions-all-big4)
+   - [Distributed Key-Value Store](#11-design-a-distributed-key-value-store-all-big4)
+
+---
+
 ## Google Interview Questions
 
 ### 1. Design a URL shortener like bit.ly (Google)

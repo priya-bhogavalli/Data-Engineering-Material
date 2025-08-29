@@ -1,5 +1,39 @@
 # Python Quick Reference
 
+## Table of Contents
+
+1. [Essential Syntax](#essential-syntax)
+   - [Variables and Data Types](#variables-and-data-types)
+   - [String Operations](#string-operations)
+   - [Lists and List Comprehensions](#lists-and-list-comprehensions)
+   - [Dictionaries](#dictionaries)
+2. [Control Flow](#control-flow)
+   - [Conditionals](#conditionals)
+   - [Loops](#loops)
+3. [Functions](#functions)
+   - [Basic Functions](#basic-functions)
+   - [Advanced Function Features](#advanced-function-features)
+4. [Classes and Objects](#classes-and-objects)
+   - [Basic Classes](#basic-classes)
+   - [Inheritance](#inheritance)
+5. [File Operations](#file-operations)
+   - [Reading and Writing Files](#reading-and-writing-files)
+   - [Working with CSV and JSON](#working-with-csv-and-json)
+6. [Error Handling](#error-handling)
+   - [Try/Except Blocks](#tryexcept-blocks)
+7. [Common Built-in Functions](#common-built-in-functions)
+   - [Useful Built-ins](#useful-built-ins)
+8. [Data Engineering Essentials](#data-engineering-essentials)
+   - [Working with Pandas](#working-with-pandas)
+   - [Working with NumPy](#working-with-numpy)
+   - [Database Operations](#database-operations)
+   - [API Requests](#api-requests)
+   - [Logging](#logging)
+9. [Performance Tips](#performance-tips)
+   - [Memory and Speed Optimization](#memory-and-speed-optimization)
+
+---
+
 ## Essential Syntax
 
 ### Variables and Data Types

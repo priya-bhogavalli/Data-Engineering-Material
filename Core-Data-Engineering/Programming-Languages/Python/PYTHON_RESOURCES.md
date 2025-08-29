@@ -1,5 +1,41 @@
 # Python Resources
 
+## Table of Contents
+
+1. [Official Documentation](#official-documentation)
+2. [Data Engineering Libraries](#data-engineering-libraries)
+   - [Data Processing](#data-processing)
+   - [Database Connectivity](#database-connectivity)
+   - [Big Data & Spark](#big-data--spark)
+   - [Cloud Services](#cloud-services)
+   - [Workflow Orchestration](#workflow-orchestration)
+   - [API Development](#api-development)
+3. [Learning Resources](#learning-resources)
+   - [Books](#books)
+   - [Online Courses](#online-courses)
+   - [Practice Platforms](#practice-platforms)
+   - [YouTube Channels](#youtube-channels)
+4. [Development Tools](#development-tools)
+   - [IDEs and Editors](#ides-and-editors)
+   - [Code Quality](#code-quality)
+   - [Testing](#testing)
+   - [Package Management](#package-management)
+5. [Community and Support](#community-and-support)
+   - [Forums and Communities](#forums-and-communities)
+   - [Conferences](#conferences)
+   - [Newsletters and Blogs](#newsletters-and-blogs)
+6. [Certification and Career](#certification-and-career)
+   - [Certifications](#certifications)
+   - [Job Resources](#job-resources)
+7. [Data Engineering Specific Resources](#data-engineering-specific-resources)
+   - [Blogs and Articles](#blogs-and-articles)
+   - [Tools and Frameworks](#tools-and-frameworks)
+   - [Cloud Platforms](#cloud-platforms)
+8. [Version-Specific Resources](#version-specific-resources)
+9. [Quick Reference Links](#quick-reference-links)
+
+---
+
 ## Official Documentation
 - **Python.org**: https://docs.python.org/3/
 - **Python Package Index (PyPI)**: https://pypi.org/
