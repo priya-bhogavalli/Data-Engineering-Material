@@ -403,74 +403,307 @@ if user_stats and user_stats.total_spent > 1000:
 ## Advanced Data Structures
 
 ### 1. Heap (heapq)
-**Priority queue implementation**
+**Description**: Binary heap implementation providing O(log n) insertion/deletion. Essential for priority-based processing and finding top-K elements.
+
+**Real-time Data Engineering Use Cases**:
+- Priority-based task scheduling in data pipelines
+- Finding top-K most frequent items in streams
+- Monitoring system alerts by severity
+- Load balancing based on server capacity
+- Real-time recommendation systems
+
 ```python
 import heapq
+from datetime import datetime
 
-# Min heap
-heap = [3, 1, 4, 1, 5]
-heapq.heapify(heap)         # Convert to heap
-heapq.heappush(heap, 2)     # Add element
-smallest = heapq.heappop(heap)  # Remove smallest
+# Real Example: Priority-based data processing
+class PriorityTask:
+    def __init__(self, priority, task_id, data):
+        self.priority = priority
+        self.task_id = task_id
+        self.data = data
+        self.created_at = datetime.now()
+    
+    def __lt__(self, other):
+        return self.priority < other.priority  # Lower number = higher priority
 
-# Max heap (negate values)
-max_heap = [-x for x in [3, 1, 4]]
-heapq.heapify(max_heap)
+# Task queue for data processing
+task_queue = []
+
+# Add tasks with different priorities
+heapq.heappush(task_queue, PriorityTask(1, "critical_etl", {"table": "orders"}))
+heapq.heappush(task_queue, PriorityTask(5, "daily_report", {"report": "sales"}))
+heapq.heappush(task_queue, PriorityTask(2, "data_validation", {"dataset": "users"}))
+
+# Process tasks by priority
+while task_queue:
+    task = heapq.heappop(task_queue)
+    print(f"Processing: {task.task_id} (priority: {task.priority})")
+    process_data_task(task.data)
+
+# Real-time top-K analysis
+class TopKTracker:
+    def __init__(self, k):
+        self.k = k
+        self.heap = []  # Min heap for top-K
+    
+    def add_item(self, value, item_id):
+        if len(self.heap) < self.k:
+            heapq.heappush(self.heap, (value, item_id))
+        elif value > self.heap[0][0]:
+            heapq.heapreplace(self.heap, (value, item_id))
+    
+    def get_top_k(self):
+        return sorted(self.heap, reverse=True)
+
+# Track top 5 selling products
+top_products = TopKTracker(5)
+for sale in daily_sales:
+    top_products.add_item(sale["quantity"], sale["product_id"])
+
+top_5 = top_products.get_top_k()
+print(f"Top 5 products: {top_5}")
 ```
 
 ### 2. Queue
-**FIFO queue**
+**Description**: Thread-safe queue implementations for concurrent data processing. Essential for producer-consumer patterns and multi-threaded pipelines.
+
+**Real-time Data Engineering Use Cases**:
+- Multi-threaded data processing pipelines
+- Producer-consumer patterns for stream processing
+- Task distribution across worker threads
+- Rate limiting and buffering in data ingestion
+- Coordinating parallel ETL processes
+
 ```python
 from queue import Queue, LifoQueue, PriorityQueue
+import threading
+import time
 
-# FIFO Queue
-q = Queue()
-q.put(1)
-item = q.get()
+# Real Example: Multi-threaded data processing
+class DataProcessor:
+    def __init__(self, num_workers=4):
+        self.input_queue = Queue(maxsize=1000)  # Bounded queue for backpressure
+        self.output_queue = Queue()
+        self.num_workers = num_workers
+        self.workers = []
+    
+    def worker(self):
+        """Worker thread processes data from input queue"""
+        while True:
+            try:
+                data = self.input_queue.get(timeout=1)
+                if data is None:  # Shutdown signal
+                    break
+                
+                # Process data (simulate ETL operation)
+                processed = self.transform_data(data)
+                self.output_queue.put(processed)
+                
+                self.input_queue.task_done()
+            except:
+                break
+    
+    def start_workers(self):
+        for i in range(self.num_workers):
+            worker = threading.Thread(target=self.worker)
+            worker.start()
+            self.workers.append(worker)
+    
+    def add_data(self, data):
+        self.input_queue.put(data)
+    
+    def transform_data(self, data):
+        # Simulate data transformation
+        time.sleep(0.1)
+        return {"processed": data, "timestamp": time.time()}
 
-# LIFO Queue (Stack)
-stack = LifoQueue()
-stack.put(1)
-item = stack.get()
+# Priority-based alert processing
+alert_queue = PriorityQueue()
 
-# Priority Queue
-pq = PriorityQueue()
-pq.put((1, "high priority"))
-pq.put((5, "low priority"))
-priority, item = pq.get()
+# Add alerts with different priorities
+alert_queue.put((1, "CRITICAL: Database down"))
+alert_queue.put((3, "WARNING: High CPU usage"))
+alert_queue.put((2, "ERROR: Failed backup"))
+
+# Process alerts by priority
+while not alert_queue.empty():
+    priority, message = alert_queue.get()
+    handle_alert(priority, message)
+
+# LIFO for undo operations in data processing
+undo_stack = LifoQueue()
+
+def process_with_undo(data, operation):
+    # Save state for undo
+    undo_stack.put(("undo_" + operation.__name__, data.copy()))
+    
+    # Apply operation
+    result = operation(data)
+    return result
+
+def undo_last_operation():
+    if not undo_stack.empty():
+        operation, data = undo_stack.get()
+        return data
+    return None
 ```
 
 ### 3. Array (array module)
-**Efficient arrays of numeric values**
+**Description**: Memory-efficient arrays for homogeneous numeric data. Much more space-efficient than lists for large numeric datasets.
+
+**Real-time Data Engineering Use Cases**:
+- Processing large numeric datasets (sensor data, financial data)
+- Memory-efficient storage of time series data
+- Interfacing with C libraries and binary data
+- High-performance numeric computations
+- Reducing memory footprint in data-intensive applications
+
 ```python
 import array
+import struct
 
-# Creation
-numbers = array.array('i', [1, 2, 3, 4])  # 'i' for integers
-floats = array.array('f', [1.1, 2.2, 3.3])  # 'f' for floats
+# Real Example: Sensor data processing
+class SensorDataBuffer:
+    def __init__(self, sensor_type="temperature"):
+        # Use 'f' for float32 - much more memory efficient than list
+        self.readings = array.array('f')  # 4 bytes per reading vs 28 bytes for list
+        self.timestamps = array.array('L')  # Unsigned long for timestamps
+        self.sensor_type = sensor_type
+    
+    def add_reading(self, value, timestamp):
+        self.readings.append(float(value))
+        self.timestamps.append(int(timestamp))
+    
+    def get_average(self):
+        return sum(self.readings) / len(self.readings) if self.readings else 0
+    
+    def save_to_binary(self, filename):
+        # Efficient binary serialization
+        with open(filename, 'wb') as f:
+            self.readings.tofile(f)
+    
+    def load_from_binary(self, filename):
+        with open(filename, 'rb') as f:
+            self.readings.fromfile(f, -1)  # Read all data
 
-# Operations
-numbers.append(5)
-numbers.extend([6, 7])
+# Process IoT sensor data
+temp_sensor = SensorDataBuffer("temperature")
+
+# Simulate streaming sensor data
+sensor_readings = [
+    (23.5, 1642248000), (24.1, 1642248060), (23.8, 1642248120),
+    (24.3, 1642248180), (23.9, 1642248240)
+]
+
+for temp, timestamp in sensor_readings:
+    temp_sensor.add_reading(temp, timestamp)
+
+avg_temp = temp_sensor.get_average()
+print(f"Average temperature: {avg_temp:.1f}°C")
+
+# Memory comparison
+import sys
+list_data = [1.0] * 1000000  # 1M floats in list
+array_data = array.array('f', [1.0] * 1000000)  # 1M floats in array
+
+print(f"List memory: {sys.getsizeof(list_data):,} bytes")
+print(f"Array memory: {sys.getsizeof(array_data):,} bytes")
+# Array uses ~75% less memory!
 ```
 
 ### 4. Enum
-**Enumerated constants**
+**Description**: Enumerated constants that provide readable, type-safe alternatives to magic numbers and strings. Essential for maintaining data integrity.
+
+**Real-time Data Engineering Use Cases**:
+- Data pipeline status tracking
+- Data quality validation states
+- ETL process stages and outcomes
+- API response status codes
+- Configuration options and feature flags
+
 ```python
-from enum import Enum, auto
+from enum import Enum, auto, IntEnum
 
-class Status(Enum):
-    PENDING = 1
-    APPROVED = 2
-    REJECTED = 3
+# Real Example: Data pipeline status management
+class PipelineStatus(Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILED = "failed"
+    RETRYING = "retrying"
+    CANCELLED = "cancelled"
 
-class Color(Enum):
-    RED = auto()
-    GREEN = auto()
-    BLUE = auto()
+class DataQuality(IntEnum):
+    EXCELLENT = 5
+    GOOD = 4
+    ACCEPTABLE = 3
+    POOR = 2
+    UNACCEPTABLE = 1
 
-# Usage
-current_status = Status.PENDING
+class ProcessingStage(Enum):
+    EXTRACT = auto()
+    VALIDATE = auto()
+    TRANSFORM = auto()
+    LOAD = auto()
+    CLEANUP = auto()
+
+# Pipeline execution tracking
+class DataPipelineRun:
+    def __init__(self, pipeline_id):
+        self.pipeline_id = pipeline_id
+        self.status = PipelineStatus.PENDING
+        self.current_stage = None
+        self.quality_score = None
+    
+    def start_stage(self, stage: ProcessingStage):
+        self.current_stage = stage
+        self.status = PipelineStatus.RUNNING
+        print(f"Pipeline {self.pipeline_id}: Starting {stage.name}")
+    
+    def complete_with_quality(self, quality: DataQuality):
+        self.quality_score = quality
+        if quality >= DataQuality.ACCEPTABLE:
+            self.status = PipelineStatus.SUCCESS
+        else:
+            self.status = PipelineStatus.FAILED
+            print(f"Pipeline failed due to poor data quality: {quality.name}")
+
+# Usage in data processing
+pipeline = DataPipelineRun("daily_sales_etl")
+
+# Process through stages
+for stage in ProcessingStage:
+    pipeline.start_stage(stage)
+    
+    # Simulate processing
+    if stage == ProcessingStage.VALIDATE:
+        data_quality = validate_data_quality()
+        if data_quality < DataQuality.ACCEPTABLE:
+            pipeline.complete_with_quality(data_quality)
+            break
+    
+    time.sleep(1)  # Simulate work
+
+if pipeline.status == PipelineStatus.SUCCESS:
+    print(f"Pipeline completed successfully with {pipeline.quality_score.name} quality")
+
+# Configuration management
+class Environment(Enum):
+    DEV = "development"
+    STAGING = "staging"
+    PROD = "production"
+
+def get_database_config(env: Environment):
+    configs = {
+        Environment.DEV: {"host": "dev-db", "pool_size": 5},
+        Environment.STAGING: {"host": "staging-db", "pool_size": 10},
+        Environment.PROD: {"host": "prod-db", "pool_size": 50}
+    }
+    return configs[env]
+
+# Type-safe configuration
+config = get_database_config(Environment.PROD)
 ```
 
 ## Data Structure Comparison
