@@ -13,6 +13,12 @@
 
 ### 📊 [Dimensions vs Facts - Fundamental Concepts](#-dimensions-vs-facts---fundamental-concepts)
 
+### 📊 [Dimensional Modeling Fundamentals](#-dimensional-modeling-fundamentals)
+- **[Normalization vs Denormalization](#normalization-vs-denormalization)**
+- **[Star Schema](#star-schema)**
+- **[Snowflake Schema](#snowflake-schema)**
+- **[OLAP Cubes](#olap-cubes)**
+
 ### 🏗️ [Core Analytical Patterns](#️-core-analytical-patterns)
 1. **[Slowly Changing Dimensions (SCD)](#1-slowly-changing-dimensions-scd)**
    - [Key Difference: Type 2 vs Type 3](#-key-difference-type-2-vs-type-3)
@@ -203,12 +209,395 @@ SELECT AVG(profit_margin_percent) FROM fact_sales;
 - **Status**: Could be dimension (current status) or fact (status changes)
 - **Decision factors**: Update frequency, analysis needs, data volume
 
+## 📊 Dimensional Modeling Fundamentals
+
+### Normalization vs Denormalization
+**Description**: Fundamental database design approaches that impact analytical performance and storage efficiency.
+
+#### 📊 **Normalization (3NF)**
+**Purpose**: Eliminate data redundancy and ensure data integrity
+**Characteristics**:
+- Data stored in multiple related tables
+- Minimal redundancy
+- Enforces referential integrity
+- Optimized for OLTP (transactional) systems
+
+**Real Example**: E-commerce normalized structure
+```sql
+-- Normalized structure (3NF)
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE addresses (
+    address_id INT PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    street VARCHAR(200),
+    city VARCHAR(50),
+    state VARCHAR(20),
+    country VARCHAR(50)
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+);
+
+CREATE TABLE order_items (
+    item_id INT PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id),
+    product_id INT,
+    quantity INT,
+    unit_price DECIMAL(10,2)
+);
+
+-- Query requires multiple joins
+SELECT 
+    c.customer_name,
+    a.city,
+    o.order_date,
+    SUM(oi.quantity * oi.unit_price) as order_total
+FROM customers c
+JOIN addresses a ON c.customer_id = a.customer_id
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY c.customer_name, a.city, o.order_date;
+```
+
+#### 📊 **Denormalization (Dimensional)**
+**Purpose**: Optimize for analytical queries and reporting
+**Characteristics**:
+- Data duplicated across tables for performance
+- Fewer joins required
+- Optimized for OLAP (analytical) systems
+- Star/Snowflake schema designs
+
+**Real Example**: Denormalized dimensional structure
+```sql
+-- Denormalized dimension (includes address info)
+CREATE TABLE dim_customer (
+    customer_key INT PRIMARY KEY,
+    customer_id INT,
+    customer_name VARCHAR(100),
+    email VARCHAR(100),
+    street VARCHAR(200),        -- Denormalized
+    city VARCHAR(50),          -- Denormalized
+    state VARCHAR(20),         -- Denormalized
+    country VARCHAR(50),       -- Denormalized
+    customer_segment VARCHAR(20)
+);
+
+-- Fact table with pre-calculated measures
+CREATE TABLE fact_order_summary (
+    order_key INT PRIMARY KEY,
+    customer_key INT REFERENCES dim_customer(customer_key),
+    product_key INT,
+    date_key INT,
+    order_amount DECIMAL(10,2),
+    item_count INT,
+    discount_amount DECIMAL(10,2)
+);
+
+-- Simple query with minimal joins
+SELECT 
+    c.customer_name,
+    c.city,
+    SUM(f.order_amount) as total_sales
+FROM fact_order_summary f
+JOIN dim_customer c ON f.customer_key = c.customer_key
+WHERE c.country = 'USA'
+GROUP BY c.customer_name, c.city;
+```
+
+#### 📊 **Comparison: Normalized vs Denormalized**
+
+| Aspect | Normalized (OLTP) | Denormalized (OLAP) |
+|--------|------------------|---------------------|
+| **Purpose** | Data integrity | Query performance |
+| **Redundancy** | Minimal | Intentional |
+| **Joins** | Many complex joins | Few simple joins |
+| **Storage** | Less storage | More storage |
+| **Updates** | Easy to update | Complex updates |
+| **Queries** | Slow analytical queries | Fast analytical queries |
+| **Use Case** | Transaction processing | Reporting & analytics |
+
+### Star Schema
+**Description**: Denormalized dimensional model with fact table at center surrounded by dimension tables. Most common design for data warehouses.
+
+**Characteristics**:
+- **Central fact table** with measures
+- **Dimension tables** directly connected to facts
+- **Denormalized dimensions** (flat structure)
+- **Simple joins** (fact to dimension only)
+- **Fast query performance**
+
+**Real Example**: Retail sales star schema
+```sql
+-- Central fact table
+CREATE TABLE fact_sales (
+    sale_key INT PRIMARY KEY,
+    customer_key INT,           -- FK to dim_customer
+    product_key INT,            -- FK to dim_product
+    store_key INT,              -- FK to dim_store
+    date_key INT,               -- FK to dim_date
+    sales_amount DECIMAL(10,2),
+    quantity_sold INT,
+    cost_amount DECIMAL(10,2)
+);
+
+-- Dimension tables (denormalized)
+CREATE TABLE dim_customer (
+    customer_key INT PRIMARY KEY,
+    customer_id INT,
+    customer_name VARCHAR(100),
+    customer_segment VARCHAR(20),
+    city VARCHAR(50),
+    state VARCHAR(20),
+    country VARCHAR(50)         -- All geography in one table
+);
+
+CREATE TABLE dim_product (
+    product_key INT PRIMARY KEY,
+    product_id INT,
+    product_name VARCHAR(100),
+    brand VARCHAR(50),
+    category VARCHAR(50),
+    department VARCHAR(50),     -- All hierarchy in one table
+    unit_cost DECIMAL(10,2)
+);
+
+CREATE TABLE dim_store (
+    store_key INT PRIMARY KEY,
+    store_id INT,
+    store_name VARCHAR(100),
+    store_type VARCHAR(20),
+    city VARCHAR(50),
+    state VARCHAR(20),
+    region VARCHAR(20)          -- All geography in one table
+);
+
+-- Simple star schema query
+SELECT 
+    p.category,
+    c.customer_segment,
+    s.region,
+    SUM(f.sales_amount) as total_sales,
+    SUM(f.quantity_sold) as total_quantity
+FROM fact_sales f
+JOIN dim_product p ON f.product_key = p.product_key
+JOIN dim_customer c ON f.customer_key = c.customer_key
+JOIN dim_store s ON f.store_key = s.store_key
+JOIN dim_date d ON f.date_key = d.date_key
+WHERE d.year = 2024
+GROUP BY p.category, c.customer_segment, s.region;
+```
+
+### Snowflake Schema
+**Description**: Normalized dimensional model where dimension tables are broken into multiple related tables. More storage efficient but requires more complex joins.
+
+**Characteristics**:
+- **Normalized dimension tables**
+- **Multiple levels of dimension tables**
+- **More complex joins**
+- **Less storage space**
+- **Slower query performance**
+
+**Real Example**: Normalized product hierarchy
+```sql
+-- Fact table (same as star schema)
+CREATE TABLE fact_sales (
+    sale_key INT PRIMARY KEY,
+    customer_key INT,
+    product_key INT,
+    store_key INT,
+    date_key INT,
+    sales_amount DECIMAL(10,2),
+    quantity_sold INT
+);
+
+-- Normalized product dimension (snowflake)
+CREATE TABLE dim_product (
+    product_key INT PRIMARY KEY,
+    product_id INT,
+    product_name VARCHAR(100),
+    brand_key INT,              -- FK to brand table
+    category_key INT            -- FK to category table
+);
+
+CREATE TABLE dim_brand (
+    brand_key INT PRIMARY KEY,
+    brand_name VARCHAR(50),
+    brand_country VARCHAR(50)
+);
+
+CREATE TABLE dim_category (
+    category_key INT PRIMARY KEY,
+    category_name VARCHAR(50),
+    department_key INT          -- FK to department table
+);
+
+CREATE TABLE dim_department (
+    department_key INT PRIMARY KEY,
+    department_name VARCHAR(50),
+    division_key INT            -- FK to division table
+);
+
+CREATE TABLE dim_division (
+    division_key INT PRIMARY KEY,
+    division_name VARCHAR(50)
+);
+
+-- Complex snowflake query (multiple joins)
+SELECT 
+    div.division_name,
+    dept.department_name,
+    cat.category_name,
+    b.brand_name,
+    SUM(f.sales_amount) as total_sales
+FROM fact_sales f
+JOIN dim_product p ON f.product_key = p.product_key
+JOIN dim_brand b ON p.brand_key = b.brand_key
+JOIN dim_category cat ON p.category_key = cat.category_key
+JOIN dim_department dept ON cat.department_key = dept.department_key
+JOIN dim_division div ON dept.division_key = div.division_key
+GROUP BY div.division_name, dept.department_name, cat.category_name, b.brand_name;
+```
+
+#### 📊 **Star vs Snowflake Comparison**
+
+| Aspect | Star Schema | Snowflake Schema |
+|--------|-------------|------------------|
+| **Structure** | Denormalized dimensions | Normalized dimensions |
+| **Joins** | Simple (1 level) | Complex (multiple levels) |
+| **Storage** | More storage | Less storage |
+| **Performance** | Faster queries | Slower queries |
+| **Maintenance** | Harder to maintain | Easier to maintain |
+| **Complexity** | Simple design | Complex design |
+| **Use Case** | High-performance analytics | Storage-constrained environments |
+
+### OLAP Cubes
+**Description**: Multidimensional data structures that enable fast analytical queries through pre-aggregated data. Supports slice, dice, drill-down, and roll-up operations.
+
+**Characteristics**:
+- **Multidimensional structure** (dimensions as axes)
+- **Pre-aggregated measures** for fast queries
+- **OLAP operations**: Slice, Dice, Drill-down, Roll-up, Pivot
+- **MDX queries** (Multidimensional Expressions)
+
+**Real Example**: Sales cube structure
+```sql
+-- Cube definition (conceptual)
+-- Dimensions: Time, Product, Customer, Geography
+-- Measures: Sales Amount, Quantity, Profit
+
+-- Physical implementation using aggregation tables
+CREATE TABLE cube_sales_summary (
+    time_key INT,               -- Year, Quarter, Month, Day
+    product_key INT,            -- Division, Department, Category, Product
+    customer_key INT,           -- Segment, Region, Customer
+    geography_key INT,          -- Country, State, City
+    aggregation_level VARCHAR(20), -- 'YEAR_DEPT_SEGMENT_COUNTRY'
+    sales_amount DECIMAL(15,2),
+    quantity_sold INT,
+    profit_amount DECIMAL(15,2),
+    record_count INT
+);
+
+-- Pre-aggregated data at different levels
+-- Year + Department + Segment + Country level
+INSERT INTO cube_sales_summary 
+SELECT 
+    d.year * 10000 as time_key,
+    p.department_key * 1000 as product_key,
+    c.segment_key * 100 as customer_key,
+    g.country_key as geography_key,
+    'YEAR_DEPT_SEGMENT_COUNTRY' as aggregation_level,
+    SUM(f.sales_amount) as sales_amount,
+    SUM(f.quantity_sold) as quantity_sold,
+    SUM(f.profit_amount) as profit_amount,
+    COUNT(*) as record_count
+FROM fact_sales f
+JOIN dim_date d ON f.date_key = d.date_key
+JOIN dim_product p ON f.product_key = p.product_key
+JOIN dim_customer c ON f.customer_key = c.customer_key
+JOIN dim_geography g ON f.geography_key = g.geography_key
+GROUP BY d.year, p.department_key, c.segment_key, g.country_key;
+
+-- OLAP Operations Examples
+
+-- 1. SLICE: Fix one dimension (e.g., Year = 2024)
+SELECT 
+    product_key,
+    customer_key,
+    geography_key,
+    sales_amount
+FROM cube_sales_summary
+WHERE time_key = 20240000
+AND aggregation_level = 'YEAR_DEPT_SEGMENT_COUNTRY';
+
+-- 2. DICE: Filter multiple dimensions
+SELECT 
+    time_key,
+    product_key,
+    SUM(sales_amount) as total_sales
+FROM cube_sales_summary
+WHERE customer_key IN (100, 200)  -- Specific segments
+AND geography_key IN (1, 2, 3)    -- Specific countries
+GROUP BY time_key, product_key;
+
+-- 3. DRILL-DOWN: From year to quarter
+SELECT 
+    d.quarter,
+    p.department_name,
+    SUM(f.sales_amount) as quarterly_sales
+FROM fact_sales f
+JOIN dim_date d ON f.date_key = d.date_key
+JOIN dim_product p ON f.product_key = p.product_key
+WHERE d.year = 2024
+AND p.department_name = 'Electronics'
+GROUP BY d.quarter, p.department_name;
+
+-- 4. ROLL-UP: From product to category
+SELECT 
+    p.category,
+    SUM(f.sales_amount) as category_sales
+FROM fact_sales f
+JOIN dim_product p ON f.product_key = p.product_key
+JOIN dim_date d ON f.date_key = d.date_key
+WHERE d.year = 2024
+GROUP BY p.category;
+```
+
+#### 📊 **OLAP Cube Benefits**
+- **Fast query performance** through pre-aggregation
+- **Interactive analysis** with drill-down/roll-up
+- **Multidimensional views** of data
+- **Complex calculations** pre-computed
+- **Business user friendly** interfaces
+
+#### 📊 **OLAP vs OLTP**
+
+| Aspect | OLTP (Transactional) | OLAP (Analytical) |
+|--------|---------------------|-------------------|
+| **Purpose** | Day-to-day operations | Business intelligence |
+| **Data** | Current, detailed | Historical, summarized |
+| **Queries** | Simple, fast | Complex, analytical |
+| **Users** | Many concurrent | Fewer, analytical |
+| **Design** | Normalized | Denormalized |
+| **Updates** | Frequent | Batch loads |
+| **Response Time** | Milliseconds | Seconds to minutes |
+
 ## 🏗️ Core Analytical Patterns
 
 ### 1. Slowly Changing Dimensions (SCD)
 **Description**: Handles how dimension data changes over time. Type 1 overwrites old values (current state only), Type 2 creates new records to preserve history, and Type 3 adds columns for previous values. Essential for tracking customer information, product details, or any reference data that evolves.
 
 **Real Example**: Employee department tracking - Same scenario, different approaches
+- **Type 0**: Never changes (fixed attributes)
 - **Type 1**: Only current department (no history)
 - **Type 2**: Complete history of all department changes (multiple rows)
 - **Type 3**: Current + one previous department only (single row)
@@ -220,6 +609,22 @@ SELECT AVG(profit_margin_percent) FROM fact_sales;
 **Type 3**: Updates SAME ROW with limited history (current + previous only)
 
 ```sql
+-- Type 0 SCD: Fixed attributes (never change)
+-- Example: Employee birth date, social security number
+CREATE TABLE dim_employee_type0 (
+    employee_key SERIAL PRIMARY KEY,
+    employee_id INT UNIQUE,
+    name VARCHAR(100),
+    birth_date DATE,           -- Never changes
+    social_security VARCHAR(11), -- Never changes
+    hire_date DATE             -- Never changes
+);
+
+-- These attributes are INSERT ONLY - no updates allowed
+-- Business rule: If source tries to change these, reject or alert
+INSERT INTO dim_employee_type0 VALUES 
+(1, 123, 'John Doe', '1985-03-15', '123-45-6789', '2020-01-15');
+
 -- Type 1 SCD: Product pricing (overwrite - no history needed)
 -- Before: iPhone 14 costs $999
 -- After: iPhone 14 costs $899 (price drop)
@@ -309,14 +714,16 @@ WHERE employee_id = 123;
 
 ## 🎯 **When to Use Each Type**
 
-| Aspect | Type 2 | Type 3 |
-|--------|--------|--------|
-| **History** | Complete unlimited history | Current + 1 previous only |
-| **Storage** | More storage (multiple rows) | Less storage (single row) |
-| **Complexity** | More complex queries | Simpler queries |
-| **Use Case** | Audit trails, compliance | Simple before/after analysis |
-| **Example** | Customer address changes | Employee department transfers |
+| Aspect | Type 0 | Type 1 | Type 2 | Type 3 |
+|--------|--------|--------|--------|--------|
+| **History** | Never changes | No history | Complete unlimited history | Current + 1 previous only |
+| **Storage** | Minimal | Low | More storage (multiple rows) | Less storage (single row) |
+| **Complexity** | Simple | Simple | More complex queries | Simpler queries |
+| **Use Case** | Fixed attributes | Current state only | Audit trails, compliance | Simple before/after analysis |
+| **Example** | Birth date, SSN | Product prices | Customer address changes | Employee department transfers |
 
+**Choose Type 0 when**: Attributes should never change (birth date, government IDs)
+**Choose Type 1 when**: Only current state matters (product prices, status flags)
 **Choose Type 2 when**: You need complete audit trail (banking, healthcare, compliance)
 **Choose Type 3 when**: You only need to compare current vs previous state (reporting, simple analysis)
 
@@ -1000,8 +1407,9 @@ def choose_analytical_pattern(requirements):
 **Q1: What's the difference between dimensions and facts?**
 **Answer**: Dimensions provide context (WHO, WHAT, WHERE, WHEN) with descriptive attributes, while facts store quantitative measures (HOW MUCH, HOW MANY). Dimensions are used for filtering/grouping, facts for calculations/aggregations.
 
-**Q2: Explain the three types of SCD with examples.**
+**Q2: Explain the four types of SCD with examples.**
 **Answer**: 
+- **Type 0**: Fixed attributes that never change (birth date, SSN)
 - **Type 1**: Overwrites old values (product price updates)
 - **Type 2**: Creates new records for history (customer address changes)
 - **Type 3**: Adds columns for previous values (employee department transfers)
@@ -1078,6 +1486,41 @@ def choose_analytical_pattern(requirements):
 
 **Q15: How would you model a retail hierarchy for reporting at different levels?**
 **Answer**: Use hierarchy flattening in product dimension with columns for each level (Product → Subcategory → Category → Department). Enables easy drill-down without complex joins.
+
+### 📊 **Dimensional Modeling Questions**
+
+**Q16: What's the difference between normalization and denormalization in data warehousing?**
+**Answer**: 
+- **Normalization**: Eliminates redundancy, optimized for OLTP, requires many joins
+- **Denormalization**: Intentional redundancy, optimized for OLAP, fewer joins, faster queries
+- **Choice**: Use normalized for transactional systems, denormalized for analytical systems
+
+**Q17: When would you choose star schema over snowflake schema?**
+**Answer**: 
+- **Star Schema**: When query performance is priority, simpler maintenance, acceptable storage costs
+- **Snowflake Schema**: When storage is constrained, data integrity is critical, complex hierarchies exist
+- **Hybrid**: Often use star for main dimensions, snowflake for complex hierarchies
+
+**Q18: Explain OLAP cube operations with examples.**
+**Answer**: 
+- **Slice**: Fix one dimension (e.g., Year = 2024)
+- **Dice**: Filter multiple dimensions (specific regions + products)
+- **Drill-down**: Go from summary to detail (Year → Quarter → Month)
+- **Roll-up**: Go from detail to summary (Product → Category → Department)
+- **Pivot**: Rotate dimensions (swap rows and columns)
+
+**Q19: How do you handle slowly changing dimensions in a star schema?**
+**Answer**: 
+- **Type 1**: Update dimension directly (simple but loses history)
+- **Type 2**: Add new rows with effective dates (preserves history)
+- **Type 3**: Add columns for current/previous values (limited history)
+- **Choice depends on**: Business requirements, storage constraints, query complexity
+
+**Q20: What's the difference between OLTP and OLAP systems?**
+**Answer**: 
+- **OLTP**: Transactional, normalized, current data, many users, fast simple queries
+- **OLAP**: Analytical, denormalized, historical data, fewer users, complex queries
+- **Design**: OLTP uses 3NF, OLAP uses star/snowflake schemas
 
 ## 🔗 Important Reference Links
 

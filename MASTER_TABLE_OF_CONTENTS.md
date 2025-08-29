@@ -9,9 +9,9 @@ Complete navigation guide for all data engineering documentation, tools, and res
 
 ### 🔗 **Essential Documents**
 - [📖 Repository README](./README.md) - Getting started guide
-- [🛠️ Comprehensive Tools Comparison](./COMPREHENSIVE_TOOLS_COMPARISON.md) - All tools compared
-- [💻 Code Best Practices](./DATA_ENGINEERING_CODE_BEST_PRACTICES.md) - Coding guidelines
-- [🏗️ Solution Architecture Guide](./DATA_ENGINEERING_SOLUTION_ARCHITECTURE.md) - Architecture patterns
+- [🛠️ Comprehensive Tools Comparison](./Documentation/COMPREHENSIVE_TOOLS_COMPARISON.md) - All tools compared
+- [💻 Code Best Practices](./Documentation/DATA_ENGINEERING_CODE_BEST_PRACTICES.md) - Coding guidelines
+- [🏗️ Solution Architecture Guide](./Documentation/DATA_ENGINEERING_SOLUTION_ARCHITECTURE.md) - Architecture patterns
 
 ---
 
@@ -199,9 +199,9 @@ Complete navigation guide for all data engineering documentation, tools, and res
 
 ### 🥉 **Priority 3: Advanced Topics**
 1. [Data Architecture Patterns](./Core-Data-Engineering/Data-Architecture/Applying-Analytical-Patterns/APPLYING_ANALYTICAL_PATTERNS_KEY_CONCEPTS.md)
-2. [Solution Architecture Guide](./DATA_ENGINEERING_SOLUTION_ARCHITECTURE.md)
-3. [Code Best Practices](./DATA_ENGINEERING_CODE_BEST_PRACTICES.md)
-4. [Tools Comparison](./COMPREHENSIVE_TOOLS_COMPARISON.md)
+2. [Solution Architecture Guide](./Documentation/DATA_ENGINEERING_SOLUTION_ARCHITECTURE.md)
+3. [Code Best Practices](./Documentation/DATA_ENGINEERING_CODE_BEST_PRACTICES.md)
+4. [Tools Comparison](./Documentation/COMPREHENSIVE_TOOLS_COMPARISON.md)
 
 ---
 
@@ -269,7 +269,7 @@ Complete navigation guide for all data engineering documentation, tools, and res
 4. Use interview questions to test knowledge
 
 ### **For Interview Preparation**
-1. Review [Comprehensive Tools Comparison](./COMPREHENSIVE_TOOLS_COMPARISON.md)
+1. Review [Comprehensive Tools Comparison](./Documentation/COMPREHENSIVE_TOOLS_COMPARISON.md)
 2. Study interview questions for target technologies
 3. Practice coding problems from DSA section
 4. Review architecture patterns and best practices
