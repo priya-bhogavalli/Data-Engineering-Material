@@ -252,90 +252,525 @@ def fetch_data_from_api(url: str):
 ```
 
 ## 3. Object-Oriented Programming
-**What it is**: A programming paradigm that organizes code into classes and objects, encapsulating data and behavior together.
 
-**Why important**: OOP enables building complex, maintainable data processing systems. It provides encapsulation, inheritance, and polymorphism, making code more organized and reusable. Essential for building data pipeline frameworks, ETL tools, and data processing engines.
+**What it is**: Object-Oriented Programming (OOP) is a programming paradigm that organizes code into classes and objects, modeling real-world entities and their interactions.
 
-**When to use**:
-- Building data pipeline frameworks
-- Creating reusable data processing components
-- Implementing different data source connectors
-- Managing complex state in data applications
+**Why crucial for Data Engineering**: 
+- **Modularity**: Break complex data pipelines into manageable components
+- **Reusability**: Create reusable data processing components
+- **Maintainability**: Easier to debug and extend large systems
+- **Abstraction**: Hide complex implementation details behind simple interfaces
 
-**Class Definition**:
+**Real-world analogy**: Think of classes as blueprints (like a house blueprint) and objects as actual instances (actual houses built from that blueprint).
+
+### Classes and Objects
+
+**What they are**: 
+- **Class**: A blueprint or template that defines the structure and behavior of objects
+- **Object**: An instance of a class - the actual "thing" created from the blueprint
+
+**Key concepts**:
+- **Attributes**: Data stored in the object (like variables)
+- **Methods**: Functions that belong to the class and operate on the object's data
+- **Constructor (`__init__`)**: Special method that initializes new objects
+
 ```python
-class DataPipeline:
-    """Data processing pipeline with configurable stages."""
+class DataProcessor:
+    """A class for processing data with configurable settings."""
     
-    def __init__(self, name: str, config: dict):
+    # Class attribute (shared by all instances)
+    default_batch_size = 1000
+    
+    def __init__(self, name: str, source_type: str):
+        """Constructor - initializes a new DataProcessor object."""
+        # Instance attributes (unique to each object)
         self.name = name
-        self.config = config
-        self._stages = []
-        self._results = {}
+        self.source_type = source_type
+        self.processed_count = 0
+        self.errors = []
     
-    def add_stage(self, stage_name: str, processor: Callable):
-        """Add processing stage to pipeline."""
-        self._stages.append((stage_name, processor))
+    def process_batch(self, data: list) -> list:
+        """Process a batch of data."""
+        try:
+            # Simulate data processing
+            processed_data = [item * 2 for item in data if isinstance(item, (int, float))]
+            self.processed_count += len(processed_data)
+            return processed_data
+        except Exception as e:
+            self.errors.append(str(e))
+            return []
     
-    def execute(self, data):
-        """Execute all pipeline stages."""
-        current_data = data
-        
-        for stage_name, processor in self._stages:
-            print(f"Executing stage: {stage_name}")
-            current_data = processor(current_data)
-            self._results[stage_name] = len(current_data)
-        
-        return current_data
-    
-    @property
-    def stage_results(self):
-        """Get results from each stage."""
-        return self._results
-    
-    def __str__(self):
-        return f"DataPipeline(name={self.name}, stages={len(self._stages)})"
+    def get_stats(self) -> dict:
+        """Get processing statistics."""
+        return {
+            'name': self.name,
+            'source_type': self.source_type,
+            'processed_count': self.processed_count,
+            'error_count': len(self.errors)
+        }
+
+# Creating objects (instances) from the class
+processor1 = DataProcessor("Sales Data Processor", "CSV")
+processor2 = DataProcessor("Customer Data Processor", "JSON")
+
+# Using the objects
+data_batch = [10, 20, 30, 40, 50]
+result1 = processor1.process_batch(data_batch)
+result2 = processor2.process_batch([5, 15, 25])
+
+print(f"Processor 1 result: {result1}")
+print(f"Processor 1 stats: {processor1.get_stats()}")
+print(f"Processor 2 stats: {processor2.get_stats()}")
+# Output: Processor 1 result: [20, 40, 60, 80, 100]
+# Output: Processor 1 stats: {'name': 'Sales Data Processor', 'source_type': 'CSV', 'processed_count': 5, 'error_count': 0}
+# Output: Processor 2 stats: {'name': 'Customer Data Processor', 'source_type': 'JSON', 'processed_count': 3, 'error_count': 0}
 ```
 
-**Inheritance and Polymorphism**:
+### Encapsulation
+
+**What it is**: Encapsulation is the practice of bundling data and methods together while controlling access to the internal details of an object.
+
+**Why important**: 
+- **Data Protection**: Prevents external code from directly modifying internal state
+- **Interface Stability**: Changes to internal implementation don't break external code
+- **Validation**: Control how data is set and retrieved
+
+**Python conventions**:
+- **Public**: Normal attributes/methods (e.g., `self.name`)
+- **Protected**: Single underscore prefix (e.g., `self._internal_data`) - convention only
+- **Private**: Double underscore prefix (e.g., `self.__secret`) - name mangling
+
+```python
+class DatabaseConnection:
+    """Encapsulated database connection with controlled access."""
+    
+    def __init__(self, host: str, port: int, database: str):
+        # Public attributes
+        self.host = host
+        self.database = database
+        
+        # Protected attribute (internal use, but accessible)
+        self._port = port
+        
+        # Private attributes (strongly encapsulated)
+        self.__connection_string = f"postgresql://{host}:{port}/{database}"
+        self.__is_connected = False
+        self.__connection_pool_size = 10
+    
+    # Public method - part of the interface
+    def connect(self) -> bool:
+        """Establish database connection."""
+        if self._validate_connection_params():
+            self.__is_connected = True
+            print(f"Connected to {self.database} on {self.host}")
+            return True
+        return False
+    
+    # Protected method (internal helper)
+    def _validate_connection_params(self) -> bool:
+        """Validate connection parameters."""
+        return bool(self.host and self._port and self.database)
+    
+    # Private method (implementation detail)
+    def __create_connection_pool(self):
+        """Create connection pool - internal implementation."""
+        return f"Pool of {self.__connection_pool_size} connections"
+    
+    # Property - controlled access to private data
+    @property
+    def is_connected(self) -> bool:
+        """Check if connected (read-only access)."""
+        return self.__is_connected
+    
+    @property
+    def connection_info(self) -> dict:
+        """Get connection info without exposing sensitive details."""
+        return {
+            'host': self.host,
+            'database': self.database,
+            'port': self._port,
+            'connected': self.__is_connected
+        }
+    
+    # Setter with validation
+    @property
+    def pool_size(self) -> int:
+        return self.__connection_pool_size
+    
+    @pool_size.setter
+    def pool_size(self, size: int):
+        if 1 <= size <= 100:
+            self.__connection_pool_size = size
+        else:
+            raise ValueError("Pool size must be between 1 and 100")
+
+# Using encapsulation
+db = DatabaseConnection("localhost", 5432, "sales_db")
+
+# Public interface usage
+db.connect()
+print(f"Connection status: {db.is_connected}")
+print(f"Connection info: {db.connection_info}")
+
+# Controlled access through properties
+db.pool_size = 20
+print(f"Pool size: {db.pool_size}")
+
+# Output: Connected to sales_db on localhost
+# Output: Connection status: True
+# Output: Connection info: {'host': 'localhost', 'database': 'sales_db', 'port': 5432, 'connected': True}
+# Output: Pool size: 20
+```
+
+### Inheritance
+
+**What it is**: Inheritance allows a class to inherit attributes and methods from another class, creating a parent-child relationship.
+
+**Why powerful**: 
+- **Code Reuse**: Don't repeat common functionality
+- **Hierarchical Organization**: Model real-world relationships
+- **Extensibility**: Add new features while keeping existing ones
+
+**Key concepts**:
+- **Parent/Base/Super class**: The class being inherited from
+- **Child/Derived/Sub class**: The class that inherits
+- **Method Override**: Child class provides its own implementation
+- **super()**: Access parent class methods
+
 ```python
 from abc import ABC, abstractmethod
+from typing import List, Dict, Any
 
-class DataSource(ABC):
-    """Abstract base class for data sources."""
+# Base class for all data sources
+class DataSource:
+    """Base class for all data sources."""
     
-    @abstractmethod
-    def extract(self) -> list:
-        pass
+    def __init__(self, name: str, connection_string: str):
+        self.name = name
+        self.connection_string = connection_string
+        self.is_connected = False
+        self.records_processed = 0
     
-    @abstractmethod
-    def validate(self, data: list) -> bool:
-        pass
+    def connect(self) -> bool:
+        """Base connection logic."""
+        print(f"Establishing connection to {self.name}...")
+        self.is_connected = True
+        return True
+    
+    def disconnect(self):
+        """Base disconnection logic."""
+        print(f"Disconnecting from {self.name}")
+        self.is_connected = False
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get processing statistics."""
+        return {
+            'name': self.name,
+            'connected': self.is_connected,
+            'records_processed': self.records_processed
+        }
 
+# Child class for CSV files
 class CSVDataSource(DataSource):
-    def __init__(self, file_path: str):
-        self.file_path = file_path
+    """Specialized data source for CSV files."""
     
-    def extract(self) -> list:
-        import csv
-        with open(self.file_path, 'r') as file:
-            return list(csv.DictReader(file))
+    def __init__(self, name: str, file_path: str, delimiter: str = ','):
+        # Call parent constructor
+        super().__init__(name, file_path)
+        self.delimiter = delimiter
+        self.headers = []
     
-    def validate(self, data: list) -> bool:
-        return len(data) > 0 and all(isinstance(row, dict) for row in data)
+    def connect(self) -> bool:
+        """Override parent method with CSV-specific logic."""
+        # Call parent method first
+        super().connect()
+        print(f"Reading CSV headers from {self.connection_string}")
+        # Simulate reading headers
+        self.headers = ['id', 'name', 'amount', 'date']
+        return True
+    
+    def read_data(self, limit: int = None) -> List[Dict[str, str]]:
+        """CSV-specific method."""
+        if not self.is_connected:
+            raise ConnectionError("Not connected to data source")
+        
+        # Simulate reading CSV data
+        data = [
+            {'id': '1', 'name': 'John', 'amount': '100.50', 'date': '2024-01-01'},
+            {'id': '2', 'name': 'Jane', 'amount': '250.75', 'date': '2024-01-02'}
+        ]
+        
+        if limit:
+            data = data[:limit]
+        
+        self.records_processed += len(data)
+        return data
 
-class APIDataSource(DataSource):
-    def __init__(self, url: str, headers: dict = None):
-        self.url = url
-        self.headers = headers or {}
+# Child class for databases
+class DatabaseSource(DataSource):
+    """Specialized data source for databases."""
     
-    def extract(self) -> list:
-        import requests
-        response = requests.get(self.url, headers=self.headers)
-        return response.json()
+    def __init__(self, name: str, connection_string: str, table_name: str):
+        super().__init__(name, connection_string)
+        self.table_name = table_name
+        self.query_cache = {}
     
-    def validate(self, data: list) -> bool:
-        return isinstance(data, list) and len(data) > 0
+    def connect(self) -> bool:
+        """Override with database-specific connection."""
+        super().connect()
+        print(f"Establishing database connection pool")
+        print(f"Setting default table to {self.table_name}")
+        return True
+    
+    def execute_query(self, query: str) -> List[Dict[str, Any]]:
+        """Database-specific method."""
+        if not self.is_connected:
+            raise ConnectionError("Database not connected")
+        
+        # Check cache first
+        if query in self.query_cache:
+            print(f"Returning cached result for query")
+            return self.query_cache[query]
+        
+        # Simulate query execution
+        print(f"Executing: {query}")
+        result = [
+            {'customer_id': 1, 'total_orders': 5, 'total_amount': 1250.00},
+            {'customer_id': 2, 'total_orders': 3, 'total_amount': 750.50}
+        ]
+        
+        # Cache the result
+        self.query_cache[query] = result
+        self.records_processed += len(result)
+        return result
+
+# Using inheritance
+csv_source = CSVDataSource("Sales CSV", "/data/sales.csv")
+db_source = DatabaseSource("Sales DB", "postgresql://localhost/sales", "orders")
+
+# Both inherit connect() but with different behaviors
+csv_source.connect()
+db_source.connect()
+
+# Use specialized methods
+csv_data = csv_source.read_data(limit=1)
+db_data = db_source.execute_query("SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id")
+
+# Both inherit get_stats()
+print(f"CSV stats: {csv_source.get_stats()}")
+print(f"DB stats: {db_source.get_stats()}")
+
+# Output: Establishing connection to Sales CSV...
+# Output: Reading CSV headers from /data/sales.csv
+# Output: Establishing connection to Sales DB...
+# Output: Establishing database connection pool
+# Output: Setting default table to orders
+# Output: Executing: SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id
+# Output: CSV stats: {'name': 'Sales CSV', 'connected': True, 'records_processed': 1}
+# Output: DB stats: {'name': 'Sales DB', 'connected': True, 'records_processed': 2}
+```
+
+### Polymorphism
+
+**What it is**: Polymorphism allows objects of different classes to be treated as objects of a common base class, while each maintains its own specific behavior.
+
+**Why powerful**: 
+- **Flexibility**: Write code that works with multiple types
+- **Extensibility**: Add new types without changing existing code
+- **Clean Architecture**: Depend on abstractions, not concrete implementations
+
+```python
+from typing import List, Protocol
+
+# Protocol for polymorphic behavior (Python 3.8+)
+class Processable(Protocol):
+    def process(self, data: List[Any]) -> List[Any]:
+        ...
+    
+    def get_name(self) -> str:
+        ...
+
+# Different processors with same interface
+class NumberProcessor:
+    def process(self, data: List[Any]) -> List[Any]:
+        return [x * 2 for x in data if isinstance(x, (int, float))]
+    
+    def get_name(self) -> str:
+        return "Number Processor"
+
+class StringProcessor:
+    def process(self, data: List[Any]) -> List[Any]:
+        return [str(x).upper() for x in data if isinstance(x, str)]
+    
+    def get_name(self) -> str:
+        return "String Processor"
+
+class FilterProcessor:
+    def __init__(self, condition):
+        self.condition = condition
+    
+    def process(self, data: List[Any]) -> List[Any]:
+        return [x for x in data if self.condition(x)]
+    
+    def get_name(self) -> str:
+        return "Filter Processor"
+
+# Polymorphic function - works with any processor
+def run_data_pipeline(processors: List[Processable], data: List[Any]) -> List[Any]:
+    """Run data through multiple processors polymorphically."""
+    result = data
+    
+    for processor in processors:
+        print(f"Running {processor.get_name()}...")
+        result = processor.process(result)
+        print(f"Result: {result}")
+    
+    return result
+
+# Create different processor instances
+processors = [
+    FilterProcessor(lambda x: isinstance(x, (int, float, str))),  # Filter valid types
+    NumberProcessor(),                                            # Process numbers
+    StringProcessor()                                            # Process strings
+]
+
+# Mixed data
+input_data = [1, 2, "hello", 3.5, "world", None, 4, "python"]
+
+# Run polymorphic pipeline
+final_result = run_data_pipeline(processors, input_data)
+print(f"Final result: {final_result}")
+
+# Output: Running Filter Processor...
+# Output: Result: [1, 2, 'hello', 3.5, 'world', 4, 'python']
+# Output: Running Number Processor...
+# Output: Result: [2, 4, 7.0, 8]
+# Output: Running String Processor...
+# Output: Result: []
+# Output: Final result: []
+```
+
+### Abstract Classes
+
+**What they are**: Abstract classes define a common interface that subclasses must implement, ensuring consistent behavior across related classes.
+
+**Why important**: 
+- **Contract Enforcement**: Guarantee that subclasses implement required methods
+- **Design Clarity**: Make intentions explicit in the code
+- **Framework Building**: Create extensible architectures
+
+```python
+from abc import ABC, abstractmethod
+from typing import Dict, List, Any
+
+# Abstract base class
+class DataValidator(ABC):
+    """Abstract base class for data validators."""
+    
+    def __init__(self, name: str):
+        self.name = name
+        self.validation_errors = []
+    
+    @abstractmethod
+    def validate(self, data: Any) -> bool:
+        """Abstract method - must be implemented by subclasses."""
+        pass
+    
+    @abstractmethod
+    def get_error_message(self) -> str:
+        """Abstract method for error messages."""
+        pass
+    
+    # Concrete method (shared by all subclasses)
+    def reset_errors(self):
+        """Clear validation errors."""
+        self.validation_errors.clear()
+    
+    def has_errors(self) -> bool:
+        """Check if there are validation errors."""
+        return len(self.validation_errors) > 0
+
+# Concrete implementations
+class EmailValidator(DataValidator):
+    def validate(self, data: str) -> bool:
+        if not isinstance(data, str):
+            self.validation_errors.append("Email must be a string")
+            return False
+        
+        if "@" not in data or "." not in data:
+            self.validation_errors.append("Invalid email format")
+            return False
+        
+        return True
+    
+    def get_error_message(self) -> str:
+        return f"Email validation failed: {', '.join(self.validation_errors)}"
+
+class RangeValidator(DataValidator):
+    def __init__(self, name: str, min_val: float, max_val: float):
+        super().__init__(name)
+        self.min_val = min_val
+        self.max_val = max_val
+    
+    def validate(self, data: Any) -> bool:
+        if not isinstance(data, (int, float)):
+            self.validation_errors.append("Value must be numeric")
+            return False
+        
+        if not (self.min_val <= data <= self.max_val):
+            self.validation_errors.append(f"Value must be between {self.min_val} and {self.max_val}")
+            return False
+        
+        return True
+    
+    def get_error_message(self) -> str:
+        return f"Range validation failed: {', '.join(self.validation_errors)}"
+
+# Validation framework using abstract classes
+class DataValidationFramework:
+    def __init__(self):
+        self.validators: List[DataValidator] = []
+    
+    def add_validator(self, validator: DataValidator):
+        self.validators.append(validator)
+    
+    def validate_record(self, record: Dict[str, Any]) -> Dict[str, List[str]]:
+        errors = {}
+        
+        for validator in self.validators:
+            validator.reset_errors()
+            field_name = validator.name
+            
+            if field_name in record:
+                is_valid = validator.validate(record[field_name])
+                if not is_valid:
+                    errors[field_name] = validator.validation_errors.copy()
+        
+        return errors
+
+# Using the abstract class framework
+framework = DataValidationFramework()
+framework.add_validator(EmailValidator("email"))
+framework.add_validator(RangeValidator("age", 0, 120))
+framework.add_validator(RangeValidator("salary", 0, 1000000))
+
+# Test data
+test_records = [
+    {"email": "john@example.com", "age": 30, "salary": 50000},
+    {"email": "invalid-email", "age": -5, "salary": 2000000},
+    {"email": "jane@company.org", "age": 25, "salary": 75000}
+]
+
+for i, record in enumerate(test_records):
+    errors = framework.validate_record(record)
+    if errors:
+        print(f"Record {i+1} validation errors: {errors}")
+    else:
+        print(f"Record {i+1} is valid")
+
+# Output: Record 1 is valid
+# Output: Record 2 validation errors: {'email': ['Invalid email format'], 'age': ['Value must be between 0 and 120'], 'salary': ['Value must be between 0 and 1000000']}
+# Output: Record 3 is valid
 ```
 
 ## 4. Error Handling

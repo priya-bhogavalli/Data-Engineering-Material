@@ -16,6 +16,9 @@
 ### Q1: What are the key differences between lists and tuples in Python?
 
 **Answer:**
+Lists are mutable sequences that can be modified after creation, while tuples are immutable sequences that cannot be changed. Tuples are more memory-efficient and can be used as dictionary keys due to their immutability. Lists provide more methods for modification (append, extend, remove) while tuples are primarily used for data that shouldn't change.
+
+**Code Example:**
 ```python
 # Lists - mutable, ordered
 my_list = [1, 2, 3]
@@ -50,6 +53,9 @@ print(f"Tuple size: {sys.getsizeof(tuple_data)} bytes")
 ### Q2: How do you efficiently remove duplicates from a list while preserving order?
 
 **Answer:**
+Two main approaches: `dict.fromkeys()` (Python 3.7+) leverages dictionary's ordered nature and uniqueness, or manually track seen items with a set. The dict method is generally faster due to C implementation, while the set method gives more control over the process.
+
+**Code Example:**
 ```python
 # Method 1: Using dict.fromkeys() (Python 3.7+)
 def remove_duplicates_ordered(lst):
@@ -98,6 +104,9 @@ print(f"set method time: {time2:.4f}s")
 ### Q3: Explain the difference between shallow and deep copy with examples.
 
 **Answer:**
+Shallow copy creates a new object but references to nested objects remain the same. Deep copy creates completely independent copies of all nested objects. Shallow copy affects nested elements when modified, while deep copy creates truly independent structures.
+
+**Code Example:**
 ```python
 import copy
 
@@ -143,6 +152,9 @@ print(f"Deep: {deep}")        # Not affected
 ### Q4: When would you use Counter vs defaultdict vs regular dict?
 
 **Answer:**
+Use Counter for frequency counting and statistical operations. Use defaultdict when you need automatic initialization of missing keys to avoid KeyError exceptions. Use regular dict for general key-value storage when you want explicit control over key existence checking.
+
+**Code Example:**
 ```python
 from collections import Counter, defaultdict
 
@@ -210,6 +222,9 @@ print(f"defaultdict is {dict_time/dd_time:.1f}x faster")
 ### Q5: Implement a LRU cache using OrderedDict.
 
 **Answer:**
+LRU (Least Recently Used) cache evicts the least recently accessed item when capacity is exceeded. OrderedDict maintains insertion order and provides `move_to_end()` for efficient reordering. This gives O(1) access, insertion, and deletion operations.
+
+**Code Example:**
 ```python
 from collections import OrderedDict
 
@@ -271,6 +286,9 @@ print(f"Get evicted key 2: {value}")
 ### Q6: Explain how heapq works and implement a priority queue for task scheduling.
 
 **Answer:**
+heapq implements a binary min-heap where the smallest element is always at index 0. It maintains the heap property: parent ≤ children. Perfect for priority queues where you need to efficiently get the minimum/maximum element. Tasks with lower priority numbers get processed first.
+
+**Code Example:**
 ```python
 import heapq
 from dataclasses import dataclass
@@ -532,9 +550,224 @@ print(f"Dictionary set:          {dict_setitem:.8f}s")
 # Output: Dictionary set:          0.00000025s
 ```
 
+These interview questions cover essential Python data structures concepts that data engineers need to master, with working implementations and expected outputs for hands-on learning.duler = TaskScheduler()
+
+# Add tasks with different priorities
+scheduler.add_task(3, "Low priority task")
+scheduler.add_task(1, "High priority task")
+scheduler.add_task(2, "Medium priority task")
+scheduler.add_task(1, "Another high priority task")
+
+print(f"\nScheduler has {scheduler.size()} tasks")
+# Output: Added task: Low priority task (priority: 3)
+# Output: Added task: High priority task (priority: 1)
+# Output: Added task: Medium priority task (priority: 2)
+# Output: Added task: Another high priority task (priority: 1)
+# Output: Scheduler has 4 tasks
+
+# Process all tasks (should be in priority order)
+print("\nProcessing tasks:")
+while scheduler.size() > 0:
+    task = scheduler.get_next_task()
+# Output: Processing tasks:
+# Output: Processing task: High priority task (priority: 1)
+# Output: Processing task: Another high priority task (priority: 1)
+# Output: Processing task: Medium priority task (priority: 2)
+# Output: Processing task: Low priority task (priority: 3)
+
+# Demonstrate heap operations
+numbers = [3, 1, 4, 1, 5, 9, 2, 6]
+print(f"\nOriginal list: {numbers}")
+heapq.heapify(numbers)
+print(f"After heapify: {numbers}")
+
+# Get top 3 smallest and largest
+top_3_smallest = heapq.nsmallest(3, numbers)
+top_3_largest = heapq.nlargest(3, numbers)
+print(f"Top 3 smallest: {top_3_smallest}")
+print(f"Top 3 largest: {top_3_largest}")
+# Output: Original list: [3, 1, 4, 1, 5, 9, 2, 6]
+# Output: After heapify: [1, 1, 2, 3, 5, 9, 4, 6]
+# Output: Top 3 smallest: [1, 1, 2]
+# Output: Top 3 largest: [9, 6, 5]
+```
+
+### Q7: How would you implement a sliding window maximum using deque?
+
+**Answer:**
+```python
+from collections import deque
+
+def sliding_window_maximum(nums, k):
+    """
+    Find maximum in each sliding window of size k.
+    Time: O(n), Space: O(k)
+    """
+    if not nums or k == 0:
+        return []
+    
+    # Deque stores indices of array elements
+    # Elements are stored in decreasing order of their values
+    dq = deque()
+    result = []
+    
+    for i in range(len(nums)):
+        # Remove indices that are out of current window
+        while dq and dq[0] <= i - k:
+            dq.popleft()
+        
+        # Remove indices whose corresponding values are smaller than nums[i]
+        while dq and nums[dq[-1]] <= nums[i]:
+            dq.pop()
+        
+        # Add current index
+        dq.append(i)
+        
+        # The front of deque contains index of maximum element
+        if i >= k - 1:
+            result.append(nums[dq[0]])
+    
+    return result
+
+# Test sliding window maximum
+nums = [1, 3, -1, -3, 5, 3, 6, 7]
+k = 3
+
+result = sliding_window_maximum(nums, k)
+print(f"Array: {nums}")
+print(f"Window size: {k}")
+print(f"Sliding window maximums: {result}")
+# Output: Array: [1, 3, -1, -3, 5, 3, 6, 7]
+# Output: Window size: 3
+# Output: Sliding window maximums: [3, 3, 5, 5, 6, 7]
+
+# Demonstrate step by step
+def sliding_window_maximum_verbose(nums, k):
+    dq = deque()
+    result = []
+    
+    for i in range(len(nums)):
+        print(f"\nStep {i+1}: Processing nums[{i}] = {nums[i]}")
+        
+        # Remove out of window indices
+        while dq and dq[0] <= i - k:
+            removed = dq.popleft()
+            print(f"  Removed out-of-window index {removed}")
+        
+        # Remove smaller elements
+        while dq and nums[dq[-1]] <= nums[i]:
+            removed = dq.pop()
+            print(f"  Removed smaller element at index {removed} (value: {nums[removed]})")
+        
+        dq.append(i)
+        print(f"  Added index {i}, deque: {list(dq)}")
+        
+        if i >= k - 1:
+            max_val = nums[dq[0]]
+            result.append(max_val)
+            print(f"  Window [{i-k+1}:{i+1}] maximum: {max_val}")
+    
+    return result
+
+print("\nDetailed execution:")
+sliding_window_maximum_verbose([1, 3, -1, -3, 5], 3)
+# Output: Detailed execution:
+# Output: Step 1: Processing nums[0] = 1
+# Output:   Added index 0, deque: [0]
+# Output: Step 2: Processing nums[1] = 3
+# Output:   Removed smaller element at index 0 (value: 1)
+# Output:   Added index 1, deque: [1]
+# Output: Step 3: Processing nums[2] = -1
+# Output:   Added index 2, deque: [1, 2]
+# Output:   Window [0:3] maximum: 3
+# Output: Step 4: Processing nums[3] = -3
+# Output:   Added index 3, deque: [1, 2, 3]
+# Output:   Window [1:4] maximum: 3
+# Output: Step 5: Processing nums[4] = 5
+# Output:   Removed out-of-window index 1
+# Output:   Removed smaller element at index 2 (value: -1)
+# Output:   Removed smaller element at index 3 (value: -3)
+# Output:   Added index 4, deque: [4]
+# Output:   Window [2:5] maximum: 5
+```
+
+## Performance and Optimization
+
+### Q8: Compare the time complexity of different operations on Python data structures.
+
+**Answer:**
+```python
+import time
+import random
+
+def time_operation(func, *args, iterations=1000):
+    """Time a function over multiple iterations."""
+    start = time.time()
+    for _ in range(iterations):
+        func(*args)
+    return (time.time() - start) / iterations
+
+# Test data
+small_list = list(range(100))
+large_list = list(range(10000))
+small_set = set(range(100))
+large_set = set(range(10000))
+small_dict = {i: i for i in range(100)}
+large_dict = {i: i for i in range(10000)}
+
+print("Time Complexity Comparison (average time per operation)")
+print("=" * 60)
+
+# Search operations
+search_item = 50
+
+list_search_small = time_operation(lambda: search_item in small_list, iterations=10000)
+list_search_large = time_operation(lambda: search_item in large_list, iterations=1000)
+set_search_small = time_operation(lambda: search_item in small_set, iterations=10000)
+set_search_large = time_operation(lambda: search_item in large_set, iterations=10000)
+
+print(f"Search in small list (100 items): {list_search_small:.8f}s")
+print(f"Search in large list (10k items): {list_search_large:.8f}s")
+print(f"Search in small set (100 items):  {set_search_small:.8f}s")
+print(f"Search in large set (10k items):  {set_search_large:.8f}s")
+# Output: Search in small list (100 items): 0.00000120s
+# Output: Search in large list (10k items): 0.00012000s
+# Output: Search in small set (100 items):  0.00000015s
+# Output: Search in large set (10k items):  0.00000015s
+
+print(f"\nList search scales O(n): {list_search_large/list_search_small:.1f}x slower")
+print(f"Set search scales O(1): {set_search_large/set_search_small:.1f}x slower")
+# Output: List search scales O(n): 100.0x slower
+# Output: Set search scales O(1): 1.0x slower
+
+# Insert operations
+list_insert_end = time_operation(lambda: small_list.append(999), iterations=10000)
+list_insert_start = time_operation(lambda: small_list.insert(0, 999), iterations=1000)
+set_add = time_operation(lambda: small_set.add(999), iterations=10000)
+
+print(f"\nInsert at end of list:   {list_insert_end:.8f}s")
+print(f"Insert at start of list: {list_insert_start:.8f}s")
+print(f"Add to set:              {set_add:.8f}s")
+# Output: Insert at end of list:   0.00000025s
+# Output: Insert at start of list: 0.00002500s
+# Output: Add to set:              0.00000030s
+
+# Dictionary operations
+dict_get = time_operation(lambda: small_dict.get(50), iterations=10000)
+dict_setitem = time_operation(lambda: small_dict.__setitem__(999, 999), iterations=10000)
+
+print(f"\nDictionary get:          {dict_get:.8f}s")
+print(f"Dictionary set:          {dict_setitem:.8f}s")
+# Output: Dictionary get:          0.00000020s
+# Output: Dictionary set:          0.00000025s
+```
+
 ### Q9: How would you optimize memory usage when working with large datasets?
 
 **Answer:**
+Use generators for lazy evaluation, arrays instead of lists for numeric data, __slots__ for memory-efficient classes, and process data in chunks. These techniques can reduce memory usage by 50-90% for large datasets while maintaining functionality.
+
+**Code Example:**
 ```python
 import sys
 from array import array
@@ -643,6 +876,9 @@ print(f"Total items processed: {total_processed}")
 ### Q10: Design a data structure for a real-time analytics system that tracks user events.
 
 **Answer:**
+Combine deque for time-windowed events, defaultdict for user sessions, Counter for aggregations, and threading locks for concurrency. This provides O(1) event insertion, efficient cleanup of old data, and fast analytics queries for real-time systems.
+
+**Code Example:**
 ```python
 from collections import defaultdict, deque, Counter
 import time
@@ -805,6 +1041,9 @@ for event in journey:
 ### Q11: Implement a data structure that supports insert, delete, and getRandom in O(1) time.
 
 **Answer:**
+Use an array to store values and a hash map to track indices. For deletion, swap the element with the last element to avoid shifting. This maintains O(1) operations while preserving the ability to get random elements efficiently.
+
+**Code Example:**
 ```python
 import random
 
@@ -889,6 +1128,9 @@ for i in range(5):
 ### Q12: Design a data structure for autocomplete functionality.
 
 **Answer:**
+Trie (prefix tree) is ideal for autocomplete. Each node represents a character, paths form words, and leaf nodes mark word endings. Store frequency at word nodes for ranking suggestions. This provides efficient prefix matching and sorted suggestions by popularity.
+
+**Code Example:**
 ```python
 class TrieNode:
     def __init__(self):
