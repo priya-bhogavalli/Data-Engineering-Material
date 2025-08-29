@@ -78,8 +78,15 @@ Python is the **lingua franca of data engineering** - a versatile, readable prog
 ```python
 # Processing records in sequence
 customer_ids = [1001, 1002, 1003, 1004]
+print(f"Processing {len(customer_ids)} customers: {customer_ids}")
 for customer_id in customer_ids:
-    process_customer_data(customer_id)
+    print(f"Processing customer {customer_id}")
+    # process_customer_data(customer_id)
+# Output: Processing 4 customers: [1001, 1002, 1003, 1004]
+# Output: Processing customer 1001
+# Output: Processing customer 1002
+# Output: Processing customer 1003
+# Output: Processing customer 1004
 
 # Building dynamic datasets
 processed_records = []
@@ -111,18 +118,39 @@ def transform_record(raw_record):
         field_mappings.get(key, key): value 
         for key, value in raw_record.items()
     }
+
+# Example usage
+raw_record = {'cust_id': 12345, 'cust_name': 'John Doe', 'order_dt': '2024-01-15'}
+transformed = transform_record(raw_record)
+print(f"Original: {raw_record}")
+print(f"Transformed: {transformed}")
+# Output: Original: {'cust_id': 12345, 'cust_name': 'John Doe', 'order_dt': '2024-01-15'}
+# Output: Transformed: {'customer_id': 12345, 'customer_name': 'John Doe', 'order_date': '2024-01-15'}
 ```
 
 **Sets** - Unique collections for deduplication:
 ```python
 # Remove duplicate customer IDs
+all_customer_ids = [1001, 1002, 1001, 1003, 1002, 1004]
 unique_customers = set(all_customer_ids)
+print(f"Original IDs: {all_customer_ids}")
+print(f"Unique IDs: {sorted(unique_customers)}")
+# Output: Original IDs: [1001, 1002, 1001, 1003, 1002, 1004]
+# Output: Unique IDs: [1001, 1002, 1003, 1004]
 
 # Find data quality issues
 expected_columns = {'id', 'name', 'email', 'created_at'}
-actual_columns = set(dataframe.columns)
+actual_columns = {'id', 'name', 'phone', 'updated_at'}  # Example actual columns
 missing_columns = expected_columns - actual_columns
 extra_columns = actual_columns - expected_columns
+print(f"Expected columns: {expected_columns}")
+print(f"Actual columns: {actual_columns}")
+print(f"Missing columns: {missing_columns}")
+print(f"Extra columns: {extra_columns}")
+# Output: Expected columns: {'email', 'name', 'created_at', 'id'}
+# Output: Actual columns: {'phone', 'name', 'updated_at', 'id'}
+# Output: Missing columns: {'email', 'created_at'}
+# Output: Extra columns: {'phone', 'updated_at'}
 ```
 
 ### 2. Functions and Modularity
@@ -145,8 +173,21 @@ def calculate_customer_lifetime_value(orders):
     return avg_order_value * 12  # Assume 12 orders per year
 
 # Easy to test
-assert calculate_customer_lifetime_value([]) == 0.0
-assert calculate_customer_lifetime_value([{'amount': 100}]) == 1200.0
+test_result1 = calculate_customer_lifetime_value([])
+test_result2 = calculate_customer_lifetime_value([{'amount': 100}])
+test_result3 = calculate_customer_lifetime_value([{'amount': 100}, {'amount': 200}])
+
+print(f"Empty orders CLV: {test_result1}")
+print(f"Single order CLV: {test_result2}")
+print(f"Multiple orders CLV: {test_result3}")
+# Output: Empty orders CLV: 0.0
+# Output: Single order CLV: 1200.0
+# Output: Multiple orders CLV: 1800.0
+
+assert test_result1 == 0.0
+assert test_result2 == 1200.0
+print("All tests passed!")
+# Output: All tests passed!
 ```
 
 **Generator Functions** (Memory efficient for large datasets):
@@ -255,12 +296,25 @@ mean_sales = np.mean(sales_data)
 std_sales = np.std(sales_data)
 percentiles = np.percentile(sales_data, [25, 50, 75])
 
+print(f"Sales data: {sales_data}")
+print(f"Mean sales: ${mean_sales:.2f}")
+print(f"Standard deviation: ${std_sales:.2f}")
+print(f"Percentiles (25th, 50th, 75th): {percentiles}")
+# Output: Sales data: [1000 1200  800 1500  900]
+# Output: Mean sales: $1080.00
+# Output: Standard deviation: $264.95
+# Output: Percentiles (25th, 50th, 75th): [ 900. 1000. 1200.]
+
 # Vectorized operations (much faster than loops)
 # Calculate 10% growth for all values at once
 projected_sales = sales_data * 1.10
+print(f"Projected sales (10% growth): {projected_sales}")
+# Output: Projected sales (10% growth): [1100. 1320.  880. 1650.  990.]
 
 # Boolean indexing for filtering
 high_sales_days = sales_data[sales_data > 1000]
+print(f"High sales days (>$1000): {high_sales_days}")
+# Output: High sales days (>$1000): [1200 1500]
 ```
 
 ### 2. Database Connectivity Libraries

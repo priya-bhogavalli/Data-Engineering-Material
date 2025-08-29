@@ -332,12 +332,19 @@ table_name = "user_events"
 date_filter = "2024-01-15"
 query = f"SELECT * FROM {table_name} WHERE event_date = '{date_filter}'"
 
+print(f"Generated query: {query}")
+# Output: Generated query: SELECT * FROM user_events WHERE event_date = '2024-01-15'
+
 # CSV data cleaning
 csv_row = "John,Doe,25,New York,NY"
 fields = [field.strip() for field in csv_row.split(",")]
 first_name, last_name, age, city, state = fields
 
+print(f"Original CSV: {csv_row}")
+print(f"Parsed fields: {fields}")
 print(f"Parsed: {first_name} {last_name}, {age}, {city}, {state}")
+# Output: Original CSV: John,Doe,25,New York,NY
+# Output: Parsed fields: ['John', 'Doe', '25', 'New York', 'NY']
 # Output: Parsed: John Doe, 25, New York, NY
 ```
 
@@ -992,13 +999,30 @@ import heapq
 
 # Min heap
 heap = [3, 1, 4, 1, 5]
+print(f"Original list: {heap}")
 heapq.heapify(heap)         # Convert to heap
+print(f"After heapify: {heap}")
 heapq.heappush(heap, 2)     # Add element
+print(f"After push(2): {heap}")
 smallest = heapq.heappop(heap)  # Remove smallest
+print(f"Smallest removed: {smallest}")
+print(f"Heap after pop: {heap}")
+# Output: Original list: [3, 1, 4, 1, 5]
+# Output: After heapify: [1, 1, 4, 3, 5]
+# Output: After push(2): [1, 1, 2, 3, 5, 4]
+# Output: Smallest removed: 1
+# Output: Heap after pop: [1, 3, 2, 4, 5]
 
 # Top K elements
-top_k = heapq.nlargest(3, [1, 8, 2, 23, 7, -4, 18, 23, 42, 37, 2])
-bottom_k = heapq.nsmallest(3, [1, 8, 2, 23, 7, -4, 18, 23, 42, 37, 2])
+data = [1, 8, 2, 23, 7, -4, 18, 23, 42, 37, 2]
+top_k = heapq.nlargest(3, data)
+bottom_k = heapq.nsmallest(3, data)
+print(f"Data: {data}")
+print(f"Top 3 largest: {top_k}")
+print(f"Top 3 smallest: {bottom_k}")
+# Output: Data: [1, 8, 2, 23, 7, -4, 18, 23, 42, 37, 2]
+# Output: Top 3 largest: [42, 37, 23]
+# Output: Top 3 smallest: [-4, 1, 2]
 ```
 
 **Real-time Data Engineering Use Cases**:
