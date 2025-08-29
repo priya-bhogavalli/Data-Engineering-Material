@@ -48,6 +48,21 @@ FROM cohort_data cd
 JOIN cohort_sizes cs ON cd.cohort_month = cs.cohort_month
 ORDER BY cd.cohort_month, cd.period_number;
 
+/*
+EXPECTED OUTPUT:
+cohort_month | cohort_size | period_number | customers | retention_rate
+-------------|-------------|---------------|-----------|---------------
+2023-01-01   |        150  |             0 |       150 |        100.00
+2023-01-01   |        150  |             1 |        89 |         59.33
+2023-01-01   |        150  |             2 |        67 |         44.67
+2023-01-01   |        150  |             3 |        52 |         34.67
+2023-02-01   |        200  |             0 |       200 |        100.00
+2023-02-01   |        200  |             1 |       134 |         67.00
+2023-02-01   |        200  |             2 |        98 |         49.00
+2023-03-01   |        180  |             0 |       180 |        100.00
+2023-03-01   |        180  |             1 |       108 |         60.00
+*/
+
 -- =====================================================
 -- 2. RFM ANALYSIS (Recency, Frequency, Monetary)
 -- =====================================================
@@ -101,6 +116,20 @@ SELECT
 FROM rfm_segments
 GROUP BY rfm_segment
 ORDER BY customer_count DESC;
+
+/*
+EXPECTED OUTPUT:
+rfm_segment         | customer_count | avg_recency | avg_frequency | avg_monetary
+--------------------|----------------|-------------|---------------|-------------
+Loyal Customers     |           1,245|        3.45 |          3.67 |         3.78
+Champions           |             892|        4.23 |          4.56 |         4.34
+Potential Loyalists |             678|        3.12 |          1.89 |         3.45
+New Customers       |             534|        4.67 |          1.23 |         1.78
+At Risk             |             423|        1.45 |          3.89 |         3.67
+Others              |             298|        2.78 |          2.34 |         2.56
+Cannot Lose Them    |             156|        1.23 |          1.67 |         4.12
+Lost                |             134|        1.12 |          1.34 |         1.45
+*/
 
 -- =====================================================
 -- 3. FUNNEL ANALYSIS

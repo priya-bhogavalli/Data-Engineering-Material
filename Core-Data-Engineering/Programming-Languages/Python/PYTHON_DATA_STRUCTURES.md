@@ -162,6 +162,9 @@ if user_id not in user_sessions:
 user_sessions[user_id]["page_views"] += 1
 user_sessions[user_id]["last_seen"] = event["timestamp"]
 
+print(user_sessions)
+# Output: {12345: {'page_views': 1, 'purchases': 0, 'last_seen': '2024-01-15T10:30:00'}}
+
 # Configuration for data pipeline
 pipeline_config = {
     "source": {"type": "kafka", "topic": "user_events", "batch_size": 1000},
@@ -171,6 +174,9 @@ pipeline_config = {
 
 # Safe configuration access
 batch_size = pipeline_config.get("source", {}).get("batch_size", 100)
+
+print(f"Batch size: {batch_size}")
+# Output: Batch size: 1000
 ```
 
 ### 4. Sets
@@ -193,6 +199,13 @@ set2 = {3, 4, 5, 6}
 union = set1 | set2             # {1, 2, 3, 4, 5, 6}
 intersection = set1 & set2      # {3, 4}
 difference = set1 - set2        # {1, 2}
+
+print(f"Union: {union}")
+print(f"Intersection: {intersection}")
+print(f"Difference: {difference}")
+# Output: Union: {1, 2, 3, 4, 5, 6}
+# Output: Intersection: {3, 4}
+# Output: Difference: {1, 2}
 ```
 
 **Real-time Data Engineering Use Cases**:
@@ -227,6 +240,8 @@ active_non_premium = active_users - premium_users  # {104, 106, 107}
 
 print(f"Premium active users: {len(premium_active)}")
 print(f"Churn risk (inactive premium): {len(inactive_premium)}")
+# Output: Premium active users: 3
+# Output: Churn risk (inactive premium): 2
 ```
 
 ### 5. Strings
@@ -269,9 +284,19 @@ timestamp = parts[0] + " " + parts[1]
 level = parts[2].split("]")[0][1:]  # Extract ERROR from [ERROR]
 message = parts[2].split("] ", 1)[1]  # Get message after ]
 
+print(f"Timestamp: {timestamp}")
+print(f"Level: {level}")
+print(f"Message: {message}")
+# Output: Timestamp: 2024-01-15 10:30:45
+# Output: Level: ERROR
+# Output: Message: Database connection failed - host: db.prod.com:5432
+
 # Data standardization
 user_input = "  JOHN.DOE@COMPANY.COM  "
-clean_email = user_input.strip().lower()  # "john.doe@company.com"
+clean_email = user_input.strip().lower()
+
+print(f"Clean email: {clean_email}")
+# Output: Clean email: john.doe@company.com
 
 # SQL query building
 table_name = "user_events"
@@ -282,6 +307,9 @@ query = f"SELECT * FROM {table_name} WHERE event_date = '{date_filter}'"
 csv_row = "John,Doe,25,New York,NY"
 fields = [field.strip() for field in csv_row.split(",")]
 first_name, last_name, age, city, state = fields
+
+print(f"Parsed: {first_name} {last_name}, {age}, {city}, {state}")
+# Output: Parsed: John Doe, 25, New York, NY
 ```
 
 ## Collections Module
@@ -329,7 +357,8 @@ if error_counter["DatabaseConnectionError"] > 5:
 
 # Top errors for dashboard
 top_errors = error_counter.most_common(3)
-print(f"Top errors: {top_errors}")  # [('DatabaseConnectionError', 3), ('TimeoutError', 2), ...]
+print(f"Top errors: {top_errors}")
+# Output: Top errors: [('DatabaseConnectionError', 3), ('TimeoutError', 2), ('ValidationError', 1)]
 
 # User engagement analytics
 page_views = Counter()
@@ -337,6 +366,11 @@ user_actions = ["home", "product", "cart", "home", "product", "checkout"]
 page_views.update(user_actions)
 
 conversion_rate = page_views["checkout"] / page_views["home"] * 100
+
+print(f"Page views: {dict(page_views)}")
+print(f"Conversion rate: {conversion_rate:.1f}%")
+# Output: Page views: {'home': 2, 'product': 2, 'cart': 1, 'checkout': 1}
+# Output: Conversion rate: 50.0%
 ```
 
 ### 2. defaultdict
@@ -351,13 +385,26 @@ groups = defaultdict(list)
 for item in ["apple", "banana", "apricot"]:
     groups[item[0]].append(item)
 
+print(dict(groups))
+# Output: {'a': ['apple', 'apricot'], 'b': ['banana']}
+
 # Count items
 counts = defaultdict(int)
 for char in "hello":
     counts[char] += 1
 
+print(dict(counts))
+# Output: {'h': 1, 'e': 1, 'l': 2, 'o': 1}
+
 # Nested defaultdict
 nested = defaultdict(lambda: defaultdict(int))
+nested['users']['active'] = 150
+nested['users']['inactive'] = 25
+nested['orders']['pending'] = 45
+
+print(dict(nested))
+# Output: {'users': defaultdict(<class 'int'>, {'active': 150, 'inactive': 25}), 
+#          'orders': defaultdict(<class 'int'>, {'pending': 45})}
 ```
 
 **Real-time Data Engineering Use Cases**:
@@ -385,6 +432,9 @@ for event in events:
     elif event["event"] == "purchase":
         user_sessions[user_id]["purchases"] += 1
 
+print(f"User sessions: {dict(user_sessions)}")
+# Output: User sessions: {123: {'page_views': 1, 'session_duration': 0, 'purchases': 1}, 456: {'page_views': 1, 'session_duration': 0, 'purchases': 0}}
+
 # Sales analytics by region and product
 sales_data = defaultdict(lambda: defaultdict(float))
 transactions = [
@@ -397,6 +447,9 @@ for txn in transactions:
     sales_data[txn["region"]][txn["product"]] += txn["amount"]
 
 print(f"US laptop sales: ${sales_data['US']['laptop']}")
+print(f"All sales data: {dict(sales_data)}")
+# Output: US laptop sales: $1200.0
+# Output: All sales data: {'US': defaultdict(<class 'float'>, {'laptop': 1200.0, 'mouse': 25.0}), 'EU': defaultdict(<class 'float'>, {'laptop': 1100.0})}
 ```
 
 ### 3. OrderedDict
@@ -429,6 +482,293 @@ class QueryCache:
     def get(self, query):
         if query in self.cache:
             # Move to end (most recently used)
+            self.cache.move_to_end(query)
+            return self.cache[query]
+        return None
+    
+    def put(self, query, result):
+        if query in self.cache:
+            self.cache.move_to_end(query)
+        else:
+            if len(self.cache) >= self.max_size:
+                # Remove least recently used (first item)
+                self.cache.popitem(last=False)
+        self.cache[query] = result
+
+# Usage example
+cache = QueryCache(max_size=3)
+cache.put("SELECT * FROM users", [{"id": 1, "name": "Alice"}])
+cache.put("SELECT * FROM orders", [{"id": 101, "amount": 99.99}])
+cache.put("SELECT * FROM products", [{"id": 201, "name": "Laptop"}])
+
+print(list(cache.cache.keys()))
+# Output: ['SELECT * FROM users', 'SELECT * FROM orders', 'SELECT * FROM products']
+
+# Access first query (moves to end)
+result = cache.get("SELECT * FROM users")
+print(list(cache.cache.keys()))
+# Output: ['SELECT * FROM orders', 'SELECT * FROM products', 'SELECT * FROM users']
+
+# Add new query (removes least recently used)
+cache.put("SELECT * FROM logs", [{"id": 301, "message": "Error"}])
+print(list(cache.cache.keys()))
+# Output: ['SELECT * FROM products', 'SELECT * FROM users', 'SELECT * FROM logs']
+```
+
+### 4. deque (Double-ended queue)
+**Description**: Optimized list-like container with fast appends and pops from both ends. Perfect for queues and sliding windows.
+
+**Basic Operations**:
+```python
+from collections import deque
+
+# Creation
+queue = deque([1, 2, 3])
+queue = deque(maxlen=5)  # Fixed-size queue
+
+# Operations
+queue.append(4)         # Add to right
+queue.appendleft(0)     # Add to left
+queue.pop()             # Remove from right
+queue.popleft()         # Remove from left
+queue.rotate(1)         # Rotate elements
+```
+
+**Real-time Data Engineering Use Cases**:
+- Sliding window calculations in streaming data
+- Rate limiting and throttling mechanisms
+- Recent events tracking (last N items)
+- Breadth-first search in graph processing
+- Buffer management in data pipelines
+
+```python
+# Real Example: Sliding window for real-time metrics
+class SlidingWindowMetrics:
+    def __init__(self, window_size=100):
+        self.window = deque(maxlen=window_size)
+        self.sum = 0
+    
+    def add_value(self, value):
+        if len(self.window) == self.window.maxlen:
+            # Remove oldest value from sum
+            self.sum -= self.window[0]
+        
+        self.window.append(value)
+        self.sum += value
+    
+    def get_average(self):
+        return self.sum / len(self.window) if self.window else 0
+
+# Usage for response time monitoring
+response_times = SlidingWindowMetrics(window_size=10)
+
+# Simulate incoming response times
+for time_ms in [120, 95, 200, 85, 150, 110, 300, 90, 180, 75, 250]:
+    response_times.add_value(time_ms)
+    avg = response_times.get_average()
+    print(f"Response time: {time_ms}ms, Rolling avg: {avg:.1f}ms")
+
+# Output:
+# Response time: 120ms, Rolling avg: 120.0ms
+# Response time: 95ms, Rolling avg: 107.5ms
+# Response time: 200ms, Rolling avg: 138.3ms
+# ...
+# Response time: 250ms, Rolling avg: 153.5ms (last 10 values)
+
+# Rate limiting example
+class RateLimiter:
+    def __init__(self, max_requests=100, time_window=60):
+        self.max_requests = max_requests
+        self.requests = deque()
+    
+    def is_allowed(self, current_time):
+        # Remove old requests outside time window
+        while self.requests and current_time - self.requests[0] > 60:
+            self.requests.popleft()
+        
+        if len(self.requests) < self.max_requests:
+            self.requests.append(current_time)
+            return True
+        return False
+
+# Usage
+limiter = RateLimiter(max_requests=5, time_window=60)
+for i in range(7):
+    allowed = limiter.is_allowed(i)
+    print(f"Request {i}: {'Allowed' if allowed else 'Rate limited'}")
+
+# Output:
+# Request 0: Allowed
+# Request 1: Allowed
+# Request 2: Allowed
+# Request 3: Allowed
+# Request 4: Allowed
+# Request 5: Rate limited
+# Request 6: Rate limited
+```
+
+## Advanced Data Structure Patterns
+
+### 1. Nested Data Structures
+```python
+# Complex nested structure for user analytics
+user_analytics = defaultdict(lambda: {
+    'sessions': defaultdict(lambda: {
+        'page_views': 0,
+        'duration': 0,
+        'events': []
+    }),
+    'total_purchases': 0,
+    'preferences': set()
+})
+
+# Usage
+user_id = "user_123"
+session_id = "session_456"
+
+user_analytics[user_id]['sessions'][session_id]['page_views'] += 1
+user_analytics[user_id]['sessions'][session_id]['events'].append('login')
+user_analytics[user_id]['preferences'].add('electronics')
+
+print(f"User {user_id} page views in session {session_id}: "
+      f"{user_analytics[user_id]['sessions'][session_id]['page_views']}")
+# Output: User user_123 page views in session session_456: 1
+
+print(f"User preferences: {user_analytics[user_id]['preferences']}")
+# Output: User preferences: {'electronics'}
+```
+
+### 2. Data Pipeline Patterns
+```python
+# ETL pipeline state management
+class PipelineState:
+    def __init__(self):
+        self.processed_files = set()
+        self.error_counts = Counter()
+        self.stage_metrics = defaultdict(lambda: {
+            'processed': 0,
+            'errors': 0,
+            'duration': 0
+        })
+        self.recent_errors = deque(maxlen=100)
+    
+    def record_file_processed(self, filename):
+        self.processed_files.add(filename)
+    
+    def record_error(self, stage, error_type, error_msg):
+        self.error_counts[error_type] += 1
+        self.stage_metrics[stage]['errors'] += 1
+        self.recent_errors.append({
+            'timestamp': time.time(),
+            'stage': stage,
+            'error': error_type,
+            'message': error_msg
+        })
+    
+    def get_health_status(self):
+        total_processed = sum(metrics['processed'] for metrics in self.stage_metrics.values())
+        total_errors = sum(metrics['errors'] for metrics in self.stage_metrics.values())
+        error_rate = (total_errors / total_processed * 100) if total_processed > 0 else 0
+        
+        return {
+            'files_processed': len(self.processed_files),
+            'total_records': total_processed,
+            'error_rate': f"{error_rate:.2f}%",
+            'top_errors': self.error_counts.most_common(3)
+        }
+
+# Usage example
+pipeline = PipelineState()
+pipeline.record_file_processed("data_2024_01_15.csv")
+pipeline.stage_metrics['extract']['processed'] += 1000
+pipeline.record_error('transform', 'ValidationError', 'Invalid date format')
+
+health = pipeline.get_health_status()
+print(f"Pipeline health: {health}")
+# Output: Pipeline health: {'files_processed': 1, 'total_records': 1000, 
+#                          'error_rate': '0.10%', 'top_errors': [('ValidationError', 1)]}
+```
+
+## Performance Considerations
+
+### Time Complexity Summary
+| Operation | List | Dict | Set | deque |
+|-----------|------|------|-----|-------|
+| Access by index | O(1) | N/A | N/A | O(1) |
+| Search | O(n) | O(1) | O(1) | O(n) |
+| Insert at end | O(1) | O(1) | O(1) | O(1) |
+| Insert at beginning | O(n) | N/A | N/A | O(1) |
+| Delete | O(n) | O(1) | O(1) | O(1) |
+
+### Memory Usage Tips
+```python
+# Use generators for large datasets
+def process_large_file(filename):
+    with open(filename) as f:
+        for line in f:  # Generator - processes one line at a time
+            yield process_line(line)
+
+# Use slots for memory-efficient classes
+class Transaction:
+    __slots__ = ['id', 'amount', 'timestamp', 'user_id']
+    
+    def __init__(self, id, amount, timestamp, user_id):
+        self.id = id
+        self.amount = amount
+        self.timestamp = timestamp
+        self.user_id = user_id
+
+# Use appropriate data structures
+# For membership testing: set() instead of list
+# For counting: Counter() instead of dict
+# For ordered data: deque() instead of list for frequent insertions/deletions
+```
+
+## Best Practices for Data Engineering
+
+1. **Choose the right data structure** based on your access patterns
+2. **Use defaultdict** to eliminate key existence checks
+3. **Use Counter** for frequency analysis instead of manual counting
+4. **Use deque** for sliding windows and queues
+5. **Use sets** for fast membership testing and deduplication
+6. **Consider memory usage** for large-scale data processing
+7. **Profile your code** to identify bottlenecks
+8. **Use type hints** for better code documentation and IDE support
+
+```python
+from typing import Dict, List, Set, Counter as CounterType
+from collections import defaultdict, Counter, deque
+
+def analyze_user_behavior(events: List[Dict]) -> Dict[str, any]:
+    """Analyze user behavior from event stream."""
+    user_sessions: Dict[str, Dict] = defaultdict(lambda: {
+        'page_views': 0,
+        'unique_pages': set(),
+        'session_duration': 0
+    })
+    
+    event_counts: CounterType[str] = Counter()
+    recent_events: deque = deque(maxlen=1000)
+    
+    for event in events:
+        user_id = event['user_id']
+        event_type = event['event_type']
+        
+        # Update counters
+        event_counts[event_type] += 1
+        recent_events.append(event)
+        
+        # Update user session data
+        if event_type == 'page_view':
+            user_sessions[user_id]['page_views'] += 1
+            user_sessions[user_id]['unique_pages'].add(event['page'])
+    
+    return {
+        'total_users': len(user_sessions),
+        'event_distribution': dict(event_counts.most_common()),
+        'avg_pages_per_user': sum(data['page_views'] for data in user_sessions.values()) / len(user_sessions)
+    }
+``` to end (most recently used)
             self.cache.move_to_end(query)
             return self.cache[query]
         return None
