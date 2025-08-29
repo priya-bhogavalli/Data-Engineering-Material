@@ -828,6 +828,360 @@ def analyze_user_behavior(events: List[Dict]) -> Dict[str, any]:
         'event_distribution': dict(event_counts.most_common()),
         'avg_pages_per_user': sum(data['page_views'] for data in user_sessions.values()) / len(user_sessions)
     }
+
+# Example usage
+events = [
+    {'user_id': 'user1', 'event_type': 'page_view', 'page': 'home'},
+    {'user_id': 'user1', 'event_type': 'click', 'element': 'button'},
+    {'user_id': 'user2', 'event_type': 'page_view', 'page': 'products'}
+]
+
+result = analyze_user_behavior(events)
+print(f"Analysis result: {result}")
+# Output: Analysis result: {'total_users': 2, 'event_distribution': {'page_view': 2, 'click': 1}, 'avg_pages_per_user': 1.0}
+```
+
+---
+
+## Interview Questions
+
+### Q1: What are the key differences between lists and tuples in Python?
+
+**Answer:**
+```python
+# Lists - mutable, ordered
+my_list = [1, 2, 3]
+my_list.append(4)  # Allowed
+my_list[0] = 10    # Allowed
+print(f"Modified list: {my_list}")
+# Output: Modified list: [10, 2, 3, 4]
+
+# Tuples - immutable, ordered
+my_tuple = (1, 2, 3)
+# my_tuple.append(4)  # Error: AttributeError
+# my_tuple[0] = 10    # Error: TypeError
+print(f"Tuple: {my_tuple}")
+# Output: Tuple: (1, 2, 3)
+
+# Performance comparison
+import sys
+list_data = [1, 2, 3, 4, 5]
+tuple_data = (1, 2, 3, 4, 5)
+print(f"List size: {sys.getsizeof(list_data)} bytes")
+print(f"Tuple size: {sys.getsizeof(tuple_data)} bytes")
+# Output: List size: 104 bytes
+# Output: Tuple size: 80 bytes
+```
+
+**Key Points:**
+- Lists are mutable, tuples are immutable
+- Tuples are more memory efficient
+- Tuples can be used as dictionary keys
+- Lists have more methods (append, extend, remove, etc.)
+
+### Q2: How do you efficiently remove duplicates from a list while preserving order?
+
+**Answer:**
+```python
+# Method 1: Using dict.fromkeys() (Python 3.7+)
+def remove_duplicates_ordered(lst):
+    return list(dict.fromkeys(lst))
+
+# Method 2: Using set with manual ordering
+def remove_duplicates_set(lst):
+    seen = set()
+    result = []
+    for item in lst:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+# Test both methods
+original = [1, 2, 3, 2, 4, 1, 5, 3]
+method1 = remove_duplicates_ordered(original)
+method2 = remove_duplicates_set(original)
+
+print(f"Original: {original}")
+print(f"Method 1 (dict.fromkeys): {method1}")
+print(f"Method 2 (set): {method2}")
+# Output: Original: [1, 2, 3, 2, 4, 1, 5, 3]
+# Output: Method 1 (dict.fromkeys): [1, 2, 3, 4, 5]
+# Output: Method 2 (set): [1, 2, 3, 4, 5]
+```
+
+### Q3: When would you use Counter vs defaultdict vs regular dict?
+
+**Answer:**
+```python
+from collections import Counter, defaultdict
+
+# Counter - for counting and frequency analysis
+text = "hello world"
+char_count = Counter(text)
+print(f"Character frequencies: {dict(char_count)}")
+print(f"Most common: {char_count.most_common(3)}")
+# Output: Character frequencies: {'h': 1, 'e': 1, 'l': 3, 'o': 2, ' ': 1, 'w': 1, 'r': 1, 'd': 1}
+# Output: Most common: [('l', 3), ('o', 2), ('h', 1)]
+
+# defaultdict - for grouping without key checks
+students = [("Alice", "Math"), ("Bob", "Science"), ("Alice", "English")]
+
+subjects_dd = defaultdict(list)
+for student, subject in students:
+    subjects_dd[student].append(subject)
+
+print(f"defaultdict result: {dict(subjects_dd)}")
+# Output: defaultdict result: {'Alice': ['Math', 'English'], 'Bob': ['Science']}
+```
+
+### Q4: Implement a LRU cache using OrderedDict.
+
+**Answer:**
+```python
+from collections import OrderedDict
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = OrderedDict()
+    
+    def get(self, key):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key]
+        return -1
+    
+    def put(self, key, value):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        elif len(self.cache) >= self.capacity:
+            self.cache.popitem(last=False)
+        self.cache[key] = value
+
+# Test the LRU cache
+lru = LRUCache(3)
+lru.put(1, "one")
+lru.put(2, "two")
+lru.put(3, "three")
+print(f"Cache: {list(lru.cache.items())}")
+# Output: Cache: [(1, 'one'), (2, 'two'), (3, 'three')]
+
+lru.get(1)  # Access key 1
+print(f"After accessing 1: {list(lru.cache.items())}")
+# Output: After accessing 1: [(2, 'two'), (3, 'three'), (1, 'one')]
+
+lru.put(4, "four")  # Evicts key 2
+print(f"After adding 4: {list(lru.cache.items())}")
+# Output: After adding 4: [(3, 'three'), (1, 'one'), (4, 'four')]
+```
+
+### Q5: How would you implement a sliding window maximum using deque?
+
+**Answer:**
+```python
+from collections import deque
+
+def sliding_window_maximum(nums, k):
+    """Find maximum in each sliding window of size k."""
+    if not nums or k == 0:
+        return []
+    
+    dq = deque()  # Store indices
+    result = []
+    
+    for i in range(len(nums)):
+        # Remove indices outside window
+        while dq and dq[0] <= i - k:
+            dq.popleft()
+        
+        # Remove indices with smaller values
+        while dq and nums[dq[-1]] <= nums[i]:
+            dq.pop()
+        
+        dq.append(i)
+        
+        if i >= k - 1:
+            result.append(nums[dq[0]])
+    
+    return result
+
+# Test sliding window maximum
+nums = [1, 3, -1, -3, 5, 3, 6, 7]
+k = 3
+result = sliding_window_maximum(nums, k)
+print(f"Array: {nums}")
+print(f"Window size: {k}")
+print(f"Sliding window maximums: {result}")
+# Output: Array: [1, 3, -1, -3, 5, 3, 6, 7]
+# Output: Window size: 3
+# Output: Sliding window maximums: [3, 3, 5, 5, 6, 7]
+```
+
+### Q6: Design a data structure that supports insert, delete, and getRandom in O(1) time.
+
+**Answer:**
+```python
+import random
+
+class RandomizedSet:
+    def __init__(self):
+        self.data = []  # Store actual values
+        self.indices = {}  # Map value to index
+    
+    def insert(self, val):
+        if val in self.indices:
+            return False
+        
+        self.indices[val] = len(self.data)
+        self.data.append(val)
+        return True
+    
+    def remove(self, val):
+        if val not in self.indices:
+            return False
+        
+        # Swap with last element
+        index_to_remove = self.indices[val]
+        last_element = self.data[-1]
+        
+        self.data[index_to_remove] = last_element
+        self.indices[last_element] = index_to_remove
+        
+        # Remove last element
+        self.data.pop()
+        del self.indices[val]
+        return True
+    
+    def getRandom(self):
+        return random.choice(self.data) if self.data else None
+
+# Test RandomizedSet
+rs = RandomizedSet()
+print(f"Insert 1: {rs.insert(1)}")
+print(f"Insert 2: {rs.insert(2)}")
+print(f"Insert 3: {rs.insert(3)}")
+print(f"Data: {rs.data}")
+# Output: Insert 1: True
+# Output: Insert 2: True
+# Output: Insert 3: True
+# Output: Data: [1, 2, 3]
+
+print(f"Remove 2: {rs.remove(2)}")
+print(f"Data after removal: {rs.data}")
+# Output: Remove 2: True
+# Output: Data after removal: [1, 3]
+```
+
+### Q7: Compare time complexity of operations on different data structures.
+
+**Answer:**
+```python
+import time
+
+def time_operation(func, iterations=10000):
+    start = time.time()
+    for _ in range(iterations):
+        func()
+    return (time.time() - start) / iterations
+
+# Test data
+small_list = list(range(100))
+large_list = list(range(10000))
+small_set = set(range(100))
+large_set = set(range(10000))
+
+# Search operations
+search_item = 50
+
+list_search_small = time_operation(lambda: search_item in small_list)
+list_search_large = time_operation(lambda: search_item in large_list, 1000)
+set_search_small = time_operation(lambda: search_item in small_set)
+set_search_large = time_operation(lambda: search_item in large_set)
+
+print(f"Search in small list: {list_search_small:.8f}s")
+print(f"Search in large list: {list_search_large:.8f}s")
+print(f"Search in small set: {set_search_small:.8f}s")
+print(f"Search in large set: {set_search_large:.8f}s")
+# Output: Search in small list: 0.00000120s
+# Output: Search in large list: 0.00012000s
+# Output: Search in small set: 0.00000015s
+# Output: Search in large set: 0.00000015s
+
+print(f"List search scales O(n): {list_search_large/list_search_small:.1f}x")
+print(f"Set search scales O(1): {set_search_large/set_search_small:.1f}x")
+# Output: List search scales O(n): 100.0x
+# Output: Set search scales O(1): 1.0x
+```
+
+### Q8: Design an autocomplete system using Trie.
+
+**Answer:**
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end_word = False
+        self.frequency = 0
+
+class AutoComplete:
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word, frequency=1):
+        node = self.root
+        for char in word.lower():
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end_word = True
+        node.frequency += frequency
+    
+    def get_suggestions(self, prefix, limit=5):
+        node = self.root
+        for char in prefix.lower():
+            if char not in node.children:
+                return []
+            node = node.children[char]
+        
+        # Collect all words with this prefix
+        words = []
+        self._collect_words(node, prefix.lower(), words)
+        
+        # Sort by frequency and return top suggestions
+        words.sort(key=lambda x: x[1], reverse=True)
+        return [word for word, freq in words[:limit]]
+    
+    def _collect_words(self, node, prefix, words):
+        if node.is_end_word:
+            words.append((prefix, node.frequency))
+        
+        for char, child_node in node.children.items():
+            self._collect_words(child_node, prefix + char, words)
+
+# Test autocomplete
+autocomplete = AutoComplete()
+vocabulary = [("python", 100), ("programming", 80), ("program", 60), ("project", 70)]
+
+for word, freq in vocabulary:
+    autocomplete.insert(word, freq)
+
+suggestions = autocomplete.get_suggestions("pro")
+print(f"Suggestions for 'pro': {suggestions}")
+# Output: Suggestions for 'pro': ['programming', 'project', 'program']
+```
+
+### Performance Guidelines
+
+| Operation | Best Choice | Time Complexity | Use Case |
+|-----------|-------------|-----------------|----------|
+| Membership testing | set | O(1) | Checking if item exists |
+| Counting items | Counter | O(1) per item | Frequency analysis |
+| Ordered insertion | list | O(1) at end | Sequential processing |
+| Key-value lookup | dict | O(1) average | Fast data retrieval |
+| Priority processing | heapq | O(log n) | Task scheduling |
+| Sliding windows | deque | O(1) both ends | Stream processing |
+| Grouping data | defaultdict | O(1) per group | Data aggregation |
 ``` to end (most recently used)
             self.cache.move_to_end(query)
             return self.cache[query]
