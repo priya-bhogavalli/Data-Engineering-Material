@@ -1,5 +1,40 @@
 # Python Key Concepts for Data Engineering
 
+## 📋 Table of Contents
+
+1. [Data Structures](#1-data-structures)
+   - [Lists - Ordered, Mutable Collections](#lists---ordered-mutable-collections)
+   - [Dictionaries - Key-Value Mappings](#dictionaries---key-value-mappings)
+   - [Sets - Unique Collections](#sets---unique-collections)
+   - [Tuples - Immutable Ordered Collections](#tuples---immutable-ordered-collections)
+2. [Functions and Decorators](#2-functions-and-decorators)
+   - [Function Definitions](#function-definitions)
+   - [Decorators - Function Wrappers](#decorators---function-wrappers)
+3. [Object-Oriented Programming](#3-object-oriented-programming)
+   - [Class Definition](#class-definition)
+   - [Inheritance and Polymorphism](#inheritance-and-polymorphism)
+4. [Error Handling](#4-error-handling)
+   - [Try-Except Patterns](#try-except-patterns)
+5. [File I/O and Data Formats](#5-file-io-and-data-formats)
+   - [Text Files](#text-files)
+   - [JSON Operations](#json-operations)
+6. [Generators and Iterators](#6-generators-and-iterators)
+   - [Generator Functions](#generator-functions)
+   - [Iterator Protocol](#iterator-protocol)
+7. [Context Managers](#7-context-managers)
+   - [Built-in Context Managers](#built-in-context-managers)
+   - [Custom Context Managers](#custom-context-managers)
+8. [Concurrency and Parallelism](#8-concurrency-and-parallelism)
+   - [Threading for I/O-bound Tasks](#threading-for-io-bound-tasks)
+   - [Multiprocessing for CPU-bound Tasks](#multiprocessing-for-cpu-bound-tasks)
+9. [Type Hints and Documentation](#9-type-hints-and-documentation)
+   - [Type Hints](#type-hints)
+10. [Testing](#10-testing)
+    - [Unit Testing](#unit-testing)
+    - [Pytest (Alternative Testing Framework)](#pytest-alternative-testing-framework)
+
+---
+
 ## 1. Data Structures
 **What they are**: Built-in types for organizing and storing data efficiently.
 

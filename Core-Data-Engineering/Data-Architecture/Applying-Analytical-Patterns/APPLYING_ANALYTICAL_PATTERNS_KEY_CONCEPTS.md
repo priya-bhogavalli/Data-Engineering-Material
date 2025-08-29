@@ -2,6 +2,20 @@
 
 ## 📋 Table of Contents
 
+1. [What are Analytical Patterns?](#-what-are-analytical-patterns)
+2. [Core Analytical Patterns](#️-core-analytical-patterns)
+   - [Slowly Changing Dimensions (SCD)](#1-slowly-changing-dimensions-scd)
+   - [Key Difference: Type 2 vs Type 3](#-key-difference-type-2-vs-type-3)
+   - [When to Use Each Type](#-when-to-use-each-type)
+   - [Factless Fact Tables](#2-factless-fact-tables)
+   - [Accumulating Snapshot](#3-accumulating-snapshot)
+3. [Advanced Patterns](#-advanced-patterns)
+   - [Bridge Tables](#bridge-tables)
+
+---
+
+## 📋 Table of Contents
+
 ### 🎯 [What are Analytical Patterns?](#-what-are-analytical-patterns)
 
 ### 📊 [Dimensions vs Facts - Fundamental Concepts](#-dimensions-vs-facts---fundamental-concepts)

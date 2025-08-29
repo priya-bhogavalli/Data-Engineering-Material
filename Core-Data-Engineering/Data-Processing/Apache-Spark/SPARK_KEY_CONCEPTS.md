@@ -1,5 +1,52 @@
 # Apache Spark Key Concepts
 
+## 📋 Table of Contents
+
+1. [RDD (Resilient Distributed Dataset)](#1-rdd-resilient-distributed-dataset)
+   - [Key Properties](#key-properties)
+   - [Creating RDDs](#creating-rdds)
+   - [RDD Operations](#rdd-operations)
+2. [DataFrame and Dataset](#2-dataframe-and-dataset)
+   - [DataFrame Advantages](#dataframe-advantages)
+   - [Creating DataFrames](#creating-dataframes)
+   - [DataFrame Operations](#dataframe-operations)
+3. [Transformations vs Actions](#3-transformations-vs-actions)
+   - [Transformations (Lazy)](#transformations-lazy)
+   - [Actions (Eager)](#actions-eager)
+   - [Why Lazy Evaluation](#why-lazy-evaluation)
+4. [Partitioning](#4-partitioning)
+   - [Default Partitioning](#default-partitioning)
+   - [Manual Partitioning](#manual-partitioning)
+   - [Custom Partitioning](#custom-partitioning)
+5. [Caching and Persistence](#5-caching-and-persistence)
+   - [When to Cache](#when-to-cache)
+   - [Storage Levels](#storage-levels)
+   - [Cache Management](#cache-management)
+6. [Spark SQL](#6-spark-sql)
+   - [SQL Interface](#sql-interface)
+   - [Built-in Functions](#built-in-functions)
+7. [Joins](#7-joins)
+   - [Join Types](#join-types)
+   - [Join Optimization](#join-optimization)
+8. [User Defined Functions (UDFs)](#8-user-defined-functions-udfs)
+   - [Python UDFs](#python-udfs)
+   - [Vectorized UDFs (Pandas UDFs)](#vectorized-udfs-pandas-udfs)
+9. [Configuration and Tuning](#9-configuration-and-tuning)
+   - [Memory Configuration](#memory-configuration)
+   - [Performance Tuning](#performance-tuning)
+10. [Structured Streaming](#10-structured-streaming)
+    - [Basic Streaming](#basic-streaming)
+    - [Windowed Aggregations](#windowed-aggregations)
+11. [Error Handling and Debugging](#11-error-handling-and-debugging)
+    - [Exception Handling](#exception-handling)
+    - [Debugging Techniques](#debugging-techniques)
+12. [Best Practices](#12-best-practices)
+    - [Data Processing](#data-processing)
+    - [Resource Management](#resource-management)
+    - [Code Organization](#code-organization)
+
+---
+
 ## 1. RDD (Resilient Distributed Dataset)
 **What it is**: The fundamental data structure of Spark - an immutable, distributed collection of objects that can be processed in parallel.
 

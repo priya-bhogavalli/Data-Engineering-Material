@@ -1,5 +1,48 @@
 # SQL Key Concepts for Data Engineering
 
+## 📋 Table of Contents
+
+1. [Data Definition Language (DDL)](#1-data-definition-language-ddl)
+   - [CREATE Statements](#create-statements)
+   - [ALTER Statements](#alter-statements)
+   - [DROP and TRUNCATE](#drop-and-truncate)
+2. [Data Manipulation Language (DML)](#2-data-manipulation-language-dml)
+   - [INSERT Operations](#insert-operations)
+   - [UPDATE Operations](#update-operations)
+   - [DELETE Operations](#delete-operations)
+3. [Joins and Relationships](#3-joins-and-relationships)
+   - [INNER JOIN](#inner-join)
+   - [OUTER JOINS](#outer-joins)
+   - [SELF JOIN](#self-join)
+4. [Window Functions](#4-window-functions)
+   - [Ranking Functions](#ranking-functions)
+   - [Aggregate Window Functions](#aggregate-window-functions)
+   - [Lead and Lag Functions](#lead-and-lag-functions)
+5. [Common Table Expressions (CTEs)](#5-common-table-expressions-ctes)
+   - [Basic CTE](#basic-cte)
+   - [Multiple CTEs](#multiple-ctes)
+   - [Recursive CTE](#recursive-cte)
+6. [Aggregation and Grouping](#6-aggregation-and-grouping)
+   - [Basic Aggregation](#basic-aggregation)
+   - [GROUP BY with HAVING](#group-by-with-having)
+   - [Advanced Grouping](#advanced-grouping)
+7. [Subqueries and Correlated Queries](#7-subqueries-and-correlated-queries)
+   - [Scalar Subqueries](#scalar-subqueries)
+   - [EXISTS and NOT EXISTS](#exists-and-not-exists)
+   - [Correlated Subqueries](#correlated-subqueries)
+8. [Data Types and Functions](#8-data-types-and-functions)
+   - [String Functions](#string-functions)
+   - [Date and Time Functions](#date-and-time-functions)
+   - [Numeric Functions](#numeric-functions)
+9. [Performance Optimization](#9-performance-optimization)
+   - [Index Strategies](#index-strategies)
+   - [Query Optimization Techniques](#query-optimization-techniques)
+10. [Data Quality and Constraints](#10-data-quality-and-constraints)
+    - [Constraint Types](#constraint-types)
+    - [Data Validation Queries](#data-validation-queries)
+
+---
+
 ## 1. Data Definition Language (DDL)
 **What it is**: Commands that define and modify database structure and schema.
 
