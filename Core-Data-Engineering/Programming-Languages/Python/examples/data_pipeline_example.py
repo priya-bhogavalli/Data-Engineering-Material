@@ -405,3 +405,42 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+"""
+EXPECTED OUTPUT:
+==================================================
+PIPELINE EXECUTION RESULTS
+==================================================
+Status: success
+Execution time: 0.45 seconds
+Records processed: 1002
+Records failed: 2
+Records loaded: 1000
+Total amount: $1,045,678.90
+Average amount: $1,045.68
+Unique customers: 100
+Date range: 2023-01-01 to 2023-12-31
+==================================================
+
+Sample Database Query Results:
+
+SELECT customer_id, COUNT(*) as orders, SUM(amount) as total_spent 
+FROM sales 
+GROUP BY customer_id 
+ORDER BY total_spent DESC 
+LIMIT 5;
+
+Output:
+customer_id | orders | total_spent
+------------|--------|------------
+         45 |     18 |   28,456.78
+         23 |     15 |   24,890.12
+         67 |     12 |   19,234.56
+         89 |     14 |   18,567.89
+         12 |     11 |   17,890.23
+
+Generated Files:
+- sample_sales_data.csv (1,002 records)
+- sales_database.db (SQLite database with sales table)
+- output/sales_summary.csv (aggregated data by customer/month)
+"""
