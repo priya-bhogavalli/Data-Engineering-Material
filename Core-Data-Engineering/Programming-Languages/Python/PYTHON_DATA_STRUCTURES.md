@@ -16,7 +16,7 @@
    - [namedtuple](#5-namedtuple)
 3. [Advanced Data Structures](#advanced-data-structures)
    - [Heap (heapq)](#1-heap-heapq)
-   - [Queue](#2-queue)
+   - [Queue](#task-queue-for-data-processing)
    - [Array (array module)](#3-array-array-module)
    - [Enum](#4-enum)
 4. [Data Structure Comparison](#data-structure-comparison)

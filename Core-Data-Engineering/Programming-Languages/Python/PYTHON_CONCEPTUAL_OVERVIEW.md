@@ -2,22 +2,22 @@
 
 ## Table of Contents
 
-1. [What is Python in Data Engineering?](#-what-is-python-in-data-engineering)
-2. [Python's Role in Data Architecture](#-pythons-role-in-data-architecture)
-3. [Core Python Concepts for Data Engineering](#-core-python-concepts-for-data-engineering)
+1. [What is Python in Data Engineering?](#what-is-python-in-data-engineering)
+2. [Python's Role in Data Architecture](#pythons-role-in-data-architecture)
+3. [Core Python Concepts for Data Engineering](#core-python-concepts-for-data-engineering)
    - [Data Structures and Their Use Cases](#1-data-structures-and-their-use-cases)
    - [Functions and Modularity](#2-functions-and-modularity)
    - [Error Handling and Robustness](#3-error-handling-and-robustness)
-4. [Essential Python Libraries for Data Engineering](#-essential-python-libraries-for-data-engineering)
+4. [Essential Python Libraries for Data Engineering](#essential-python-libraries-for-data-engineering)
    - [Data Manipulation Libraries](#1-data-manipulation-libraries)
    - [Database Connectivity Libraries](#2-database-connectivity-libraries)
    - [Cloud and API Integration](#3-cloud-and-api-integration)
-5. [Python Design Patterns for Data Engineering](#-python-design-patterns-for-data-engineering)
+5. [Python Design Patterns for Data Engineering](#python-design-patterns-for-data-engineering)
    - [ETL Pipeline Pattern](#1-etl-pipeline-pattern)
    - [Configuration Management Pattern](#2-configuration-management-pattern)
-6. [When to Use Python for Data Engineering](#-when-to-use-python-for-data-engineering)
-7. [Real-World Analogy](#-real-world-analogy)
-8. [Performance Considerations](#-performance-considerations)
+6. [When to Use Python for Data Engineering](#when-to-use-python-for-data-engineering)
+7. [Real-World Analogy](#real-world-analogy)
+8. [Performance Considerations](#performance-considerations)
 
 ---
 

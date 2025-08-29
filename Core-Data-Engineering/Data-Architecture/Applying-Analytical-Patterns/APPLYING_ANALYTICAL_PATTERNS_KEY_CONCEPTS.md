@@ -2,31 +2,31 @@
 
 ## Table of Contents
 
-### ❓ [Interview Questions](#-interview-questions)
-- **[Fundamental Concepts](#-fundamental-concepts)**
-- **[Pattern-Specific Questions](#️-pattern-specific-questions)**
-- **[Advanced Scenarios](#-advanced-scenarios)**
-- **[Implementation Questions](#-implementation-questions)**
-- **[Scenario-Based Questions](#-scenario-based-questions)**
+### ❓ [Interview Questions](#interview-questions)
+- **[Fundamental Concepts](#dimensions-vs-facts---fundamental-concepts)**
+- **[Pattern-Specific Questions](#pattern-specific-questions)**
+- **[Advanced Scenarios](#advanced-scenarios)**
+- **[Implementation Questions](#implementation-questions)**
+- **[Scenario-Based Questions](#scenario-based-questions)**
 
-### 🎯 [What are Analytical Patterns?](#-what-are-analytical-patterns)
+### 🎯 [What are Analytical Patterns?](#what-are-analytical-patterns)
 
-### 📊 [Dimensions vs Facts - Fundamental Concepts](#-dimensions-vs-facts---fundamental-concepts)
+### 📊 [Dimensions vs Facts - Fundamental Concepts](#dimensions-vs-facts---fundamental-concepts)
 
-### 📊 [Dimensional Modeling Fundamentals](#-dimensional-modeling-fundamentals)
+### 📊 [Dimensional Modeling Fundamentals](#dimensional-modeling-fundamentals)
 - **[Normalization vs Denormalization](#normalization-vs-denormalization)**
 - **[Star Schema](#star-schema)**
 - **[Snowflake Schema](#snowflake-schema)**
 - **[OLAP Cubes](#olap-cubes)**
 
-### 🏗️ [Core Analytical Patterns](#️-core-analytical-patterns)
+### 🏗️ [Core Analytical Patterns](#core-analytical-patterns)
 1. **[Slowly Changing Dimensions (SCD)](#1-slowly-changing-dimensions-scd)**
-   - [Key Difference: Type 2 vs Type 3](#-key-difference-type-2-vs-type-3)
-   - [When to Use Each Type](#-when-to-use-each-type)
+   - [Key Difference: Type 2 vs Type 3](#key-difference-type-2-vs-type-3)
+   - [When to Use Each Type](#when-to-use-each-type)
 2. **[Factless Fact Tables](#2-factless-fact-tables)**
 3. **[Accumulating Snapshot](#3-accumulating-snapshot)**
 
-### 📊 [Advanced Patterns](#-advanced-patterns)
+### 📊 [Advanced Patterns](#advanced-patterns)
 4. **[Bridge Tables](#bridge-tables)**
 5. **[Hierarchy Flattening](#hierarchy-flattening)**
 6. **[Conformed Dimensions](#conformed-dimensions)**
@@ -37,34 +37,34 @@
 11. **[Role-Playing Dimensions](#role-playing-dimensions)**
 12. **[Degenerate Dimensions](#degenerate-dimensions)**
 
-### 🔧 [Implementation Patterns](#-implementation-patterns)
+### 🔧 [Implementation Patterns](#implementation-patterns)
 - **[Python Implementation](#python-implementation)**
 - **[Time-Based Patterns](#time-based-patterns)**
 
-### 🎯 [Pattern Selection Guide](#-pattern-selection-guide)
+### 🎯 [Pattern Selection Guide](#pattern-selection-guide)
 - **[When to Use Each Pattern](#when-to-use-each-pattern)**
 - **[Implementation Decision Tree](#implementation-decision-tree)**
 
-### 🎯 [Use Cases](#-use-cases)
+### 🎯 [Use Cases](#use-cases)
 
-### 🔗 [Important Reference Links](#-important-reference-links)
-- **[Official Documentation](#-official-documentation)**
-- **[Books & Resources](#-books--resources)**
-- **[Best Practices & Patterns](#-best-practices--patterns)**
-- **[Tools & Platforms](#️-tools--platforms)**
-- **[Data Modeling Tools](#-data-modeling-tools)**
-- **[Learning Resources](#-learning-resources)**
-- **[Industry Articles](#-industry-articles)**
+### 🔗 [Important Reference Links](#important-reference-links)
+- **[Official Documentation](#official-documentation)**
+- **[Books & Resources](#books-resources)**
+- **[Best Practices & Patterns](#best-practices-patterns)**
+- **[Tools & Platforms](#tools-platforms)**
+- **[Data Modeling Tools](#data-modeling-tools)**
+- **[Learning Resources](#learning-resources)**
+- **[Industry Articles](#industry-articles)**
 
-### 📊 [Quick Reference Cheat Sheet](#-quick-reference-cheat-sheet)
+### 📊 [Quick Reference Cheat Sheet](#quick-reference-cheat-sheet)
 
-### ⚠️ [Common Pitfalls & Troubleshooting](#️-common-pitfalls--troubleshooting)
+### ⚠️ [Common Pitfalls & Troubleshooting](#common-pitfalls-troubleshooting)
 
-### ⚡ [Performance Optimization](#-performance-optimization)
+### ⚡ [Performance Optimization](#performance-optimization)
 
-### 🔍 [Data Quality & Testing](#-data-quality--testing)
+### 🔍 [Data Quality & Testing](#data-quality-testing)
 
-### 🔧 [Implementation Best Practices](#-implementation-best-practices)
+### 🔧 [Implementation Best Practices](#implementation-best-practices)
 
 ---
 

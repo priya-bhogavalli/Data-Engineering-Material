@@ -6,7 +6,7 @@
 2. [Data Engineering Libraries](#data-engineering-libraries)
    - [Data Processing](#data-processing)
    - [Database Connectivity](#database-connectivity)
-   - [Big Data & Spark](#big-data--spark)
+   - [Big Data & Spark](#big-data-spark)
    - [Cloud Services](#cloud-services)
    - [Workflow Orchestration](#workflow-orchestration)
    - [API Development](#api-development)
