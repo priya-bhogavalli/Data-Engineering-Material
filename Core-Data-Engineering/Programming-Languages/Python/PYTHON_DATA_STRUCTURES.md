@@ -5,6 +5,24 @@
 ### 1. Lists
 **Description**: Ordered, mutable collections that can store any data type. Perfect for sequences where order matters and you need to modify the data.
 
+**Basic Operations**:
+```python
+# Creation
+numbers = [1, 2, 3, 4, 5]
+mixed = [1, "hello", 3.14, True]
+
+# Operations
+numbers.append(6)           # Add to end
+numbers.insert(0, 0)        # Insert at index
+numbers.remove(3)           # Remove first occurrence
+popped = numbers.pop()      # Remove and return last
+numbers[1:3] = [10, 20]     # Slice assignment
+
+# List comprehensions
+squares = [x**2 for x in range(10)]
+filtered = [x for x in numbers if x > 5]
+```
+
 **Real-time Data Engineering Use Cases**:
 - Processing streaming log entries in chronological order
 - Storing batch records for ETL processing
@@ -32,6 +50,24 @@ valid_entries = [entry for entry in log_entries if entry.get("timestamp")]
 ### 2. Tuples
 **Description**: Ordered, immutable collections ideal for fixed data structures. Use when data shouldn't change after creation.
 
+**Basic Operations**:
+```python
+# Creation
+coordinates = (10, 20)
+single_item = (42,)         # Note the comma
+
+# Operations
+x, y = coordinates          # Unpacking
+length = len(coordinates)
+index = coordinates.index(10)
+
+# Named tuples
+from collections import namedtuple
+Point = namedtuple('Point', ['x', 'y'])
+p = Point(10, 20)
+print(p.x, p.y)            # Named access
+```
+
 **Real-time Data Engineering Use Cases**:
 - Database connection parameters (host, port, database, user)
 - Coordinate pairs for geospatial data
@@ -58,6 +94,25 @@ for lat, lng, name in store_locations:
 
 ### 3. Dictionaries
 **Description**: Key-value pairs providing fast lookups. Essential for data mapping, configuration, and JSON-like data structures.
+
+**Basic Operations**:
+```python
+# Creation
+person = {"name": "Alice", "age": 30}
+person = dict(name="Alice", age=30)
+
+# Operations
+person["city"] = "NYC"      # Add/update
+age = person.get("age", 0)  # Safe access
+del person["age"]           # Delete key
+keys = person.keys()
+values = person.values()
+items = person.items()
+
+# Dictionary comprehensions
+squared_dict = {x: x**2 for x in range(5)}
+filtered = {k: v for k, v in person.items() if isinstance(v, str)}
+```
 
 **Real-time Data Engineering Use Cases**:
 - API response parsing and data transformation
@@ -94,6 +149,25 @@ batch_size = pipeline_config.get("source", {}).get("batch_size", 100)
 
 ### 4. Sets
 **Description**: Unordered collections of unique elements. Extremely fast for membership testing and set operations.
+
+**Basic Operations**:
+```python
+# Creation
+numbers = {1, 2, 3, 4, 5}
+unique_chars = set("hello")
+
+# Operations
+numbers.add(6)              # Add element
+numbers.remove(3)           # Remove (raises error if not found)
+numbers.discard(10)         # Remove (no error if not found)
+
+# Set operations
+set1 = {1, 2, 3, 4}
+set2 = {3, 4, 5, 6}
+union = set1 | set2             # {1, 2, 3, 4, 5, 6}
+intersection = set1 & set2      # {3, 4}
+difference = set1 - set2        # {1, 2}
+```
 
 **Real-time Data Engineering Use Cases**:
 - Data deduplication in streaming pipelines
@@ -132,6 +206,26 @@ print(f"Churn risk (inactive premium): {len(inactive_premium)}")
 ### 5. Strings
 **Description**: Immutable sequences of characters. Essential for text processing, data cleaning, and format transformations.
 
+**Basic Operations**:
+```python
+# Creation
+text = "Hello World"
+multiline = """Line 1
+Line 2"""
+
+# Operations
+words = text.split()        # Split into list
+joined = " ".join(words)    # Join list into string
+upper = text.upper()
+replaced = text.replace("World", "Python")
+stripped = "  hello  ".strip()  # Remove whitespace
+
+# String formatting
+name = "Alice"
+age = 30
+formatted = f"Name: {name}, Age: {age}"  # f-strings
+```
+
 **Real-time Data Engineering Use Cases**:
 - Log parsing and text extraction
 - Data cleaning and standardization
@@ -169,6 +263,20 @@ first_name, last_name, age, city, state = fields
 ### 1. Counter
 **Description**: Specialized dictionary for counting hashable objects. Perfect for frequency analysis and statistics.
 
+**Basic Operations**:
+```python
+from collections import Counter
+
+# Count elements
+counts = Counter([1, 2, 2, 3, 3, 3])
+word_counts = Counter("hello world".split())
+
+# Operations
+most_common = counts.most_common(2)  # [(3, 3), (2, 2)]
+counts.update([1, 1, 4])            # Add more counts
+total = sum(counts.values())         # Total count
+```
+
 **Real-time Data Engineering Use Cases**:
 - Event frequency analysis in streaming data
 - Error rate monitoring and alerting
@@ -177,8 +285,6 @@ first_name, last_name, age, city, state = fields
 - A/B testing result aggregation
 
 ```python
-from collections import Counter
-
 # Real Example: Real-time error monitoring
 error_counter = Counter()
 
@@ -210,6 +316,24 @@ conversion_rate = page_views["checkout"] / page_views["home"] * 100
 ### 2. defaultdict
 **Description**: Dictionary that automatically creates missing values with a default factory function. Eliminates key existence checks.
 
+**Basic Operations**:
+```python
+from collections import defaultdict
+
+# Group items
+groups = defaultdict(list)
+for item in ["apple", "banana", "apricot"]:
+    groups[item[0]].append(item)
+
+# Count items
+counts = defaultdict(int)
+for char in "hello":
+    counts[char] += 1
+
+# Nested defaultdict
+nested = defaultdict(lambda: defaultdict(int))
+```
+
 **Real-time Data Engineering Use Cases**:
 - Grouping streaming data by categories
 - Building aggregation pipelines without initialization
@@ -218,8 +342,6 @@ conversion_rate = page_views["checkout"] / page_views["home"] * 100
 - Building nested data structures on-the-fly
 
 ```python
-from collections import defaultdict
-
 # Real Example: User session analytics
 user_sessions = defaultdict(lambda: {"page_views": 0, "session_duration": 0, "purchases": 0})
 
@@ -254,6 +376,16 @@ print(f"US laptop sales: ${sales_data['US']['laptop']}")
 ### 3. OrderedDict
 **Description**: Dictionary that maintains insertion order with additional ordering methods. Useful for ordered processing and LRU caches.
 
+**Basic Operations**:
+```python
+from collections import OrderedDict
+
+# Maintain order (Python 3.7+ dicts are ordered by default)
+ordered = OrderedDict([("first", 1), ("second", 2)])
+ordered.move_to_end("first")        # Move to end
+ordered.popitem(last=False)         # Remove from beginning
+```
+
 **Real-time Data Engineering Use Cases**:
 - Maintaining processing order in data pipelines
 - Building LRU (Least Recently Used) caches
@@ -262,8 +394,6 @@ print(f"US laptop sales: ${sales_data['US']['laptop']}")
 - Pipeline stage execution tracking
 
 ```python
-from collections import OrderedDict
-
 # Real Example: LRU Cache for database queries
 class QueryCache:
     def __init__(self, max_size=100):
@@ -303,6 +433,21 @@ for stage_name, stage_info in pipeline_stages.items():
 ### 4. deque
 **Description**: Double-ended queue optimized for fast appends/pops from both ends. Perfect for sliding windows and buffering.
 
+**Basic Operations**:
+```python
+from collections import deque
+
+# Creation
+queue = deque([1, 2, 3])
+
+# Operations
+queue.appendleft(0)         # Add to left
+queue.append(4)             # Add to right
+left = queue.popleft()      # Remove from left
+right = queue.pop()         # Remove from right
+queue.rotate(1)             # Rotate right
+```
+
 **Real-time Data Engineering Use Cases**:
 - Sliding window calculations (moving averages, recent events)
 - Stream buffering and rate limiting
@@ -311,8 +456,6 @@ for stage_name, stage_info in pipeline_stages.items():
 - Queue-based task processing
 
 ```python
-from collections import deque
-
 # Real Example: Sliding window for real-time metrics
 class MetricsWindow:
     def __init__(self, window_size=100):
@@ -357,6 +500,22 @@ if len(stream_buffer) == stream_buffer.maxlen:
 ### 5. namedtuple
 **Description**: Immutable objects with named fields. Lightweight alternative to classes for simple data containers.
 
+**Basic Operations**:
+```python
+from collections import namedtuple
+
+# Creation
+Point = namedtuple("Point", ["x", "y"])
+p = Point(10, 20)
+
+# Access
+print(p.x, p.y)            # Named access
+print(p[0], p[1])          # Index access
+
+# Convert to dict
+point_dict = p._asdict()
+```
+
 **Real-time Data Engineering Use Cases**:
 - Structured data records in pipelines
 - Configuration objects that shouldn't change
@@ -365,8 +524,6 @@ if len(stream_buffer) == stream_buffer.maxlen:
 - API response parsing into structured objects
 
 ```python
-from collections import namedtuple
-
 # Real Example: Structured data processing
 LogEntry = namedtuple("LogEntry", ["timestamp", "level", "service", "message", "user_id"])
 Metric = namedtuple("Metric", ["name", "value", "timestamp", "tags"])
@@ -405,6 +562,21 @@ if user_stats and user_stats.total_spent > 1000:
 ### 1. Heap (heapq)
 **Description**: Binary heap implementation providing O(log n) insertion/deletion. Essential for priority-based processing and finding top-K elements.
 
+**Basic Operations**:
+```python
+import heapq
+
+# Min heap
+heap = [3, 1, 4, 1, 5]
+heapq.heapify(heap)         # Convert to heap
+heapq.heappush(heap, 2)     # Add element
+smallest = heapq.heappop(heap)  # Remove smallest
+
+# Top K elements
+top_k = heapq.nlargest(3, [1, 8, 2, 23, 7, -4, 18, 23, 42, 37, 2])
+bottom_k = heapq.nsmallest(3, [1, 8, 2, 23, 7, -4, 18, 23, 42, 37, 2])
+```
+
 **Real-time Data Engineering Use Cases**:
 - Priority-based task scheduling in data pipelines
 - Finding top-K most frequent items in streams
@@ -413,60 +585,58 @@ if user_stats and user_stats.total_spent > 1000:
 - Real-time recommendation systems
 
 ```python
-import heapq
-from datetime import datetime
-
 # Real Example: Priority-based data processing
 class PriorityTask:
     def __init__(self, priority, task_id, data):
         self.priority = priority
         self.task_id = task_id
         self.data = data
-        self.created_at = datetime.now()
     
     def __lt__(self, other):
         return self.priority < other.priority  # Lower number = higher priority
 
 # Task queue for data processing
 task_queue = []
-
-# Add tasks with different priorities
 heapq.heappush(task_queue, PriorityTask(1, "critical_etl", {"table": "orders"}))
 heapq.heappush(task_queue, PriorityTask(5, "daily_report", {"report": "sales"}))
-heapq.heappush(task_queue, PriorityTask(2, "data_validation", {"dataset": "users"}))
 
 # Process tasks by priority
 while task_queue:
     task = heapq.heappop(task_queue)
     print(f"Processing: {task.task_id} (priority: {task.priority})")
-    process_data_task(task.data)
 
 # Real-time top-K analysis
-class TopKTracker:
-    def __init__(self, k):
-        self.k = k
-        self.heap = []  # Min heap for top-K
-    
-    def add_item(self, value, item_id):
-        if len(self.heap) < self.k:
-            heapq.heappush(self.heap, (value, item_id))
-        elif value > self.heap[0][0]:
-            heapq.heapreplace(self.heap, (value, item_id))
-    
-    def get_top_k(self):
-        return sorted(self.heap, reverse=True)
-
-# Track top 5 selling products
-top_products = TopKTracker(5)
+top_products = []
 for sale in daily_sales:
-    top_products.add_item(sale["quantity"], sale["product_id"])
-
-top_5 = top_products.get_top_k()
-print(f"Top 5 products: {top_5}")
+    if len(top_products) < 5:
+        heapq.heappush(top_products, (sale["quantity"], sale["product_id"]))
+    elif sale["quantity"] > top_products[0][0]:
+        heapq.heapreplace(top_products, (sale["quantity"], sale["product_id"]))
 ```
 
 ### 2. Queue
 **Description**: Thread-safe queue implementations for concurrent data processing. Essential for producer-consumer patterns and multi-threaded pipelines.
+
+**Basic Operations**:
+```python
+from queue import Queue, LifoQueue, PriorityQueue
+
+# FIFO Queue
+q = Queue()
+q.put(1)
+item = q.get()
+
+# LIFO Queue (Stack)
+stack = LifoQueue()
+stack.put(1)
+item = stack.get()
+
+# Priority Queue
+pq = PriorityQueue()
+pq.put((1, "high priority"))
+pq.put((5, "low priority"))
+priority, item = pq.get()
+```
 
 **Real-time Data Engineering Use Cases**:
 - Multi-threaded data processing pipelines
@@ -476,81 +646,57 @@ print(f"Top 5 products: {top_5}")
 - Coordinating parallel ETL processes
 
 ```python
-from queue import Queue, LifoQueue, PriorityQueue
-import threading
-import time
-
 # Real Example: Multi-threaded data processing
 class DataProcessor:
     def __init__(self, num_workers=4):
         self.input_queue = Queue(maxsize=1000)  # Bounded queue for backpressure
         self.output_queue = Queue()
-        self.num_workers = num_workers
-        self.workers = []
     
     def worker(self):
-        """Worker thread processes data from input queue"""
         while True:
-            try:
-                data = self.input_queue.get(timeout=1)
-                if data is None:  # Shutdown signal
-                    break
-                
-                # Process data (simulate ETL operation)
-                processed = self.transform_data(data)
-                self.output_queue.put(processed)
-                
-                self.input_queue.task_done()
-            except:
+            data = self.input_queue.get()
+            if data is None:  # Shutdown signal
                 break
-    
-    def start_workers(self):
-        for i in range(self.num_workers):
-            worker = threading.Thread(target=self.worker)
-            worker.start()
-            self.workers.append(worker)
-    
-    def add_data(self, data):
-        self.input_queue.put(data)
+            processed = self.transform_data(data)
+            self.output_queue.put(processed)
+            self.input_queue.task_done()
     
     def transform_data(self, data):
-        # Simulate data transformation
-        time.sleep(0.1)
         return {"processed": data, "timestamp": time.time()}
 
 # Priority-based alert processing
 alert_queue = PriorityQueue()
-
-# Add alerts with different priorities
 alert_queue.put((1, "CRITICAL: Database down"))
 alert_queue.put((3, "WARNING: High CPU usage"))
-alert_queue.put((2, "ERROR: Failed backup"))
 
-# Process alerts by priority
 while not alert_queue.empty():
     priority, message = alert_queue.get()
     handle_alert(priority, message)
 
-# LIFO for undo operations in data processing
+# LIFO for undo operations
 undo_stack = LifoQueue()
-
-def process_with_undo(data, operation):
-    # Save state for undo
-    undo_stack.put(("undo_" + operation.__name__, data.copy()))
-    
-    # Apply operation
-    result = operation(data)
-    return result
-
-def undo_last_operation():
-    if not undo_stack.empty():
-        operation, data = undo_stack.get()
-        return data
-    return None
+undo_stack.put(("operation", data_backup))
 ```
 
 ### 3. Array (array module)
 **Description**: Memory-efficient arrays for homogeneous numeric data. Much more space-efficient than lists for large numeric datasets.
+
+**Basic Operations**:
+```python
+import array
+
+# Creation
+numbers = array.array('i', [1, 2, 3, 4])  # 'i' for integers
+floats = array.array('f', [1.1, 2.2, 3.3])  # 'f' for floats
+
+# Operations
+numbers.append(5)
+numbers.extend([6, 7])
+
+# Binary file operations
+with open('data.bin', 'wb') as f:
+    numbers.tofile(f)
+```
 
 **Real-time Data Engineering Use Cases**:
 - Processing large numeric datasets (sensor data, financial data)
@@ -560,16 +706,11 @@ def undo_last_operation():
 - Reducing memory footprint in data-intensive applications
 
 ```python
-import array
-import struct
-
 # Real Example: Sensor data processing
 class SensorDataBuffer:
-    def __init__(self, sensor_type="temperature"):
-        # Use 'f' for float32 - much more memory efficient than list
-        self.readings = array.array('f')  # 4 bytes per reading vs 28 bytes for list
+    def __init__(self):
+        self.readings = array.array('f')  # 4 bytes per reading vs 28 for list
         self.timestamps = array.array('L')  # Unsigned long for timestamps
-        self.sensor_type = sensor_type
     
     def add_reading(self, value, timestamp):
         self.readings.append(float(value))
@@ -577,24 +718,10 @@ class SensorDataBuffer:
     
     def get_average(self):
         return sum(self.readings) / len(self.readings) if self.readings else 0
-    
-    def save_to_binary(self, filename):
-        # Efficient binary serialization
-        with open(filename, 'wb') as f:
-            self.readings.tofile(f)
-    
-    def load_from_binary(self, filename):
-        with open(filename, 'rb') as f:
-            self.readings.fromfile(f, -1)  # Read all data
 
 # Process IoT sensor data
-temp_sensor = SensorDataBuffer("temperature")
-
-# Simulate streaming sensor data
-sensor_readings = [
-    (23.5, 1642248000), (24.1, 1642248060), (23.8, 1642248120),
-    (24.3, 1642248180), (23.9, 1642248240)
-]
+temp_sensor = SensorDataBuffer()
+sensor_readings = [(23.5, 1642248000), (24.1, 1642248060), (23.8, 1642248120)]
 
 for temp, timestamp in sensor_readings:
     temp_sensor.add_reading(temp, timestamp)
@@ -602,18 +729,36 @@ for temp, timestamp in sensor_readings:
 avg_temp = temp_sensor.get_average()
 print(f"Average temperature: {avg_temp:.1f}°C")
 
-# Memory comparison
+# Memory efficiency comparison
 import sys
-list_data = [1.0] * 1000000  # 1M floats in list
-array_data = array.array('f', [1.0] * 1000000)  # 1M floats in array
-
-print(f"List memory: {sys.getsizeof(list_data):,} bytes")
-print(f"Array memory: {sys.getsizeof(array_data):,} bytes")
-# Array uses ~75% less memory!
+list_data = [1.0] * 100000
+array_data = array.array('f', [1.0] * 100000)
+print(f"List: {sys.getsizeof(list_data):,} bytes")
+print(f"Array: {sys.getsizeof(array_data):,} bytes")  # ~75% less memory
 ```
 
 ### 4. Enum
 **Description**: Enumerated constants that provide readable, type-safe alternatives to magic numbers and strings. Essential for maintaining data integrity.
+
+**Basic Operations**:
+```python
+from enum import Enum, auto
+
+class Status(Enum):
+    PENDING = 1
+    APPROVED = 2
+    REJECTED = 3
+
+class Color(Enum):
+    RED = auto()
+    GREEN = auto()
+    BLUE = auto()
+
+# Usage
+current_status = Status.PENDING
+print(current_status.name)   # "PENDING"
+print(current_status.value)  # 1
+```
 
 **Real-time Data Engineering Use Cases**:
 - Data pipeline status tracking
@@ -623,30 +768,18 @@ print(f"Array memory: {sys.getsizeof(array_data):,} bytes")
 - Configuration options and feature flags
 
 ```python
-from enum import Enum, auto, IntEnum
-
 # Real Example: Data pipeline status management
 class PipelineStatus(Enum):
     PENDING = "pending"
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
-    RETRYING = "retrying"
-    CANCELLED = "cancelled"
-
-class DataQuality(IntEnum):
-    EXCELLENT = 5
-    GOOD = 4
-    ACCEPTABLE = 3
-    POOR = 2
-    UNACCEPTABLE = 1
 
 class ProcessingStage(Enum):
     EXTRACT = auto()
     VALIDATE = auto()
     TRANSFORM = auto()
     LOAD = auto()
-    CLEANUP = auto()
 
 # Pipeline execution tracking
 class DataPipelineRun:
@@ -654,39 +787,11 @@ class DataPipelineRun:
         self.pipeline_id = pipeline_id
         self.status = PipelineStatus.PENDING
         self.current_stage = None
-        self.quality_score = None
     
     def start_stage(self, stage: ProcessingStage):
         self.current_stage = stage
         self.status = PipelineStatus.RUNNING
         print(f"Pipeline {self.pipeline_id}: Starting {stage.name}")
-    
-    def complete_with_quality(self, quality: DataQuality):
-        self.quality_score = quality
-        if quality >= DataQuality.ACCEPTABLE:
-            self.status = PipelineStatus.SUCCESS
-        else:
-            self.status = PipelineStatus.FAILED
-            print(f"Pipeline failed due to poor data quality: {quality.name}")
-
-# Usage in data processing
-pipeline = DataPipelineRun("daily_sales_etl")
-
-# Process through stages
-for stage in ProcessingStage:
-    pipeline.start_stage(stage)
-    
-    # Simulate processing
-    if stage == ProcessingStage.VALIDATE:
-        data_quality = validate_data_quality()
-        if data_quality < DataQuality.ACCEPTABLE:
-            pipeline.complete_with_quality(data_quality)
-            break
-    
-    time.sleep(1)  # Simulate work
-
-if pipeline.status == PipelineStatus.SUCCESS:
-    print(f"Pipeline completed successfully with {pipeline.quality_score.name} quality")
 
 # Configuration management
 class Environment(Enum):
@@ -697,7 +802,6 @@ class Environment(Enum):
 def get_database_config(env: Environment):
     configs = {
         Environment.DEV: {"host": "dev-db", "pool_size": 5},
-        Environment.STAGING: {"host": "staging-db", "pool_size": 10},
         Environment.PROD: {"host": "prod-db", "pool_size": 50}
     }
     return configs[env]
