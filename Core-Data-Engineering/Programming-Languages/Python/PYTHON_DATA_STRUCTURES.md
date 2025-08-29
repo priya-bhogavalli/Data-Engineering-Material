@@ -28,7 +28,276 @@
 
 ## Built-in Data Structures
 
-### 1. Lists
+### 1. Numeric Types (int, float)
+**Description**: Fundamental numeric data types for mathematical operations and calculations. Essential for data analysis, metrics, and computations.
+
+**Basic Operations**:
+```python
+# Integer operations
+count = 42
+total_records = 1_000_000  # Underscore for readability
+binary_num = 0b1010        # Binary: 10
+hex_num = 0xFF             # Hexadecimal: 255
+
+print(f"Count: {count}")
+print(f"Total records: {total_records:,}")
+print(f"Binary {binary_num}, Hex {hex_num}")
+# Output: Count: 42
+# Output: Total records: 1,000,000
+# Output: Binary 10, Hex 255
+
+# Float operations
+temperature = 23.5
+percentage = 0.85
+scientific = 1.23e-4       # Scientific notation
+
+print(f"Temperature: {temperature}°C")
+print(f"Percentage: {percentage:.1%}")
+print(f"Scientific: {scientific}")
+# Output: Temperature: 23.5°C
+# Output: Percentage: 85.0%
+# Output: Scientific: 0.000123
+
+# Type checking and conversion
+value = "123"
+if value.isdigit():
+    num_value = int(value)
+    print(f"Converted to int: {num_value}")
+
+float_str = "45.67"
+float_value = float(float_str)
+print(f"Converted to float: {float_value}")
+# Output: Converted to int: 123
+# Output: Converted to float: 45.67
+```
+
+**Real-time Data Engineering Use Cases**:
+- Calculating metrics and KPIs (revenue, conversion rates)
+- Processing sensor data and measurements
+- Aggregating counts and sums in data pipelines
+- Financial calculations and monetary values
+- Performance metrics and timing measurements
+
+```python
+# Real Example: Sales metrics calculation
+class SalesMetrics:
+    def __init__(self):
+        self.total_revenue = 0.0
+        self.order_count = 0
+        self.customer_count = 0
+    
+    def add_order(self, amount: float, is_new_customer: bool = False):
+        self.total_revenue += amount
+        self.order_count += 1
+        if is_new_customer:
+            self.customer_count += 1
+    
+    def get_metrics(self) -> dict:
+        avg_order_value = self.total_revenue / self.order_count if self.order_count > 0 else 0.0
+        return {
+            'total_revenue': round(self.total_revenue, 2),
+            'order_count': self.order_count,
+            'avg_order_value': round(avg_order_value, 2),
+            'new_customers': self.customer_count
+        }
+
+# Process daily sales
+sales = SalesMetrics()
+sales.add_order(99.99, is_new_customer=True)
+sales.add_order(149.50)
+sales.add_order(75.25, is_new_customer=True)
+
+metrics = sales.get_metrics()
+print(f"Daily metrics: {metrics}")
+# Output: Daily metrics: {'total_revenue': 324.74, 'order_count': 3, 'avg_order_value': 108.25, 'new_customers': 2}
+
+# Data quality checks with numeric validation
+def validate_numeric_data(data: dict) -> bool:
+    """Validate that numeric fields are within expected ranges."""
+    validations = {
+        'age': lambda x: isinstance(x, int) and 0 <= x <= 120,
+        'salary': lambda x: isinstance(x, (int, float)) and x >= 0,
+        'score': lambda x: isinstance(x, (int, float)) and 0.0 <= x <= 100.0
+    }
+    
+    for field, validator in validations.items():
+        if field in data and not validator(data[field]):
+            print(f"Validation failed for {field}: {data[field]}")
+            return False
+    return True
+
+# Test data validation
+test_records = [
+    {'age': 25, 'salary': 50000.0, 'score': 85.5},  # Valid
+    {'age': -5, 'salary': 60000.0, 'score': 92.0},  # Invalid age
+    {'age': 30, 'salary': -1000, 'score': 78.0}     # Invalid salary
+]
+
+for i, record in enumerate(test_records, 1):
+    is_valid = validate_numeric_data(record)
+    print(f"Record {i}: {'Valid' if is_valid else 'Invalid'}")
+# Output: Record 1: Valid
+# Output: Validation failed for age: -5
+# Output: Record 2: Invalid
+# Output: Validation failed for salary: -1000
+# Output: Record 3: Invalid
+```
+
+### 2. NoneType
+**Description**: Represents the absence of a value. Critical for handling missing data, optional parameters, and null values in data processing.
+
+**Basic Operations**:
+```python
+# None as default value
+def process_data(data, config=None):
+    if config is None:
+        config = {'batch_size': 1000, 'validate': True}
+    return f"Processing with config: {config}"
+
+result1 = process_data([1, 2, 3])
+result2 = process_data([1, 2, 3], {'batch_size': 500})
+print(result1)
+print(result2)
+# Output: Processing with config: {'batch_size': 1000, 'validate': True}
+# Output: Processing with config: {'batch_size': 500}
+
+# None checking patterns
+user_data = {'name': 'Alice', 'email': None, 'age': 30}
+
+# Safe access with None check
+email = user_data.get('email')
+if email is not None:
+    send_email(email)
+else:
+    print("No email provided")
+# Output: No email provided
+
+# Using None in data filtering
+values = [1, None, 3, None, 5, 0, 7]
+filtered = [x for x in values if x is not None]
+print(f"Original: {values}")
+print(f"Filtered: {filtered}")
+# Output: Original: [1, None, 3, None, 5, 0, 7]
+# Output: Filtered: [1, 3, 5, 0, 7]
+
+# None vs False/0 distinction
+test_values = [None, False, 0, '', []]
+for value in test_values:
+    print(f"{repr(value):8} -> is None: {value is None}, is falsy: {not value}")
+# Output: None     -> is None: True, is falsy: True
+# Output: False    -> is None: False, is falsy: True
+# Output: 0        -> is None: False, is falsy: True
+# Output: ''       -> is None: False, is falsy: True
+# Output: []       -> is None: False, is falsy: True
+```
+
+**Real-time Data Engineering Use Cases**:
+- Handling missing values in datasets
+- Optional configuration parameters
+- Database NULL value representation
+- API response parsing with missing fields
+- Data validation and quality checks
+- Default value initialization
+
+```python
+# Real Example: Data cleaning with None handling
+class DataCleaner:
+    def __init__(self):
+        self.null_count = 0
+        self.cleaned_records = []
+    
+    def clean_record(self, record: dict) -> dict:
+        """Clean a data record, handling None values appropriately."""
+        cleaned = {}
+        
+        for field, value in record.items():
+            if value is None:
+                self.null_count += 1
+                # Apply field-specific null handling
+                if field == 'age':
+                    cleaned[field] = 0  # Default age
+                elif field == 'email':
+                    cleaned[field] = 'unknown@example.com'
+                elif field == 'score':
+                    cleaned[field] = None  # Keep as None for later imputation
+                else:
+                    cleaned[field] = value
+            else:
+                cleaned[field] = value
+        
+        return cleaned
+    
+    def process_batch(self, records: list) -> list:
+        """Process a batch of records with None handling."""
+        for record in records:
+            cleaned = self.clean_record(record)
+            if self._is_valid_record(cleaned):
+                self.cleaned_records.append(cleaned)
+        
+        return self.cleaned_records
+    
+    def _is_valid_record(self, record: dict) -> bool:
+        """Validate that record has required non-None fields."""
+        required_fields = ['name', 'age']
+        return all(record.get(field) is not None for field in required_fields)
+    
+    def get_stats(self) -> dict:
+        return {
+            'null_values_found': self.null_count,
+            'records_processed': len(self.cleaned_records),
+            'null_percentage': (self.null_count / (len(self.cleaned_records) * 4)) * 100 if self.cleaned_records else 0
+        }
+
+# Process data with missing values
+raw_data = [
+    {'name': 'Alice', 'age': 30, 'email': 'alice@example.com', 'score': 85.5},
+    {'name': 'Bob', 'age': None, 'email': None, 'score': 92.0},
+    {'name': None, 'age': 25, 'email': 'charlie@example.com', 'score': None},
+    {'name': 'Diana', 'age': 28, 'email': 'diana@example.com', 'score': 78.5}
+]
+
+cleaner = DataCleaner()
+cleaned_data = cleaner.process_batch(raw_data)
+stats = cleaner.get_stats()
+
+print(f"Cleaned {len(cleaned_data)} records:")
+for record in cleaned_data:
+    print(f"  {record}")
+print(f"\nStats: {stats}")
+# Output: Cleaned 3 records:
+# Output:   {'name': 'Alice', 'age': 30, 'email': 'alice@example.com', 'score': 85.5}
+# Output:   {'name': 'Bob', 'age': 0, 'email': 'unknown@example.com', 'score': 92.0}
+# Output:   {'name': 'Diana', 'age': 28, 'email': 'diana@example.com', 'score': 78.5}
+# Output: Stats: {'null_values_found': 4, 'records_processed': 3, 'null_percentage': 33.33}
+
+# API response handling with None values
+def parse_api_response(response_data: dict) -> dict:
+    """Parse API response handling None/missing fields gracefully."""
+    return {
+        'user_id': response_data.get('id'),
+        'username': response_data.get('username', 'anonymous'),
+        'email': response_data.get('email'),  # Keep None if missing
+        'last_login': response_data.get('last_login'),
+        'is_active': response_data.get('active', True),  # Default to True
+        'profile_complete': response_data.get('profile') is not None
+    }
+
+# Test API response parsing
+api_responses = [
+    {'id': 123, 'username': 'alice', 'email': 'alice@example.com', 'active': True},
+    {'id': 124, 'username': 'bob'},  # Missing email, active, last_login
+    {'id': 125, 'email': 'charlie@example.com', 'profile': {'bio': 'Developer'}}  # Missing username
+]
+
+for response in api_responses:
+    parsed = parse_api_response(response)
+    print(f"Parsed: {parsed}")
+# Output: Parsed: {'user_id': 123, 'username': 'alice', 'email': 'alice@example.com', 'last_login': None, 'is_active': True, 'profile_complete': False}
+# Output: Parsed: {'user_id': 124, 'username': 'bob', 'email': None, 'last_login': None, 'is_active': True, 'profile_complete': False}
+# Output: Parsed: {'user_id': 125, 'username': 'anonymous', 'email': 'charlie@example.com', 'last_login': None, 'is_active': True, 'profile_complete': True}
+```
+
+### 3. Lists
 **Description**: Ordered, mutable collections that can store any data type. Perfect for sequences where order matters and you need to modify the data.
 
 **Basic Operations**:

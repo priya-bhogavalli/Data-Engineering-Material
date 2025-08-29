@@ -580,74 +580,160 @@ print(f"DB stats: {db_source.get_stats()}")
 - **Clean Architecture**: Depend on abstractions, not concrete implementations
 
 ```python
-from typing import List, Protocol
+from abc import ABC, abstractmethod
+from typing import List, Dict, Any
+import json
 
-# Protocol for polymorphic behavior (Python 3.8+)
-class Processable(Protocol):
-    def process(self, data: List[Any]) -> List[Any]:
-        ...
+# Base class defining common interface
+class DataExporter(ABC):
+    """Abstract base class for data exporters."""
     
-    def get_name(self) -> str:
-        ...
+    def __init__(self, name: str):
+        self.name = name
+        self.records_exported = 0
+    
+    @abstractmethod
+    def export(self, data: List[Dict[str, Any]], destination: str) -> bool:
+        """Export data to destination - must be implemented by subclasses."""
+        pass
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Common method for all exporters."""
+        return {
+            'exporter': self.name,
+            'records_exported': self.records_exported
+        }
 
-# Different processors with same interface
-class NumberProcessor:
-    def process(self, data: List[Any]) -> List[Any]:
-        return [x * 2 for x in data if isinstance(x, (int, float))]
+# Different export implementations
+class CSVExporter(DataExporter):
+    def __init__(self):
+        super().__init__("CSV Exporter")
     
-    def get_name(self) -> str:
-        return "Number Processor"
+    def export(self, data: List[Dict[str, Any]], destination: str) -> bool:
+        """Export data as CSV format."""
+        try:
+            import csv
+            with open(destination, 'w', newline='') as file:
+                if data:
+                    writer = csv.DictWriter(file, fieldnames=data[0].keys())
+                    writer.writeheader()
+                    writer.writerows(data)
+                    self.records_exported = len(data)
+            print(f"Exported {len(data)} records to CSV: {destination}")
+            return True
+        except Exception as e:
+            print(f"CSV export failed: {e}")
+            return False
 
-class StringProcessor:
-    def process(self, data: List[Any]) -> List[Any]:
-        return [str(x).upper() for x in data if isinstance(x, str)]
+class JSONExporter(DataExporter):
+    def __init__(self):
+        super().__init__("JSON Exporter")
     
-    def get_name(self) -> str:
-        return "String Processor"
+    def export(self, data: List[Dict[str, Any]], destination: str) -> bool:
+        """Export data as JSON format."""
+        try:
+            with open(destination, 'w') as file:
+                json.dump(data, file, indent=2)
+                self.records_exported = len(data)
+            print(f"Exported {len(data)} records to JSON: {destination}")
+            return True
+        except Exception as e:
+            print(f"JSON export failed: {e}")
+            return False
 
-class FilterProcessor:
-    def __init__(self, condition):
-        self.condition = condition
+class DatabaseExporter(DataExporter):
+    def __init__(self, table_name: str):
+        super().__init__("Database Exporter")
+        self.table_name = table_name
     
-    def process(self, data: List[Any]) -> List[Any]:
-        return [x for x in data if self.condition(x)]
-    
-    def get_name(self) -> str:
-        return "Filter Processor"
+    def export(self, data: List[Dict[str, Any]], destination: str) -> bool:
+        """Export data to database table."""
+        try:
+            # Simulate database insert
+            print(f"Connecting to database: {destination}")
+            print(f"Inserting {len(data)} records into table: {self.table_name}")
+            
+            # Simulate batch insert
+            for i, record in enumerate(data, 1):
+                if i % 100 == 0:  # Progress every 100 records
+                    print(f"  Inserted {i} records...")
+            
+            self.records_exported = len(data)
+            print(f"Database export completed: {len(data)} records")
+            return True
+        except Exception as e:
+            print(f"Database export failed: {e}")
+            return False
 
-# Polymorphic function - works with any processor
-def run_data_pipeline(processors: List[Processable], data: List[Any]) -> List[Any]:
-    """Run data through multiple processors polymorphically."""
-    result = data
+# Polymorphic data export pipeline
+class DataExportPipeline:
+    """Pipeline that can work with any exporter type."""
     
-    for processor in processors:
-        print(f"Running {processor.get_name()}...")
-        result = processor.process(result)
-        print(f"Result: {result}")
+    def __init__(self):
+        self.exporters: List[DataExporter] = []
     
-    return result
+    def add_exporter(self, exporter: DataExporter):
+        """Add an exporter to the pipeline."""
+        self.exporters.append(exporter)
+    
+    def export_to_all(self, data: List[Dict[str, Any]], destinations: List[str]) -> Dict[str, bool]:
+        """Export data using all configured exporters polymorphically."""
+        results = {}
+        
+        for i, exporter in enumerate(self.exporters):
+            if i < len(destinations):
+                destination = destinations[i]
+                print(f"\nUsing {exporter.name}...")
+                success = exporter.export(data, destination)
+                results[exporter.name] = success
+                
+                # Print stats (same method call, different implementations)
+                stats = exporter.get_stats()
+                print(f"Stats: {stats}")
+        
+        return results
 
-# Create different processor instances
-processors = [
-    FilterProcessor(lambda x: isinstance(x, (int, float, str))),  # Filter valid types
-    NumberProcessor(),                                            # Process numbers
-    StringProcessor()                                            # Process strings
+# Using polymorphism in practice
+sample_data = [
+    {'customer_id': 1, 'name': 'Alice Johnson', 'total_spent': 1250.50, 'orders': 8},
+    {'customer_id': 2, 'name': 'Bob Smith', 'total_spent': 890.25, 'orders': 5},
+    {'customer_id': 3, 'name': 'Carol Davis', 'total_spent': 2100.75, 'orders': 12}
 ]
 
-# Mixed data
-input_data = [1, 2, "hello", 3.5, "world", None, 4, "python"]
+# Create pipeline with different exporters
+pipeline = DataExportPipeline()
+pipeline.add_exporter(CSVExporter())
+pipeline.add_exporter(JSONExporter())
+pipeline.add_exporter(DatabaseExporter("customer_summary"))
 
-# Run polymorphic pipeline
-final_result = run_data_pipeline(processors, input_data)
-print(f"Final result: {final_result}")
+# Export to different destinations - same interface, different behavior
+destinations = [
+    "customer_data.csv",
+    "customer_data.json", 
+    "postgresql://localhost/warehouse"
+]
 
-# Output: Running Filter Processor...
-# Output: Result: [1, 2, 'hello', 3.5, 'world', 4, 'python']
-# Output: Running Number Processor...
-# Output: Result: [2, 4, 7.0, 8]
-# Output: Running String Processor...
-# Output: Result: []
-# Output: Final result: []
+results = pipeline.export_to_all(sample_data, destinations)
+print(f"\nExport Results: {results}")
+
+# Output: Using CSV Exporter...
+# Output: Exported 3 records to CSV: customer_data.csv
+# Output: Stats: {'exporter': 'CSV Exporter', 'records_exported': 3}
+# Output: Using JSON Exporter...
+# Output: Exported 3 records to JSON: customer_data.json
+# Output: Stats: {'exporter': 'JSON Exporter', 'records_exported': 3}
+# Output: Using Database Exporter...
+# Output: Connecting to database: postgresql://localhost/warehouse
+# Output: Inserting 3 records into table: customer_summary
+# Output: Database export completed: 3 records
+# Output: Stats: {'exporter': 'Database Exporter', 'records_exported': 3}
+# Output: Export Results: {'CSV Exporter': True, 'JSON Exporter': True, 'Database Exporter': True}
+
+# Key Benefits Demonstrated:
+# 1. Same interface (export method) works with all exporter types
+# 2. Easy to add new export formats without changing existing code
+# 3. Pipeline code doesn't need to know specific exporter details
+# 4. Each exporter handles its format-specific logic internally
 ```
 
 ### Abstract Classes
