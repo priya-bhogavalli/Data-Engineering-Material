@@ -1,5 +1,43 @@
 # AWS Comprehensive Key Concepts for Data Engineering
 
+## 📋 Table of Contents
+
+1. [AWS Core Services Overview](#1-aws-core-services-overview)
+2. [Storage Services](#2-storage-services)
+   - [S3 (Simple Storage Service)](#s3-simple-storage-service)
+   - [EBS (Elastic Block Store)](#ebs-elastic-block-store)
+   - [EFS (Elastic File System)](#efs-elastic-file-system)
+3. [Compute Services](#3-compute-services)
+   - [EC2 (Elastic Compute Cloud)](#ec2-elastic-compute-cloud)
+   - [Lambda (Serverless Computing)](#lambda-serverless-computing)
+   - [ECS/Fargate (Container Services)](#ecsfargate-container-services)
+4. [Database Services](#4-database-services)
+   - [RDS (Relational Database Service)](#rds-relational-database-service)
+   - [DynamoDB (NoSQL Database)](#dynamodb-nosql-database)
+   - [Redshift (Data Warehouse)](#redshift-data-warehouse)
+5. [Analytics and Big Data Services](#5-analytics-and-big-data-services)
+   - [EMR (Elastic MapReduce)](#emr-elastic-mapreduce)
+   - [Glue (ETL Service)](#glue-etl-service)
+   - [Athena (Serverless Query Service)](#athena-serverless-query-service)
+6. [Streaming and Real-time Services](#6-streaming-and-real-time-services)
+   - [Kinesis Data Streams](#kinesis-data-streams)
+   - [Kinesis Data Firehose](#kinesis-data-firehose)
+   - [MSK (Managed Streaming for Kafka)](#msk-managed-streaming-for-kafka)
+7. [Machine Learning Services](#7-machine-learning-services)
+   - [SageMaker](#sagemaker)
+8. [Orchestration and Workflow](#8-orchestration-and-workflow)
+   - [Step Functions](#step-functions)
+   - [EventBridge (CloudWatch Events)](#eventbridge-cloudwatch-events)
+9. [Monitoring and Security](#9-monitoring-and-security)
+   - [CloudWatch](#cloudwatch)
+   - [KMS (Key Management Service)](#kms-key-management-service)
+10. [Cost Optimization and Best Practices](#10-cost-optimization-and-best-practices)
+    - [Resource Tagging Strategy](#resource-tagging-strategy)
+    - [Auto Scaling](#auto-scaling)
+    - [Spot Instances for Cost Savings](#spot-instances-for-cost-savings)
+
+---
+
 ## 1. AWS Core Services Overview
 **AWS Global Infrastructure**:
 - **Regions**: Geographic areas with multiple Availability Zones

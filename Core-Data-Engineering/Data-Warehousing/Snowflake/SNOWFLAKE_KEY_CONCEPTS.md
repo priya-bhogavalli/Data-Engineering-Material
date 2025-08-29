@@ -1,5 +1,23 @@
 # Snowflake Key Concepts
 
+## 📋 Table of Contents
+
+1. [Snowflake Architecture](#1-snowflake-architecture)
+2. [Virtual Warehouses](#2-virtual-warehouses)
+3. [Database Objects](#3-database-objects)
+   - [Databases and Schemas](#databases-and-schemas)
+   - [Tables](#tables)
+   - [External Tables](#external-tables)
+4. [Data Loading](#4-data-loading)
+5. [Cloning and Time Travel](#5-cloning-and-time-travel)
+6. [Streams and Tasks](#6-streams-and-tasks)
+7. [Stored Procedures and UDFs](#7-stored-procedures-and-udfs)
+8. [Security and Access Control](#8-security-and-access-control)
+9. [Performance Optimization](#9-performance-optimization)
+10. [Data Sharing and Marketplace](#10-data-sharing-and-marketplace)
+
+---
+
 ## 1. Snowflake Architecture
 **What is Snowflake**: A cloud-native data warehouse built for the cloud with a unique multi-cluster, shared data architecture.
 

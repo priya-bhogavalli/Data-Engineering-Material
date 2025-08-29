@@ -1,5 +1,20 @@
 # PySpark Key Concepts
 
+## 📋 Table of Contents
+
+1. [Spark Architecture](#1-spark-architecture)
+2. [RDDs (Resilient Distributed Datasets)](#2-rdds-resilient-distributed-datasets)
+3. [DataFrames](#3-dataframes)
+4. [SQL Operations](#4-sql-operations)
+5. [Data Processing Patterns](#5-data-processing-patterns)
+6. [Performance Optimization](#6-performance-optimization)
+7. [UDFs and Complex Types](#7-udfs-and-complex-types)
+8. [Streaming Processing](#8-streaming-processing)
+9. [Configuration and Tuning](#9-configuration-and-tuning)
+10. [Error Handling and Monitoring](#10-error-handling-and-monitoring)
+
+---
+
 ## 1. Spark Architecture
 **Components**:
 - **Driver**: Main program coordinating execution

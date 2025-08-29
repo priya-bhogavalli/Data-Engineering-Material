@@ -1,5 +1,44 @@
 # Databricks Key Concepts
 
+## 📋 Table of Contents
+
+1. [Databricks Platform Overview](#1-databricks-platform-overview)
+2. [Clusters](#2-clusters)
+   - [All-Purpose Clusters](#all-purpose-clusters)
+   - [Job Clusters](#job-clusters)
+   - [Cluster Optimization](#cluster-optimization)
+3. [Delta Lake](#3-delta-lake)
+   - [Creating Delta Tables](#creating-delta-tables)
+   - [Delta Operations](#delta-operations)
+   - [Time Travel](#time-travel)
+4. [Notebooks](#4-notebooks)
+   - [Notebook Features](#notebook-features)
+   - [Collaboration Features](#collaboration-features)
+5. [Jobs and Workflows](#5-jobs-and-workflows)
+   - [Job Configuration](#job-configuration)
+   - [Multi-task Jobs](#multi-task-jobs)
+6. [Data Engineering Patterns](#6-data-engineering-patterns)
+   - [Bronze Layer (Raw Data)](#bronze-layer-raw-data)
+   - [Silver Layer (Cleaned Data)](#silver-layer-cleaned-data)
+   - [Gold Layer (Business Logic)](#gold-layer-business-logic)
+7. [Streaming](#7-streaming)
+   - [Structured Streaming with Delta Lake](#structured-streaming-with-delta-lake)
+   - [Stream-Stream Joins](#stream-stream-joins)
+8. [Unity Catalog](#8-unity-catalog)
+   - [Three-Level Namespace](#three-level-namespace)
+   - [Creating Catalogs and Schemas](#creating-catalogs-and-schemas)
+   - [Access Control](#access-control)
+9. [Performance Optimization](#9-performance-optimization)
+   - [Partitioning](#partitioning)
+   - [Z-Ordering](#z-ordering)
+   - [Caching](#caching)
+   - [Broadcast Joins](#broadcast-joins)
+10. [MLflow Integration](#10-mlflow-integration)
+    - [Experiment Tracking](#experiment-tracking)
+    - [Model Registry](#model-registry)
+
+---
+
 ## 1. Databricks Platform Overview
 **What is Databricks**: A unified analytics platform that combines data engineering, data science, and machine learning on a cloud-based Apache Spark platform.
 
