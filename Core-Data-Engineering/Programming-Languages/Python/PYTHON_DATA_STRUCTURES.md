@@ -1,5 +1,31 @@
 # Python Data Structures for Data Engineering
 
+## Table of Contents
+
+1. [Built-in Data Structures](#built-in-data-structures)
+   - [Lists](#1-lists)
+   - [Tuples](#2-tuples)
+   - [Dictionaries](#3-dictionaries)
+   - [Sets](#4-sets)
+   - [Strings](#5-strings)
+2. [Collections Module](#collections-module)
+   - [Counter](#1-counter)
+   - [defaultdict](#2-defaultdict)
+   - [OrderedDict](#3-ordereddict)
+   - [deque](#4-deque)
+   - [namedtuple](#5-namedtuple)
+3. [Advanced Data Structures](#advanced-data-structures)
+   - [Heap (heapq)](#1-heap-heapq)
+   - [Queue](#2-queue)
+   - [Array (array module)](#3-array-array-module)
+   - [Enum](#4-enum)
+4. [Data Structure Comparison](#data-structure-comparison)
+5. [Performance Characteristics](#performance-characteristics)
+6. [Common Patterns](#common-patterns)
+7. [Best Practices](#best-practices)
+
+---
+
 ## Built-in Data Structures
 
 ### 1. Lists
