@@ -46,6 +46,15 @@
 - Sets for deduplication and membership testing
 - Tuples for immutable structured data
 
+> 📚 **For comprehensive coverage of Python data structures, see [PYTHON_DATA_STRUCTURES.md](./PYTHON_DATA_STRUCTURES.md)**
+> 
+> This includes:
+> - Built-in types (lists, dicts, sets, tuples, strings)
+> - Collections module (Counter, defaultdict, deque, namedtuple)
+> - Advanced structures (heaps, queues, arrays)
+> - Performance comparisons and best practices
+> - Real-world examples for data engineering
+
 **Lists - Ordered, Mutable Collections**:
 ```python
 # Creating and manipulating lists
