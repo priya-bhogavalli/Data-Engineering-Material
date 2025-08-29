@@ -1,5 +1,55 @@
 # Comprehensive Data Engineering Tools Comparison
 
+## 📋 Table of Contents
+
+1. [Overview](#-overview)
+2. [Programming Languages Comparison](#-programming-languages-comparison)
+3. [Cloud Platforms Comparison](#️-cloud-platforms-comparison)
+   - [Core Services Comparison](#core-services-comparison)
+   - [Pricing Model](#pricing-model)
+   - [Market Position](#market-position)
+4. [Database Technologies Comparison](#️-database-technologies-comparison)
+   - [Relational Databases (RDBMS)](#relational-databases-rdbms)
+   - [NoSQL Databases](#nosql-databases)
+   - [Specialized Databases](#specialized-databases)
+5. [Similar Tools Head-to-Head Comparisons](#️-similar-tools-head-to-head-comparisons)
+   - [Big Data Processing Frameworks](#big-data-processing-frameworks)
+   - [Streaming Platforms](#streaming-platforms)
+   - [Data Warehouses](#data-warehouses)
+   - [NoSQL Document Stores](#nosql-document-stores)
+   - [Key-Value Stores](#key-value-stores)
+   - [Search Engines](#search-engines)
+   - [Message Queues](#message-queues)
+   - [Workflow Orchestrators](#workflow-orchestrators)
+   - [ETL/ELT Tools](#etlelt-tools)
+   - [Container Orchestration](#container-orchestration)
+   - [Infrastructure as Code](#infrastructure-as-code)
+   - [Monitoring Solutions](#monitoring-solutions)
+   - [Business Intelligence Platforms](#business-intelligence-platforms)
+   - [Data Integration Platforms](#data-integration-platforms)
+   - [Version Control Systems](#version-control-systems)
+   - [API Management](#api-management)
+6. [Data Processing & ETL Tools Comparison](#-data-processing--etl-tools-comparison)
+   - [Big Data Processing](#big-data-processing)
+   - [ETL/ELT Tools](#etlelt-tools-1)
+   - [Orchestration Tools](#orchestration-tools)
+7. [Data Warehousing Solutions Comparison](#-data-warehousing-solutions-comparison)
+8. [AI/ML Tools Comparison](#-aiml-tools-comparison)
+   - [Machine Learning Platforms](#machine-learning-platforms)
+   - [GenAI & LLM Tools](#genai--llm-tools)
+9. [DevOps & Infrastructure Tools Comparison](#️-devops--infrastructure-tools-comparison)
+10. [Visualization & BI Tools Comparison](#-visualization--bi-tools-comparison)
+11. [Monitoring & Observability Tools Comparison](#-monitoring--observability-tools-comparison)
+12. [Version Control & Collaboration Comparison](#-version-control--collaboration-comparison)
+13. [Project Management Tools Comparison](#-project-management-tools-comparison)
+14. [Data Architecture Patterns Comparison](#️-data-architecture-patterns-comparison)
+15. [Tool Selection Matrix by Use Case](#-tool-selection-matrix-by-use-case)
+16. [Learning Path Recommendations](#-learning-path-recommendations)
+17. [Migration Considerations](#-migration-considerations)
+18. [Key Takeaways](#-key-takeaways)
+
+---
+
 ## 🎯 Overview
 This document provides a complete comparison of all data engineering tools, technologies, and platforms covered in this repository. Tools are categorized by their primary use case and compared across key dimensions.
 

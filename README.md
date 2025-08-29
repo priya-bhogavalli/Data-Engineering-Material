@@ -1,5 +1,45 @@
 # Data Engineering Interview Preparation & Self-Study Guide
 
+## 📋 Table of Contents
+
+1. [Purpose](#-purpose)
+2. [Repository Structure](#-repository-structure)
+   - [Core-Data-Engineering/](#-core-data-engineering)
+   - [Supporting-Tools/](#-supporting-tools)
+3. [Core Data Engineering Topics](#-core-data-engineering-topics)
+   - [Programming Languages](#programming-languages)
+   - [Cloud Platforms](#cloud-platforms)
+   - [Databases](#databases)
+   - [Data Processing & Pipelines](#data-processing--pipelines)
+   - [Data Warehousing](#data-warehousing)
+   - [Data Architecture & Principles](#data-architecture--principles)
+4. [Supporting Tools & Technologies](#-supporting-tools--technologies)
+   - [DevOps & Automation](#devops--automation)
+   - [Version Control](#version-control)
+   - [Visualization & Reporting](#visualization--reporting)
+   - [AI & Machine Learning](#ai--machine-learning)
+   - [Programming & Development](#programming--development)
+   - [Systems & Infrastructure](#systems--infrastructure)
+   - [Monitoring & Management](#monitoring--management)
+   - [Project Management](#project-management)
+5. [How to Use This Repository](#-how-to-use-this-repository)
+   - [For Data Engineering Focus](#-for-data-engineering-focus)
+   - [Study Approach](#-study-approach)
+6. [Study Recommendations](#-study-recommendations)
+   - [Priority 1: Core Data Engineering (Essential)](#-priority-1-core-data-engineering-essential)
+   - [Priority 2: Advanced Data Engineering](#-priority-2-advanced-data-engineering)
+   - [Priority 3: Supporting Skills](#-priority-3-supporting-skills)
+   - [Priority 4: Specialized & Emerging](#-priority-4-specialized--emerging)
+7. [Quick Start Guide](#-quick-start-guide)
+   - [New to Data Engineering?](#new-to-data-engineering)
+   - [Preparing for Interviews?](#preparing-for-interviews)
+   - [Expanding Your Skills?](#expanding-your-skills)
+8. [How to Contribute](#-how-to-contribute)
+   - [Contribution Guidelines](#contribution-guidelines)
+9. [License](#-license)
+
+---
+
 ## 🎯 Purpose
 
 This comprehensive repository serves as a complete resource for Data Engineering interview preparation and self-study. It covers essential topics, tools, and technologies that modern data engineers encounter in their careers.

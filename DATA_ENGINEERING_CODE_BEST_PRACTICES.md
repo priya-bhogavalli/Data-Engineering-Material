@@ -1,5 +1,48 @@
 # Data Engineering Code Best Practices & Guidelines
 
+## 📋 Table of Contents
+
+1. [Overview](#-overview)
+2. [Python Best Practices](#-python-best-practices)
+   - [DO's](#-dos)
+   - [DON'Ts](#-donts)
+3. [SQL Best Practices](#️-sql-best-practices)
+   - [DO's](#-dos-1)
+   - [DON'Ts](#-donts-1)
+4. [PySpark Best Practices](#-pyspark-best-practices)
+   - [DO's](#-dos-2)
+   - [DON'Ts](#-donts-2)
+5. [Cloud Platform Best Practices](#️-cloud-platform-best-practices)
+   - [AWS Best Practices](#aws-best-practices)
+   - [Data Lake Best Practices](#data-lake-best-practices)
+6. [Data Pipeline Best Practices](#-data-pipeline-best-practices)
+   - [DO's](#-dos-3)
+   - [DON'Ts](#-donts-3)
+7. [Database Best Practices](#️-database-best-practices)
+   - [General Database DO's](#general-database-dos)
+   - [NoSQL Best Practices](#nosql-best-practices)
+8. [DevOps & Infrastructure Best Practices](#-devops--infrastructure-best-practices)
+   - [Docker Best Practices](#docker-best-practices)
+   - [Kubernetes Best Practices](#kubernetes-best-practices)
+9. [Monitoring & Logging Best Practices](#-monitoring--logging-best-practices)
+   - [DO's](#-dos-4)
+10. [Security Best Practices](#-security-best-practices)
+    - [DO's](#-dos-5)
+    - [DON'Ts](#-donts-4)
+11. [Testing Best Practices](#-testing-best-practices)
+    - [DO's](#-dos-6)
+12. [Performance Optimization Best Practices](#-performance-optimization-best-practices)
+    - [DO's](#-dos-7)
+    - [Memory Management](#memory-management)
+13. [Code Review Best Practices](#-code-review-best-practices)
+    - [DO's](#-dos-8)
+    - [Code Review Checklist](#code-review-checklist)
+14. [Summary Guidelines](#-summary-guidelines)
+    - [Universal Principles](#universal-principles)
+    - [Data Engineering Specific](#data-engineering-specific)
+
+---
+
 ## 🎯 Overview
 This comprehensive guide covers coding best practices, do's and don'ts for data engineering across all major technologies, languages, and platforms. Following these practices ensures maintainable, scalable, and reliable data systems.
 
