@@ -74,6 +74,10 @@ class URLShortener:
 shortener = URLShortener()
 short = shortener.encode("https://www.google.com/very/long/url")
 original = shortener.decode(short)
+print(f"Short URL: {short}")
+print(f"Original URL: {original}")
+# Output: Short URL: http://short.ly/G5N
+# Output: Original URL: https://www.google.com/very/long/url
 ```
 
 ### 2. Implement LRU Cache with O(1) operations (Google)
@@ -184,7 +188,8 @@ def group_anagrams_count(strs: List[str]) -> List[List[str]]:
 # Usage
 words = ["eat", "tea", "tan", "ate", "nat", "bat"]
 result = group_anagrams(words)
-# [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]
+print(f"Anagram groups: {result}")
+# Output: Anagram groups: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]
 ```
 
 ## Amazon Interview Questions
@@ -260,6 +265,8 @@ logger = Logger()
 logger.info("System started")
 logger.error("Database connection failed")
 recent_errors = logger.get_logs(LogLevel.ERROR, 10)
+print(f"Recent errors: {len(recent_errors)} found")
+# Output: Recent errors: 1 found
 ```
 
 ### 5. Implement a rate limiter (Amazon)
@@ -338,6 +345,7 @@ if rate_limiter.is_allowed("user123"):
     print("Request allowed")
 else:
     print("Rate limit exceeded")
+# Output: Request allowed
 ```
 
 ### 6. Design a distributed cache (Amazon)
@@ -545,8 +553,10 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
     futures = [executor.submit(worker, counter, i) for i in range(10)]
     concurrent.futures.wait(futures)
 
-print(f"Final counter value: {counter.get()}")  # Should be 10000
+print(f"Final counter value: {counter.get()}")
 print(f"Multi-counter values: {multi_counter.get_all()}")
+# Output: Final counter value: 10000
+# Output: Multi-counter values: {'worker_0': 1000, 'worker_1': 1000, ...}
 ```
 
 ### 8. Design a file system (Microsoft)

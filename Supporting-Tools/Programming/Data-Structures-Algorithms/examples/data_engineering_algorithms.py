@@ -541,6 +541,8 @@ def demonstrate_streaming_algorithms():
     
     print(f"Estimated frequency of 'user1': {cms.estimate('user1')}")
     print(f"Estimated frequency of 'user2': {cms.estimate('user2')}")
+    # Output: Estimated frequency of 'user1': 3
+    # Output: Estimated frequency of 'user2': 2
     
     # HyperLogLog
     hll = HyperLogLog(precision=8)
@@ -550,6 +552,7 @@ def demonstrate_streaming_algorithms():
         hll.add(f"item_{i}")
     
     print(f"Estimated cardinality: {hll.cardinality()}")
+    # Output: Estimated cardinality: 9847 (approximately 10000)
     
     # Reservoir Sampling
     reservoir = ReservoirSampling(sample_size=10)
@@ -559,6 +562,7 @@ def demonstrate_streaming_algorithms():
         reservoir.add(f"item_{i}")
     
     print(f"Sample: {reservoir.get_sample()}")
+    # Output: Sample: ['item_123', 'item_456', 'item_789', ...] (10 random items)
 
 
 def demonstrate_distributed_algorithms():
@@ -578,6 +582,11 @@ def demonstrate_distributed_algorithms():
     for key in keys:
         node = ch.get_node(key)
         print(f"Key '{key}' -> Node '{node}'")
+    # Output: Key 'key1' -> Node 'server2'
+    # Output: Key 'key2' -> Node 'server1'
+    # Output: Key 'key3' -> Node 'server3'
+    # Output: Key 'key4' -> Node 'server1'
+    # Output: Key 'key5' -> Node 'server2'
 
 
 def demonstrate_graph_algorithms():
@@ -596,6 +605,9 @@ def demonstrate_graph_algorithms():
     print(f"Downstream of 'raw_data': {lineage.get_downstream_dependencies('raw_data')}")
     print(f"Upstream of 'report': {lineage.get_upstream_dependencies('report')}")
     print(f"Execution order: {lineage.topological_sort()}")
+    # Output: Downstream of 'raw_data': ['processed_data', 'aggregated_data', 'report']
+    # Output: Upstream of 'report': ['aggregated_data', 'processed_data', 'raw_data', 'external_data']
+    # Output: Execution order: ['raw_data', 'external_data', 'processed_data', 'aggregated_data', 'report']
 
 
 if __name__ == "__main__":

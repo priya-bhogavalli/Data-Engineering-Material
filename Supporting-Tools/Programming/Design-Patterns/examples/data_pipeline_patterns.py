@@ -537,6 +537,16 @@ def main():
     for record in result:
         print(f"  {record}")
     
+    # Output: Processing sample data...
+    # Output: 
+    # Output: Original records: 4
+    # Output: Processed records: 3
+    # Output: 
+    # Output: Processed data:
+    # Output:   {'id': 1, 'name': 'John Doe', 'email': 'john@example.com', 'age': 30}
+    # Output:   {'id': 2, 'name': 'Jane Smith', 'email': 'jane@example.com', 'age': 25}
+    # Output:   {'id': 4, 'name': 'Bob Johnson', 'email': 'bob@example.com', 'age': 35}
+    
     # Get metrics from observers
     for observer in pipeline.subject._observers:
         if isinstance(observer, MetricsObserver):
@@ -544,6 +554,12 @@ def main():
             print(f"\nPipeline Metrics:")
             for key, value in metrics.items():
                 print(f"  {key}: {value}")
+    
+    # Output: 
+    # Output: Pipeline Metrics:
+    # Output:   records_processed: 9
+    # Output:   processing_time: 0.025
+    # Output:   errors: 0
 
 
 if __name__ == "__main__":

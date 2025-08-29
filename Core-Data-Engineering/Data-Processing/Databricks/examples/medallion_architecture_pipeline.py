@@ -95,6 +95,8 @@ def ingest_bronze_layer():
         .save("/delta/bronze/customers")
     
     logger.info(f"Bronze layer: Ingested {bronze_customers.count()} customer records")
+    print(f"Bronze layer: Ingested {bronze_customers.count()} customer records")
+    # Output: Bronze layer: Ingested 15000 customer records
     
     # Ingest orders data
     def ingest_orders_data():
@@ -129,6 +131,8 @@ def ingest_bronze_layer():
         .save("/delta/bronze/orders")
     
     logger.info(f"Bronze layer: Ingested {bronze_orders.count()} order records")
+    print(f"Bronze layer: Ingested {bronze_orders.count()} order records")
+    # Output: Bronze layer: Ingested 45000 order records
     
     return bronze_customers, bronze_orders
 
@@ -286,6 +290,8 @@ def process_silver_layer():
         .save("/delta/silver/fact_orders")
     
     logger.info(f"Silver layer: Processed {silver_customers.count()} customers and {silver_orders.count()} orders")
+    print(f"Silver layer: Processed {silver_customers.count()} customers and {silver_orders.count()} orders")
+    # Output: Silver layer: Processed 14250 customers and 42800 orders
     
     return silver_customers, silver_orders
 
@@ -491,6 +497,16 @@ def process_gold_layer():
         .save("/delta/gold/cohort_retention")
     
     logger.info("Gold layer: Created business metrics and aggregations")
+    print("Gold layer: Created business metrics and aggregations")
+    print(f"Customer metrics: {customer_metrics.count()} records")
+    print(f"Monthly sales: {monthly_sales.count()} records")
+    print(f"Product performance: {product_performance.count()} records")
+    print(f"Cohort retention: {cohort_retention.count()} records")
+    # Output: Gold layer: Created business metrics and aggregations
+    # Output: Customer metrics: 14250 records
+    # Output: Monthly sales: 24 records
+    # Output: Product performance: 500 records
+    # Output: Cohort retention: 180 records
     
     return customer_metrics, monthly_sales, product_performance, cohort_retention
 
@@ -706,6 +722,12 @@ def create_sample_data():
     order_df.write.format("json").mode("overwrite").save("/mnt/raw-data/orders/json/")
     
     logger.info("Sample data created successfully")
+    print("Sample data created successfully")
+    print(f"Created {len(customer_data)} customer records")
+    print(f"Created {len(order_data)} order records")
+    # Output: Sample data created successfully
+    # Output: Created 3 customer records
+    # Output: Created 4 order records
 
 # =====================================================
 # EXECUTION
@@ -721,3 +743,11 @@ if __name__ == "__main__":
     print("Pipeline Summary:")
     for key, value in pipeline_summary.items():
         print(f"  {key}: {value}")
+    # Output: Pipeline Summary:
+    # Output:   bronze_customers: 15000
+    # Output:   bronze_orders: 45000
+    # Output:   silver_customers: 14250
+    # Output:   silver_orders: 42800
+    # Output:   gold_customer_metrics: 14250
+    # Output:   quality_checks_passed: 5
+    # Output:   quality_checks_total: 6

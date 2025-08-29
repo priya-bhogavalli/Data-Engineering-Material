@@ -81,10 +81,13 @@ last_transaction = transaction_ids.pop()        # Get and remove last
 
 # 1. Data Transformation: Convert IDs to strings for API calls
 api_ready_ids = [f"TXN_{id}" for id in transaction_ids]
-# Result: ['TXN_1000', 'TXN_1001', 'TXN_1002', ...]
+print(f"API ready IDs: {api_ready_ids[:3]}...")
+# Output: API ready IDs: ['TXN_1000', 'TXN_1001', 'TXN_1002']...
 
 # 2. Data Filtering: Find high-value transactions (ID > 1005)
 high_value_txns = [id for id in transaction_ids if id > 1005]
+print(f"High value transactions: {high_value_txns}")
+# Output: High value transactions: [1006, 1007, 1008]
 # Business use: Flag for manual review
 
 # 3. Complex Processing: Create transaction batches for processing
@@ -126,14 +129,19 @@ customer_data = {
 
 # Lightning-fast customer lookup for real-time transactions
 customer_info = customer_data.get('CUST001', {'tier': 'Basic', 'credit_limit': 1000})
+print(f"Customer info: {customer_info}")
+# Output: Customer info: {'name': 'John Doe', 'tier': 'Premium', 'credit_limit': 50000}
 
 # 2. Data Transformation: Square transaction amounts for analysis
 transaction_amounts = {1001: 150.50, 1002: 299.99, 1003: 75.25}
 squared_amounts = {txn_id: amount**2 for txn_id, amount in transaction_amounts.items()}
+print(f"Squared amounts: {squared_amounts}")
+# Output: Squared amounts: {1001: 22650.25, 1002: 89994.0001, 1003: 5662.5625}
 
 # 3. Configuration Filtering: Extract only numeric settings
 numeric_settings = {k: v for k, v in pipeline_config.items() if isinstance(v, (int, float))}
-# Result: {'batch_size': 10000, 'retry_attempts': 3, 'timeout_seconds': 300}
+print(f"Numeric settings: {numeric_settings}")
+# Output: Numeric settings: {'batch_size': 10000, 'retry_attempts': 3, 'timeout_seconds': 300}
 
 # Why Dictionaries Rock for Data Engineering:
 # - O(1) lookup time (instant, even with millions of keys)
@@ -168,6 +176,7 @@ from collections import namedtuple
 Point = namedtuple('Point', ['x', 'y'])
 p = Point(10, 20)
 print(f"X: {p.x}, Y: {p.y}")
+# Output: X: 10, Y: 20
 ```
 
 ## 2. Functions and Decorators

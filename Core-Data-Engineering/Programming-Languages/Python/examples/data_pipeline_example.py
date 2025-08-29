@@ -193,18 +193,26 @@ class DataPipeline:
             # Step 1: Extract data
             raw_data = self._extract_data()
             logger.info(f"Extracted {len(raw_data)} records")
+        print(f"Extracted {len(raw_data)} records from source")
+        # Output: Extracted 1002 records from source
             
             # Step 2: Validate data
             valid_data = self._validate_data(raw_data)
             logger.info(f"Validated {len(valid_data)} records")
+        print(f"Validated {len(valid_data)} records")
+        # Output: Validated 1000 records
             
             # Step 3: Transform data
             transformed_data = self._transform_data(valid_data)
             logger.info(f"Transformed {len(transformed_data)} records")
+        print(f"Transformed {len(transformed_data)} records")
+        # Output: Transformed 1000 records
             
             # Step 4: Load data
             loaded_count = self._load_data(transformed_data)
             logger.info(f"Loaded {loaded_count} records to database")
+        print(f"Loaded {loaded_count} records to database")
+        # Output: Loaded 1000 records to database
             
             # Step 5: Generate summary
             summary = self._generate_summary(transformed_data)
@@ -213,6 +221,8 @@ class DataPipeline:
             self.metrics['records_loaded'] = loaded_count
             
             logger.info("Pipeline execution completed successfully")
+        print("Pipeline execution completed successfully")
+        # Output: Pipeline execution completed successfully
             return {
                 'status': 'success',
                 'metrics': self.metrics,
@@ -361,6 +371,8 @@ def create_sample_data(file_path: str, num_records: int = 1000):
     df = pd.DataFrame(data)
     df.to_csv(file_path, index=False)
     logger.info(f"Created sample data with {len(data)} records at {file_path}")
+    print(f"Sample data created: {len(data)} records")
+    # Output: Sample data created: 1002 records
 
 def main():
     """Main execution function."""

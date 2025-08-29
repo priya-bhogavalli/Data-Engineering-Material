@@ -23,6 +23,13 @@ def list_operations():
     seen = set()
     duplicates = [x for x in numbers if x in seen or seen.add(x)]
     
+    print(f"Cleaned data: {cleaned}")
+    print(f"Batches: {batches}")
+    print(f"Unique numbers: {list(seen)}")
+    # Output: Cleaned data: [1, 2, 4, 5, 7]
+    # Output: Batches: [[1, 2, None], [4, 5, None], [7]]
+    # Output: Unique numbers: [1, 2, 3, 4, 5]
+    
     return cleaned, batches, list(seen)
 
 # 2. DICTIONARY EXAMPLES
@@ -48,6 +55,11 @@ def dict_operations():
         "api": {"timeout": 30, "retries": 3}
     }
     
+    print(f"Region totals: {region_totals}")
+    print(f"Database config: {config['database']}")
+    # Output: Region totals: {'North': 300, 'South': 150}
+    # Output: Database config: {'host': 'localhost', 'port': 5432}
+    
     return region_totals, config
 
 # 3. SET EXAMPLES
@@ -62,6 +74,13 @@ def set_operations():
     returning_users = user_ids_day1 & user_ids_day2
     new_users = user_ids_day2 - user_ids_day1
     total_unique = user_ids_day1 | user_ids_day2
+    
+    print(f"Returning users: {returning_users}")
+    print(f"New users: {new_users}")
+    print(f"Total unique users: {total_unique}")
+    # Output: Returning users: {4, 5}
+    # Output: New users: {6, 7, 8}
+    # Output: Total unique users: {1, 2, 3, 4, 5, 6, 7, 8}
     
     return returning_users, new_users, total_unique
 
@@ -79,6 +98,13 @@ def counter_operations():
     
     # Top N analysis
     top_words = word_counts.most_common(3)
+    
+    print(f"Word counts: {dict(word_counts)}")
+    print(f"Event counts: {dict(event_counts)}")
+    print(f"Top 3 words: {top_words}")
+    # Output: Word counts: {'the': 2, 'quick': 1, 'brown': 1, 'fox': 1, 'jumps': 1, 'over': 1, 'lazy': 1, 'dog': 1}
+    # Output: Event counts: {'login': 3, 'logout': 1, 'purchase': 1}
+    # Output: Top 3 words: [('the', 2), ('quick', 1), ('brown', 1)]
     
     return word_counts, event_counts, top_words
 
@@ -103,6 +129,11 @@ def defaultdict_operations():
     for item in items:
         category_counts[item] += 1
     
+    print(f"User transactions: {dict(user_transactions)}")
+    print(f"Category counts: {dict(category_counts)}")
+    # Output: User transactions: {1: [100, 75], 2: [50]}
+    # Output: Category counts: {'apple': 2, 'banana': 2, 'cherry': 1}
+    
     return dict(user_transactions), dict(category_counts)
 
 # 6. DEQUE EXAMPLES
@@ -125,6 +156,11 @@ def deque_operations():
     task_queue = deque(["task1", "task2", "task3"])
     task_queue.appendleft("urgent_task")  # Add high priority
     
+    print(f"Moving averages: {moving_averages}")
+    print(f"Task queue: {list(task_queue)}")
+    # Output: Moving averages: [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+    # Output: Task queue: ['urgent_task', 'task1', 'task2', 'task3']
+    
     return moving_averages, list(task_queue)
 
 # 7. HEAP EXAMPLES
@@ -145,6 +181,13 @@ def heap_operations():
     while tasks:
         priority, task = heapq.heappop(tasks)
         processed_order.append(task)
+    
+    print(f"Top {k} elements: {top_k}")
+    print(f"Bottom {k} elements: {bottom_k}")
+    print(f"Task processing order: {processed_order}")
+    # Output: Top 3 elements: [9, 6, 5]
+    # Output: Bottom 3 elements: [1, 1, 2]
+    # Output: Task processing order: ['critical', 'high', 'medium', 'low']
     
     return top_k, bottom_k, processed_order
 
@@ -168,6 +211,13 @@ def namedtuple_operations():
     # Configuration
     Config = namedtuple("Config", ["host", "port", "database"])
     db_config = Config("localhost", 5432, "mydb")
+    
+    print(f"Records: {records}")
+    print(f"Total value: {total_value}")
+    print(f"DB config: {db_config}")
+    # Output: Records: [Record(id=1, timestamp='2024-01-01', value=100), Record(id=2, timestamp='2024-01-02', value=150), Record(id=3, timestamp='2024-01-03', value=200)]
+    # Output: Total value: 450
+    # Output: DB config: Config(host='localhost', port=5432, database='mydb')
     
     return records, total_value, db_config
 
@@ -200,6 +250,11 @@ def queue_operations():
     while not job_queue.empty():
         priority, job = job_queue.get()
         job_order.append(job)
+    
+    print(f"Processed tasks: {processed}")
+    print(f"Job execution order: {job_order}")
+    # Output: Processed tasks: ['completed_process_file1', 'completed_process_file2', 'completed_process_file3']
+    # Output: Job execution order: ['backup', 'sync', 'cleanup']
     
     return processed, job_order
 
@@ -237,12 +292,17 @@ def data_pipeline_example():
     # 5. Find top active users
     top_users = heapq.nlargest(2, sessions, key=lambda x: x.event_count)
     
-    return {
+    result = {
         "unique_users": len(unique_users),
         "event_counts": dict(event_counts),
         "user_sessions": len(sessions),
         "top_users": [(s.user_id, s.event_count) for s in top_users]
     }
+    
+    print(f"Pipeline analysis: {result}")
+    # Output: Pipeline analysis: {'unique_users': 3, 'event_counts': {'login': 3, 'purchase': 1, 'logout': 1}, 'user_sessions': 3, 'top_users': [(1, 2), (2, 2)]}
+    
+    return result
 
 if __name__ == "__main__":
     # Run examples

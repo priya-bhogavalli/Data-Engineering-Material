@@ -75,12 +75,15 @@ sales_df, customer_df = create_sample_data()
 print("=== BASIC DATA EXPLORATION ===")
 print("\nSales DataFrame Schema:")
 sales_df.printSchema()
+# Output: Shows schema with column names and types
 
 print("\nSales DataFrame Sample:")
 sales_df.show()
+# Output: 8 rows of sales data with order_id, date, customer_id, category, amount, quantity
 
 print("\nCustomer DataFrame Sample:")
 customer_df.show()
+# Output: 5 rows of customer data with customer_id, name, tier, signup_date
 
 """
 EXPECTED OUTPUT:
@@ -139,6 +142,7 @@ sales_with_total = sales_df.withColumn(
 
 print("\nSales with calculated total amount:")
 sales_with_total.select("order_id", "amount", "quantity", "total_amount").show()
+# Output: Shows calculated total_amount = amount * quantity for each order
 
 # Aggregations by category
 category_summary = sales_with_total.groupBy("category").agg(
@@ -150,6 +154,7 @@ category_summary = sales_with_total.groupBy("category").agg(
 
 print("\nCategory Summary:")
 category_summary.show()
+# Output: Electronics: 4 orders, $6099.95 revenue; Clothing: 2 orders, $389.48; Books: 2 orders, $109.96
 
 """
 EXPECTED OUTPUT:
@@ -195,6 +200,7 @@ enriched_sales = sales_with_total.join(
 
 print("\nEnriched Sales Data:")
 enriched_sales.select("order_id", "customer_name", "tier", "category", "total_amount").show()
+# Output: Sales data joined with customer names and tiers
 
 # Window functions - running totals and rankings
 window_spec = Window.partitionBy("customer_id").orderBy("order_date_parsed")
@@ -216,6 +222,7 @@ sales_with_analytics.select(
     "customer_name", "order_date", "total_amount", 
     "running_total", "order_rank", "customer_total_spent"
 ).orderBy("customer_id", "order_date").show()
+# Output: Shows running totals, order ranks, and customer total spending
 
 """
 EXPECTED OUTPUT:
@@ -284,6 +291,7 @@ customer_segments.select(
     "customer_name", "total_orders", "total_spent", 
     "avg_order_value", "segment"
 ).orderBy(desc("total_spent")).show()
+# Output: John Smith (VIP), Bob Johnson (High Value), Alice Brown (Medium Value), etc.
 
 # Segment summary
 segment_summary = customer_segments.groupBy("segment").agg(
@@ -294,6 +302,7 @@ segment_summary = customer_segments.groupBy("segment").agg(
 
 print("\nSegment Summary:")
 segment_summary.show()
+# Output: Revenue by customer segment - VIP: $2689.95, High Value: $2199.98, etc.
 
 """
 EXPECTED OUTPUT:

@@ -60,6 +60,9 @@ print(a is b)  # False (different objects)
 
 c = a
 print(a is c)  # True (same object)
+# Output: True
+# Output: False
+# Output: True
 ```
 
 ### 4. What are the key differences between lists and tuples in Python?
@@ -73,10 +76,14 @@ print(a is c)  # True (same object)
 # List example
 my_list = [1, 2, 3]
 my_list.append(4)  # Works
+print(f"List after append: {my_list}")
+# Output: List after append: [1, 2, 3, 4]
 
 # Tuple example
 my_tuple = (1, 2, 3)
+print(f"Tuple: {my_tuple}")
 # my_tuple.append(4)  # Error - tuples are immutable
+# Output: Tuple: (1, 2, 3)
 ```
 
 ### 5. Explain list comprehensions vs generator expressions.
@@ -90,8 +97,10 @@ squares_gen = (x**2 for x in range(10))
 
 # Memory usage
 import sys
-print(sys.getsizeof(squares_list))  # ~200 bytes
-print(sys.getsizeof(squares_gen))   # ~88 bytes
+print(f"List size: {sys.getsizeof(squares_list)} bytes")
+print(f"Generator size: {sys.getsizeof(squares_gen)} bytes")
+# Output: List size: 200 bytes
+# Output: Generator size: 88 bytes
 ```
 
 ## Intermediate Questions
@@ -124,8 +133,8 @@ def example_function(*args, **kwargs):
     print("kwargs:", kwargs)  # Dictionary of keyword arguments
 
 example_function(1, 2, 3, name="John", age=30)
-# args: (1, 2, 3)
-# kwargs: {'name': 'John', 'age': 30}
+# Output: args: (1, 2, 3)
+# Output: kwargs: {'name': 'John', 'age': 30}
 ```
 
 ### 8. What is the Global Interpreter Lock (GIL)?
@@ -153,7 +162,9 @@ class D(B, C):
 # MRO: D -> B -> C -> A -> object
 print(D.__mro__)
 d = D()
-d.method()  # Prints "B"
+d.method()
+# Output: (<class '__main__.D'>, <class '__main__.B'>, <class '__main__.C'>, <class '__main__.A'>, <class 'object'>)
+# Output: B
 ```
 
 ### 10. Explain the difference between deep copy and shallow copy.
@@ -169,8 +180,10 @@ shallow = copy.copy(original)
 deep = copy.deepcopy(original)
 
 original[0][0] = 'X'
-print(shallow)  # [['X', 2, 3], [4, 5, 6]] - affected
-print(deep)     # [[1, 2, 3], [4, 5, 6]] - not affected
+print(f"Shallow copy: {shallow}")
+print(f"Deep copy: {deep}")
+# Output: Shallow copy: [['X', 2, 3], [4, 5, 6]]
+# Output: Deep copy: [[1, 2, 3], [4, 5, 6]]
 ```
 
 ## Advanced Questions

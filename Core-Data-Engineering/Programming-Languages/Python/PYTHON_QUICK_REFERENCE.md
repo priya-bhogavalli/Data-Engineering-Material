@@ -75,36 +75,74 @@ age = 30
 salary = 50000.75
 
 # f-strings (Python 3.6+) - most readable and efficient
-f"Hello {name}, you are {age}"                    # "Hello John, you are 30"
-f"Salary: ${salary:,.2f}"                         # "Salary: $50,000.75" - with formatting
-f"Name: {name.upper():<10} Age: {age:>3}"         # "Name: JOHN       Age:  30" - alignment
+greeting = f"Hello {name}, you are {age}"
+formatted_salary = f"Salary: ${salary:,.2f}"
+aligned = f"Name: {name.upper():<10} Age: {age:>3}"
+
+print(greeting)
+print(formatted_salary)
+print(aligned)
+# Output: Hello John, you are 30
+# Output: Salary: $50,000.75
+# Output: Name: JOHN       Age:  30
 
 # .format() method - good for templates
-"Hello {}, you are {}".format(name, age)          # positional arguments
-"Hello {name}, you are {age}".format(name=name, age=age)  # keyword arguments
-"Value: {:.2%}".format(0.1234)                    # "Value: 12.34%" - percentage formatting
+pos_format = "Hello {}, you are {}".format(name, age)
+kw_format = "Hello {name}, you are {age}".format(name=name, age=age)
+pct_format = "Value: {:.2%}".format(0.1234)
+
+print(pos_format)
+print(kw_format)
+print(pct_format)
+# Output: Hello John, you are 30
+# Output: Hello John, you are 30
+# Output: Value: 12.34%
 
 # % formatting (legacy) - avoid in new code
 "Hello %s, you are %d" % (name, age)              # old style formatting
 
 # String methods for data cleaning and processing
 text = "  Hello World  "
-text.strip()                    # "Hello World" - remove leading/trailing whitespace
-text.lstrip()                   # "Hello World  " - remove leading whitespace only
-text.rstrip()                   # "  Hello World" - remove trailing whitespace only
-text.lower()                    # "  hello world  " - convert to lowercase
-text.upper()                    # "  HELLO WORLD  " - convert to uppercase
+stripped = text.strip()
+left_stripped = text.lstrip()
+right_stripped = text.rstrip()
+lower_text = text.lower()
+upper_text = text.upper()
+
+print(f"Original: '{text}'")
+print(f"Stripped: '{stripped}'")
+print(f"Left stripped: '{left_stripped}'")
+print(f"Right stripped: '{right_stripped}'")
+print(f"Lower: '{lower_text}'")
+print(f"Upper: '{upper_text}'")
+# Output: Original: '  Hello World  '
+# Output: Stripped: 'Hello World'
+# Output: Left stripped: 'Hello World  '
+# Output: Right stripped: '  Hello World'
+# Output: Lower: '  hello world  '
+# Output: Upper: '  HELLO WORLD  '
 text.title()                    # "  Hello World  " - title case
 text.capitalize()               # "  hello world  " - capitalize first letter
 text.replace("Hello", "Hi")     # "  Hi World  " - replace substring
 text.replace(" ", "_")          # "__Hello_World__" - replace all spaces
 
 # String splitting and joining
-text.split()                    # ["Hello", "World"] - split on whitespace
-text.split("l")                 # ['  He', '', 'o Wor', 'd  '] - split on character
-"a,b,c".split(",")              # ['a', 'b', 'c'] - split on delimiter
-"_".join(["a", "b", "c"])       # "a_b_c" - join list with separator
-", ".join(["apple", "banana"])  # "apple, banana" - join with custom separator
+words = text.split()
+char_split = text.split("l")
+csv_split = "a,b,c".split(",")
+joined = "_".join(["a", "b", "c"])
+fruit_list = ", ".join(["apple", "banana"])
+
+print(f"Words: {words}")
+print(f"Split on 'l': {char_split}")
+print(f"CSV split: {csv_split}")
+print(f"Joined: {joined}")
+print(f"Fruit list: {fruit_list}")
+# Output: Words: ['Hello', 'World']
+# Output: Split on 'l': ['  He', '', 'o Wor', 'd  ']
+# Output: CSV split: ['a', 'b', 'c']
+# Output: Joined: a_b_c
+# Output: Fruit list: apple, banana
 
 # String searching and validation
 text = "Hello World"
@@ -204,9 +242,16 @@ students = [('Alice', 85), ('Bob', 90), ('Charlie', 78)]
 students.sort(key=lambda x: x[1])         # Sort by grade (second element)
 
 # List comprehensions - basic
-squares = [x**2 for x in range(10)]                    # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
-evens = [x for x in range(20) if x % 2 == 0]          # [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
-uppercase = [word.upper() for word in ['hello', 'world']]  # ['HELLO', 'WORLD']
+squares = [x**2 for x in range(10)]
+evens = [x for x in range(20) if x % 2 == 0]
+uppercase = [word.upper() for word in ['hello', 'world']]
+
+print(f"Squares: {squares}")
+print(f"Evens: {evens}")
+print(f"Uppercase: {uppercase}")
+# Output: Squares: [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+# Output: Evens: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+# Output: Uppercase: ['HELLO', 'WORLD']
 
 # List comprehensions - advanced
 # Nested comprehensions for matrix operations
@@ -342,8 +387,13 @@ bool(person)                                      # True - False only if empty
 
 # Dictionary comprehensions - powerful for data transformation
 numbers = [1, 2, 3, 4, 5]
-squares = {x: x**2 for x in numbers}              # {1: 1, 2: 4, 3: 9, 4: 16, 5: 25}
-even_squares = {x: x**2 for x in numbers if x % 2 == 0}  # {2: 4, 4: 16}
+squares = {x: x**2 for x in numbers}
+even_squares = {x: x**2 for x in numbers if x % 2 == 0}
+
+print(f"Squares dict: {squares}")
+print(f"Even squares: {even_squares}")
+# Output: Squares dict: {1: 1, 2: 4, 3: 9, 4: 16, 5: 25}
+# Output: Even squares: {2: 4, 4: 16}
 
 # Filter existing dictionary
 original = {"name": "John", "age": 30, "city": "NYC", "country": "USA"}
