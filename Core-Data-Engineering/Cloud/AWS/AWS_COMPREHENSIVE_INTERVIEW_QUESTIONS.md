@@ -1,6 +1,19 @@
 # AWS Comprehensive Interview Questions for Data Engineers
 
-## Basic Level Questions
+## 📋 Table of Contents
+
+1. [Basic Level Questions (1-20)](#basic-level-questions-1-20)
+2. [Intermediate Level Questions (21-40)](#intermediate-level-questions-21-40)
+3. [Advanced Level Questions (41-60)](#advanced-level-questions-41-60)
+4. [Architecture & Design Patterns (61-80)](#architecture--design-patterns-61-80)
+5. [Security & Compliance (81-100)](#security--compliance-81-100)
+6. [Performance & Optimization (101-120)](#performance--optimization-101-120)
+7. [Scenario-Based Questions (121-140)](#scenario-based-questions-121-140)
+8. [Troubleshooting & Best Practices (141-160)](#troubleshooting--best-practices-141-160)
+
+---
+
+## Basic Level Questions (1-20)
 
 ### 1. What are the core AWS services for data engineering and their use cases?
 **Answer**: Essential AWS services for data engineering:
@@ -297,7 +310,180 @@ rds.create_db_snapshot(
 )
 ```
 
-## Intermediate Level Questions
+### 16. What is AWS Well-Architected Framework and its pillars?
+**Answer:**
+**Five Pillars of Well-Architected Framework:**
+- **Operational Excellence**: Run and monitor systems
+- **Security**: Protect information and systems
+- **Reliability**: Recover from failures and meet demand
+- **Performance Efficiency**: Use resources efficiently
+- **Cost Optimization**: Avoid unnecessary costs
+
+### 17. How do you implement Infrastructure as Code (IaC) in AWS?
+**Answer:**
+```yaml
+# CloudFormation template example
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Data Engineering Infrastructure'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: 'dev'
+    AllowedValues: ['dev', 'staging', 'prod']
+
+Resources:
+  DataLakeS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'data-lake-${Environment}-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: TransitionToIA
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+          - Id: TransitionToGlacier
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+
+  GlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Sub '${Environment}_data_catalog'
+        Description: 'Data catalog for analytics'
+```
+
+### 18. What are AWS service limits and how do you handle them?
+**Answer:**
+**Common Service Limits:**
+- S3: 5TB per object, 100 buckets per account
+- Lambda: 15 minutes execution time, 10GB memory
+- Glue: 100 concurrent jobs per account
+- Kinesis: 1000 records per second per shard
+
+**Handling Strategies:**
+```python
+# Request limit increases
+support = boto3.client('support')
+
+# Create support case for limit increase
+support.create_case(
+    subject='Increase Glue Job Limit',
+    serviceCode='amazon-glue',
+    severityCode='low',
+    categoryCode='service-limit-increase',
+    communicationBody='Request to increase concurrent Glue jobs from 100 to 500'
+)
+
+# Monitor service quotas
+service_quotas = boto3.client('service-quotas')
+
+# Get current quota
+quota = service_quotas.get_service_quota(
+    ServiceCode='glue',
+    QuotaCode='L-4BC2CFBA'  # Concurrent jobs quota
+)
+
+print(f"Current limit: {quota['Quota']['Value']}")
+```
+
+### 19. How do you implement blue-green deployments for data pipelines?
+**Answer:**
+```python
+# Blue-green deployment for Glue jobs
+def deploy_glue_job_blue_green(job_name, new_script_location):
+    glue = boto3.client('glue')
+    
+    # Get current job (blue)
+    current_job = glue.get_job(JobName=job_name)
+    
+    # Create green version
+    green_job_name = f"{job_name}-green"
+    green_job_config = current_job['Job'].copy()
+    green_job_config['Name'] = green_job_name
+    green_job_config['Command']['ScriptLocation'] = new_script_location
+    
+    # Deploy green version
+    glue.create_job(**green_job_config)
+    
+    # Test green version
+    test_run = glue.start_job_run(JobName=green_job_name)
+    
+    # Monitor test run
+    while True:
+        run_status = glue.get_job_run(
+            JobName=green_job_name,
+            RunId=test_run['JobRunId']
+        )
+        
+        if run_status['JobRun']['JobRunState'] == 'SUCCEEDED':
+            # Switch traffic to green
+            glue.update_job(
+                JobName=job_name,
+                JobUpdate={
+                    'Command': {
+                        'ScriptLocation': new_script_location
+                    }
+                }
+            )
+            
+            # Clean up green version
+            glue.delete_job(JobName=green_job_name)
+            break
+        elif run_status['JobRun']['JobRunState'] == 'FAILED':
+            # Rollback - keep blue version
+            glue.delete_job(JobName=green_job_name)
+            raise Exception("Green deployment failed")
+        
+        time.sleep(30)
+```
+
+### 20. What are AWS Organizations and how do they help in data governance?
+**Answer:**
+**AWS Organizations Benefits:**
+- Centralized billing and cost management
+- Service Control Policies (SCPs)
+- Account isolation and security
+- Automated account provisioning
+
+```python
+# Service Control Policy example
+scp_policy = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Deny",
+            "Action": [
+                "s3:DeleteBucket",
+                "s3:DeleteObject"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringNotEquals": {
+                    "aws:PrincipalTag/Department": "DataEngineering"
+                }
+            }
+        }
+    ]
+}
+
+# Apply SCP to organizational unit
+organizations = boto3.client('organizations')
+organizations.attach_policy(
+    PolicyId='p-12345678',
+    TargetId='ou-root-123456789'
+)
+```
+
+## Intermediate Level Questions (21-40)
 
 ### 6. How do you implement real-time data processing with AWS Kinesis?
 **Answer**: Kinesis streaming architecture:

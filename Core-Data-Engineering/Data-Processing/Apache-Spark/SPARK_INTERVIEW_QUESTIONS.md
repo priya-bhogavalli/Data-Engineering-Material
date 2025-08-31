@@ -1,6 +1,19 @@
 # Apache Spark Interview Questions for Data Engineering
 
-## Basic Level Questions (1-8)
+## 📋 Table of Contents
+
+1. [Basic Level Questions (1-25)](#basic-level-questions-1-25)
+2. [Intermediate Level Questions (26-50)](#intermediate-level-questions-26-50)
+3. [Advanced Level Questions (51-75)](#advanced-level-questions-51-75)
+4. [Architecture & Performance (76-100)](#architecture--performance-76-100)
+5. [Streaming & Real-time Processing (101-125)](#streaming--real-time-processing-101-125)
+6. [Machine Learning & MLOps (126-150)](#machine-learning--mlops-126-150)
+7. [Production & Operations (151-175)](#production--operations-151-175)
+8. [Scenario-Based Questions (176-200)](#scenario-based-questions-176-200)
+
+---
+
+## Basic Level Questions (1-25)
 
 ### 1. What is Apache Spark and how does it differ from Hadoop MapReduce?
 **Answer:**
@@ -174,9 +187,374 @@ rdd3 = rdd2.map(lambda x: x.upper())  # Not executed
 results = rdd3.collect()  # Execution happens here
 ```
 
-## Intermediate Level Questions (9-16)
+### 9. What are the different deployment modes in Spark?
+**Answer:**
+**Deployment Modes:**
+- **Client Mode**: Driver runs on client machine
+- **Cluster Mode**: Driver runs on cluster worker node
+- **Local Mode**: Single JVM for development/testing
 
-### 9. How do you optimize Spark jobs for better performance?
+```bash
+# Client mode
+spark-submit --deploy-mode client --master yarn app.py
+
+# Cluster mode  
+spark-submit --deploy-mode cluster --master yarn app.py
+
+# Local mode
+spark-submit --master local[*] app.py
+```
+
+### 10. Explain Spark SQL and its components
+**Answer:**
+**Spark SQL Components:**
+- **DataFrame API**: Structured data abstraction
+- **Dataset API**: Type-safe DataFrame (Scala/Java)
+- **SQL Interface**: Standard SQL queries
+- **Catalyst Optimizer**: Query optimization engine
+
+```python
+# DataFrame API
+df = spark.read.json("data.json")
+result = df.select("name", "age").filter(df.age > 21)
+
+# SQL Interface
+df.createOrReplaceTempView("people")
+result = spark.sql("SELECT name, age FROM people WHERE age > 21")
+```
+
+### 11. What are the different storage levels in Spark?
+**Answer:**
+```python
+from pyspark import StorageLevel
+
+# Memory only (default for cache())
+df.persist(StorageLevel.MEMORY_ONLY)
+
+# Memory and disk
+df.persist(StorageLevel.MEMORY_AND_DISK)
+
+# Serialized in memory
+df.persist(StorageLevel.MEMORY_ONLY_SER)
+
+# Disk only
+df.persist(StorageLevel.DISK_ONLY)
+
+# With replication
+df.persist(StorageLevel.MEMORY_AND_DISK_2)
+```
+
+### 12. How does Spark handle fault tolerance?
+**Answer:**
+**Fault Tolerance Mechanisms:**
+- **RDD Lineage**: Recompute lost partitions using lineage graph
+- **Checkpointing**: Persist RDD to reliable storage
+- **Task Retry**: Automatically retry failed tasks
+- **Speculative Execution**: Run duplicate tasks for slow nodes
+
+```python
+# Enable checkpointing
+sc.setCheckpointDir("hdfs://checkpoint")
+rdd.checkpoint()
+
+# Configure task retries
+spark.conf.set("spark.task.maxAttempts", "3")
+spark.conf.set("spark.stage.maxConsecutiveAttempts", "8")
+```
+
+### 13. What is the difference between DataFrame and Dataset?
+**Answer:**
+**DataFrame vs Dataset:**
+- **DataFrame**: Untyped, available in all languages
+- **Dataset**: Type-safe, only in Scala/Java
+- **Performance**: Similar performance due to Catalyst
+- **Compile-time Safety**: Dataset provides compile-time type checking
+
+```scala
+// Dataset (Scala)
+case class Person(name: String, age: Int)
+val ds: Dataset[Person] = spark.read.json("people.json").as[Person]
+
+// DataFrame (any language)
+val df: DataFrame = spark.read.json("people.json")
+```
+
+### 14. Explain Spark's execution model
+**Answer:**
+**Execution Flow:**
+1. **Job**: Triggered by action
+2. **Stage**: Set of tasks that can run in parallel
+3. **Task**: Unit of work sent to executor
+4. **Shuffle**: Data exchange between stages
+
+```python
+# This creates multiple stages due to shuffle
+rdd1 = sc.textFile("file1.txt")
+rdd2 = sc.textFile("file2.txt")
+joined = rdd1.join(rdd2)  # Shuffle boundary
+result = joined.count()   # Action triggers job
+```
+
+### 15. What are accumulators and broadcast variables?
+**Answer:**
+```python
+# Accumulators - write-only variables
+counter = sc.accumulator(0)
+
+def process_line(line):
+    if "ERROR" in line:
+        counter.add(1)
+    return line.upper()
+
+rdd.map(process_line).collect()
+print(f"Errors found: {counter.value}")
+
+# Broadcast variables - read-only shared data
+lookup_dict = {"A": 1, "B": 2, "C": 3}
+broadcast_dict = sc.broadcast(lookup_dict)
+
+def enrich_data(record):
+    return broadcast_dict.value.get(record, 0)
+
+rdd.map(enrich_data).collect()
+```
+
+### 16. How do you handle small files problem in Spark?
+**Answer:**
+```python
+# Problem: Many small files cause performance issues
+
+# Solution 1: Coalesce partitions
+df.coalesce(1).write.parquet("output")
+
+# Solution 2: Repartition before writing
+df.repartition(10).write.parquet("output")
+
+# Solution 3: Use maxRecordsPerFile
+df.write.option("maxRecordsPerFile", 100000).parquet("output")
+
+# Solution 4: Combine small files during read
+spark.conf.set("spark.sql.files.maxPartitionBytes", "134217728")  # 128MB
+```
+
+### 17. What is Dynamic Allocation in Spark?
+**Answer:**
+```python
+# Enable dynamic allocation
+spark.conf.set("spark.dynamicAllocation.enabled", "true")
+spark.conf.set("spark.dynamicAllocation.minExecutors", "1")
+spark.conf.set("spark.dynamicAllocation.maxExecutors", "20")
+spark.conf.set("spark.dynamicAllocation.initialExecutors", "5")
+
+# Configure scaling behavior
+spark.conf.set("spark.dynamicAllocation.executorIdleTimeout", "60s")
+spark.conf.set("spark.dynamicAllocation.schedulerBacklogTimeout", "1s")
+```
+
+### 18. Explain Spark's memory management
+**Answer:**
+**Memory Regions:**
+- **Reserved Memory**: 300MB for system
+- **User Memory**: User data structures (40% by default)
+- **Spark Memory**: Execution + Storage (60% by default)
+  - **Execution Memory**: Shuffles, joins, sorts
+  - **Storage Memory**: Cached RDDs/DataFrames
+
+```python
+# Configure memory settings
+spark.conf.set("spark.executor.memory", "4g")
+spark.conf.set("spark.executor.memoryFraction", "0.8")
+spark.conf.set("spark.storage.memoryFraction", "0.5")
+spark.conf.set("spark.executor.extraJavaOptions", "-XX:+UseG1GC")
+```
+
+### 19. What are the different file formats supported by Spark?
+**Answer:**
+```python
+# Text files
+df = spark.read.text("data.txt")
+df.write.text("output")
+
+# CSV
+df = spark.read.csv("data.csv", header=True, inferSchema=True)
+df.write.csv("output", header=True)
+
+# JSON
+df = spark.read.json("data.json")
+df.write.json("output")
+
+# Parquet (recommended for analytics)
+df = spark.read.parquet("data.parquet")
+df.write.parquet("output")
+
+# Delta Lake
+df = spark.read.format("delta").load("delta-table")
+df.write.format("delta").save("delta-table")
+
+# Avro
+df = spark.read.format("avro").load("data.avro")
+df.write.format("avro").save("output")
+```
+
+### 20. How do you debug Spark applications?
+**Answer:**
+```python
+# 1. Use Spark UI (port 4040)
+# Access at http://driver-node:4040
+
+# 2. Enable detailed logging
+spark.conf.set("spark.sql.adaptive.enabled", "true")
+spark.conf.set("spark.sql.adaptive.logLevel", "INFO")
+
+# 3. Explain query plans
+df.explain(True)  # Shows all optimization phases
+df.explain("cost")  # Shows cost-based optimization
+
+# 4. Use DataFrame/Dataset operations for better debugging
+df.show()  # Display data
+df.printSchema()  # Show schema
+df.describe().show()  # Statistics
+
+# 5. Cache intermediate results for debugging
+intermediate_df = df.filter(condition).cache()
+intermediate_df.count()  # Force caching
+```
+
+### 21. What is Adaptive Query Execution (AQE)?
+**Answer:**
+```python
+# Enable AQE (Spark 3.0+)
+spark.conf.set("spark.sql.adaptive.enabled", "true")
+spark.conf.set("spark.sql.adaptive.coalescePartitions.enabled", "true")
+spark.conf.set("spark.sql.adaptive.skewJoin.enabled", "true")
+
+# AQE Features:
+# 1. Dynamically coalesce shuffle partitions
+# 2. Dynamically switch join strategies
+# 3. Dynamically optimize skew joins
+
+# Monitor AQE optimizations
+df.explain("formatted")  # Shows AQE optimizations applied
+```
+
+### 22. How do you handle schema evolution in Spark?
+**Answer:**
+```python
+# Enable schema merging for Parquet
+df = spark.read.option("mergeSchema", "true").parquet("data")
+
+# Handle schema evolution with Delta Lake
+df.write.format("delta").option("mergeSchema", "true").save("delta-table")
+
+# Explicit schema definition
+from pyspark.sql.types import *
+
+schema = StructType([
+    StructField("id", IntegerType(), True),
+    StructField("name", StringType(), True),
+    StructField("age", IntegerType(), True)
+])
+
+df = spark.read.schema(schema).json("data.json")
+```
+
+### 23. What are User Defined Functions (UDFs) and their performance implications?
+**Answer:**
+```python
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+# Python UDF (slower due to serialization)
+def upper_case(text):
+    return text.upper() if text else None
+
+upper_udf = udf(upper_case, StringType())
+df.withColumn("upper_name", upper_udf(df.name))
+
+# Vectorized UDF (faster)
+from pyspark.sql.functions import pandas_udf
+import pandas as pd
+
+@pandas_udf(returnType=StringType())
+def vectorized_upper(series: pd.Series) -> pd.Series:
+    return series.str.upper()
+
+df.withColumn("upper_name", vectorized_upper(df.name))
+
+# Built-in functions (fastest)
+from pyspark.sql.functions import upper
+df.withColumn("upper_name", upper(df.name))
+```
+
+### 24. How do you implement incremental data processing?
+**Answer:**
+```python
+# Method 1: Using watermarks and timestamps
+df_incremental = df.filter(col("timestamp") > last_processed_timestamp)
+
+# Method 2: Using Delta Lake time travel
+df_new = spark.read.format("delta").option("timestampAsOf", "2024-01-01").load("delta-table")
+df_old = spark.read.format("delta").option("versionAsOf", 0).load("delta-table")
+df_incremental = df_new.exceptAll(df_old)
+
+# Method 3: Using checkpoint files
+def process_incremental_data(checkpoint_path):
+    # Read last checkpoint
+    try:
+        last_id = spark.read.text(checkpoint_path).collect()[0][0]
+    except:
+        last_id = 0
+    
+    # Process new data
+    new_data = df.filter(col("id") > last_id)
+    
+    # Update checkpoint
+    max_id = new_data.agg(max("id")).collect()[0][0]
+    spark.createDataFrame([(str(max_id),)]).write.mode("overwrite").text(checkpoint_path)
+    
+    return new_data
+```
+
+### 25. What are the best practices for Spark application development?
+**Answer:**
+**Development Best Practices:**
+
+```python
+# 1. Use appropriate data formats
+df.write.parquet("output")  # Columnar format for analytics
+
+# 2. Partition data appropriately
+df.write.partitionBy("year", "month").parquet("output")
+
+# 3. Cache frequently accessed data
+df.cache()  # or df.persist()
+
+# 4. Use broadcast for small lookup tables
+result = large_df.join(broadcast(small_df), "key")
+
+# 5. Avoid collect() on large datasets
+# Instead use write operations or take(n)
+
+# 6. Use appropriate cluster sizing
+# Rule of thumb: 2-4 cores per executor, 2-8GB memory per executor
+
+# 7. Monitor and tune garbage collection
+spark.conf.set("spark.executor.extraJavaOptions", "-XX:+UseG1GC -XX:MaxGCPauseMillis=200")
+
+# 8. Use structured APIs (DataFrame/Dataset) over RDDs
+# Better optimization and performance
+
+# 9. Avoid UDFs when possible, use built-in functions
+from pyspark.sql.functions import when, col
+df.withColumn("category", when(col("age") < 18, "minor").otherwise("adult"))
+
+# 10. Use appropriate join strategies
+# Broadcast joins for small tables, sort-merge for large tables
+```
+
+## Intermediate Level Questions (26-50)
+
+### 26. How do you optimize Spark jobs for better performance?
 **Answer:**
 ```python
 # 1. Proper partitioning
@@ -205,7 +583,7 @@ spark.conf.set("spark.sql.adaptive.coalescePartitions.enabled", "true")
 spark.conf.set("spark.sql.adaptive.skewJoin.enabled", "true")
 ```
 
-### 10. Explain different types of joins in Spark and their performance characteristics
+### 27. Explain different types of joins in Spark and their performance characteristics
 **Answer:**
 ```python
 # 1. Broadcast Hash Join (fastest for small tables)

@@ -7,20 +7,21 @@
 3. [Cloud Platforms](#cloud-platforms)
 4. [Databases](#databases)
 5. [Big Data & Processing](#big-data--processing)
-6. [DevOps & Infrastructure](#devops--infrastructure)
-7. [Machine Learning & AI](#machine-learning--ai)
-8. [System Design](#system-design)
-9. [Interview Preparation](#interview-preparation)
-10. [Learning Resources](#learning-resources)
-11. [Data Quality & Testing](#data-quality--testing)
-12. [Monitoring & Observability](#monitoring--observability)
-13. [Security & Compliance](#security--compliance)
-14. [Real-time & Event Processing](#real-time--event-processing)
-15. [Data Visualization](#data-visualization)
-16. [Open Source Projects](#open-source-projects)
-17. [Reference Implementations](#reference-implementations)
-18. [Company Engineering Blogs](#company-engineering-blogs)
-19. [Conferences & Communities](#conferences--communities)
+6. [Data Architecture & Design Patterns](#data-architecture--design-patterns)
+7. [DevOps & Infrastructure](#devops--infrastructure)
+8. [Machine Learning & AI](#machine-learning--ai)
+9. [System Design](#system-design)
+10. [Interview Preparation](#interview-preparation)
+11. [Learning Resources](#learning-resources)
+12. [Data Quality & Testing](#data-quality--testing)
+13. [Monitoring & Observability](#monitoring--observability)
+14. [Security & Compliance](#security--compliance)
+15. [Real-time & Event Processing](#real-time--event-processing)
+16. [Data Visualization](#data-visualization)
+17. [Open Source Projects](#open-source-projects)
+18. [Reference Implementations](#reference-implementations)
+19. [Company Engineering Blogs](#company-engineering-blogs)
+20. [Conferences & Communities](#conferences--communities)
 
 ---
 
@@ -118,6 +119,76 @@
 
 ---
 
+## 🏢 Data Architecture & Design Patterns
+
+### Data Architecture Frameworks
+- [**awesome-data-architecture**](https://github.com/alextanhongpin/awesome-data-architecture) - Curated list of data architecture resources and patterns
+- [**data-mesh-architecture**](https://github.com/datamesh-architecture/datamesh-architecture.com) - Data Mesh architecture principles and implementations
+- [**data-vault-2.0**](https://github.com/scalefree/datavault4dbt) - Data Vault 2.0 methodology and dbt implementation
+- [**dimensional-modeling**](https://github.com/dbt-labs/dbt-utils) - Dimensional modeling utilities and best practices
+- [**lambda-architecture**](https://github.com/koeninger/lambda-architecture) - Lambda architecture pattern implementations
+
+### Data Modeling & Design
+- [**dbt-core**](https://github.com/dbt-labs/dbt-core) - Transform data using SQL with built-in testing and documentation
+- [**sqlmesh**](https://github.com/TobikoData/sqlmesh) - DataOps framework for SQL transformations
+- [**dataform**](https://github.com/dataform-co/dataform) - SQL workflow management and data modeling
+- [**lookml**](https://github.com/looker-open-source/lookml-tools) - LookML modeling language tools and utilities
+- [**eralchemy**](https://github.com/Alexis-benoist/eralchemy) - Entity relationship diagrams generation tool
+
+### Data Governance & Lineage
+- [**datahub**](https://github.com/datahub-project/datahub) - Metadata platform for data discovery and governance
+- [**amundsen**](https://github.com/amundsen-io/amundsen) - Data discovery and metadata engine
+- [**openmetadata**](https://github.com/open-metadata/OpenMetadata) - Open standard for metadata management
+- [**atlas**](https://github.com/apache/atlas) - Data governance and metadata framework
+- [**marquez**](https://github.com/MarquezProject/marquez) - Metadata service for data ecosystem
+
+### Data Lake & Lakehouse Patterns
+- [**delta-lake**](https://github.com/delta-io/delta) - Open-source storage framework for building lakehouse architecture
+- [**iceberg**](https://github.com/apache/iceberg) - High-performance format for huge analytic tables
+- [**hudi**](https://github.com/apache/hudi) - Upserts, deletes and incremental processing on big data
+- [**lakeformation-samples**](https://github.com/aws-samples/aws-lake-formation-samples) - AWS Lake Formation reference architectures
+- [**medallion-architecture**](https://github.com/databricks/tech-talks) - Bronze, Silver, Gold data architecture patterns
+
+### Event-Driven Architecture
+- [**event-sourcing**](https://github.com/pyeventsourcing/eventsourcing) - Event sourcing library and patterns
+- [**kafka-patterns**](https://github.com/confluentinc/kafka-streams-examples) - Event streaming patterns with Kafka
+- [**eventuate**](https://github.com/eventuate-tram/eventuate-tram-core) - Distributed data management patterns
+- [**axon-framework**](https://github.com/AxonFramework/AxonFramework) - CQRS and Event Sourcing framework
+- [**event-store**](https://github.com/EventStore/EventStore) - Functional database for event sourcing
+
+### Microservices Data Patterns
+- [**saga-pattern**](https://github.com/eventuate-tram/eventuate-tram-sagas) - Distributed transaction patterns
+- [**outbox-pattern**](https://github.com/debezium/debezium-examples) - Transactional outbox pattern implementations
+- [**cqrs-examples**](https://github.com/gregoryyoung/m-r) - Command Query Responsibility Segregation patterns
+- [**api-gateway-patterns**](https://github.com/microservices-patterns/ftgo-application) - API gateway and data composition patterns
+
+### Data Warehouse Design Patterns
+- [**kimball-dimensional-modeling**](https://github.com/dbt-labs/dbt-utils) - Kimball methodology utilities
+- [**inmon-data-warehouse**](https://github.com/inmon-data-architecture) - Inmon data warehouse approach
+- [**anchor-modeling**](https://github.com/Roenbaeck/anchor) - Anchor modeling methodology
+- [**snowflake-patterns**](https://github.com/Snowflake-Labs/sfguides) - Snowflake architecture patterns and guides
+- [**redshift-patterns**](https://github.com/aws-samples/amazon-redshift-utils) - Amazon Redshift design patterns
+
+### Real-Time Architecture Patterns
+- [**kappa-architecture**](https://github.com/kappa-architecture/kappa-architecture.github.io) - Kappa architecture pattern resources
+- [**streaming-patterns**](https://github.com/confluentinc/kafka-streams-examples) - Stream processing design patterns
+- [**real-time-analytics**](https://github.com/apache/pinot) - Real-time OLAP datastore patterns
+- [**change-data-capture**](https://github.com/debezium/debezium) - CDC patterns and implementations
+
+### Data Security & Privacy Patterns
+- [**data-privacy-patterns**](https://github.com/microsoft/presidio) - Data protection and anonymization patterns
+- [**zero-trust-data**](https://github.com/hashicorp/vault) - Zero-trust data architecture patterns
+- [**data-encryption-patterns**](https://github.com/aws-samples/aws-encryption-sdk-python) - Data encryption at rest and in transit
+- [**gdpr-compliance**](https://github.com/GDPR-compliance-patterns) - GDPR compliance architecture patterns
+
+### Multi-Cloud & Hybrid Patterns
+- [**multi-cloud-data**](https://github.com/terraform-providers) - Multi-cloud data architecture patterns
+- [**hybrid-cloud-patterns**](https://github.com/hybrid-cloud-patterns) - Hybrid cloud architecture patterns
+- [**cloud-native-patterns**](https://github.com/cncf/landscape) - Cloud-native data architecture patterns
+- [**data-federation**](https://github.com/trinodb/trino) - Data federation and virtualization patterns
+
+---
+
 ## 🚀 DevOps & Infrastructure
 
 ### Containerization
@@ -159,6 +230,238 @@
 
 ### Distributed Systems
 - [**awesome-distributed-systems**](https://github.com/theanalyst/awesome-distributed-systems) - Curated list to learn about distributed systems
+- [**distributed-systems-readings**](https://github.com/theanalyst/awesome-distributed-systems) - Papers and resources on distributed systems
+
+---
+
+## 📚 Interview Preparation
+
+### General Interview Prep
+- [**tech-interview-handbook**](https://github.com/yangshun/tech-interview-handbook) - Materials to help you rock your next coding interview
+- [**coding-interview-university**](https://github.com/jwasham/coding-interview-university) - Complete computer science study plan
+- [**interviews**](https://github.com/kdn251/interviews) - Everything you need to know to get the job
+
+### Data Engineering Specific
+- [**data-engineering-practice**](https://github.com/danielbeach/data-engineering-practice) - Data engineering practice problems and solutions
+- [**awesome-interview-questions**](https://github.com/DopplerHQ/awesome-interview-questions) - Curated list of lists of technical interview questions
+
+### Coding Practice
+- [**leetcode**](https://github.com/haoel/leetcode) - LeetCode problems' solutions
+- [**coding-problems**](https://github.com/MTrajK/coding-problems) - Solutions for various coding/algorithmic problems
+
+---
+
+## 📚 Learning Resources
+
+### Books & Tutorials
+- [**free-programming-books**](https://github.com/EbookFoundation/free-programming-books) - Freely available programming books
+- [**build-your-own-x**](https://github.com/codecrafters-io/build-your-own-x) - Master programming by recreating your favorite technologies
+- [**project-based-learning**](https://github.com/practical-tutorials/project-based-learning) - Curated list of project-based tutorials
+
+### Cheat Sheets
+- [**awesome-cheatsheets**](https://github.com/LeCoupa/awesome-cheatsheets) - Awesome cheatsheets for popular programming languages, frameworks and development tools
+- [**cheatsheets**](https://github.com/rstacruz/cheatsheets) - My cheatsheets
+
+### Documentation & References
+- [**awesome-readme**](https://github.com/matiassingers/awesome-readme) - Elements in beautiful READMEs
+- [**awesome-github**](https://github.com/phillipadsmith/awesome-github) - Curated list of awesome GitHub tools, articles, and resources
+
+---
+
+## 🔍 Data Quality & Testing
+
+### Data Testing Frameworks
+- [**great-expectations**](https://github.com/great-expectations/great_expectations) - Data validation and documentation framework
+- [**dbt**](https://github.com/dbt-labs/dbt-core) - Transform data in your warehouse with SQL and testing
+- [**pandera**](https://github.com/unionai-oss/pandera) - Statistical data validation toolkit for pandas
+- [**deepdiff**](https://github.com/seperman/deepdiff) - Deep difference and search of any Python object/data
+
+### Data Profiling
+- [**pandas-profiling**](https://github.com/ydataai/ydata-profiling) - Generate profile reports from pandas DataFrame
+- [**sweetviz**](https://github.com/fbdesignpro/sweetviz) - Visualize and compare datasets
+- [**dataprep**](https://github.com/sfu-db/dataprep) - Data preparation library for Python
+
+---
+
+## 📈 Monitoring & Observability
+
+### Application Monitoring
+- [**prometheus**](https://github.com/prometheus/prometheus) - Monitoring system and time series database
+- [**grafana**](https://github.com/grafana/grafana) - Open source analytics & monitoring solution
+- [**jaeger**](https://github.com/jaegertracing/jaeger) - Distributed tracing platform
+- [**opentelemetry**](https://github.com/open-telemetry/opentelemetry-python) - Observability framework
+
+### Data Pipeline Monitoring
+- [**airflow**](https://github.com/apache/airflow) - Platform for workflow orchestration with monitoring
+- [**monte-carlo**](https://github.com/monte-carlo-data) - Data observability platform (open source tools)
+- [**elementary**](https://github.com/elementary-data/elementary) - Data observability for modern data teams
+
+---
+
+## 🔒 Security & Compliance
+
+### Data Security
+- [**awesome-security**](https://github.com/sbilly/awesome-security) - Collection of awesome software, libraries, documents, books, resources
+- [**bandit**](https://github.com/PyCQA/bandit) - Security linter for Python code
+- [**safety**](https://github.com/pyupio/safety) - Checks Python dependencies for known security vulnerabilities
+- [**semgrep**](https://github.com/returntocorp/semgrep) - Static analysis tool for finding bugs and security issues
+
+### Privacy & Compliance
+- [**presidio**](https://github.com/microsoft/presidio) - Data protection and de-identification SDK
+- [**faker**](https://github.com/joke2k/faker) - Generate fake data for testing
+- [**anonymizedf**](https://github.com/ArtLabss/anonymizedf) - Anonymize pandas DataFrames
+
+---
+
+## ⚡ Real-time & Event Processing
+
+### Stream Processing
+- [**faust**](https://github.com/robinhood/faust) - Python stream processing library
+- [**streamz**](https://github.com/python-streamz/streamz) - Build pipelines to manage continuous streams of data
+- [**bytewax**](https://github.com/bytewax/bytewax) - Python stream processing framework
+- [**quix-streams**](https://github.com/quixio/quix-streams) - Python library for processing streaming data
+
+### Event Sourcing
+- [**eventsourcing**](https://github.com/pyeventsourcing/eventsourcing) - Event sourcing library for Python
+- [**axon-server**](https://github.com/AxonFramework/AxonFramework) - Framework for building event-driven applications
+
+---
+
+## 📊 Data Visualization
+
+### Python Visualization
+- [**awesome-dataviz**](https://github.com/javierluraschi/awesome-dataviz) - Curated list of awesome data visualization libraries
+- [**plotly**](https://github.com/plotly/plotly.py) - Interactive graphing library for Python
+- [**bokeh**](https://github.com/bokeh/bokeh) - Interactive visualization library for modern web browsers
+- [**streamlit**](https://github.com/streamlit/streamlit) - Fastest way to build data apps
+- [**dash**](https://github.com/plotly/dash) - Build analytical web applications
+
+### Business Intelligence
+- [**metabase**](https://github.com/metabase/metabase) - Open source business intelligence tool
+- [**superset**](https://github.com/apache/superset) - Modern data exploration and visualization platform
+- [**evidence**](https://github.com/evidence-dev/evidence) - Business intelligence as code
+
+---
+
+## 🎆 Open Source Projects
+
+### Data Platforms
+- [**airbyte**](https://github.com/airbytehq/airbyte) - Data integration platform for ELT pipelines
+- [**meltano**](https://github.com/meltano/meltano) - Open source data platform
+- [**datacap**](https://github.com/EdurtIO/datacap) - Integrated data visualization and analysis platform
+- [**amundsen**](https://github.com/amundsen-io/amundsen) - Data discovery and metadata engine
+
+### Data Catalogs
+- [**datahub**](https://github.com/datahub-project/datahub) - Metadata platform for the modern data stack
+- [**atlas**](https://github.com/apache/atlas) - Data governance and metadata framework
+- [**openmetadata**](https://github.com/open-metadata/OpenMetadata) - Open standard for metadata management
+
+### Workflow Orchestration
+- [**kedro**](https://github.com/kedro-org/kedro) - Production-ready data science framework
+- [**flyte**](https://github.com/flyteorg/flyte) - Kubernetes-native workflow automation platform
+- [**kubeflow**](https://github.com/kubeflow/kubeflow) - Machine learning toolkit for Kubernetes
+
+---
+
+## 🔧 Reference Implementations
+
+### Production Data Pipelines
+- [**spotify/luigi**](https://github.com/spotify/luigi) - Python module for building complex pipelines of batch jobs
+- [**lyft/amundsen**](https://github.com/amundsen-io/amundsen) - Data discovery and metadata engine for improving data analyst productivity
+- [**uber/cadence**](https://github.com/uber/cadence) - Distributed, scalable, durable, and highly available orchestration engine
+- [**netflix/metaflow**](https://github.com/Netflix/metaflow) - Human-friendly Python/R library for building and managing real-life data science projects
+- [**airbnb/superset**](https://github.com/apache/superset) - Modern data exploration and visualization platform
+
+### ETL/ELT Reference Projects
+- [**getdbt/dbt**](https://github.com/dbt-labs/dbt-core) - Transform data in your warehouse with SQL
+- [**singer-io/getting-started**](https://github.com/singer-io/getting-started) - Standard for writing scripts that move data
+- [**meltano/meltano**](https://github.com/meltano/meltano) - Open source convention-over-configuration product for the whole data lifecycle
+- [**airbyte/airbyte**](https://github.com/airbytehq/airbyte) - Data integration platform for ELT pipelines
+
+### Real-World Data Architecture Examples
+- [**data-engineering-zoomcamp**](https://github.com/DataTalksClub/data-engineering-zoomcamp) - Complete end-to-end data engineering project
+- [**aws-samples/aws-dbs-refarch-edw**](https://github.com/aws-samples/aws-dbs-refarch-edw) - Reference architecture for Enterprise Data Warehouse
+- [**GoogleCloudPlatform/professional-services**](https://github.com/GoogleCloudPlatform/professional-services) - Common solutions and tools developed by Google Cloud's Professional Services team
+- [**Azure/azure-quickstart-templates**](https://github.com/Azure/azure-quickstart-templates) - Azure Resource Manager Templates
+
+---
+
+## 🏢 Company Engineering Blogs
+
+### Tech Giants
+- [**Netflix Tech Blog**](https://github.com/Netflix) - Netflix's engineering blog and open source projects
+- [**Uber Engineering**](https://github.com/uber) - Uber's engineering blog and tools
+- [**Airbnb Engineering**](https://github.com/airbnb) - Airbnb's engineering blog and open source
+- [**Spotify Engineering**](https://github.com/spotify) - Spotify's engineering culture and tools
+- [**LinkedIn Engineering**](https://github.com/linkedin) - LinkedIn's engineering blog and projects
+
+### Data-Focused Companies
+- [**Databricks**](https://github.com/databricks) - Databricks engineering and research
+- [**Snowflake**](https://github.com/snowflakedb) - Snowflake's engineering resources
+- [**Confluent**](https://github.com/confluentinc) - Confluent's Kafka ecosystem tools
+
+---
+
+## 🎆 Conferences & Communities
+
+### Conference Resources
+- [**awesome-conferences**](https://github.com/RichardLitt/awesome-conferences) - List of awesome conferences
+- [**data-engineering-conferences**](https://github.com/gunnarmorling/awesome-opensource-data-engineering) - Data engineering conference talks and resources
+- [**pycon-talks**](https://github.com/pybay/pybay) - PyCon and PyBay talk repositories
+
+### Community Projects
+- [**data-engineering-wiki**](https://github.com/datastacktv/data-engineering-wiki) - Community-driven data engineering knowledge base
+- [**awesome-data-engineering-learning**](https://github.com/snird/awesome-data-engineering-learning) - Learning resources for data engineering
+- [**data-engineering-roadmap**](https://github.com/datastacktv/data-engineer-roadmap) - Roadmap to becoming a data engineer
+
+---
+
+## 🔄 Contributing to Open Source
+
+### Getting Started
+- [**first-contributions**](https://github.com/firstcontributions/first-contributions) - Help beginners contribute to open source
+- [**good-first-issues**](https://github.com/MunGell/awesome-for-beginners) - Projects with good first issues for new contributors
+- [**up-for-grabs**](https://github.com/up-for-grabs/up-for-grabs.net) - Projects looking for contributors
+
+### Contribution Guidelines
+- [**awesome-contributing**](https://github.com/mntnr/awesome-contributing) - Awesome contributing guides
+- [**open-source-guide**](https://github.com/github/opensource.guide) - Community guides for open source creators
+
+---
+
+## 🎯 How to Use These Repositories
+
+### For Learning
+1. **Start with fundamentals**: Begin with language-specific awesome lists (Python, SQL)
+2. **Explore tools**: Check out data engineering and big data repositories
+3. **Practice**: Use coding interview and practice repositories
+4. **Build projects**: Follow project-based learning resources
+
+### For Interview Preparation
+1. **System Design**: Study system-design-primer and related resources
+2. **Coding Practice**: Use LeetCode and coding-problems repositories
+3. **Technology Deep Dive**: Explore specific technology awesome lists
+4. **Mock Interviews**: Practice with tech-interview-handbook
+
+### For Professional Development
+1. **Stay Updated**: Follow trending repositories in your tech stack
+2. **Contribute**: Participate in open-source projects
+3. **Learn Best Practices**: Study well-maintained codebases
+4. **Network**: Engage with the community through issues and discussions
+
+---
+
+## 🔄 Regular Updates
+
+This list is regularly updated with new and trending repositories. Check back frequently for the latest additions to the data engineering ecosystem.
+
+**Last Updated**: January 2025
+
+---
+
+**Happy Learning!** 🎓
+
+Remember to ⭐ star the repositories you find useful and consider contributing back to the open-source community!rated list to learn about distributed systems
 - [**distributed-systems-readings**](https://github.com/theanalyst/awesome-distributed-systems) - Papers and resources on distributed systems
 
 ---
