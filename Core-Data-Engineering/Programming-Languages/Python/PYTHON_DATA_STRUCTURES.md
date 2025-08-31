@@ -1451,6 +1451,19 @@ print(f"Suggestions for 'pro': {suggestions}")
 | Priority processing | heapq | O(log n) | Task scheduling |
 | Sliding windows | deque | O(1) both ends | Stream processing |
 | Grouping data | defaultdict | O(1) per group | Data aggregation |
+
+---
+
+## Related Documents
+
+🔗 **See also**: [PYTHON_ALGORITHMS_AND_ADVANCED_STRUCTURES.md](./PYTHON_ALGORITHMS_AND_ADVANCED_STRUCTURES.md) for:
+- Algorithm fundamentals and complexity analysis
+- Searching and sorting algorithms
+- Graph algorithms and tree traversal
+- Streaming algorithms for big data
+- Advanced data structures (Trie, Union-Find)
+- Data engineering patterns and optimization techniques
+
 ``` to end (most recently used)
             self.cache.move_to_end(query)
             return self.cache[query]

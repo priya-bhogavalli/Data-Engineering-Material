@@ -1,476 +1,646 @@
 # Apache Kafka Interview Questions
 
-## Basic Level Questions (1-3 years experience)
+## Table of Contents
 
-### 1. What is Apache Kafka and why is it used in data engineering?
-**Answer**: Apache Kafka is a distributed streaming platform that provides high-throughput, fault-tolerant, and scalable messaging capabilities.
+1. [Basic Kafka Concepts](#basic-kafka-concepts)
+2. [Kafka Architecture](#kafka-architecture)
+3. [Producers and Consumers](#producers-and-consumers)
+4. [Performance and Scaling](#performance-and-scaling)
+5. [Data Engineering Use Cases](#data-engineering-use-cases)
 
-**Key Use Cases in Data Engineering**:
-- **Real-time Data Pipelines**: Stream data between systems
-- **Event Sourcing**: Store and replay events
-- **Log Aggregation**: Collect logs from multiple services
-- **Stream Processing**: Process data in real-time
-- **Microservices Communication**: Decouple services
+---
 
-**Core Components**:
-- **Producer**: Publishes messages to topics
-- **Consumer**: Reads messages from topics
-- **Broker**: Kafka server that stores and serves messages
-- **Topic**: Category/feed of messages
-- **Partition**: Ordered sequence of messages within a topic
+## Basic Kafka Concepts
 
+### Q1: What is Apache Kafka and what problems does it solve?
+
+**Answer:**
+Apache Kafka is a distributed streaming platform designed for high-throughput, fault-tolerant, real-time data streaming. It solves problems of data integration, real-time processing, and building event-driven architectures.
+
+**Key Problems Solved:**
+- **Data Integration**: Connect multiple systems with decoupled architecture
+- **Real-time Processing**: Handle high-volume streaming data
+- **Scalability**: Horizontal scaling for massive throughput
+- **Fault Tolerance**: Distributed replication and durability
+- **Event Sourcing**: Store and replay events for system recovery
+
+**Code Example:**
 ```python
-# Simple Producer Example
-from kafka import KafkaProducer
+from kafka import KafkaProducer, KafkaConsumer
 import json
 
+# Producer example
 producer = KafkaProducer(
     bootstrap_servers=['localhost:9092'],
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
 # Send message
-producer.send('user-events', {
-    'user_id': 123,
-    'event': 'login',
-    'timestamp': '2024-01-01T10:00:00Z'
-})
+message = {
+    'user_id': 12345,
+    'event': 'page_view',
+    'timestamp': '2023-01-15T10:30:00Z',
+    'page': '/products'
+}
 
+producer.send('user_events', message)
 producer.flush()
-producer.close()
+print("Message sent successfully")
+# Output: Message sent successfully
+
+# Consumer example
+consumer = KafkaConsumer(
+    'user_events',
+    bootstrap_servers=['localhost:9092'],
+    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+)
+
+for message in consumer:
+    print(f"Received: {message.value}")
+    break
+# Output: Received: {'user_id': 12345, 'event': 'page_view', 'timestamp': '2023-01-15T10:30:00Z', 'page': '/products'}
 ```
 
-### 2. Explain Kafka Topics and Partitions
-**Answer**: Topics are categories of messages, and partitions are ordered sequences within topics that enable parallelism and scalability.
+### Q2: Explain Kafka's key components and terminology.
 
-**Key Concepts**:
-- **Topic**: Logical grouping of messages (e.g., "user-events", "order-updates")
-- **Partition**: Physical division of a topic for parallel processing
-- **Offset**: Unique identifier for each message within a partition
-- **Replication**: Copies of partitions across multiple brokers
+**Answer:**
+Kafka consists of several key components that work together to provide distributed streaming capabilities.
 
+**Core Components:**
+- **Topic**: Category of messages (like a database table)
+- **Partition**: Ordered sequence within a topic for scalability
+- **Broker**: Kafka server that stores and serves data
+- **Producer**: Application that sends messages to topics
+- **Consumer**: Application that reads messages from topics
+- **Consumer Group**: Set of consumers working together
+- **Offset**: Unique identifier for each message in a partition
+
+**Code Example:**
 ```bash
-# Create topic with 3 partitions and replication factor 2
+# Create topic with multiple partitions
 kafka-topics.sh --create \
+  --topic user_events \
   --bootstrap-server localhost:9092 \
-  --topic user-events \
   --partitions 3 \
   --replication-factor 2
 
 # List topics
 kafka-topics.sh --list --bootstrap-server localhost:9092
+# Output: user_events
 
 # Describe topic
 kafka-topics.sh --describe \
-  --bootstrap-server localhost:9092 \
-  --topic user-events
+  --topic user_events \
+  --bootstrap-server localhost:9092
+# Output: Topic: user_events	PartitionCount: 3	ReplicationFactor: 2
 ```
 
-**Partition Strategy**:
 ```python
+# Python example showing partitioning
 from kafka import KafkaProducer
-from kafka.partitioner import RoundRobinPartitioner, Murmur2Partitioner
-
-# Custom partitioner
-class UserPartitioner:
-    def __call__(self, key, all_partitions, available_partitions):
-        if key is None:
-            return random.choice(available_partitions)
-        # Hash user_id to partition
-        return hash(key) % len(all_partitions)
+import json
 
 producer = KafkaProducer(
     bootstrap_servers=['localhost:9092'],
-    partitioner=UserPartitioner(),
-    key_serializer=str.encode,
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+    # Custom partitioner based on user_id
+    partitioner=lambda key, all_partitions, available: hash(key) % len(all_partitions)
 )
 
 # Messages with same key go to same partition
-producer.send('user-events', key='user_123', value={'event': 'login'})
+for i in range(5):
+    message = {'user_id': f'user_{i%2}', 'data': f'message_{i}'}
+    producer.send('user_events', value=message, key=f'user_{i%2}'.encode())
+
+producer.flush()
+print("Messages sent to partitions based on user_id")
+# Output: Messages sent to partitions based on user_id
 ```
 
-### 3. How do Kafka Producers work?
-**Answer**: Producers publish messages to Kafka topics with configurable delivery semantics and performance optimizations.
+### Q3: What is the difference between Kafka and traditional message queues?
+
+**Answer:**
+Kafka differs from traditional message queues in architecture, durability, and consumption patterns.
+
+**Key Differences:**
+- **Persistence**: Kafka stores messages on disk vs in-memory queues
+- **Consumption**: Multiple consumers can read same message vs single consumption
+- **Ordering**: Partition-level ordering vs global ordering
+- **Scalability**: Horizontal scaling through partitions vs vertical scaling
+- **Retention**: Configurable retention vs immediate deletion after consumption
+
+**Code Example:**
+```python
+# Traditional queue behavior simulation
+import queue
+import threading
+
+# Traditional queue - message consumed once
+traditional_queue = queue.Queue()
+traditional_queue.put("message1")
+traditional_queue.put("message2")
+
+# Only one consumer gets each message
+consumer1_msg = traditional_queue.get()
+consumer2_msg = traditional_queue.get()
+print(f"Consumer1: {consumer1_msg}, Consumer2: {consumer2_msg}")
+# Output: Consumer1: message1, Consumer2: message2
+
+# Kafka behavior - multiple consumers can read same messages
+from kafka import KafkaConsumer
+import json
+
+# Consumer Group 1
+consumer_group1 = KafkaConsumer(
+    'user_events',
+    bootstrap_servers=['localhost:9092'],
+    group_id='analytics_team',
+    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+)
+
+# Consumer Group 2 - can read same messages
+consumer_group2 = KafkaConsumer(
+    'user_events',
+    bootstrap_servers=['localhost:9092'],
+    group_id='ml_team',
+    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+)
+
+print("Both consumer groups can process same messages independently")
+# Output: Both consumer groups can process same messages independently
+```
+
+## Kafka Architecture
+
+### Q4: Explain Kafka's distributed architecture and how it ensures fault tolerance.
+
+**Answer:**
+Kafka's distributed architecture uses replication, leader election, and partitioning to ensure high availability and fault tolerance.
+
+**Architecture Components:**
+- **Cluster**: Multiple brokers working together
+- **Replication**: Each partition has multiple replicas across brokers
+- **Leader/Follower**: One leader handles reads/writes, followers replicate
+- **ZooKeeper/KRaft**: Coordination and metadata management
+- **ISR**: In-Sync Replicas for consistency
+
+**Code Example:**
+```bash
+# Create topic with replication
+kafka-topics.sh --create \
+  --topic critical_events \
+  --bootstrap-server localhost:9092 \
+  --partitions 3 \
+  --replication-factor 3 \
+  --config min.insync.replicas=2
+
+# Check replica distribution
+kafka-topics.sh --describe \
+  --topic critical_events \
+  --bootstrap-server localhost:9092
+# Output shows leader and replica assignments across brokers
+```
 
 ```python
+# Producer with fault tolerance configuration
 from kafka import KafkaProducer
-from kafka.errors import KafkaError
 import json
-import logging
 
-class DataProducer:
-    def __init__(self, bootstrap_servers, topic):
-        self.topic = topic
-        self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
-            # Serialization
-            key_serializer=str.encode,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-            
-            # Performance settings
-            batch_size=16384,  # Batch size in bytes
-            linger_ms=10,      # Wait time to batch messages
-            buffer_memory=33554432,  # Total memory for buffering
-            
-            # Reliability settings
-            acks='all',        # Wait for all replicas to acknowledge
-            retries=3,         # Number of retries
-            retry_backoff_ms=100,
-            
-            # Compression
-            compression_type='gzip'
-        )
+producer = KafkaProducer(
+    bootstrap_servers=['broker1:9092', 'broker2:9092', 'broker3:9092'],
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+    # Fault tolerance settings
+    acks='all',  # Wait for all in-sync replicas
+    retries=3,   # Retry failed sends
+    retry_backoff_ms=1000,
+    # Idempotence to prevent duplicates
+    enable_idempotence=True,
+    # Batch settings for efficiency
+    batch_size=16384,
+    linger_ms=10
+)
+
+# Send with error handling
+try:
+    future = producer.send('critical_events', {
+        'event_id': 'evt_001',
+        'data': 'critical_business_event'
+    })
     
-    def send_message(self, key, value):
-        """Send message with error handling."""
-        try:
-            # Asynchronous send
-            future = self.producer.send(self.topic, key=key, value=value)
-            
-            # Optional: Wait for result
-            record_metadata = future.get(timeout=10)
-            
-            logging.info(f"Message sent to {record_metadata.topic} "
-                        f"partition {record_metadata.partition} "
-                        f"offset {record_metadata.offset}")
-            
-        except KafkaError as e:
-            logging.error(f"Failed to send message: {e}")
-            raise
+    # Wait for acknowledgment
+    record_metadata = future.get(timeout=10)
+    print(f"Message sent to partition {record_metadata.partition} at offset {record_metadata.offset}")
+    # Output: Message sent to partition 1 at offset 42
     
-    def send_batch(self, messages):
-        """Send multiple messages efficiently."""
-        for key, value in messages:
-            self.producer.send(self.topic, key=key, value=value)
-        
-        # Flush to ensure all messages are sent
-        self.producer.flush()
-    
-    def close(self):
-        self.producer.close()
+except Exception as e:
+    print(f"Failed to send message: {e}")
 
-# Usage
-producer = DataProducer(['localhost:9092'], 'user-events')
-
-# Send single message
-producer.send_message('user_123', {
-    'user_id': 123,
-    'action': 'purchase',
-    'amount': 99.99,
-    'timestamp': '2024-01-01T10:00:00Z'
-})
-
-# Send batch
-messages = [
-    ('user_124', {'user_id': 124, 'action': 'login'}),
-    ('user_125', {'user_id': 125, 'action': 'logout'})
-]
-producer.send_batch(messages)
 producer.close()
 ```
 
-### 4. How do Kafka Consumers work?
-**Answer**: Consumers read messages from topics, with support for consumer groups for parallel processing and fault tolerance.
+### Q5: How does Kafka handle message ordering and delivery guarantees?
 
+**Answer:**
+Kafka provides different levels of ordering and delivery guarantees depending on configuration and usage patterns.
+
+**Ordering Guarantees:**
+- **Partition Level**: Messages within a partition are strictly ordered
+- **Topic Level**: No global ordering across partitions
+- **Key-based**: Messages with same key go to same partition
+
+**Delivery Guarantees:**
+- **At Most Once**: May lose messages, no duplicates
+- **At Least Once**: No message loss, may have duplicates
+- **Exactly Once**: No loss, no duplicates (with idempotent producers)
+
+**Code Example:**
+```python
+from kafka import KafkaProducer, KafkaConsumer
+import json
+import time
+
+# Exactly-once producer configuration
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+    # Exactly-once semantics
+    enable_idempotence=True,
+    acks='all',
+    retries=2147483647,  # Max retries
+    max_in_flight_requests_per_connection=5,
+    # Transactional settings
+    transactional_id='my-transactional-id'
+)
+
+# Initialize transactions
+producer.init_transactions()
+
+try:
+    # Begin transaction
+    producer.begin_transaction()
+    
+    # Send messages in transaction
+    for i in range(3):
+        message = {
+            'order_id': f'order_{i}',
+            'amount': 100.0 + i,
+            'timestamp': time.time()
+        }
+        producer.send('orders', value=message, key=f'order_{i}'.encode())
+    
+    # Commit transaction
+    producer.commit_transaction()
+    print("Transaction committed successfully")
+    # Output: Transaction committed successfully
+    
+except Exception as e:
+    # Abort transaction on error
+    producer.abort_transaction()
+    print(f"Transaction aborted: {e}")
+
+# Consumer with exactly-once processing
+consumer = KafkaConsumer(
+    'orders',
+    bootstrap_servers=['localhost:9092'],
+    group_id='order_processor',
+    # Exactly-once consumption
+    isolation_level='read_committed',
+    enable_auto_commit=False,
+    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+)
+
+# Manual offset management for exactly-once
+for message in consumer:
+    try:
+        # Process message
+        order = message.value
+        print(f"Processing order: {order['order_id']}")
+        
+        # Simulate processing
+        time.sleep(0.1)
+        
+        # Commit offset after successful processing
+        consumer.commit()
+        print(f"Order {order['order_id']} processed successfully")
+        
+    except Exception as e:
+        print(f"Error processing message: {e}")
+        # Don't commit offset on error
+        break
+```
+
+## Producers and Consumers
+
+### Q6: How do you optimize Kafka producer performance?
+
+**Answer:**
+Producer performance optimization involves batching, compression, partitioning strategy, and proper configuration tuning.
+
+**Optimization Strategies:**
+- **Batching**: Group messages for efficient network usage
+- **Compression**: Reduce network and storage overhead
+- **Async Sending**: Non-blocking message sending
+- **Partitioning**: Distribute load across partitions
+- **Connection Pooling**: Reuse connections efficiently
+
+**Code Example:**
+```python
+from kafka import KafkaProducer
+import json
+import time
+import threading
+from concurrent.futures import ThreadPoolExecutor
+
+class OptimizedKafkaProducer:
+    def __init__(self):
+        self.producer = KafkaProducer(
+            bootstrap_servers=['localhost:9092'],
+            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+            
+            # Performance optimizations
+            batch_size=32768,        # Larger batches
+            linger_ms=20,           # Wait for batches to fill
+            compression_type='snappy',  # Compress messages
+            buffer_memory=67108864,  # 64MB buffer
+            
+            # Throughput vs latency trade-off
+            acks=1,                 # Leader acknowledgment only
+            retries=3,
+            retry_backoff_ms=100,
+            
+            # Connection settings
+            connections_max_idle_ms=540000,
+            request_timeout_ms=30000
+        )
+    
+    def send_batch_async(self, topic, messages):
+        """Send messages asynchronously with callbacks"""
+        futures = []
+        
+        for message in messages:
+            future = self.producer.send(
+                topic, 
+                value=message,
+                # Partition by user_id for even distribution
+                key=str(message.get('user_id', '')).encode()
+            )
+            
+            # Add callback for monitoring
+            future.add_callback(self.on_send_success)
+            future.add_errback(self.on_send_error)
+            futures.append(future)
+        
+        return futures
+    
+    def on_send_success(self, record_metadata):
+        """Callback for successful sends"""
+        print(f"Message sent to {record_metadata.topic}[{record_metadata.partition}] at offset {record_metadata.offset}")
+    
+    def on_send_error(self, exception):
+        """Callback for send errors"""
+        print(f"Failed to send message: {exception}")
+    
+    def benchmark_throughput(self, topic, num_messages=10000):
+        """Benchmark producer throughput"""
+        messages = []
+        for i in range(num_messages):
+            message = {
+                'user_id': i % 1000,
+                'event': 'page_view',
+                'timestamp': time.time(),
+                'data': f'event_data_{i}'
+            }
+            messages.append(message)
+        
+        start_time = time.time()
+        
+        # Send messages in batches
+        batch_size = 1000
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = []
+            
+            for i in range(0, len(messages), batch_size):
+                batch = messages[i:i + batch_size]
+                future = executor.submit(self.send_batch_async, topic, batch)
+                futures.append(future)
+            
+            # Wait for all batches to complete
+            for future in futures:
+                future.result()
+        
+        # Flush remaining messages
+        self.producer.flush()
+        
+        end_time = time.time()
+        duration = end_time - start_time
+        throughput = num_messages / duration
+        
+        print(f"Sent {num_messages} messages in {duration:.2f} seconds")
+        print(f"Throughput: {throughput:.2f} messages/second")
+        # Output: Sent 10000 messages in 2.34 seconds
+        # Output: Throughput: 4273.50 messages/second
+    
+    def close(self):
+        self.producer.close()
+
+# Usage example
+producer = OptimizedKafkaProducer()
+
+# Benchmark performance
+producer.benchmark_throughput('performance_test', 5000)
+
+producer.close()
+```
+
+### Q7: How do you implement consumer groups and handle rebalancing?
+
+**Answer:**
+Consumer groups enable parallel processing and automatic load balancing. Rebalancing redistributes partitions when consumers join or leave the group.
+
+**Consumer Group Concepts:**
+- **Partition Assignment**: Each partition assigned to one consumer in group
+- **Rebalancing**: Redistribution when group membership changes
+- **Coordination**: Group coordinator manages assignments
+- **Offset Management**: Track processing progress per partition
+
+**Code Example:**
 ```python
 from kafka import KafkaConsumer
 import json
-import logging
+import time
+import threading
+import signal
+import sys
 
-class DataConsumer:
-    def __init__(self, topics, bootstrap_servers, group_id):
+class KafkaConsumerGroup:
+    def __init__(self, group_id, topics, consumer_id):
+        self.group_id = group_id
+        self.consumer_id = consumer_id
+        self.running = True
+        
         self.consumer = KafkaConsumer(
             *topics,
-            bootstrap_servers=bootstrap_servers,
+            bootstrap_servers=['localhost:9092'],
             group_id=group_id,
             
-            # Deserialization
-            key_deserializer=lambda k: k.decode('utf-8') if k else None,
-            value_deserializer=lambda v: json.loads(v.decode('utf-8')),
+            # Consumer group settings
+            enable_auto_commit=False,  # Manual offset management
+            auto_offset_reset='earliest',
+            session_timeout_ms=30000,
+            heartbeat_interval_ms=10000,
+            max_poll_interval_ms=300000,
             
-            # Consumer settings
-            auto_offset_reset='earliest',  # Start from beginning if no offset
-            enable_auto_commit=False,      # Manual commit for reliability
-            max_poll_records=500,          # Max records per poll
-            session_timeout_ms=30000,      # Session timeout
-            heartbeat_interval_ms=3000,    # Heartbeat interval
+            # Rebalancing settings
+            partition_assignment_strategy=['RoundRobinAssignor'],
+            
+            value_deserializer=lambda m: json.loads(m.decode('utf-8'))
         )
+        
+        # Set up graceful shutdown
+        signal.signal(signal.SIGINT, self.shutdown)
+        signal.signal(signal.SIGTERM, self.shutdown)
     
-    def consume_messages(self):
-        """Consume messages with manual commit."""
+    def on_assign(self, consumer, partitions):
+        """Callback when partitions are assigned"""
+        partition_list = [f"{tp.topic}[{tp.partition}]" for tp in partitions]
+        print(f"Consumer {self.consumer_id} assigned partitions: {partition_list}")
+    
+    def on_revoke(self, consumer, partitions):
+        """Callback when partitions are revoked (before rebalancing)"""
+        partition_list = [f"{tp.topic}[{tp.partition}]" for tp in partitions]
+        print(f"Consumer {self.consumer_id} revoking partitions: {partition_list}")
+        
+        # Commit offsets before rebalancing
         try:
-            for message in self.consumer:
-                try:
-                    # Process message
-                    self.process_message(message)
-                    
-                    # Commit offset after successful processing
-                    self.consumer.commit()
-                    
-                except Exception as e:
-                    logging.error(f"Error processing message: {e}")
-                    # Handle error (retry, dead letter queue, etc.)
-                    
-        except KeyboardInterrupt:
-            logging.info("Consumer interrupted")
-        finally:
-            self.consumer.close()
+            consumer.commit()
+            print(f"Consumer {self.consumer_id} committed offsets before rebalancing")
+        except Exception as e:
+            print(f"Error committing offsets: {e}")
     
     def process_message(self, message):
-        """Process individual message."""
-        logging.info(f"Processing message from topic {message.topic} "
-                    f"partition {message.partition} offset {message.offset}")
-        
-        key = message.key
-        value = message.value
-        
-        # Business logic here
-        if value.get('action') == 'purchase':
-            self.handle_purchase(value)
-        elif value.get('action') == 'login':
-            self.handle_login(value)
-    
-    def handle_purchase(self, data):
-        """Handle purchase event."""
-        user_id = data['user_id']
-        amount = data['amount']
-        logging.info(f"User {user_id} purchased ${amount}")
-        # Update database, send notifications, etc.
-    
-    def handle_login(self, data):
-        """Handle login event."""
-        user_id = data['user_id']
-        logging.info(f"User {user_id} logged in")
-        # Update user session, analytics, etc.
-
-# Usage
-consumer = DataConsumer(
-    topics=['user-events'],
-    bootstrap_servers=['localhost:9092'],
-    group_id='user-event-processor'
-)
-
-consumer.consume_messages()
-```
-
-### 5. What are Consumer Groups and how do they work?
-**Answer**: Consumer groups enable parallel processing by distributing partitions among multiple consumers, providing scalability and fault tolerance.
-
-```python
-# Multiple consumers in same group
-import threading
-from kafka import KafkaConsumer
-
-def create_consumer(group_id, consumer_id):
-    """Create consumer instance."""
-    consumer = KafkaConsumer(
-        'user-events',
-        bootstrap_servers=['localhost:9092'],
-        group_id=group_id,
-        client_id=f'consumer-{consumer_id}',
-        auto_offset_reset='earliest',
-        value_deserializer=lambda v: json.loads(v.decode('utf-8'))
-    )
-    
-    print(f"Consumer {consumer_id} started")
-    
-    for message in consumer:
-        print(f"Consumer {consumer_id} processed message: {message.value}")
-        # Simulate processing time
-        time.sleep(1)
-
-# Start multiple consumers in same group
-group_id = 'parallel-processors'
-threads = []
-
-for i in range(3):  # 3 consumers in same group
-    thread = threading.Thread(
-        target=create_consumer,
-        args=(group_id, i)
-    )
-    thread.start()
-    threads.append(thread)
-
-# Each consumer will get different partitions
-# If topic has 3 partitions and 3 consumers, each gets 1 partition
-```
-
-**Consumer Group Management**:
-```bash
-# List consumer groups
-kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
-
-# Describe consumer group
-kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
-  --group user-event-processor --describe
-
-# Reset consumer group offset
-kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
-  --group user-event-processor --topic user-events \
-  --reset-offsets --to-earliest --execute
-```
-
-## Intermediate Level Questions (3-5 years experience)
-
-### 6. How do you handle message ordering in Kafka?
-**Answer**: Kafka guarantees ordering within partitions. Use appropriate partitioning strategies to maintain order where needed.
-
-```python
-class OrderedProducer:
-    def __init__(self, bootstrap_servers):
-        self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
-            key_serializer=str.encode,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+        """Process individual message"""
+        try:
+            # Simulate processing time
+            time.sleep(0.1)
             
-            # Settings for ordering
-            max_in_flight_requests_per_connection=1,  # Ensure ordering
-            retries=3,
-            acks='all'
-        )
+            data = message.value
+            print(f"Consumer {self.consumer_id} processed: {data.get('event_id', 'unknown')}")
+            
+            return True
+        except Exception as e:
+            print(f"Error processing message: {e}")
+            return False
     
-    def send_user_events(self, user_id, events):
-        """Send events for a user in order."""
-        # Use user_id as key to ensure all events for same user
-        # go to same partition (maintaining order)
+    def start_consuming(self):
+        """Start consuming messages"""
+        print(f"Consumer {self.consumer_id} starting...")
         
-        for event in events:
-            self.producer.send(
-                'user-events',
-                key=str(user_id),  # Same key = same partition
-                value=event
-            )
-        
-        self.producer.flush()  # Ensure all sent before returning
-
-# Usage - events for same user will be ordered
-producer = OrderedProducer(['localhost:9092'])
-
-user_events = [
-    {'action': 'login', 'timestamp': '2024-01-01T10:00:00Z'},
-    {'action': 'view_product', 'timestamp': '2024-01-01T10:01:00Z'},
-    {'action': 'add_to_cart', 'timestamp': '2024-01-01T10:02:00Z'},
-    {'action': 'purchase', 'timestamp': '2024-01-01T10:03:00Z'}
-]
-
-producer.send_user_events(user_id=123, events=user_events)
-```
-
-**Global Ordering (Single Partition)**:
-```python
-# For global ordering, use single partition
-# Trade-off: Lower throughput but guaranteed global order
-
-producer = KafkaProducer(
-    bootstrap_servers=['localhost:9092'],
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
-
-# Create topic with single partition
-# kafka-topics.sh --create --topic ordered-events --partitions 1
-
-def send_ordered_event(event):
-    """Send to single partition for global ordering."""
-    producer.send('ordered-events', value=event)
-```
-
-### 7. How do you implement exactly-once semantics in Kafka?
-**Answer**: Use Kafka's transactional API and idempotent producers for exactly-once processing.
-
-```python
-from kafka import KafkaProducer, KafkaConsumer
-from kafka.errors import KafkaError
-
-class ExactlyOnceProcessor:
-    def __init__(self, bootstrap_servers, transactional_id):
-        # Transactional producer
-        self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
-            transactional_id=transactional_id,
-            enable_idempotence=True,
-            acks='all',
-            retries=3,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+        # Subscribe with rebalance callbacks
+        self.consumer.subscribe(
+            self.consumer.subscription(),
+            on_assign=self.on_assign,
+            on_revoke=self.on_revoke
         )
         
-        # Initialize transactions
-        self.producer.init_transactions()
-        
-        # Consumer for reading
-        self.consumer = KafkaConsumer(
-            'input-topic',
-            bootstrap_servers=bootstrap_servers,
-            group_id='exactly-once-group',
-            enable_auto_commit=False,  # Manual commit within transaction
-            isolation_level='read_committed',  # Only read committed messages
-            value_deserializer=lambda v: json.loads(v.decode('utf-8'))
+        try:
+            while self.running:
+                # Poll for messages
+                message_batch = self.consumer.poll(timeout_ms=1000)
+                
+                if message_batch:
+                    for topic_partition, messages in message_batch.items():
+                        for message in messages:
+                            if not self.running:
+                                break
+                            
+                            success = self.process_message(message)
+                            
+                            if success:
+                                # Commit offset for this message
+                                self.consumer.commit_async({
+                                    topic_partition: message.offset + 1
+                                })
+                            else:
+                                print(f"Failed to process message at offset {message.offset}")
+                                # Could implement retry logic here
+                
+                # Handle rebalancing
+                if not self.running:
+                    break
+                    
+        except Exception as e:
+            print(f"Consumer {self.consumer_id} error: {e}")
+        finally:
+            self.consumer.close()
+            print(f"Consumer {self.consumer_id} closed")
+    
+    def shutdown(self, signum, frame):
+        """Graceful shutdown"""
+        print(f"Consumer {self.consumer_id} shutting down...")
+        self.running = False
+
+# Simulate consumer group with multiple consumers
+def run_consumer(group_id, topics, consumer_id):
+    consumer = KafkaConsumerGroup(group_id, topics, consumer_id)
+    consumer.start_consuming()
+
+# Start multiple consumers in the same group
+if __name__ == "__main__":
+    group_id = "data_processing_group"
+    topics = ["user_events", "order_events"]
+    
+    # Start 3 consumers in separate threads
+    threads = []
+    for i in range(3):
+        consumer_id = f"consumer_{i}"
+        thread = threading.Thread(
+            target=run_consumer,
+            args=(group_id, topics, consumer_id)
         )
+        thread.daemon = True
+        thread.start()
+        threads.append(thread)
+        
+        # Stagger startup to see rebalancing
+        time.sleep(2)
     
-    def process_messages(self):
-        """Process messages with exactly-once semantics."""
-        for message in self.consumer:
-            try:
-                # Begin transaction
-                self.producer.begin_transaction()
-                
-                # Process message
-                processed_data = self.transform_message(message.value)
-                
-                # Send processed data
-                self.producer.send('output-topic', value=processed_data)
-                
-                # Send consumer offsets as part of transaction
-                offsets = {
-                    TopicPartition(message.topic, message.partition): 
-                    OffsetAndMetadata(message.offset + 1, None)
-                }
-                self.producer.send_offsets_to_transaction(
-                    offsets, 
-                    self.consumer.config['group_id']
-                )
-                
-                # Commit transaction
-                self.producer.commit_transaction()
-                
-            except Exception as e:
-                # Abort transaction on error
-                self.producer.abort_transaction()
-                logging.error(f"Transaction aborted due to error: {e}")
-                raise
+    print("All consumers started. Press Ctrl+C to stop.")
     
-    def transform_message(self, data):
-        """Transform message data."""
-        # Business logic here
-        return {
-            'processed_at': datetime.now().isoformat(),
-            'original_data': data,
-            'processed_value': data.get('value', 0) * 2
-        }
+    try:
+        # Keep main thread alive
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Shutting down all consumers...")
+        
+    # Wait for threads to complete
+    for thread in threads:
+        thread.join(timeout=5)
     
-    def close(self):
-        self.consumer.close()
-        self.producer.close()
-
-# Usage
-processor = ExactlyOnceProcessor(
-    bootstrap_servers=['localhost:9092'],
-    transactional_id='exactly-once-processor-1'
-)
-
-try:
-    processor.process_messages()
-finally:
-    processor.close()
+    print("All consumers stopped")
 ```
 
-### 8. How do you monitor Kafka performance and health?
-**Answer**: Use JMX metrics, monitoring tools, and custom health checks to monitor Kafka clusters.
+## Performance and Scaling
 
+### Q8: How do you monitor and troubleshoot Kafka performance issues?
+
+**Answer:**
+Kafka monitoring involves tracking key metrics for brokers, producers, consumers, and topics to identify bottlenecks and performance issues.
+
+**Key Metrics:**
+- **Broker**: CPU, memory, disk I/O, network throughput
+- **Producer**: Send rate, batch size, error rate, latency
+- **Consumer**: Lag, throughput, rebalance frequency
+- **Topic**: Message rate, partition distribution, retention
+
+**Code Example:**
 ```python
+from kafka import KafkaConsumer, KafkaProducer
+from kafka.admin import KafkaAdminClient, ConfigResource, ConfigResourceType
+import json
 import time
-from kafka import KafkaAdminClient, KafkaConsumer, KafkaProducer
-from kafka.admin import ConfigResource, ConfigResourceType
+import psutil
+import threading
 
 class KafkaMonitor:
     def __init__(self, bootstrap_servers):
@@ -478,491 +648,436 @@ class KafkaMonitor:
         self.admin_client = KafkaAdminClient(
             bootstrap_servers=bootstrap_servers
         )
-    
-    def check_cluster_health(self):
-        """Check overall cluster health."""
-        try:
-            # Check if we can connect and get metadata
-            metadata = self.admin_client.describe_cluster()
-            
-            health_status = {
-                'cluster_id': metadata.cluster_id,
-                'controller': metadata.controller,
-                'brokers': len(metadata.brokers),
-                'status': 'healthy'
-            }
-            
-            return health_status
-            
-        except Exception as e:
-            return {
-                'status': 'unhealthy',
-                'error': str(e)
-            }
-    
-    def check_topic_health(self, topic_name):
-        """Check specific topic health."""
-        try:
-            # Get topic metadata
-            metadata = self.admin_client.describe_topics([topic_name])
-            topic_metadata = metadata[topic_name]
-            
-            # Check partition health
-            partition_health = []
-            for partition in topic_metadata.partitions:
-                partition_info = {
-                    'partition_id': partition.partition,
-                    'leader': partition.leader,
-                    'replicas': len(partition.replicas),
-                    'in_sync_replicas': len(partition.isr)
-                }
-                partition_health.append(partition_info)
-            
-            return {
-                'topic': topic_name,
-                'partitions': len(topic_metadata.partitions),
-                'partition_details': partition_health,
-                'status': 'healthy'
-            }
-            
-        except Exception as e:
-            return {
-                'topic': topic_name,
-                'status': 'unhealthy',
-                'error': str(e)
-            }
-    
-    def check_consumer_lag(self, group_id, topic):
-        """Check consumer lag for a group."""
-        try:
-            # Create consumer to get current offsets
-            consumer = KafkaConsumer(
-                topic,
-                bootstrap_servers=self.bootstrap_servers,
-                group_id=group_id,
-                enable_auto_commit=False
-            )
-            
-            # Get partition assignments
-            partitions = consumer.partitions_for_topic(topic)
-            topic_partitions = [TopicPartition(topic, p) for p in partitions]
-            
-            # Get current offsets (latest available)
-            end_offsets = consumer.end_offsets(topic_partitions)
-            
-            # Get committed offsets (consumer position)
-            committed_offsets = consumer.committed(set(topic_partitions))
-            
-            lag_info = {}
-            total_lag = 0
-            
-            for tp in topic_partitions:
-                end_offset = end_offsets[tp]
-                committed_offset = committed_offsets[tp]
-                
-                if committed_offset is not None:
-                    lag = end_offset - committed_offset.offset
-                else:
-                    lag = end_offset  # No committed offset yet
-                
-                lag_info[f"partition_{tp.partition}"] = {
-                    'end_offset': end_offset,
-                    'committed_offset': committed_offset.offset if committed_offset else 0,
-                    'lag': lag
-                }
-                total_lag += lag
-            
-            consumer.close()
-            
-            return {
-                'group_id': group_id,
-                'topic': topic,
-                'total_lag': total_lag,
-                'partition_lags': lag_info
-            }
-            
-        except Exception as e:
-            return {
-                'group_id': group_id,
-                'topic': topic,
-                'error': str(e)
-            }
-
-# Usage
-monitor = KafkaMonitor(['localhost:9092'])
-
-# Check cluster health
-cluster_health = monitor.check_cluster_health()
-print(f"Cluster health: {cluster_health}")
-
-# Check topic health
-topic_health = monitor.check_topic_health('user-events')
-print(f"Topic health: {topic_health}")
-
-# Check consumer lag
-lag_info = monitor.check_consumer_lag('user-event-processor', 'user-events')
-print(f"Consumer lag: {lag_info}")
-```
-
-**Monitoring with External Tools**:
-```yaml
-# docker-compose.yml for Kafka monitoring stack
-version: '3.8'
-
-services:
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      # Enable JMX for monitoring
-      KAFKA_JMX_PORT: 9999
-      KAFKA_JMX_HOSTNAME: localhost
-
-  kafka-exporter:
-    image: danielqsj/kafka-exporter
-    command: --kafka.server=kafka:9092
-    ports:
-      - "9308:9308"
-    depends_on:
-      - kafka
-
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-
-  grafana:
-    image: grafana/grafana
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-```
-
-### 9. How do you handle schema evolution in Kafka?
-**Answer**: Use Schema Registry with Avro, JSON Schema, or Protobuf for managing schema evolution.
-
-```python
-from confluent_kafka import Producer, Consumer
-from confluent_kafka.schema_registry import SchemaRegistryClient
-from confluent_kafka.schema_registry.avro import AvroSerializer, AvroDeserializer
-from confluent_kafka.serialization import SerializationContext, MessageField
-
-# Avro schema (version 1)
-user_schema_v1 = """
-{
-  "type": "record",
-  "name": "User",
-  "fields": [
-    {"name": "id", "type": "int"},
-    {"name": "name", "type": "string"},
-    {"name": "email", "type": "string"}
-  ]
-}
-"""
-
-# Avro schema (version 2 - backward compatible)
-user_schema_v2 = """
-{
-  "type": "record",
-  "name": "User",
-  "fields": [
-    {"name": "id", "type": "int"},
-    {"name": "name", "type": "string"},
-    {"name": "email", "type": "string"},
-    {"name": "age", "type": ["null", "int"], "default": null}
-  ]
-}
-"""
-
-class SchemaEvolutionExample:
-    def __init__(self, schema_registry_url, bootstrap_servers):
-        # Schema Registry client
-        self.schema_registry_client = SchemaRegistryClient({
-            'url': schema_registry_url
-        })
         
-        # Register schemas
-        self.register_schemas()
+    def get_consumer_lag(self, group_id, topic):
+        """Calculate consumer lag for a group"""
+        consumer = KafkaConsumer(
+            bootstrap_servers=self.bootstrap_servers,
+            group_id=group_id
+        )
         
-        # Kafka producer/consumer config
-        self.kafka_config = {
-            'bootstrap.servers': bootstrap_servers
+        # Get partition metadata
+        partitions = consumer.partitions_for_topic(topic)
+        if not partitions:
+            return {}
+        
+        # Get current offsets (latest)
+        topic_partitions = [TopicPartition(topic, p) for p in partitions]
+        latest_offsets = consumer.end_offsets(topic_partitions)
+        
+        # Get committed offsets (consumer position)
+        committed_offsets = consumer.committed(set(topic_partitions))
+        
+        lag_info = {}
+        total_lag = 0
+        
+        for tp in topic_partitions:
+            latest = latest_offsets.get(tp, 0)
+            committed = committed_offsets.get(tp)
+            committed_offset = committed.offset if committed else 0
+            
+            lag = latest - committed_offset
+            lag_info[f"partition_{tp.partition}"] = {
+                'latest_offset': latest,
+                'committed_offset': committed_offset,
+                'lag': lag
+            }
+            total_lag += lag
+        
+        consumer.close()
+        
+        return {
+            'topic': topic,
+            'group_id': group_id,
+            'total_lag': total_lag,
+            'partitions': lag_info
         }
     
-    def register_schemas(self):
-        """Register schemas with Schema Registry."""
-        # Register version 1
-        self.schema_registry_client.register_schema(
-            subject='user-value',
-            schema=user_schema_v1
-        )
+    def get_broker_metrics(self):
+        """Get broker performance metrics"""
+        # System metrics
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
         
-        # Register version 2 (evolution)
-        self.schema_registry_client.register_schema(
-            subject='user-value',
-            schema=user_schema_v2
-        )
+        # Network I/O
+        network = psutil.net_io_counters()
+        
+        return {
+            'timestamp': time.time(),
+            'cpu_percent': cpu_percent,
+            'memory_percent': memory.percent,
+            'memory_available_gb': memory.available / (1024**3),
+            'disk_percent': disk.percent,
+            'disk_free_gb': disk.free / (1024**3),
+            'network_bytes_sent': network.bytes_sent,
+            'network_bytes_recv': network.bytes_recv
+        }
     
-    def produce_with_schema(self, schema_version=2):
-        """Produce messages with schema."""
-        # Get schema
-        if schema_version == 1:
-            schema_str = user_schema_v1
-        else:
-            schema_str = user_schema_v2
+    def monitor_producer_performance(self, producer, duration_seconds=60):
+        """Monitor producer performance metrics"""
+        start_time = time.time()
+        message_count = 0
+        error_count = 0
         
-        # Create serializer
-        avro_serializer = AvroSerializer(
-            self.schema_registry_client,
-            schema_str
-        )
+        def send_callback(record_metadata):
+            nonlocal message_count
+            message_count += 1
         
-        # Create producer
-        producer = Producer(self.kafka_config)
+        def error_callback(exception):
+            nonlocal error_count
+            error_count += 1
+            print(f"Producer error: {exception}")
         
-        # Sample data
-        if schema_version == 1:
-            user_data = {
-                'id': 123,
-                'name': 'John Doe',
-                'email': 'john@example.com'
-            }
-        else:
-            user_data = {
-                'id': 123,
-                'name': 'John Doe',
-                'email': 'john@example.com',
-                'age': 30  # New field in v2
-            }
+        # Send test messages
+        while time.time() - start_time < duration_seconds:
+            try:
+                message = {
+                    'timestamp': time.time(),
+                    'data': f'test_message_{message_count}'
+                }
+                
+                future = producer.send('performance_test', value=message)
+                future.add_callback(send_callback)
+                future.add_errback(error_callback)
+                
+                time.sleep(0.01)  # 100 messages per second
+                
+            except Exception as e:
+                error_count += 1
+                print(f"Send error: {e}")
         
-        # Serialize and send
-        serialized_data = avro_serializer(
-            user_data,
-            SerializationContext('user-topic', MessageField.VALUE)
-        )
-        
-        producer.produce(
-            topic='user-topic',
-            value=serialized_data
-        )
-        
+        # Wait for pending sends
         producer.flush()
-        producer.close()
-    
-    def consume_with_schema(self):
-        """Consume messages with schema evolution support."""
-        # Create deserializer (handles multiple schema versions)
-        avro_deserializer = AvroDeserializer(
-            self.schema_registry_client
-        )
         
-        # Create consumer
-        consumer_config = {
-            **self.kafka_config,
-            'group.id': 'schema-evolution-group',
-            'auto.offset.reset': 'earliest'
+        duration = time.time() - start_time
+        throughput = message_count / duration
+        error_rate = error_count / (message_count + error_count) if (message_count + error_count) > 0 else 0
+        
+        return {
+            'duration_seconds': duration,
+            'messages_sent': message_count,
+            'errors': error_count,
+            'throughput_msg_per_sec': throughput,
+            'error_rate_percent': error_rate * 100
+        }
+    
+    def comprehensive_health_check(self):
+        """Comprehensive Kafka cluster health check"""
+        health_report = {
+            'timestamp': time.time(),
+            'broker_metrics': self.get_broker_metrics(),
+            'cluster_metadata': {},
+            'topic_health': {}
         }
         
-        consumer = Consumer(consumer_config)
-        consumer.subscribe(['user-topic'])
-        
         try:
-            while True:
-                msg = consumer.poll(1.0)
-                
-                if msg is None:
-                    continue
-                
-                if msg.error():
-                    print(f"Consumer error: {msg.error()}")
-                    continue
-                
-                # Deserialize (automatically handles schema evolution)
-                user_data = avro_deserializer(
-                    msg.value(),
-                    SerializationContext('user-topic', MessageField.VALUE)
-                )
-                
-                print(f"Received user: {user_data}")
-                
-                # Handle different schema versions
-                if 'age' in user_data:
-                    print(f"User age: {user_data['age']}")
-                else:
-                    print("Age not available (older schema version)")
-                
-        except KeyboardInterrupt:
-            pass
-        finally:
+            # Get cluster metadata
+            metadata = self.admin_client.describe_cluster()
+            health_report['cluster_metadata'] = {
+                'cluster_id': metadata.cluster_id,
+                'controller': metadata.controller.id if metadata.controller else None,
+                'broker_count': len(metadata.brokers)
+            }
+            
+            # Check topic configurations
+            consumer = KafkaConsumer(bootstrap_servers=self.bootstrap_servers)
+            topics = consumer.topics()
+            
+            for topic in list(topics)[:5]:  # Check first 5 topics
+                try:
+                    partitions = consumer.partitions_for_topic(topic)
+                    health_report['topic_health'][topic] = {
+                        'partition_count': len(partitions) if partitions else 0,
+                        'status': 'healthy' if partitions else 'no_partitions'
+                    }
+                except Exception as e:
+                    health_report['topic_health'][topic] = {
+                        'status': 'error',
+                        'error': str(e)
+                    }
+            
             consumer.close()
+            
+        except Exception as e:
+            health_report['cluster_error'] = str(e)
+        
+        return health_report
 
-# Usage
-schema_example = SchemaEvolutionExample(
-    schema_registry_url='http://localhost:8081',
-    bootstrap_servers='localhost:9092'
-)
+# Performance monitoring example
+def run_performance_monitoring():
+    monitor = KafkaMonitor(['localhost:9092'])
+    
+    # Create producer for testing
+    producer = KafkaProducer(
+        bootstrap_servers=['localhost:9092'],
+        value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    )
+    
+    print("Starting Kafka performance monitoring...")
+    
+    # Monitor producer performance
+    print("Testing producer performance...")
+    producer_metrics = monitor.monitor_producer_performance(producer, 30)
+    print(f"Producer throughput: {producer_metrics['throughput_msg_per_sec']:.2f} msg/sec")
+    print(f"Error rate: {producer_metrics['error_rate_percent']:.2f}%")
+    
+    # Check consumer lag
+    print("Checking consumer lag...")
+    lag_info = monitor.get_consumer_lag('test_group', 'performance_test')
+    print(f"Total consumer lag: {lag_info.get('total_lag', 0)} messages")
+    
+    # Comprehensive health check
+    print("Running health check...")
+    health = monitor.comprehensive_health_check()
+    print(f"Cluster health - Brokers: {health['cluster_metadata'].get('broker_count', 0)}")
+    print(f"CPU usage: {health['broker_metrics']['cpu_percent']:.1f}%")
+    print(f"Memory usage: {health['broker_metrics']['memory_percent']:.1f}%")
+    
+    producer.close()
 
-# Produce with different schema versions
-schema_example.produce_with_schema(schema_version=1)  # Old schema
-schema_example.produce_with_schema(schema_version=2)  # New schema
-
-# Consume (handles both versions)
-schema_example.consume_with_schema()
+if __name__ == "__main__":
+    run_performance_monitoring()
 ```
 
-### 10. How do you implement Kafka Streams for real-time processing?
-**Answer**: Use Kafka Streams API for building real-time stream processing applications.
+## Data Engineering Use Cases
 
+### Q9: How do you implement a real-time data pipeline using Kafka?
+
+**Answer:**
+Real-time data pipelines use Kafka as the central nervous system, connecting data sources, processing engines, and destinations with fault-tolerant streaming.
+
+**Code Example:**
 ```python
-# Note: This is conceptual Python code. 
-# Kafka Streams is primarily Java/Scala, but similar concepts apply
-
-from kafka import KafkaConsumer, KafkaProducer
+from kafka import KafkaProducer, KafkaConsumer
 import json
-from collections import defaultdict, deque
 import time
 import threading
+from datetime import datetime
+import pandas as pd
+import sqlite3
 
-class StreamProcessor:
-    def __init__(self, bootstrap_servers, application_id):
-        self.bootstrap_servers = bootstrap_servers
-        self.application_id = application_id
+class RealTimeDataPipeline:
+    def __init__(self):
+        self.producer = KafkaProducer(
+            bootstrap_servers=['localhost:9092'],
+            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+            acks='all',
+            retries=3
+        )
         
-        # State stores (in-memory for this example)
-        self.state_store = defaultdict(dict)
-        self.window_store = defaultdict(lambda: deque())
+        # Initialize database for processed data
+        self.init_database()
+    
+    def init_database(self):
+        """Initialize SQLite database for processed data"""
+        self.conn = sqlite3.connect('analytics.db', check_same_thread=False)
+        self.conn.execute('''
+            CREATE TABLE IF NOT EXISTS user_metrics (
+                user_id INTEGER,
+                event_count INTEGER,
+                last_activity TIMESTAMP,
+                total_value REAL,
+                PRIMARY KEY (user_id)
+            )
+        ''')
+        self.conn.commit()
+    
+    def data_ingestion_layer(self):
+        """Simulate data ingestion from various sources"""
+        print("Starting data ingestion...")
         
-        # Consumer for input streams
-        self.consumer = KafkaConsumer(
-            bootstrap_servers=bootstrap_servers,
-            group_id=application_id,
-            value_deserializer=lambda v: json.loads(v.decode('utf-8')),
+        # Simulate user events
+        user_events = [
+            {'user_id': 1, 'event': 'login', 'timestamp': time.time()},
+            {'user_id': 1, 'event': 'page_view', 'page': '/products', 'timestamp': time.time()},
+            {'user_id': 2, 'event': 'purchase', 'amount': 99.99, 'timestamp': time.time()},
+            {'user_id': 1, 'event': 'logout', 'timestamp': time.time()},
+            {'user_id': 3, 'event': 'signup', 'timestamp': time.time()}
+        ]
+        
+        for event in user_events:
+            self.producer.send('raw_events', value=event)
+            print(f"Ingested: {event}")
+            time.sleep(1)
+        
+        self.producer.flush()
+        print("Data ingestion completed")
+    
+    def stream_processing_layer(self):
+        """Process streaming data and enrich events"""
+        print("Starting stream processing...")
+        
+        consumer = KafkaConsumer(
+            'raw_events',
+            bootstrap_servers=['localhost:9092'],
+            group_id='stream_processor',
+            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
             auto_offset_reset='earliest'
         )
         
-        # Producer for output streams
-        self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8')
-        )
-    
-    def process_user_events(self):
-        """Process user events stream."""
-        self.consumer.subscribe(['user-events'])
-        
-        for message in self.consumer:
+        for message in consumer:
             event = message.value
-            user_id = event.get('user_id')
-            action = event.get('action')
-            timestamp = event.get('timestamp')
             
-            # Stateful processing - count actions per user
-            if user_id not in self.state_store:
-                self.state_store[user_id] = {'login_count': 0, 'purchase_count': 0}
+            # Enrich event with additional data
+            enriched_event = self.enrich_event(event)
             
-            if action == 'login':
-                self.state_store[user_id]['login_count'] += 1
-            elif action == 'purchase':
-                self.state_store[user_id]['purchase_count'] += 1
+            # Route to appropriate topic based on event type
+            if event['event'] in ['purchase', 'signup']:
+                self.producer.send('business_events', value=enriched_event)
+            else:
+                self.producer.send('user_activity', value=enriched_event)
             
-            # Windowed aggregation - purchases in last 5 minutes
-            self.add_to_window(user_id, action, timestamp)
-            recent_purchases = self.count_recent_purchases(user_id)
+            print(f"Processed: {enriched_event}")
             
-            # Output processed event
-            output_event = {
-                'user_id': user_id,
-                'total_logins': self.state_store[user_id]['login_count'],
-                'total_purchases': self.state_store[user_id]['purchase_count'],
-                'recent_purchases_5min': recent_purchases,
-                'processed_at': time.time()
-            }
+            # Break after processing some events for demo
+            if message.offset > 10:
+                break
+        
+        consumer.close()
+        print("Stream processing completed")
+    
+    def enrich_event(self, event):
+        """Enrich events with additional context"""
+        enriched = event.copy()
+        enriched['processed_at'] = time.time()
+        enriched['date'] = datetime.fromtimestamp(event['timestamp']).strftime('%Y-%m-%d')
+        
+        # Add user segment based on user_id
+        if event['user_id'] <= 10:
+            enriched['user_segment'] = 'premium'
+        else:
+            enriched['user_segment'] = 'standard'
+        
+        return enriched
+    
+    def analytics_layer(self):
+        """Consume processed events and generate analytics"""
+        print("Starting analytics processing...")
+        
+        consumer = KafkaConsumer(
+            'business_events',
+            'user_activity',
+            bootstrap_servers=['localhost:9092'],
+            group_id='analytics_processor',
+            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+            auto_offset_reset='earliest'
+        )
+        
+        user_metrics = {}
+        
+        for message in consumer:
+            event = message.value
+            user_id = event['user_id']
             
-            self.producer.send('user-stats', value=output_event)
-            
-            # Check for patterns (e.g., high-value customer)
-            if recent_purchases >= 3:
-                alert = {
-                    'user_id': user_id,
-                    'alert_type': 'high_activity',
-                    'recent_purchases': recent_purchases,
-                    'timestamp': time.time()
+            # Update user metrics
+            if user_id not in user_metrics:
+                user_metrics[user_id] = {
+                    'event_count': 0,
+                    'total_value': 0.0,
+                    'last_activity': event['timestamp']
                 }
-                self.producer.send('user-alerts', value=alert)
-    
-    def add_to_window(self, user_id, action, timestamp):
-        """Add event to time window."""
-        if action == 'purchase':
-            self.window_store[user_id].append(timestamp)
             
-            # Clean old events (older than 5 minutes)
-            cutoff_time = time.time() - 300  # 5 minutes
-            while (self.window_store[user_id] and 
-                   self.window_store[user_id][0] < cutoff_time):
-                self.window_store[user_id].popleft()
+            user_metrics[user_id]['event_count'] += 1
+            user_metrics[user_id]['last_activity'] = max(
+                user_metrics[user_id]['last_activity'],
+                event['timestamp']
+            )
+            
+            if event['event'] == 'purchase':
+                user_metrics[user_id]['total_value'] += event.get('amount', 0)
+            
+            # Update database
+            self.update_user_metrics(user_id, user_metrics[user_id])
+            
+            print(f"Analytics updated for user {user_id}: {user_metrics[user_id]}")
+            
+            # Break after processing some events for demo
+            if message.offset > 5:
+                break
+        
+        consumer.close()
+        print("Analytics processing completed")
     
-    def count_recent_purchases(self, user_id):
-        """Count purchases in recent window."""
-        return len(self.window_store[user_id])
+    def update_user_metrics(self, user_id, metrics):
+        """Update user metrics in database"""
+        self.conn.execute('''
+            INSERT OR REPLACE INTO user_metrics 
+            (user_id, event_count, last_activity, total_value)
+            VALUES (?, ?, ?, ?)
+        ''', (
+            user_id,
+            metrics['event_count'],
+            datetime.fromtimestamp(metrics['last_activity']),
+            metrics['total_value']
+        ))
+        self.conn.commit()
     
-    def join_streams(self):
-        """Example of stream-stream join."""
-        # This would typically involve more complex coordination
-        # between multiple input streams
-        pass
+    def run_pipeline(self):
+        """Run the complete data pipeline"""
+        print("Starting Real-Time Data Pipeline...")
+        
+        # Start components in separate threads
+        threads = []
+        
+        # Data ingestion
+        ingestion_thread = threading.Thread(target=self.data_ingestion_layer)
+        threads.append(ingestion_thread)
+        
+        # Stream processing (start after small delay)
+        processing_thread = threading.Thread(target=lambda: (time.sleep(2), self.stream_processing_layer()))
+        threads.append(processing_thread)
+        
+        # Analytics (start after processing begins)
+        analytics_thread = threading.Thread(target=lambda: (time.sleep(4), self.analytics_layer()))
+        threads.append(analytics_thread)
+        
+        # Start all threads
+        for thread in threads:
+            thread.start()
+        
+        # Wait for completion
+        for thread in threads:
+            thread.join()
+        
+        # Show final results
+        self.show_results()
+        
+        print("Pipeline execution completed")
     
-    def close(self):
-        self.consumer.close()
+    def show_results(self):
+        """Display final analytics results"""
+        cursor = self.conn.execute('SELECT * FROM user_metrics')
+        results = cursor.fetchall()
+        
+        print("\n=== Final Analytics Results ===")
+        for row in results:
+            print(f"User {row[0]}: {row[1]} events, ${row[3]:.2f} total value, last active: {row[2]}")
+    
+    def cleanup(self):
+        """Cleanup resources"""
         self.producer.close()
+        self.conn.close()
 
-# Usage
-processor = StreamProcessor(
-    bootstrap_servers=['localhost:9092'],
-    application_id='user-event-processor'
-)
-
-try:
-    processor.process_user_events()
-finally:
-    processor.close()
+# Run the pipeline
+if __name__ == "__main__":
+    pipeline = RealTimeDataPipeline()
+    
+    try:
+        pipeline.run_pipeline()
+    finally:
+        pipeline.cleanup()
 ```
 
-**Java Kafka Streams Example** (for reference):
-```java
-// Java Kafka Streams - more typical implementation
-Properties props = new Properties();
-props.put(StreamsConfig.APPLICATION_ID_CONFIG, "user-event-processor");
-props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+---
 
-StreamsBuilder builder = new StreamsBuilder();
+## Key Takeaways
 
-// Input stream
-KStream<String, UserEvent> userEvents = builder.stream("user-events");
-
-// Stateful processing - count by user
-KTable<String, Long> userLoginCounts = userEvents
-    .filter((key, event) -> "login".equals(event.getAction()))
-    .groupBy((key, event) -> event.getUserId())
-    .count();
-
-// Windowed aggregation
-KTable<Windowed<String>, Long> windowedCounts = userEvents
-    .filter((key, event) -> "purchase".equals(event.getAction()))
-    .groupBy((key, event) -> event.getUserId())
-    .windowedBy(TimeWindows.of(Duration.ofMinutes(5)))
-    .count();
-
-// Output results
-userLoginCounts.toStream().to("user-login-counts");
-windowedCounts.toStream().to("user-purchase-windows");
-
-KafkaStreams streams = new KafkaStreams(builder.build(), props);
-streams.start();
-```
-
-This comprehensive set covers Kafka fundamentals through advanced stream processing concepts with practical data engineering examples.
+1. **Distributed Streaming**: Kafka provides fault-tolerant, scalable message streaming
+2. **Partitioning Strategy**: Proper partitioning ensures scalability and ordering
+3. **Consumer Groups**: Enable parallel processing with automatic load balancing
+4. **Delivery Guarantees**: Configure based on requirements (at-most-once, at-least-once, exactly-once)
+5. **Performance Tuning**: Optimize batching, compression, and connection settings
+6. **Monitoring**: Track lag, throughput, and system metrics for health
+7. **Real-time Pipelines**: Central component for event-driven architectures
+8. **Fault Tolerance**: Replication and proper configuration ensure reliability

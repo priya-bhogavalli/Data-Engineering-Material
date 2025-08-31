@@ -57,11 +57,21 @@
 > 📚 **For comprehensive coverage of Python data structures, see [PYTHON_DATA_STRUCTURES.md](./PYTHON_DATA_STRUCTURES.md)**
 > 
 > This includes:
-> - Built-in types (lists, dicts, sets, tuples, strings)
+> - Built-in types (int, float, NoneType, lists, dicts, sets, tuples, strings)
 > - Collections module (Counter, defaultdict, deque, namedtuple)
 > - Advanced structures (heaps, queues, arrays)
 > - Performance comparisons and best practices
 > - Real-world examples for data engineering
+>
+> 🧮 **For algorithms and advanced data structures, see [PYTHON_ALGORITHMS_AND_ADVANCED_STRUCTURES.md](./PYTHON_ALGORITHMS_AND_ADVANCED_STRUCTURES.md)**
+>
+> This covers:
+> - Algorithm fundamentals (Big O, complexity analysis)
+> - Searching and sorting algorithms
+> - Graph algorithms and tree traversal
+> - Streaming algorithms (reservoir sampling, Count-Min sketch, HyperLogLog)
+> - Advanced structures (Trie, Union-Find)
+> - Data engineering patterns (sliding window, two pointers)
 
 **Lists - Ordered, Mutable Collections**:
 ```python
