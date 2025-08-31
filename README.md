@@ -1,9 +1,36 @@
 # Data Engineering Interview Preparation & Self-Study Guide
 
+## 🚀 **Quick Start - Choose Your Path**
+
+### 📋 **Need something fast?** → [quick-prep/](./quick-prep/)
+### 🔧 **Want to master a skill?** → [by-skill-area/](./by-skill-area/)
+### 🎪 **Ready to practice?** → [interview-simulator/](./interview-simulator/)
+
+👉 **New here?** Start with [START_HERE.md](./START_HERE.md) for guided navigation
+
+## 🎯 **Quick Interview Questions Reference**
+
+### Core Technologies
+- **Programming**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md)
+- **Cloud**: [AWS](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS.md) | [Azure](./Core-Data-Engineering/Cloud/Azure/AZURE_INTERVIEW_QUESTIONS.md) | [GCP](./Core-Data-Engineering/Cloud/GCP/GCP_INTERVIEW_QUESTIONS.md)
+- **Big Data**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) | [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md)
+- **Databases**: [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md)
+- **Orchestration**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md)
+- **Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md)
+
+### Supporting Technologies
+- **DevOps**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md)
+- **Visualization**: [Tableau](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | [Power BI](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md)
+- **ML/AI**: [Machine Learning](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | [MLOps](./Supporting-Tools/AI/MLOps/MLOPS_INTERVIEW_QUESTIONS.md)
+
+---
+
 ## 📋 Table of Contents
 
 1. [Purpose](#purpose)
-2. [Repository Structure](#repository-structure)
+2. [Quick Interview Questions Reference](#quick-interview-questions-reference)
+3. [New Interview-Focused Structure](#new-interview-focused-structure)
+3. [Original Repository Structure](#original-repository-structure)
    - [Core-Data-Engineering/](#core-data-engineering)
    - [Supporting-Tools/](#supporting-tools)
 3. [Core Data Engineering Topics](#core-data-engineering-topics)
@@ -43,6 +70,21 @@
 ## 🎯 Purpose
 
 This comprehensive repository serves as a complete resource for Data Engineering interview preparation and self-study. It covers essential topics, tools, and technologies that modern data engineers encounter in their careers.
+
+## 🎯 New Interview-Focused Structure
+
+**We've reorganized for better interview preparation! The repository now has two navigation approaches:**
+
+### 🚀 **Interview-Focused Navigation** (Recommended)
+- **[quick-prep/](./quick-prep/)** - Cheat sheets, top questions, emergency prep
+- **[by-skill-area/](./by-skill-area/)** - Deep dives into specific technologies
+- **[interview-simulator/](./interview-simulator/)** - Mock interviews and practice scenarios
+
+### 📚 **Traditional Technical Navigation** (Original)
+- **[Core-Data-Engineering/](./Core-Data-Engineering/)** - Essential data engineering topics
+- **[Supporting-Tools/](./Supporting-Tools/)** - Additional skills and tools
+
+💡 **Tip**: Use the interview-focused structure for job preparation, and the technical structure for comprehensive learning.
 
 ## 📚 Repository Structure
 

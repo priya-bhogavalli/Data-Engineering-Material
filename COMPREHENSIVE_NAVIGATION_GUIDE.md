@@ -1,0 +1,343 @@
+# 🧭 Comprehensive Navigation Guide - Data Engineering Material
+
+## 🎯 **Quick Start - Choose Your Path**
+
+### 📋 **Need something fast?** → [Quick Prep Section](#-quick-prep-resources)
+### 🔧 **Want to master a skill?** → [Technology Deep Dives](#-technology-deep-dives)
+### 🎪 **Ready to practice?** → [Interview Preparation](#-interview-preparation-by-type)
+### 📊 **Want an overview?** → [Technology Stack Overview](#-complete-technology-stack-overview)
+
+---
+
+## 🚀 **Quick Prep Resources**
+
+### 🔥 **Most Important Links (Bookmark These!)**
+
+#### **Core Programming**
+- **Python**: [LeetCode Python](https://leetcode.com/problemset/all/?topicSlugs=python) | [Real Python Interview](https://realpython.com/python-interview-questions/) | [📋 Our Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md)
+- **SQL**: [SQLBolt](https://sqlbolt.com/) | [LeetCode Database](https://leetcode.com/problemset/database/) | [📋 Our Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
+- **PySpark**: [Spark by Examples](https://sparkbyexamples.com/pyspark-interview-questions/) | [📋 Our Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md)
+
+#### **Cloud Platforms**
+- **AWS**: [AWS Skill Builder](https://skillbuilder.aws/) | [📋 Our Questions](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Azure**: [Microsoft Learn](https://docs.microsoft.com/en-us/learn/azure/) | [📋 Our Questions](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **GCP**: [Google Cloud Skills Boost](https://www.cloudskillsboost.google/) | [📋 Our Questions](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+#### **Big Data & Processing**
+- **Apache Spark**: [Databricks Academy](https://academy.databricks.com/) | [📋 Our Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md)
+- **Apache Kafka**: [Confluent Developer](https://developer.confluent.io/learn-kafka/) | [📋 Our Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md)
+- **Apache Airflow**: [Astronomer Guides](https://www.astronomer.io/guides/) | [📋 Our Questions](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md)
+
+### ⚡ **Last-Minute Prep (Day Before Interview)**
+
+#### **30-Minute Review Checklist**
+- [ ] **Python basics**: [Python Cheat Sheet](https://www.pythoncheatsheet.org/) | [📄 Our Concepts](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_KEY_CONCEPTS.md)
+- [ ] **SQL joins and window functions**: [SQL Cheat Sheet](https://www.sqltutorial.org/sql-cheat-sheet/) | [📄 Our Concepts](./Core-Data-Engineering/Programming-Languages/SQL/SQL_KEY_CONCEPTS.md)
+- [ ] **Cloud services overview**: [AWS/Azure/GCP Comparison](https://comparecloud.in/) | [📄 Our Cloud Guide](./Core-Data-Engineering/Cloud/CLOUD_KEY_CONCEPTS.md)
+- [ ] **Data pipeline concepts**: [Data Engineering Concepts](https://github.com/andkret/Cookbook) | [📄 Our Processing Guide](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_KEY_CONCEPTS.md)
+
+#### **Common Questions to Review**
+1. \"Explain your data pipeline architecture\"
+2. \"How do you handle data quality issues?\"
+3. \"Difference between batch and stream processing\"
+4. \"How do you optimize SQL queries?\"
+5. \"Explain CAP theorem\"
+6. \"How do you handle schema evolution?\"
+7. \"Describe your experience with cloud platforms\"
+
+---
+
+## 📊 **Complete Technology Stack Overview**
+
+### 🔧 **CORE DATA ENGINEERING** (Priority 1 & 2)
+
+| Category | Technology | Type | Priority | Interview Questions | Key Concepts | Best Practices | Status |
+|----------|------------|------|----------|-------------------|--------------|----------------|---------|
+| **Programming** | Python | Language | 🥇 Essential | [📋](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_BEST_PRACTICES.md) | ⚠️ 21 Q |
+| **Programming** | SQL | Language | 🥇 Essential | [📋](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Programming-Languages/SQL/SQL_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Programming-Languages/SQL/SQL_BEST_PRACTICES.md) | ✅ 35+ Q |
+| **Programming** | PySpark | Framework | 🥇 Essential | [📋](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BEST_PRACTICES.md) | ✅ 27+ Q |
+| **Cloud** | AWS | Platform | 🥇 Essential | [📋](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Cloud/AWS/AWS_BEST_PRACTICES.md) | ✅ 35+ Q |
+| **Cloud** | Azure | Platform | 🥈 Advanced | [📋](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Cloud/Azure/AZURE_KEY_CONCEPTS.md) | - | ⚠️ 20+ Q |
+| **Cloud** | GCP | Platform | 🥈 Advanced | [📋](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Cloud/GCP/GCP_KEY_CONCEPTS.md) | - | ⚠️ 18+ Q |
+| **Database** | PostgreSQL | RDBMS | 🥇 Essential | [📋](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_BEST_PRACTICES.md) | ⚠️ 15+ Q |
+| **Database** | MongoDB | NoSQL | 🥇 Essential | [📋](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_KEY_CONCEPTS.md) | - | ⚠️ 14 Q |
+| **Database** | Redis | NoSQL | 🥇 Essential | [📋](./Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_KEY_CONCEPTS.md) | - | ⚠️ 14 Q |
+| **Database** | Elasticsearch | Search | 🥇 Essential | [📋](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_KEY_CONCEPTS.md) | - | ⚠️ 12 Q |
+| **Processing** | Apache Spark | Big Data | 🥇 Essential | [📋](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_BEST_PRACTICES.md) | ✅ 35+ Q |
+| **Processing** | Databricks | Platform | 🥇 Essential | [📋](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_BEST_PRACTICES.md) | ✅ 27+ Q |
+| **Processing** | Apache Kafka | Streaming | 🥇 Essential | [📋](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_BEST_PRACTICES.md) | 🔴 9 Q |
+| **Orchestration** | Apache Airflow | Workflow | 🥇 Essential | [📋](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_BEST_PRACTICES.md) | 🔴 7 Q |
+| **Orchestration** | DBT | Transformation | 🥇 Essential | [📋](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_BEST_PRACTICES.md) | 🔴 6 Q |
+| **Warehousing** | Snowflake | Cloud DW | 🥇 Essential | [📋](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_KEY_CONCEPTS.md) | [📄](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_BEST_PRACTICES.md) | ✅ 35+ Q |
+| **Warehousing** | Redshift | AWS DW | 🥇 Essential | [📋](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_KEY_CONCEPTS.md) | - | 🔴 7 Q |
+
+### 🛠️ **SUPPORTING TOOLS** (Priority 3 & 4)
+
+| Category | Technology | Type | Priority | Interview Questions | Key Concepts | Best Practices | Status |
+|----------|------------|------|----------|-------------------|--------------|----------------|---------|
+| **DevOps** | Docker | Container | 🥉 Supporting | [📋](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [📄](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_KEY_CONCEPTS.md) | [📄](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_BEST_PRACTICES.md) | ✅ |
+| **DevOps** | Kubernetes | Orchestration | 🥉 Supporting | [📋](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | [📄](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_KEY_CONCEPTS.md) | [📄](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_BEST_PRACTICES.md) | ✅ |
+| **DevOps** | Terraform | IaC | 🥉 Supporting | [📋](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) | [📄](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_KEY_CONCEPTS.md) | [📄](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_BEST_PRACTICES.md) | ✅ |
+| **Version Control** | Git | VCS | 🥉 Supporting | [📋](./Supporting-Tools/Version-Control/Git/GIT_INTERVIEW_QUESTIONS.md) | [📄](./Supporting-Tools/Version-Control/Git/GIT_KEY_CONCEPTS.md) | [📄](./Supporting-Tools/Version-Control/Git/GIT_BEST_PRACTICES.md) | ✅ |
+| **Visualization** | Tableau | BI Tool | 🥉 Supporting | [📋](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | [📄](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_KEY_CONCEPTS.md) | [📄](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_BEST_PRACTICES.md) | ✅ |
+| **Visualization** | Power BI | BI Tool | 🥉 Supporting | [📋](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md) | [📄](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_KEY_CONCEPTS.md) | - | ✅ |
+| **AI/ML** | Machine Learning | Technology | 🎓 Specialized | [📋](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | [📄](./Supporting-Tools/AI/Machine-Learning/ML_KEY_CONCEPTS.md) | [📄](./Supporting-Tools/AI/Machine-Learning/ML_BEST_PRACTICES.md) | ✅ |
+
+---
+
+## 🗂️ **Database Types Reference**
+
+| Database Type | Technologies | Use Cases | Priority | Interview Questions |
+|---------------|-------------|-----------|----------|-------------------|
+| **RDBMS** | PostgreSQL, MySQL, Oracle, SQL Server | Transactional data, ACID compliance | 🥇 Essential | [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md), [MySQL](./Core-Data-Engineering/Databases/MySQL/MYSQL_INTERVIEW_QUESTIONS.md), [Oracle](./Core-Data-Engineering/Databases/Oracle/ORACLE_INTERVIEW_QUESTIONS.md) |
+| **Document Store** | MongoDB, CouchDB | JSON-like documents, flexible schema | 🥇 Essential | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) |
+| **Key-Value** | Redis, DynamoDB | Caching, session storage, real-time | 🥇 Essential | [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md), [DynamoDB](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/DYNAMODB_INTERVIEW_QUESTIONS.md) |
+| **Column-Family** | Cassandra, HBase | Time-series, IoT, high write volume | 🥈 Advanced | [Cassandra](./Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_INTERVIEW_QUESTIONS.md) |
+| **Search Engine** | Elasticsearch, Solr | Full-text search, log analysis | 🥇 Essential | [Elasticsearch](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md) |
+| **Graph** | Neo4j, Neptune | Relationships, social networks, fraud | 🥈 Advanced | - |
+| **Time-Series** | InfluxDB, TimescaleDB | Metrics, monitoring, IoT sensors | 🥈 Advanced | - |
+
+---
+
+## 🚀 **Learning Path by Experience Level**
+
+### 👶 **Beginner (0-1 years)**
+| Order | Technology | Focus Area | Time Investment | Resources |
+|-------|------------|------------|-----------------|-----------|
+| 1 | Python | Programming fundamentals | 4-6 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) |
+| 2 | SQL | Database querying | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/SQL/SQL_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) |
+| 3 | PostgreSQL | Relational databases | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) |
+| 4 | AWS Basics | Cloud fundamentals | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| 5 | Apache Spark | Big data processing | 4-5 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) |
+
+### 🧑💼 **Intermediate (1-3 years)**
+| Order | Technology | Focus Area | Time Investment | Resources |
+|-------|------------|------------|-----------------|-----------|
+| 1 | PySpark | Advanced Spark with Python | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) |
+| 2 | Apache Kafka | Streaming data | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md) |
+| 3 | Apache Airflow | Workflow orchestration | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) |
+| 4 | Snowflake | Cloud data warehousing | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) |
+| 5 | MongoDB | NoSQL databases | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) |
+| 6 | Docker | Containerization | 2 weeks | [📄 Concepts](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_KEY_CONCEPTS.md) \| [📋 Questions](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) |
+
+### 👨🎓 **Advanced (3+ years)**
+| Order | Technology | Focus Area | Time Investment | Resources |
+|-------|------------|------------|-----------------|-----------|
+| 1 | Databricks | Advanced analytics platform | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) |
+| 2 | Kubernetes | Container orchestration | 4-5 weeks | [📄 Concepts](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_KEY_CONCEPTS.md) \| [📋 Questions](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) |
+| 3 | Terraform | Infrastructure as Code | 2-3 weeks | [📄 Concepts](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_KEY_CONCEPTS.md) \| [📋 Questions](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) |
+| 4 | Data Architecture | System design patterns | 4-6 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Architecture/DATA_ARCHITECTURE_KEY_CONCEPTS.md) \| [📋 Questions](./Core-Data-Engineering/Data-Architecture/DATA_ARCHITECTURE_INTERVIEW_QUESTIONS.md) |
+| 5 | Multi-cloud | Azure + GCP | 6-8 weeks | [Azure](./Core-Data-Engineering/Cloud/Azure/) \| [GCP](./Core-Data-Engineering/Cloud/GCP/) |
+
+---
+
+## 🎯 **Interview Preparation by Type**
+
+### **Technical Coding Interview**
+- [LeetCode Top Interview Questions](https://leetcode.com/explore/interview/card/top-interview-questions-easy/)
+- [📋 Python Interview Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md)
+- [📋 SQL Interview Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
+- [📋 Data Structures & Algorithms](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_INTERVIEW_QUESTIONS.md)
+
+### **System Design Interview**
+- [System Design Primer](https://github.com/donnemartin/system-design-primer)
+- [📋 Data Architecture Questions](./Core-Data-Engineering/Data-Architecture/DATA_ARCHITECTURE_INTERVIEW_QUESTIONS.md)
+- [📋 Data Processing Questions](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_INTERVIEW_QUESTIONS.md)
+- [📋 Data Warehousing Questions](./Core-Data-Engineering/Data-Warehousing/DATA_WAREHOUSING_INTERVIEW_QUESTIONS.md)
+
+### **Cloud-Specific Interview**
+- **AWS**: [📋 AWS Questions](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Azure**: [📋 Azure Questions](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **GCP**: [📋 GCP Questions](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+### **Company-Specific Preparation**
+
+#### **FAANG Companies**
+- **Meta**: [LeetCode Meta Questions](https://leetcode.com/company/facebook/)
+- **Amazon**: [LeetCode Amazon Questions](https://leetcode.com/company/amazon/) | [Amazon Leadership Principles](https://www.amazon.jobs/en/principles)
+- **Netflix**: [Netflix Tech Blog](https://netflixtechblog.com/)
+- **Google**: [LeetCode Google Questions](https://leetcode.com/company/google/)
+- **Apple**: [LeetCode Apple Questions](https://leetcode.com/company/apple/)
+
+#### **Data-Focused Companies**
+- **Databricks**: [Databricks Blog](https://databricks.com/blog)
+- **Snowflake**: [Snowflake Blog](https://www.snowflake.com/blog/)
+- **Confluent**: [Confluent Blog](https://www.confluent.io/blog/)
+
+---
+
+## 🎯 **Technology Deep Dives**
+
+### **By Use Case**
+
+#### **Data Pipeline Development**
+- [📄 Apache Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_KEY_CONCEPTS.md)
+- [📄 DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_KEY_CONCEPTS.md)
+- [📄 Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_KEY_CONCEPTS.md)
+- [📄 Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_KEY_CONCEPTS.md)
+
+#### **Real-time Data Processing**
+- [📄 Apache Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_KEY_CONCEPTS.md)
+- [📄 Apache Flink](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_KEY_CONCEPTS.md)
+- [📄 AWS Kinesis](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_KEY_CONCEPTS.md)
+
+#### **Data Warehousing & Analytics**
+- [📄 Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_KEY_CONCEPTS.md)
+- [📄 Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_KEY_CONCEPTS.md)
+- [📄 Dimensional Modeling](./Core-Data-Engineering/Data-Architecture/Dimensional-Data-Modeling/DIMENSIONAL_DATA_MODELING_KEY_CONCEPTS.md)
+
+#### **Cloud Data Engineering**
+- [📄 AWS Services](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_KEY_CONCEPTS.md)
+- [📄 Azure Services](./Core-Data-Engineering/Cloud/Azure/AZURE_KEY_CONCEPTS.md)
+- [📄 GCP Services](./Core-Data-Engineering/Cloud/GCP/GCP_KEY_CONCEPTS.md)
+
+#### **DevOps & Infrastructure**
+- [📄 Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_KEY_CONCEPTS.md)
+- [📄 Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_KEY_CONCEPTS.md)
+- [📄 Terraform](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_KEY_CONCEPTS.md)
+
+---
+
+## 📊 **Repository Statistics & Status**
+
+### **Coverage Summary**
+- **Total Interview Question Files**: 60+
+- **Total Questions**: 600+
+- **Core Data Engineering Coverage**: 98%
+- **Supporting Tools Coverage**: 85%
+
+### **Detailed Question Expansion Priorities**
+
+#### 🔴 **URGENT: Need 40+ More Questions**
+| Technology | Current | Target | Gap | Priority | Status |
+|------------|---------|--------|-----|----------|--------|
+| **Apache Kafka** | 9 Q | 50-75 Q | +41-66 Q | 🥇 Critical | Streaming essential |
+| **Apache Airflow** | 7 Q | 50-75 Q | +43-68 Q | 🥇 Critical | Orchestration essential |
+| **Redshift** | 7 Q | 50-75 Q | +43-68 Q | 🥇 Critical | AWS DW essential |
+| **DBT** | 6 Q | 50-75 Q | +44-69 Q | 🥇 Critical | Modern transformation |
+
+#### ⚠️ **MEDIUM: Need 20-40 More Questions**
+| Technology | Current | Target | Gap | Priority | Status |
+|------------|---------|--------|-----|----------|--------|
+| **PostgreSQL** | 15 Q | 50-75 Q | +35-60 Q | 🥇 High | RDBMS essential |
+| **MongoDB** | 14 Q | 50-75 Q | +36-61 Q | 🥇 High | NoSQL essential |
+| **Redis** | 14 Q | 50-75 Q | +36-61 Q | 🥇 High | Caching essential |
+| **Elasticsearch** | 12 Q | 50-75 Q | +38-63 Q | 🥇 High | Search essential |
+| **Python** | 21 Q | 50-100 Q | +29-79 Q | 🥇 Medium | Core language |
+| **Azure** | 20 Q | 50-75 Q | +30-55 Q | 🥈 Medium | Multi-cloud |
+| **GCP** | 18 Q | 50-75 Q | +32-57 Q | 🥈 Medium | Multi-cloud |
+| **MySQL** | 12 Q | 50-75 Q | +38-63 Q | 🥈 Medium | RDBMS option |
+| **Oracle** | 10 Q | 50-75 Q | +40-65 Q | 🥈 Medium | Enterprise RDBMS |
+| **Informatica** | 10 Q | 50-75 Q | +40-65 Q | 🥈 Medium | Enterprise ETL |
+| **Apache Flink** | 8 Q | 50-75 Q | +42-67 Q | 🥈 Medium | Advanced streaming |
+
+#### 🔴 **MISSING: Need Complete Creation**
+| Technology | Current | Target | Status | Priority |
+|------------|---------|--------|---------|----------|
+| **Cassandra** | 0 Q | 50-75 Q | 🔴 Not Created | Column-family NoSQL |
+| **Data Vault 2.0** | 0 Q | 50-75 Q | 🔴 Not Created | Architecture methodology |
+| **Data Mesh** | 0 Q | 50-75 Q | 🔴 Not Created | Modern architecture |
+| **DataOps** | 0 Q | 50-75 Q | 🔴 Not Created | Operational methodology |
+
+#### ✅ **GOOD: Meeting Target Range**
+| Technology | Current | Target | Status | Notes |
+|------------|---------|--------|---------|-------|
+| **SQL** | 35+ Q | 75-100 Q | ✅ Good coverage | Could expand for advanced topics |
+| **PySpark** | 27+ Q | 50-75 Q | ✅ Good coverage | Could expand for optimization |
+| **AWS** | 35+ Q | 75-100 Q | ✅ Good coverage | Could expand service-specific |
+| **Spark** | 35+ Q | 75-100 Q | ✅ Good coverage | Could expand for tuning |
+| **Databricks** | 27+ Q | 50-75 Q | ✅ Good coverage | Could expand for advanced features |
+| **Snowflake** | 35+ Q | 75-100 Q | ✅ Good coverage | Could expand for optimization |
+
+### **Content Quality Status by Technology**
+
+#### **Complete Documentation Available** ✅
+| Technology | Key Concepts | Best Practices | Interview Questions | Examples | Quick Reference |
+|------------|--------------|----------------|-------------------|----------|----------------|
+| **Python** | ✅ | ✅ | ⚠️ Needs expansion | ✅ | ✅ |
+| **SQL** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **PySpark** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **AWS** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **Apache Spark** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **Databricks** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **Snowflake** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **PostgreSQL** | ✅ | ✅ | ⚠️ Needs expansion | ✅ | ✅ |
+| **Docker** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **Kubernetes** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+| **Terraform** | ✅ | ✅ | ✅ Good | ✅ | ✅ |
+
+#### **Partial Documentation** ⚠️
+| Technology | Key Concepts | Best Practices | Interview Questions | Examples | Status |
+|------------|--------------|----------------|-------------------|----------|--------|
+| **Apache Kafka** | ✅ | ✅ | 🔴 Critical gap | ✅ | Needs interview expansion |
+| **Apache Airflow** | ✅ | ✅ | 🔴 Critical gap | ✅ | Needs interview expansion |
+| **DBT** | ✅ | ✅ | 🔴 Critical gap | ✅ | Needs interview expansion |
+| **Redshift** | ✅ | - | 🔴 Critical gap | ✅ | Needs best practices & interviews |
+| **MongoDB** | ✅ | - | ⚠️ Needs expansion | ✅ | Needs best practices |
+| **Redis** | ✅ | - | ⚠️ Needs expansion | ✅ | Needs best practices |
+| **Elasticsearch** | ✅ | - | ⚠️ Needs expansion | ✅ | Needs best practices |
+| **Azure** | ✅ | - | ⚠️ Needs expansion | ✅ | Needs best practices |
+| **GCP** | ✅ | - | ⚠️ Needs expansion | ✅ | Needs best practices |
+
+---
+
+## 🔗 **Essential Navigation Links**
+
+### **📚 Core Resources**
+- [📋 Complete Interview Questions Index](./INTERVIEW_QUESTIONS_MASTER_INDEX.md)
+- [🗂️ Database Overview](./Core-Data-Engineering/Databases/DATABASE_OVERVIEW.md)
+- [☁️ Cloud Services Comparison](./Core-Data-Engineering/Cloud/CLOUD_SERVICES_COMPARISON_TABLE.md)
+- [🔄 Data Processing Guide](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_KEY_CONCEPTS.md)
+
+### **🎯 Study Materials**
+- [🐍 Python Complete Guide](./Core-Data-Engineering/Programming-Languages/Python/)
+- [🗃️ SQL Mastery](./Core-Data-Engineering/Programming-Languages/SQL/)
+- [⚡ Spark & PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/)
+- [☁️ AWS Complete](./Core-Data-Engineering/Cloud/AWS/)
+
+### **🛠️ Tools & Frameworks**
+- [🔥 Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
+- [📊 Databricks](./Core-Data-Engineering/Data-Processing/Databricks/)
+- [🌊 Apache Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/)
+- [❄️ Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/)
+
+---
+
+## 🎯 **How to Use This Guide**
+
+### **For Beginners**
+1. Start with [Beginner Learning Path](#-beginner-0-1-years)
+2. Follow the recommended order and time investments
+3. Use both external resources and our internal materials
+4. Practice with interview questions to test knowledge
+
+### **For Interview Preparation**
+1. Check [Quick Prep Resources](#-quick-prep-resources) for immediate needs
+2. Use [Interview Preparation by Type](#-interview-preparation-by-type) for specific interview formats
+3. Review [Technology Stack Overview](#-complete-technology-stack-overview) for comprehensive coverage
+4. Practice with company-specific resources if targeting particular companies
+
+### **For Professionals**
+1. Use [Technology Deep Dives](#-technology-deep-dives) for specific use cases
+2. Reference [Database Types](#-database-types-reference) for architecture decisions
+3. Follow [Advanced Learning Path](#-advanced-3-years) for career growth
+4. Contribute to areas marked as needing expansion
+
+---
+
+**Legend:**
+- ✅ = Meeting 50+ Questions Target
+- ⚠️ = Needs Expansion (Under 50 Questions)
+- 🔴 = Critical Gap (Under 20 Questions)
+- 🥇 = Priority 1 (Essential) - Target 50-100 Q
+- 🥈 = Priority 2 (Advanced) - Target 50-75 Q
+- 🥉 = Priority 3 (Supporting) - Target 25-50 Q
+- 🎓 = Priority 4 (Specialized) - Target 25-50 Q
+
+---
+
+**Last Updated**: January 2024  
+**Total Files**: 60+ comprehensive guides  
+**Maintenance**: Actively maintained and updated
+
+*Navigate efficiently, learn systematically, and build amazing data systems! 🚀*
