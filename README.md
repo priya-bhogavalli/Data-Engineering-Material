@@ -3,25 +3,25 @@
 ## 🚀 **Quick Start - Choose Your Path**
 
 ### 📋 **Need something fast?** → [quick-prep/](./quick-prep/)
-### 🔧 **Want to master a skill?** → [by-skill-area/](./by-skill-area/)
-### 🎪 **Ready to practice?** → [interview-simulator/](./interview-simulator/)
+### 🔧 **Want to master a skill?** → [Core-Data-Engineering/](./Core-Data-Engineering/)
+### 🎪 **Ready to practice?** → [Interview Questions](./docs/INTERVIEW_QUESTIONS_MASTER_INDEX.md)
 
 👉 **New here?** Start with [Comprehensive Navigation Guide](./docs/COMPREHENSIVE_NAVIGATION_GUIDE.md) for complete guidance
 
 ## 🎯 **Quick Interview Questions Reference**
 
 ### Core Technologies
-- **Programming**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md)
-- **Cloud**: [AWS](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS.md) | [Azure](./Core-Data-Engineering/Cloud/Azure/AZURE_INTERVIEW_QUESTIONS.md) | [GCP](./Core-Data-Engineering/Cloud/GCP/GCP_INTERVIEW_QUESTIONS.md)
-- **Big Data**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) | [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md)
-- **Databases**: [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md)
-- **Orchestration**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md)
-- **Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md)
+- **Programming**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/)
+- **Cloud**: [AWS](./Core-Data-Engineering/Cloud/AWS/) | [Azure](./Core-Data-Engineering/Cloud/Azure/) | [GCP](./Core-Data-Engineering/Cloud/GCP/)
+- **Big Data**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/) | [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/) | [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/)
+- **Databases**: [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/) | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/) | [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/)
+- **Orchestration**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/)
+- **Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/) | [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/)
 
 ### Supporting Technologies
-- **DevOps**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md)
-- **Visualization**: [Tableau](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | [Power BI](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md)
-- **ML/AI**: [Machine Learning](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | [MLOps](./Supporting-Tools/AI/MLOps/MLOPS_INTERVIEW_QUESTIONS.md)
+- **DevOps**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/) | [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/) | [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/)
+- **Visualization**: [Tableau](./Supporting-Tools/Visualization-Reporting/Tableau/) | [Power BI](./Supporting-Tools/Visualization-Reporting/Power-BI/)
+- **ML/AI**: [Machine Learning](./Supporting-Tools/AI/Machine-Learning/) | [MLOps](./Supporting-Tools/AI/MLOps/)
 
 ---
 
