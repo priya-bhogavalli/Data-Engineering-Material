@@ -12,95 +12,95 @@ This comprehensive index provides direct access to all interview questions and a
 
 | Technology | Interview Questions | Status | Question Count |
 |------------|-------------------|---------|----------------|
-| **Python** | [📋 PYTHON_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | ✅ Complete | 21 Questions |
-| **Python Data Structures** | [📋 PYTHON_DATA_STRUCTURES_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/Python/) | ✅ Complete | 8 Questions |
-| **SQL** | [📋 SQL_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
-| **SQL Big4 Companies** | [📋 SQL_BIG4_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/SQL/) | ✅ Complete | 20+ Questions |
-| **PySpark** | [📋 PYSPARK_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/PySpark/) | ✅ Complete | 12+ Questions |
-| **PySpark Big4 Companies** | [📋 PYSPARK_BIG4_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/PySpark/) | ✅ Complete | 15+ Questions |
+| **Python** | [📋 PYTHON_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | ✅ Complete | 21 Questions |
+| **Python Data Structures** | [📋 PYTHON_DATA_STRUCTURES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_DATA_STRUCTURES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8 Questions |
+| **SQL** | [📋 SQL_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **SQL Big4 Companies** | [📋 SQL_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
+| **PySpark** | [📋 PYSPARK_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **PySpark Big4 Companies** | [📋 PYSPARK_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 
 ### ☁️ **Cloud Platforms**
 
 #### **AWS (Amazon Web Services)**
 | Service | Interview Questions | Status | Question Count |
 |---------|-------------------|---------|----------------|
-| **AWS Comprehensive** | [📋 AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Cloud/AWS/) | ✅ Complete | 25+ Questions |
-| **S3** | [📋 S3_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Cloud/AWS/) | ✅ Complete | 10+ Questions |
-| **General Cloud** | [📋 CLOUD_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Cloud/) | ✅ Complete | 12+ Questions |
+| **AWS Comprehensive** | [📋 AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 25+ Questions |
+| **S3** | [📋 S3_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Cloud/AWS/S3_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **General Cloud** | [📋 CLOUD_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Cloud/CLOUD_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
 #### **Azure & GCP**
 | Platform | Interview Questions | Status | Question Count |
 |----------|-------------------|---------|----------------|
-| **Azure** | [📋 AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Cloud/Azure/) | ✅ Complete | 20+ Questions |
-| **GCP** | [📋 GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Cloud/GCP/) | ✅ Complete | 18+ Questions |
+| **Azure** | [📋 AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
+| **GCP** | [📋 GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 18+ Questions |
 
 ### 🗄️ **Databases**
 
 #### **Relational Databases (RDBMS)**
 | Database | Interview Questions | Status | Question Count |
 |----------|-------------------|---------|----------------|
-| **PostgreSQL** | [📋 POSTGRESQL_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/PostgreSQL/) | ✅ Complete | 15+ Questions |
-| **MySQL** | [📋 MYSQL_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/MySQL/) | ✅ Complete | 12+ Questions |
-| **Oracle** | [📋 ORACLE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/Oracle/) | ✅ Complete | 10+ Questions |
-| **General Databases** | [📋 DATABASES_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/) | ✅ Complete | 20+ Questions |
-| **Athena** | [📋 ATHENA_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/Athena/) | ✅ Complete | 8+ Questions |
+| **PostgreSQL** | [📋 POSTGRESQL_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **MySQL** | [📋 MYSQL_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/MySQL/MYSQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **Oracle** | [📋 ORACLE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Oracle/ORACLE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **General Databases** | [📋 DATABASES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/DATABASES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
+| **Athena** | [📋 ATHENA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Athena/ATHENA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
 #### **NoSQL Databases** ⭐ **NEW**
 | Database | Type | Interview Questions | Status | Question Count |
 |----------|------|-------------------|---------|----------------|
-| **MongoDB** | Document | [📋 MONGODB_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/NoSQL/MongoDB/) | ✅ Complete | 14 Questions |
-| **Redis** | Key-Value | [📋 REDIS_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/NoSQL/Redis/) | ✅ Complete | 14 Questions |
-| **Cassandra** | Column-Family | [📋 CASSANDRA_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/NoSQL/Cassandra/) | ✅ Complete | 12+ Questions |
-| **DynamoDB** | Key-Value | [📋 DYNAMODB_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/) | ✅ Complete | 10+ Questions |
+| **MongoDB** | Document | [📋 MONGODB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 14 Questions |
+| **Redis** | Key-Value | [📋 REDIS_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 14 Questions |
+| **Cassandra** | Column-Family | [📋 CASSANDRA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **DynamoDB** | Key-Value | [📋 DYNAMODB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/DynamoDB/DYNAMODB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
 
 #### **Search Engines** ⭐ **NEW**
 | Database | Specialization | Interview Questions | Status | Question Count |
 |----------|----------------|-------------------|---------|----------------|
-| **Elasticsearch** | Search & Analytics | [📋 ELASTICSEARCH_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/) | ✅ Complete | 12 Questions |
+| **Elasticsearch** | Search & Analytics | [📋 ELASTICSEARCH_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12 Questions |
 
 ### 🔄 **Data Processing & Pipelines**
 
 #### **Big Data Processing**
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Apache Spark** | [📋 SPARK_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Apache-Spark/) | ✅ Complete | 15+ Questions |
-| **Spark Big4 Companies** | [📋 SPARK_BIG4_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Apache-Spark/) | ✅ Complete | 20+ Questions |
-| **Databricks** | [📋 DATABRICKS_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Databricks/) | ✅ Complete | 12+ Questions |
-| **Databricks Big4** | [📋 DATABRICKS_BIG4_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Databricks/) | ✅ Complete | 15+ Questions |
-| **General Data Processing** | [📋 DATA_PROCESSING_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/) | ✅ Complete | 18+ Questions |
+| **Apache Spark** | [📋 SPARK_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **Spark Big4 Companies** | [📋 SPARK_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
+| **Databricks** | [📋 DATABRICKS_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **Databricks Big4** | [📋 DATABRICKS_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **General Data Processing** | [📋 DATA_PROCESSING_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/DATA_PROCESSING_INTERVIEW_QUESTIONS.md) | ✅ Complete | 18+ Questions |
 
 #### **Streaming Processing** ⭐ **NEW**
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Apache Kafka** | [📋 KAFKA_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/) | ✅ Complete | 9 Questions |
-| **Apache Flink** | [📋 FLINK_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/) | ✅ Complete | 8+ Questions |
-| **Confluent Kafka** | [📋 CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/) | ✅ Complete | 8+ Questions |
+| **Apache Kafka** | [📋 KAFKA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 9 Questions |
+| **Apache Flink** | [📋 FLINK_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
+| **Confluent Kafka** | [📋 CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
 #### **ETL Tools**
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Informatica** | [📋 INFORMATICA_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/ETL/Informatica/) | ✅ Complete | 10+ Questions |
+| **Informatica** | [📋 INFORMATICA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/ETL/Informatica/INFORMATICA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
 
 #### **Orchestration** ⭐ **NEW**
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Apache Airflow** | [📋 AIRFLOW_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | ✅ Complete | 7 Questions |
-| **DBT** | [📋 DBT_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/) | ✅ Complete | 6 Questions |
+| **Apache Airflow** | [📋 AIRFLOW_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | ✅ Complete | 7 Questions |
+| **DBT** | [📋 DBT_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 6 Questions |
 
 ### 🏢 **Data Warehousing**
 
 | Solution | Interview Questions | Status | Question Count |
 |----------|-------------------|---------|----------------|
-| **Snowflake** | [📋 SNOWFLAKE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Warehousing/Snowflake/) | ✅ Complete | 15+ Questions |
-| **Snowflake Big4** | [📋 SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Warehousing/Snowflake/) | ✅ Complete | 20+ Questions |
-| **Amazon Redshift** | [📋 REDSHIFT_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Warehousing/Redshift/) | ✅ Complete | 7 Questions |
-| **General Data Warehousing** | [📋 DATA_WAREHOUSING_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Warehousing/) | ✅ Complete | 15+ Questions |
+| **Snowflake** | [📋 SNOWFLAKE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **Snowflake Big4** | [📋 SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
+| **Amazon Redshift** | [📋 REDSHIFT_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 7 Questions |
+| **General Data Warehousing** | [📋 DATA_WAREHOUSING_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/DATA_WAREHOUSING_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 
 ### 🏗️ **Data Architecture**
 
 | Topic | Interview Questions | Status | Question Count |
 |-------|-------------------|---------|----------------|
-| **Data Architecture** | [📋 DATA_ARCHITECTURE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Architecture/) | ✅ Complete | 12+ Questions |
+| **Data Architecture** | [📋 DATA_ARCHITECTURE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Architecture/DATA_ARCHITECTURE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
 ---
 
@@ -110,62 +110,62 @@ This comprehensive index provides direct access to all interview questions and a
 
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Jenkins** | [📋 JENKINS_INTERVIEW_QUESTIONS.md](./Supporting-Tools/DevOps-Automation/Jenkins/) | ✅ Complete | 6 Questions |
-| **Ansible** | [📋 ANSIBLE_INTERVIEW_QUESTIONS.md](./Supporting-Tools/DevOps-Automation/Ansible/) | ✅ Complete | 6 Questions |
-| **Docker** | [📋 DOCKER_INTERVIEW_QUESTIONS.md](./Supporting-Tools/DevOps-Automation/Docker/) | ✅ Complete | 10+ Questions |
-| **Kubernetes** | [📋 KUBERNETES_INTERVIEW_QUESTIONS.md](./Supporting-Tools/DevOps-Automation/Kubernetes/) | ✅ Complete | 12+ Questions |
-| **Terraform** | [📋 TERRAFORM_INTERVIEW_QUESTIONS.md](./Supporting-Tools/DevOps-Automation/Terraform/) | ✅ Complete | 8+ Questions |
-| **General DevOps** | [📋 DEVOPS_AUTOMATION_INTERVIEW_QUESTIONS.md](./Supporting-Tools/DevOps-Automation/) | ✅ Complete | 15+ Questions |
+| **Jenkins** | [📋 JENKINS_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 6 Questions |
+| **Ansible** | [📋 ANSIBLE_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Ansible/ANSIBLE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 6 Questions |
+| **Docker** | [📋 DOCKER_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **Kubernetes** | [📋 KUBERNETES_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **Terraform** | [📋 TERRAFORM_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
+| **General DevOps** | [📋 DEVOPS_AUTOMATION_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/DEVOPS_AUTOMATION_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 
 ### 🔧 **Version Control**
 
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Git** | [📋 GIT_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Version-Control/Git/) | ✅ Complete | 10+ Questions |
-| **General Version Control** | [📋 VERSION_CONTROL_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Version-Control/) | ✅ Complete | 8+ Questions |
+| **Git** | [📋 GIT_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Version-Control/Git/GIT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **General Version Control** | [📋 VERSION_CONTROL_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Version-Control/VERSION_CONTROL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
 ### 📊 **Visualization & Reporting**
 
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Tableau** | [📋 TABLEAU_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Visualization-Reporting/Tableau/) | ✅ Complete | 12+ Questions |
-| **Power BI** | [📋 POWERBI_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Visualization-Reporting/Power-BI/) | ✅ Complete | 10+ Questions |
-| **Grafana** | [📋 GRAFANA_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Monitoring/Grafana/) | ✅ Complete | 8+ Questions |
+| **Tableau** | [📋 TABLEAU_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **Power BI** | [📋 POWERBI_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **Grafana** | [📋 GRAFANA_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Monitoring/Grafana/GRAFANA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
 ### 📊 **Additional Programming Languages**
 
 | Language | Interview Questions | Status | Question Count |
 |----------|-------------------|---------|----------------|
-| **General Programming** | [📋 PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/) | ✅ Complete | 10+ Questions |
+| **General Programming** | [📋 PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
 
 ### 🤖 **AI & Machine Learning**
 
 | Topic | Interview Questions | Status | Question Count |
 |-------|-------------------|---------|----------------|
-| **Machine Learning** | [📋 ML_INTERVIEW_QUESTIONS.md](./Supporting-Tools/AI/Machine-Learning/) | ✅ Complete | 15+ Questions |
-| **General AI** | [📋 AI_INTERVIEW_QUESTIONS.md](./Supporting-Tools/AI/) | ✅ Complete | 12+ Questions |
+| **Machine Learning** | [📋 ML_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **General AI** | [📋 AI_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/AI_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
 ### 💻 **Programming & Development**
 
 | Topic | Interview Questions | Status | Question Count |
 |-------|-------------------|---------|----------------|
-| **Data Structures & Algorithms** | [📋 DSA_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Programming/Data-Structures-Algorithms/) | ✅ Complete | 20+ Questions |
-| **DSA Big4 Companies** | [📋 DSA_BIG4_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Programming/Data-Structures-Algorithms/) | ✅ Complete | 25+ Questions |
-| **Design Patterns** | [📋 DESIGN_PATTERNS_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Programming/Design-Patterns/) | ✅ Complete | 15+ Questions |
-| **Design Patterns Big4** | [📋 DESIGN_PATTERNS_BIG4_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Programming/Design-Patterns/) | ✅ Complete | 20+ Questions |
+| **Data Structures & Algorithms** | [📋 DSA_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
+| **DSA Big4 Companies** | [📋 DSA_BIG4_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 25+ Questions |
+| **Design Patterns** | [📋 DESIGN_PATTERNS_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **Design Patterns Big4** | [📋 DESIGN_PATTERNS_BIG4_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 
 ### 🖥️ **Systems & Infrastructure**
 
 | Topic | Interview Questions | Status | Question Count |
 |-------|-------------------|---------|----------------|
-| **Linux** | [📋 LINUX_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Systems/Linux/) | ✅ Complete | 12+ Questions |
+| **Linux** | [📋 LINUX_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Systems/Linux/LINUX_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
 ### 📋 **Project Management**
 
 | Topic | Interview Questions | Status | Question Count |
 |-------|-------------------|---------|----------------|
-| **Project Management** | [📋 PROJECT_MANAGEMENT_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Project-Management/) | ✅ Complete | 15+ Questions |
-| **Project Management Big4** | [📋 PROJECT_MANAGEMENT_BIG4_INTERVIEW_QUESTIONS.md](./Supporting-Tools/Project-Management/) | ✅ Complete | 20+ Questions |
+| **Project Management** | [📋 PROJECT_MANAGEMENT_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Project-Management/PROJECT_MANAGEMENT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **Project Management Big4** | [📋 PROJECT_MANAGEMENT_BIG4_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Project-Management/PROJECT_MANAGEMENT_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 
 ---
 
@@ -253,45 +253,45 @@ Happy Learning! 🎓
 
 #### **Entry Level (0-2 years)**
 **Focus Areas:**
-1. **Programming Fundamentals**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md), [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
-2. **Basic Data Concepts**: [Databases](./Core-Data-Engineering/Databases/), [Data Processing](./Core-Data-Engineering/Data-Processing/)
-3. **Cloud Basics**: [AWS](./Core-Data-Engineering/Cloud/AWS/), [Cloud General](./Core-Data-Engineering/Cloud/)
+1. **Programming Fundamentals**: [Python](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md), [SQL](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
+2. **Basic Data Concepts**: [Databases](../Core-Data-Engineering/Databases/DATABASES_INTERVIEW_QUESTIONS.md), [Data Processing](../Core-Data-Engineering/Data-Processing/DATA_PROCESSING_INTERVIEW_QUESTIONS.md)
+3. **Cloud Basics**: [AWS](../Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md), [Cloud General](../Core-Data-Engineering/Cloud/CLOUD_INTERVIEW_QUESTIONS.md)
 
 #### **Mid Level (2-5 years)**
 **Focus Areas:**
-1. **Advanced Processing**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/), [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/)
-2. **Data Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/), [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/)
-3. **DevOps Integration**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/), [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/)
-4. **NoSQL Databases**: [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/), [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/), [Cassandra](./Core-Data-Engineering/Databases/NoSQL/Cassandra/)
+1. **Advanced Processing**: [Spark](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md), [Kafka](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md)
+2. **Data Warehousing**: [Snowflake](../Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md), [Redshift](../Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md)
+3. **DevOps Integration**: [Docker](../Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md), [Kubernetes](../Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md)
+4. **NoSQL Databases**: [MongoDB](../Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md), [Redis](../Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md), [Cassandra](../Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_INTERVIEW_QUESTIONS.md)
 
 #### **Senior Level (5+ years)**
 **Focus Areas:**
-1. **Architecture**: [Data Architecture](./Core-Data-Engineering/Data-Architecture/)
-2. **Advanced Tools**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md), [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/)
+1. **Architecture**: [Data Architecture](../Core-Data-Engineering/Data-Architecture/DATA_ARCHITECTURE_INTERVIEW_QUESTIONS.md)
+2. **Advanced Tools**: [Airflow](../Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md), [DBT](../Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md)
 3. **Big4 Preparation**: All Big4 specific question sets
-4. **Leadership**: [Project Management](./Supporting-Tools/Project-Management/)
-5. **Advanced Streaming**: [Confluent Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/), [Flink](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/)
+4. **Leadership**: [Project Management](../Supporting-Tools/Project-Management/PROJECT_MANAGEMENT_INTERVIEW_QUESTIONS.md)
+5. **Advanced Streaming**: [Confluent Kafka](../Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md), [Flink](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_INTERVIEW_QUESTIONS.md)
 
 ### 🏢 **By Company Type**
 
 #### **Big Tech Companies (FAANG+)**
 **Recommended Question Sets:**
-- [SQL Big4](./Core-Data-Engineering/Programming-Languages/SQL/)
-- [PySpark Big4](./Core-Data-Engineering/Programming-Languages/PySpark/)
-- [Spark Big4](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
-- [Snowflake Big4](./Core-Data-Engineering/Data-Warehousing/Snowflake/)
-- [DSA Big4](./Supporting-Tools/Programming/Data-Structures-Algorithms/)
-- [Design Patterns Big4](./Supporting-Tools/Programming/Design-Patterns/)
+- [SQL Big4](../Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md)
+- [PySpark Big4](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md)
+- [Spark Big4](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_BIG4_INTERVIEW_QUESTIONS.md)
+- [Snowflake Big4](../Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md)
+- [DSA Big4](../Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_BIG4_INTERVIEW_QUESTIONS.md)
+- [Design Patterns Big4](../Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_BIG4_INTERVIEW_QUESTIONS.md)
 
 #### **Startups & Scale-ups**
 **Focus Areas:**
-- Full-stack data engineering: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md), [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md), [Cloud](./Core-Data-Engineering/Cloud/)
-- DevOps skills: [Jenkins](./Supporting-Tools/DevOps-Automation/Jenkins/), [Docker](./Supporting-Tools/DevOps-Automation/Docker/)
-- Rapid deployment: [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/), [Ansible](./Supporting-Tools/DevOps-Automation/Ansible/)
+- Full-stack data engineering: [Python](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md), [SQL](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md), [Cloud](../Core-Data-Engineering/Cloud/CLOUD_INTERVIEW_QUESTIONS.md)
+- DevOps skills: [Jenkins](../Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_INTERVIEW_QUESTIONS.md), [Docker](../Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md)
+- Rapid deployment: [Terraform](../Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md), [Ansible](../Supporting-Tools/DevOps-Automation/Ansible/ANSIBLE_INTERVIEW_QUESTIONS.md)
 
 #### **Enterprise Companies**
 **Focus Areas:**
-- Enterprise tools: [Informatica](./Core-Data-Engineering/Data-Processing/ETL/Informatica/), [Oracle](./Core-Data-Engineering/Databases/Oracle/)
-- Data governance: [Data Architecture](./Core-Data-Engineering/Data-Architecture/)
-- Project management: [Project Management](./Supporting-Tools/Project-Management/)
-- AWS Services: [Athena](./Core-Data-Engineering/Databases/Athena/), [DynamoDB](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/)
+- Enterprise tools: [Informatica](../Core-Data-Engineering/Data-Processing/ETL/Informatica/INFORMATICA_INTERVIEW_QUESTIONS.md), [Oracle](../Core-Data-Engineering/Databases/Oracle/ORACLE_INTERVIEW_QUESTIONS.md)
+- Data governance: [Data Architecture](../Core-Data-Engineering/Data-Architecture/DATA_ARCHITECTURE_INTERVIEW_QUESTIONS.md)
+- Project management: [Project Management](../Supporting-Tools/Project-Management/PROJECT_MANAGEMENT_INTERVIEW_QUESTIONS.md)
+- AWS Services: [Athena](../Core-Data-Engineering/Databases/Athena/ATHENA_INTERVIEW_QUESTIONS.md), [DynamoDB](../Core-Data-Engineering/Databases/NoSQL/DynamoDB/DYNAMODB_INTERVIEW_QUESTIONS.md)
