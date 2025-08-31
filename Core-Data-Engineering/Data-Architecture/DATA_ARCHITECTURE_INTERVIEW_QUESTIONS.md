@@ -936,4 +936,567 @@ class DataPipelineMonitor:
         self.logger.critical(f"ALERT: {alert_payload}")
 ```
 
+---
+
+## Advanced Level Questions
+
+### 9. Design a modern data architecture for a multi-cloud environment.
+**Answer:**
+**Architecture Components:**
+
+```python
+class MultiCloudDataArchitecture:
+    def __init__(self):
+        self.cloud_providers = {
+            'aws': self.setup_aws_services(),
+            'azure': self.setup_azure_services(),
+            'gcp': self.setup_gcp_services()
+        }
+        self.data_fabric = self.setup_data_fabric()
+    
+    def setup_aws_services(self):
+        return {
+            'storage': 'S3',
+            'compute': 'EMR/Glue',
+            'warehouse': 'Redshift',
+            'streaming': 'Kinesis',
+            'ml': 'SageMaker'
+        }
+    
+    def setup_data_fabric(self):
+        """Unified data management layer"""
+        return {
+            'catalog': 'Apache Atlas',
+            'governance': 'Collibra',
+            'lineage': 'DataHub',
+            'quality': 'Great Expectations',
+            'security': 'Apache Ranger'
+        }
+```
+
+**Key Considerations:**
+- **Data Sovereignty**: Comply with regional regulations
+- **Vendor Lock-in**: Avoid dependency on single provider
+- **Cost Optimization**: Leverage best pricing across clouds
+- **Disaster Recovery**: Cross-cloud backup strategies
+- **Network Connectivity**: Secure inter-cloud communication
+
+### 10. Explain event-driven architecture in data systems.
+**Answer:**
+**Core Concepts:**
+
+```python
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+import json
+
+class Event:
+    def __init__(self, event_type: str, data: Dict[Any, Any], metadata: Dict[str, Any] = None):
+        self.event_type = event_type
+        self.data = data
+        self.metadata = metadata or {}
+        self.timestamp = datetime.utcnow()
+        self.event_id = str(uuid.uuid4())
+
+class EventHandler(ABC):
+    @abstractmethod
+    def handle(self, event: Event) -> None:
+        pass
+
+class CustomerEventHandler(EventHandler):
+    def handle(self, event: Event) -> None:
+        if event.event_type == 'customer_created':
+            self.create_customer_profile(event.data)
+        elif event.event_type == 'customer_updated':
+            self.update_customer_profile(event.data)
+
+class EventBus:
+    def __init__(self):
+        self.handlers = {}
+    
+    def subscribe(self, event_type: str, handler: EventHandler):
+        if event_type not in self.handlers:
+            self.handlers[event_type] = []
+        self.handlers[event_type].append(handler)
+    
+    def publish(self, event: Event):
+        if event.event_type in self.handlers:
+            for handler in self.handlers[event.event_type]:
+                handler.handle(event)
+```
+
+**Benefits:**
+- **Loose Coupling**: Services communicate through events
+- **Scalability**: Independent scaling of components
+- **Resilience**: Failure isolation
+- **Real-time Processing**: Immediate response to changes
+
+---
+
+## Scenario-Based Questions
+
+### 11. Design a data architecture for real-time fraud detection.
+**Answer:**
+**Architecture Overview:**
+
+```
+Transaction Stream → Kafka → Stream Processor → ML Model → Alert System
+                           ↓
+                    Feature Store ← Historical Data
+```
+
+**Implementation:**
+```python
+class FraudDetectionArchitecture:
+    def __init__(self):
+        self.setup_streaming_layer()
+        self.setup_feature_store()
+        self.setup_ml_pipeline()
+        self.setup_alerting()
+    
+    def setup_streaming_layer(self):
+        """Real-time transaction processing"""
+        return {
+            'ingestion': 'Apache Kafka',
+            'processing': 'Apache Flink',
+            'windowing': '5-minute tumbling windows',
+            'state_management': 'RocksDB'
+        }
+    
+    def process_transaction(self, transaction):
+        """Process incoming transaction"""
+        # Extract features
+        features = self.extract_features(transaction)
+        
+        # Get historical features
+        historical_features = self.feature_store.get_features(
+            transaction['customer_id']
+        )
+        
+        # Combine features
+        combined_features = {**features, **historical_features}
+        
+        # Score transaction
+        fraud_score = self.ml_model.predict(combined_features)
+        
+        # Take action based on score
+        if fraud_score > 0.8:
+            self.block_transaction(transaction)
+            self.send_alert(transaction, fraud_score)
+        elif fraud_score > 0.5:
+            self.flag_for_review(transaction, fraud_score)
+        
+        return fraud_score
+```
+
+**Key Components:**
+- **Stream Processing**: Sub-second latency
+- **Feature Engineering**: Real-time and batch features
+- **Model Serving**: Low-latency ML inference
+- **Feedback Loop**: Continuous model improvement
+
+### 12. How would you handle data architecture for GDPR compliance?
+**Answer:**
+**GDPR Requirements:**
+- **Right to be Forgotten**: Data deletion capabilities
+- **Data Portability**: Export user data
+- **Consent Management**: Track consent status
+- **Data Minimization**: Collect only necessary data
+- **Privacy by Design**: Built-in privacy protection
+
+**Architecture Implementation:**
+```python
+class GDPRCompliantArchitecture:
+    def __init__(self):
+        self.consent_service = ConsentManagementService()
+        self.data_catalog = DataCatalogService()
+        self.encryption_service = EncryptionService()
+        self.audit_service = AuditService()
+    
+    def collect_data(self, user_id, data, purpose):
+        """Collect data with consent validation"""
+        # Check consent
+        if not self.consent_service.has_consent(user_id, purpose):
+            raise ConsentError(f"No consent for {purpose}")
+        
+        # Classify data
+        classification = self.classify_data(data)
+        
+        # Apply appropriate protection
+        if classification == 'PII':
+            data = self.encryption_service.encrypt(data)
+        
+        # Store with metadata
+        self.store_data(user_id, data, {
+            'purpose': purpose,
+            'classification': classification,
+            'retention_period': self.get_retention_period(purpose),
+            'collected_at': datetime.utcnow()
+        })
+        
+        # Log for audit
+        self.audit_service.log_data_collection(user_id, purpose)
+    
+    def handle_deletion_request(self, user_id):
+        """Handle right to be forgotten request"""
+        # Find all data for user
+        user_data_locations = self.data_catalog.find_user_data(user_id)
+        
+        # Delete from all systems
+        for location in user_data_locations:
+            self.delete_user_data(location, user_id)
+        
+        # Verify deletion
+        remaining_data = self.data_catalog.find_user_data(user_id)
+        if remaining_data:
+            raise DeletionError(f"Data still exists: {remaining_data}")
+        
+        # Log deletion
+        self.audit_service.log_data_deletion(user_id)
+```
+
+### 13. Design a data architecture for IoT sensor data processing.
+**Answer:**
+**Architecture Layers:**
+
+```python
+class IoTDataArchitecture:
+    def __init__(self):
+        self.edge_layer = self.setup_edge_processing()
+        self.ingestion_layer = self.setup_data_ingestion()
+        self.processing_layer = self.setup_stream_processing()
+        self.storage_layer = self.setup_data_storage()
+        self.analytics_layer = self.setup_analytics()
+    
+    def setup_edge_processing(self):
+        """Edge computing for immediate processing"""
+        return {
+            'devices': 'IoT sensors with edge computing',
+            'preprocessing': 'Data filtering and aggregation',
+            'local_storage': 'Time-series database (InfluxDB)',
+            'connectivity': 'MQTT/CoAP protocols'
+        }
+    
+    def setup_data_ingestion(self):
+        """Scalable data ingestion"""
+        return {
+            'message_queue': 'Apache Kafka',
+            'schema_registry': 'Confluent Schema Registry',
+            'data_formats': 'Avro/Protobuf',
+            'partitioning': 'By device_id and timestamp'
+        }
+    
+    def process_sensor_data(self, sensor_data):
+        """Process incoming sensor data"""
+        # Validate data quality
+        if not self.validate_sensor_data(sensor_data):
+            self.handle_invalid_data(sensor_data)
+            return
+        
+        # Detect anomalies
+        anomaly_score = self.detect_anomalies(sensor_data)
+        
+        # Real-time aggregations
+        aggregated_data = self.aggregate_data(sensor_data)
+        
+        # Store in appropriate storage
+        self.store_raw_data(sensor_data)  # For detailed analysis
+        self.store_aggregated_data(aggregated_data)  # For dashboards
+        
+        # Trigger alerts if needed
+        if anomaly_score > threshold:
+            self.trigger_alert(sensor_data, anomaly_score)
+```
+
+**Storage Strategy:**
+- **Hot Data**: Recent data in fast storage (Redis/MemSQL)
+- **Warm Data**: Last 30 days in columnar storage (Parquet)
+- **Cold Data**: Historical data in object storage (S3/Glacier)
+
+---
+
+## Performance & Optimization
+
+### 14. How do you optimize data architecture for performance?
+**Answer:**
+**Optimization Strategies:**
+
+**1. Data Partitioning:**
+```sql
+-- Time-based partitioning
+CREATE TABLE sensor_data (
+    sensor_id VARCHAR(50),
+    timestamp TIMESTAMP,
+    value DECIMAL(10,4),
+    location VARCHAR(100)
+) PARTITION BY RANGE (timestamp) (
+    PARTITION p2024_01 VALUES LESS THAN ('2024-02-01'),
+    PARTITION p2024_02 VALUES LESS THAN ('2024-03-01'),
+    PARTITION p2024_03 VALUES LESS THAN ('2024-04-01')
+);
+
+-- Hash partitioning for even distribution
+CREATE TABLE user_events (
+    user_id BIGINT,
+    event_type VARCHAR(50),
+    event_data JSON,
+    created_at TIMESTAMP
+) PARTITION BY HASH(user_id) PARTITIONS 16;
+```
+
+**2. Indexing Strategy:**
+```sql
+-- Composite index for common query patterns
+CREATE INDEX idx_sensor_time_location 
+ON sensor_data (sensor_id, timestamp, location);
+
+-- Partial index for specific conditions
+CREATE INDEX idx_high_value_sensors 
+ON sensor_data (sensor_id, timestamp) 
+WHERE value > 100;
+```
+
+**3. Caching Layer:**
+```python
+class DataCacheManager:
+    def __init__(self):
+        self.redis_client = redis.Redis()
+        self.cache_ttl = 3600  # 1 hour
+    
+    def get_cached_data(self, cache_key):
+        """Get data from cache"""
+        cached_data = self.redis_client.get(cache_key)
+        if cached_data:
+            return json.loads(cached_data)
+        return None
+    
+    def cache_data(self, cache_key, data):
+        """Cache data with TTL"""
+        self.redis_client.setex(
+            cache_key, 
+            self.cache_ttl, 
+            json.dumps(data)
+        )
+    
+    def get_aggregated_metrics(self, metric_type, time_range):
+        """Get metrics with caching"""
+        cache_key = f"metrics:{metric_type}:{time_range}"
+        
+        # Try cache first
+        cached_result = self.get_cached_data(cache_key)
+        if cached_result:
+            return cached_result
+        
+        # Calculate and cache
+        result = self.calculate_metrics(metric_type, time_range)
+        self.cache_data(cache_key, result)
+        
+        return result
+```
+
+### 15. Explain data compression strategies in data architecture.
+**Answer:**
+**Compression Techniques:**
+
+**1. Columnar Compression:**
+```python
+# Parquet with different compression algorithms
+import pandas as pd
+
+# Different compression options
+compression_options = {
+    'snappy': 'Fast compression/decompression',
+    'gzip': 'Better compression ratio',
+    'lz4': 'Balanced speed and compression',
+    'brotli': 'Best compression for cold data'
+}
+
+# Save with optimal compression
+df.to_parquet(
+    'data.parquet',
+    compression='snappy',  # For hot data
+    engine='pyarrow'
+)
+
+# For cold storage
+df.to_parquet(
+    'archive_data.parquet',
+    compression='brotli',  # Maximum compression
+    engine='pyarrow'
+)
+```
+
+**2. Dictionary Encoding:**
+```sql
+-- Automatic dictionary encoding in columnar databases
+CREATE TABLE products (
+    product_id BIGINT,
+    category VARCHAR(50) ENCODING DICT,  -- Dictionary encoded
+    brand VARCHAR(50) ENCODING DICT,
+    price DECIMAL(8,2)
+);
+```
+
+**3. Delta Compression:**
+```python
+class DeltaCompression:
+    def compress_timestamps(self, timestamps):
+        """Delta compress timestamp series"""
+        if not timestamps:
+            return []
+        
+        compressed = [timestamps[0]]  # Store first value
+        
+        for i in range(1, len(timestamps)):
+            delta = timestamps[i] - timestamps[i-1]
+            compressed.append(delta)
+        
+        return compressed
+    
+    def decompress_timestamps(self, compressed):
+        """Decompress delta-compressed timestamps"""
+        if not compressed:
+            return []
+        
+        decompressed = [compressed[0]]
+        
+        for i in range(1, len(compressed)):
+            value = decompressed[i-1] + compressed[i]
+            decompressed.append(value)
+        
+        return decompressed
+```
+
+---
+
+## Modern Data Architecture Patterns
+
+### 16. Explain the Lambda vs Kappa architecture patterns.
+**Answer:**
+
+**Lambda Architecture:**
+```python
+class LambdaArchitecture:
+    def __init__(self):
+        self.batch_layer = BatchLayer()
+        self.speed_layer = SpeedLayer()
+        self.serving_layer = ServingLayer()
+    
+    def process_data(self, data_stream):
+        """Process data through both layers"""
+        # Batch layer - high latency, high throughput
+        self.batch_layer.process(data_stream)
+        
+        # Speed layer - low latency, approximate results
+        self.speed_layer.process(data_stream)
+        
+        # Serving layer - merge results
+        batch_results = self.batch_layer.get_results()
+        speed_results = self.speed_layer.get_results()
+        
+        return self.serving_layer.merge_views(batch_results, speed_results)
+```
+
+**Kappa Architecture:**
+```python
+class KappaArchitecture:
+    def __init__(self):
+        self.stream_processor = StreamProcessor()
+        self.storage = StreamStorage()
+    
+    def process_data(self, data_stream):
+        """Single stream processing path"""
+        # All processing through stream processor
+        processed_data = self.stream_processor.process(data_stream)
+        
+        # Store in stream-friendly storage
+        self.storage.store(processed_data)
+        
+        return processed_data
+    
+    def reprocess_historical_data(self, start_time, end_time):
+        """Reprocess historical data using same stream logic"""
+        historical_stream = self.storage.replay(start_time, end_time)
+        return self.stream_processor.process(historical_stream)
+```
+
+**Comparison:**
+| Aspect | Lambda | Kappa |
+|--------|--------|-------|
+| Complexity | High (two codebases) | Low (single codebase) |
+| Latency | Mixed (batch + real-time) | Consistent (stream-only) |
+| Accuracy | High (batch correction) | Depends on stream processing |
+| Maintenance | Complex | Simpler |
+
+### 17. Design a data architecture for machine learning operations (MLOps).
+**Answer:**
+
+```python
+class MLOpsDataArchitecture:
+    def __init__(self):
+        self.feature_store = FeatureStore()
+        self.model_registry = ModelRegistry()
+        self.experiment_tracking = ExperimentTracker()
+        self.monitoring = ModelMonitoring()
+    
+    def setup_feature_pipeline(self):
+        """Setup feature engineering pipeline"""
+        return {
+            'raw_data': 'Data lake (S3/ADLS)',
+            'feature_engineering': 'Spark/Databricks',
+            'feature_store': 'Feast/Tecton',
+            'feature_serving': 'Redis/DynamoDB'
+        }
+    
+    def train_model(self, experiment_config):
+        """Model training with tracking"""
+        # Start experiment
+        experiment = self.experiment_tracking.start_experiment(
+            experiment_config['name']
+        )
+        
+        # Get features
+        features = self.feature_store.get_training_data(
+            experiment_config['feature_set'],
+            experiment_config['time_range']
+        )
+        
+        # Train model
+        model = self.train_ml_model(features, experiment_config)
+        
+        # Log metrics and artifacts
+        experiment.log_metrics(model.metrics)
+        experiment.log_artifacts(model.artifacts)
+        
+        # Register model
+        model_version = self.model_registry.register_model(
+            model, experiment_config['model_name']
+        )
+        
+        return model_version
+    
+    def deploy_model(self, model_version, deployment_config):
+        """Deploy model with monitoring"""
+        # Deploy model
+        endpoint = self.deploy_to_endpoint(model_version, deployment_config)
+        
+        # Setup monitoring
+        self.monitoring.setup_model_monitoring(
+            endpoint, model_version, {
+                'data_drift': True,
+                'model_performance': True,
+                'prediction_distribution': True
+            }
+        )
+        
+        return endpoint
+```
+
+**Key Components:**
+- **Feature Store**: Centralized feature management
+- **Model Registry**: Version control for models
+- **Experiment Tracking**: ML experiment management
+- **Model Monitoring**: Production model health
+- **A/B Testing**: Model performance comparison
+
 This comprehensive approach to DataOps ensures reliable, scalable, and maintainable data pipelines through automation, testing, and continuous monitoring.

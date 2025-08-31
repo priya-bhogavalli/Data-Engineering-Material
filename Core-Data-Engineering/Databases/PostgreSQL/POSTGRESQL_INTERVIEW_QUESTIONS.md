@@ -1,4 +1,14 @@
-# PostgreSQL Interview Questions
+# 🐘 PostgreSQL Interview Questions for Data Engineering
+
+## 📋 Table of Contents
+1. [Basic Level Questions (1-3 years)](#basic-level-questions-1-3-years-experience)
+2. [Intermediate Level Questions (3-5 years)](#intermediate-level-questions-3-5-years-experience)
+3. [Advanced Conceptual Questions](#advanced-conceptual-questions)
+4. [Enterprise Architecture Questions](#enterprise-architecture-questions)
+5. [Security & Compliance Questions](#security--compliance-questions)
+6. [Analytics & Business Intelligence Questions](#analytics--business-intelligence-questions)
+
+---
 
 ## Basic Level Questions (1-3 years experience)
 
@@ -630,4 +640,560 @@ CREATE INDEX CONCURRENTLY idx_large_table_date
 ON large_table (created_date);
 ```
 
-This comprehensive set covers PostgreSQL fundamentals through advanced data warehousing and performance optimization with practical data engineering examples.
+---
+
+## 🎯 **Advanced Conceptual Questions**
+
+### 11. Explain PostgreSQL's MVCC (Multi-Version Concurrency Control) architecture
+**Answer:**
+MVCC allows multiple transactions to access the same data simultaneously without blocking each other.
+
+**Key Concepts:**
+- **Transaction IDs (XIDs)**: Each transaction gets a unique ID
+- **Tuple Visibility**: Each row version has creation and deletion XIDs
+- **Snapshot Isolation**: Transactions see consistent data snapshots
+- **Vacuum Process**: Cleans up old row versions
+
+**Practical Implications:**
+```sql
+-- Understanding tuple visibility
+SELECT 
+    ctid,           -- Physical location
+    xmin,           -- Creating transaction ID
+    xmax,           -- Deleting transaction ID
+    *
+FROM products
+WHERE product_id = 'P001';
+
+-- Transaction isolation demonstration
+-- Session 1
+BEGIN;
+SELECT * FROM accounts WHERE account_id = 123;
+-- Shows balance = 1000
+
+-- Session 2 (concurrent)
+BEGIN;
+UPDATE accounts SET balance = 1500 WHERE account_id = 123;
+COMMIT;
+
+-- Back to Session 1
+SELECT * FROM accounts WHERE account_id = 123;
+-- Still shows balance = 1000 (snapshot isolation)
+COMMIT;
+```
+
+### 12. How does PostgreSQL handle write-ahead logging (WAL)?
+**Answer:**
+WAL ensures data durability and enables point-in-time recovery.
+
+**WAL Components:**
+- **WAL Files**: Sequential log files storing changes
+- **Checkpoints**: Periodic sync of dirty buffers to disk
+- **LSN (Log Sequence Number)**: Unique identifier for log positions
+- **WAL Archiving**: Backup of WAL files for recovery
+
+```sql
+-- WAL configuration
+-- postgresql.conf settings
+-- wal_level = replica
+-- max_wal_size = 1GB
+-- min_wal_size = 80MB
+-- checkpoint_completion_target = 0.9
+-- wal_buffers = 16MB
+
+-- Monitor WAL activity
+SELECT 
+    pg_current_wal_lsn() as current_lsn,
+    pg_wal_lsn_diff(pg_current_wal_lsn(), '0/0') as total_wal_bytes;
+
+-- WAL archiving setup
+-- archive_mode = on
+-- archive_command = 'cp %p /archive/%f'
+
+-- Point-in-time recovery
+-- recovery.conf
+-- restore_command = 'cp /archive/%f %p'
+-- recovery_target_time = '2024-01-15 14:30:00'
+```
+
+### 13. What are PostgreSQL extensions and how do you use them?
+**Answer:**
+Extensions add functionality to PostgreSQL without modifying core code.
+
+**Popular Extensions:**
+- **pg_stat_statements**: Query performance statistics
+- **PostGIS**: Geographic data support
+- **pg_trgm**: Trigram matching for fuzzy search
+- **uuid-ossp**: UUID generation functions
+- **hstore**: Key-value storage
+- **pg_partman**: Partition management
+
+```sql
+-- Install extensions
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS hstore;
+
+-- Using uuid-ossp
+CREATE TABLE users (
+    user_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Using pg_trgm for fuzzy search
+CREATE INDEX idx_product_name_trgm ON products USING GIN (product_name gin_trgm_ops);
+
+SELECT product_name, similarity(product_name, 'iPhone') as sim
+FROM products
+WHERE product_name % 'iPhone'  -- Fuzzy match
+ORDER BY sim DESC;
+
+-- Using hstore for flexible attributes
+CREATE TABLE products_flexible (
+    product_id SERIAL PRIMARY KEY,
+    name VARCHAR(200),
+    attributes HSTORE
+);
+
+INSERT INTO products_flexible (name, attributes) VALUES 
+('Laptop', 'brand=>"Dell", ram=>"16GB", storage=>"512GB SSD"');
+
+SELECT name, attributes->'brand' as brand
+FROM products_flexible
+WHERE attributes ? 'ram' AND attributes->'ram' = '16GB';
+```
+
+---
+
+## 🏢 **Enterprise Architecture Questions**
+
+### 14. How do you design PostgreSQL for microservices architecture?
+**Answer:**
+Design database-per-service pattern with proper data consistency strategies.
+
+**Architecture Patterns:**
+- **Database per Service**: Each microservice owns its data
+- **Shared Database Anti-pattern**: Avoid shared databases
+- **Event Sourcing**: Store events instead of current state
+- **CQRS**: Separate read and write models
+
+```sql
+-- Service-specific databases
+-- User Service Database
+CREATE DATABASE user_service;
+\c user_service;
+
+CREATE TABLE users (
+    user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Order Service Database
+CREATE DATABASE order_service;
+\c order_service;
+
+CREATE TABLE orders (
+    order_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,  -- Reference to user service
+    status VARCHAR(50) DEFAULT 'pending',
+    total_amount DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Event sourcing table
+CREATE TABLE events (
+    event_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    aggregate_id UUID NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    event_data JSONB NOT NULL,
+    event_version INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Outbox pattern for reliable messaging
+CREATE TABLE outbox_events (
+    event_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    aggregate_id UUID NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    payload JSONB NOT NULL,
+    published BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 15. How do you implement data synchronization across PostgreSQL instances?
+**Answer:**
+Use logical replication, foreign data wrappers, and event-driven synchronization.
+
+```sql
+-- Logical replication for selective sync
+-- Publisher setup
+CREATE PUBLICATION user_data_pub FOR TABLE users, user_profiles;
+
+-- Subscriber setup
+CREATE SUBSCRIPTION user_data_sub
+CONNECTION 'host=source-db port=5432 dbname=source user=replicator'
+PUBLICATION user_data_pub;
+
+-- Foreign Data Wrapper for cross-database queries
+CREATE EXTENSION postgres_fdw;
+
+CREATE SERVER remote_db
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (host 'remote-host', port '5432', dbname 'remote_db');
+
+CREATE USER MAPPING FOR current_user
+SERVER remote_db
+OPTIONS (user 'remote_user', password 'password');
+
+CREATE FOREIGN TABLE remote_orders (
+    order_id UUID,
+    user_id UUID,
+    total_amount DECIMAL(10,2),
+    created_at TIMESTAMP
+)
+SERVER remote_db
+OPTIONS (schema_name 'public', table_name 'orders');
+
+-- Cross-database analytics
+SELECT 
+    u.username,
+    COUNT(ro.order_id) as order_count,
+    SUM(ro.total_amount) as total_spent
+FROM users u
+LEFT JOIN remote_orders ro ON u.user_id = ro.user_id
+GROUP BY u.user_id, u.username;
+```
+
+---
+
+## 🔒 **Security & Compliance Questions**
+
+### 16. How do you implement comprehensive security in PostgreSQL?
+**Answer:**
+Implement multiple security layers including authentication, authorization, encryption, and auditing.
+
+```sql
+-- Role-based access control
+CREATE ROLE data_analysts;
+CREATE ROLE data_engineers;
+CREATE ROLE application_users;
+
+-- Grant specific permissions
+GRANT SELECT ON sales_fact TO data_analysts;
+GRANT SELECT, INSERT, UPDATE ON staging_tables TO data_engineers;
+GRANT SELECT, INSERT, UPDATE ON application_tables TO application_users;
+
+-- Row-level security
+ALTER TABLE customer_data ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY customer_isolation ON customer_data
+    FOR ALL TO application_users
+    USING (customer_id = current_setting('app.current_customer_id')::UUID);
+
+-- Column-level security
+GRANT SELECT (customer_id, name, email) ON customers TO data_analysts;
+-- Exclude sensitive columns like SSN, credit_card
+
+-- Data masking for non-production
+CREATE OR REPLACE FUNCTION mask_email(email TEXT)
+RETURNS TEXT AS $$
+BEGIN
+    IF current_setting('app.environment') = 'production' THEN
+        RETURN email;
+    ELSE
+        RETURN regexp_replace(email, '(.{2}).*(@.*)', '\1***\2');
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Audit logging
+CREATE TABLE audit_log (
+    log_id SERIAL PRIMARY KEY,
+    table_name VARCHAR(100),
+    operation VARCHAR(10),
+    user_name VARCHAR(100),
+    timestamp TIMESTAMP DEFAULT NOW(),
+    old_values JSONB,
+    new_values JSONB
+);
+
+-- Audit trigger function
+CREATE OR REPLACE FUNCTION audit_trigger_function()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO audit_log (table_name, operation, user_name, old_values, new_values)
+    VALUES (
+        TG_TABLE_NAME,
+        TG_OP,
+        current_user,
+        CASE WHEN TG_OP = 'DELETE' THEN row_to_json(OLD) ELSE NULL END,
+        CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END
+    );
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply audit trigger
+CREATE TRIGGER audit_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON sensitive_table
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
+```
+
+### 17. How do you handle data encryption in PostgreSQL?
+**Answer:**
+Implement encryption at multiple levels: connection, storage, and application.
+
+```sql
+-- Connection encryption (postgresql.conf)
+-- ssl = on
+-- ssl_cert_file = 'server.crt'
+-- ssl_key_file = 'server.key'
+-- ssl_ca_file = 'ca.crt'
+
+-- Column-level encryption using pgcrypto
+CREATE EXTENSION pgcrypto;
+
+CREATE TABLE secure_customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(255),
+    ssn_encrypted BYTEA,  -- Encrypted SSN
+    credit_card_encrypted BYTEA  -- Encrypted credit card
+);
+
+-- Insert encrypted data
+INSERT INTO secure_customers (name, email, ssn_encrypted, credit_card_encrypted)
+VALUES (
+    'John Doe',
+    'john@example.com',
+    pgp_sym_encrypt('123-45-6789', 'encryption_key'),
+    pgp_sym_encrypt('4111-1111-1111-1111', 'encryption_key')
+);
+
+-- Query encrypted data
+SELECT 
+    customer_id,
+    name,
+    email,
+    pgp_sym_decrypt(ssn_encrypted, 'encryption_key') as ssn,
+    pgp_sym_decrypt(credit_card_encrypted, 'encryption_key') as credit_card
+FROM secure_customers
+WHERE customer_id = 1;
+
+-- Hash passwords
+CREATE TABLE users_secure (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE,
+    password_hash TEXT
+);
+
+-- Store hashed password
+INSERT INTO users_secure (username, password_hash)
+VALUES ('john_doe', crypt('user_password', gen_salt('bf', 8)));
+
+-- Verify password
+SELECT user_id, username
+FROM users_secure
+WHERE username = 'john_doe'
+  AND password_hash = crypt('user_password', password_hash);
+```
+
+---
+
+## 📊 **Analytics & Business Intelligence Questions**
+
+### 18. How do you implement real-time analytics with PostgreSQL?
+**Answer:**
+Combine materialized views, triggers, and streaming technologies for real-time insights.
+
+```sql
+-- Real-time aggregation tables
+CREATE TABLE real_time_metrics (
+    metric_id SERIAL PRIMARY KEY,
+    metric_name VARCHAR(100),
+    metric_value DECIMAL(15,2),
+    time_bucket TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Trigger for real-time updates
+CREATE OR REPLACE FUNCTION update_real_time_metrics()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Update hourly sales metrics
+    INSERT INTO real_time_metrics (metric_name, metric_value, time_bucket)
+    VALUES (
+        'hourly_sales',
+        NEW.total_amount,
+        DATE_TRUNC('hour', NEW.created_at)
+    )
+    ON CONFLICT (metric_name, time_bucket)
+    DO UPDATE SET 
+        metric_value = real_time_metrics.metric_value + EXCLUDED.metric_value,
+        updated_at = NOW();
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER sales_metrics_trigger
+    AFTER INSERT ON sales
+    FOR EACH ROW EXECUTE FUNCTION update_real_time_metrics();
+
+-- Sliding window analytics
+CREATE OR REPLACE VIEW sliding_window_metrics AS
+SELECT 
+    'last_hour_sales' as metric,
+    COUNT(*) as transaction_count,
+    SUM(total_amount) as total_revenue
+FROM sales
+WHERE created_at >= NOW() - INTERVAL '1 hour'
+UNION ALL
+SELECT 
+    'last_24h_sales' as metric,
+    COUNT(*) as transaction_count,
+    SUM(total_amount) as total_revenue
+FROM sales
+WHERE created_at >= NOW() - INTERVAL '24 hours';
+
+-- Time-series analysis with window functions
+SELECT 
+    DATE_TRUNC('hour', created_at) as hour,
+    COUNT(*) as transactions,
+    SUM(total_amount) as revenue,
+    AVG(SUM(total_amount)) OVER (
+        ORDER BY DATE_TRUNC('hour', created_at)
+        ROWS BETWEEN 23 PRECEDING AND CURRENT ROW
+    ) as moving_avg_24h
+FROM sales
+WHERE created_at >= NOW() - INTERVAL '7 days'
+GROUP BY DATE_TRUNC('hour', created_at)
+ORDER BY hour;
+```
+
+### 19. How do you implement data quality monitoring?
+**Answer:**
+Create automated data quality checks and monitoring systems.
+
+```sql
+-- Data quality rules table
+CREATE TABLE data_quality_rules (
+    rule_id SERIAL PRIMARY KEY,
+    table_name VARCHAR(100),
+    rule_name VARCHAR(100),
+    rule_query TEXT,
+    threshold_value DECIMAL(10,2),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert quality rules
+INSERT INTO data_quality_rules (table_name, rule_name, rule_query, threshold_value) VALUES
+('customers', 'null_email_check', 'SELECT COUNT(*) FROM customers WHERE email IS NULL', 0),
+('orders', 'negative_amount_check', 'SELECT COUNT(*) FROM orders WHERE total_amount < 0', 0),
+('products', 'duplicate_sku_check', 'SELECT COUNT(*) - COUNT(DISTINCT sku) FROM products', 0);
+
+-- Data quality results table
+CREATE TABLE data_quality_results (
+    result_id SERIAL PRIMARY KEY,
+    rule_id INTEGER REFERENCES data_quality_rules(rule_id),
+    check_timestamp TIMESTAMP DEFAULT NOW(),
+    actual_value DECIMAL(10,2),
+    threshold_value DECIMAL(10,2),
+    status VARCHAR(20),
+    details JSONB
+);
+
+-- Data quality check function
+CREATE OR REPLACE FUNCTION run_data_quality_checks()
+RETURNS TABLE(rule_name TEXT, status TEXT, actual_value DECIMAL, threshold_value DECIMAL) AS $$
+DECLARE
+    rule_record RECORD;
+    actual_val DECIMAL;
+    check_status TEXT;
+BEGIN
+    FOR rule_record IN 
+        SELECT * FROM data_quality_rules WHERE is_active = TRUE
+    LOOP
+        -- Execute the rule query
+        EXECUTE rule_record.rule_query INTO actual_val;
+        
+        -- Determine status
+        IF actual_val <= rule_record.threshold_value THEN
+            check_status := 'PASS';
+        ELSE
+            check_status := 'FAIL';
+        END IF;
+        
+        -- Insert result
+        INSERT INTO data_quality_results (rule_id, actual_value, threshold_value, status)
+        VALUES (rule_record.rule_id, actual_val, rule_record.threshold_value, check_status);
+        
+        -- Return result
+        RETURN QUERY SELECT rule_record.rule_name, check_status, actual_val, rule_record.threshold_value;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Run quality checks
+SELECT * FROM run_data_quality_checks();
+
+-- Data profiling queries
+CREATE OR REPLACE FUNCTION profile_table(table_name TEXT)
+RETURNS TABLE(
+    column_name TEXT,
+    data_type TEXT,
+    null_count BIGINT,
+    null_percentage DECIMAL,
+    distinct_count BIGINT,
+    min_value TEXT,
+    max_value TEXT
+) AS $$
+DECLARE
+    col_record RECORD;
+    total_rows BIGINT;
+BEGIN
+    -- Get total row count
+    EXECUTE format('SELECT COUNT(*) FROM %I', table_name) INTO total_rows;
+    
+    -- Profile each column
+    FOR col_record IN 
+        SELECT c.column_name, c.data_type
+        FROM information_schema.columns c
+        WHERE c.table_name = profile_table.table_name
+    LOOP
+        RETURN QUERY
+        EXECUTE format('
+            SELECT 
+                %L::TEXT as column_name,
+                %L::TEXT as data_type,
+                COUNT(*) FILTER (WHERE %I IS NULL) as null_count,
+                (COUNT(*) FILTER (WHERE %I IS NULL) * 100.0 / %s)::DECIMAL(5,2) as null_percentage,
+                COUNT(DISTINCT %I) as distinct_count,
+                MIN(%I::TEXT) as min_value,
+                MAX(%I::TEXT) as max_value
+            FROM %I',
+            col_record.column_name,
+            col_record.data_type,
+            col_record.column_name,
+            col_record.column_name,
+            total_rows,
+            col_record.column_name,
+            col_record.column_name,
+            col_record.column_name,
+            table_name
+        );
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Profile a table
+SELECT * FROM profile_table('customers');
+```
+
+This comprehensive set covers PostgreSQL from basic concepts through advanced enterprise architecture, security, and data quality monitoring with practical data engineering applications.

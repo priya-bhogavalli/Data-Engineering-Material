@@ -1,19 +1,23 @@
 # Apache Airflow Interview Questions
 
-## Table of Contents
+## 📋 Table of Contents
 
-1. [Basic Airflow Concepts](#basic-airflow-concepts)
-2. [DAGs and Task Management](#dags-and-task-management)
-3. [Operators and Hooks](#operators-and-hooks)
-4. [Scheduling and Dependencies](#scheduling-and-dependencies)
-5. [Monitoring and Troubleshooting](#monitoring-and-troubleshooting)
-6. [Data Engineering Use Cases](#data-engineering-use-cases)
+1. [Basic Airflow Concepts (1-15)](#basic-airflow-concepts-1-15)
+2. [DAGs and Task Management (16-30)](#dags-and-task-management-16-30)
+3. [Operators and Hooks (31-45)](#operators-and-hooks-31-45)
+4. [Scheduling and Dependencies (46-60)](#scheduling-and-dependencies-46-60)
+5. [Monitoring and Troubleshooting (61-75)](#monitoring-and-troubleshooting-61-75)
+6. [Data Engineering Use Cases (76-90)](#data-engineering-use-cases-76-90)
+7. [Architecture & Deployment (91-105)](#architecture--deployment-91-105)
+8. [Advanced Topics & Best Practices (106-120)](#advanced-topics--best-practices-106-120)
 
 ---
 
-## Basic Airflow Concepts
+---
 
-### Q1: What is Apache Airflow and what problems does it solve?
+## Basic Airflow Concepts (1-15)
+
+### 1. What is Apache Airflow and what problems does it solve?
 
 **Answer:**
 Apache Airflow is an open-source workflow orchestration platform for developing, scheduling, and monitoring batch-oriented workflows. It solves complex data pipeline management challenges.
@@ -96,7 +100,7 @@ load_task = PythonOperator(
 extract_task >> transform_task >> load_task
 ```
 
-### Q2: Explain Airflow's architecture and core components.
+### 2. Explain Airflow's architecture and core components.
 
 **Answer:**
 Airflow follows a distributed architecture with multiple components working together to execute and monitor workflows.
@@ -173,7 +177,7 @@ class CustomExecutor(BaseExecutor):
         self.log.info("Shutting down Custom Executor")
 ```
 
-### Q3: What are the different types of Airflow executors and when to use each?
+### 3. What are the different types of Airflow executors and when to use each?
 
 **Answer:**
 Airflow executors determine how and where tasks are executed, each suited for different deployment scenarios and scalability requirements.
@@ -297,9 +301,232 @@ print("Processing completed")
 )
 ```
 
-## DAGs and Task Management
+### 4. What is the difference between Airflow 1.x and 2.x?
+**Answer:**
+**Major Changes in Airflow 2.x:**
+- **TaskFlow API**: Simplified task definition with decorators
+- **Stable REST API**: Full REST API for external integrations
+- **Independent Scheduler**: Improved performance and reliability
+- **Task Groups**: Better task organization
+- **Smart Sensors**: Reduced resource usage for sensors
+- **Simplified Configuration**: Streamlined airflow.cfg
 
-### Q4: How do you design efficient DAGs with proper task dependencies?
+### 5. Explain the concept of XCom in Airflow
+**Answer:**
+**XCom (Cross-Communication)** enables tasks to exchange small amounts of data.
+
+**Key Characteristics:**
+- Stored in metadata database
+- Limited size (use external storage for large data)
+- Automatic serialization/deserialization
+- Task-to-task communication mechanism
+
+```python
+# Push data to XCom
+def push_data(**context):
+    return {"processed_count": 1000, "status": "success"}
+
+# Pull data from XCom
+def pull_data(**context):
+    ti = context['ti']
+    data = ti.xcom_pull(task_ids='push_task')
+    print(f"Received: {data}")
+```
+
+### 6. What are Airflow Variables and Connections?
+**Answer:**
+**Variables**: Global key-value store for configuration
+**Connections**: Store connection information for external systems
+
+```python
+from airflow.models import Variable
+from airflow.hooks.base import BaseHook
+
+# Using Variables
+api_key = Variable.get("api_key")
+max_retries = Variable.get("max_retries", default_var=3)
+
+# Using Connections
+conn = BaseHook.get_connection("postgres_default")
+host = conn.host
+port = conn.port
+```
+
+### 7. How does Airflow handle task retries and failure scenarios?
+**Answer:**
+**Retry Mechanisms:**
+- `retries`: Number of retry attempts
+- `retry_delay`: Delay between retries
+- `retry_exponential_backoff`: Exponential backoff
+- `max_retry_delay`: Maximum retry delay
+
+```python
+default_args = {
+    'retries': 3,
+    'retry_delay': timedelta(minutes=5),
+    'retry_exponential_backoff': True,
+    'max_retry_delay': timedelta(hours=1)
+}
+```
+
+### 8. What are Airflow Pools and how do they work?
+**Answer:**
+**Pools** limit the number of concurrent tasks to manage resource usage.
+
+```python
+# Task using pool
+task = PythonOperator(
+    task_id='resource_intensive_task',
+    python_callable=heavy_computation,
+    pool='cpu_intensive_pool',  # Limit concurrent execution
+    dag=dag
+)
+```
+
+### 9. Explain Airflow's metadata database and its importance
+**Answer:**
+**Metadata Database** stores:
+- DAG definitions and task states
+- Execution history and logs
+- Variables and connections
+- User permissions and roles
+
+**Supported Databases:**
+- PostgreSQL (recommended for production)
+- MySQL
+- SQLite (development only)
+
+### 10. What are Airflow Sensors and their types?
+**Answer:**
+**Sensors** wait for external conditions before proceeding.
+
+**Common Sensor Types:**
+- `FileSensor`: Wait for file existence
+- `SqlSensor`: Wait for SQL condition
+- `HttpSensor`: Wait for HTTP endpoint
+- `S3KeySensor`: Wait for S3 object
+- `TimeSensor`: Wait for specific time
+
+### 11. How do you handle secrets and sensitive data in Airflow?
+**Answer:**
+**Secret Management Options:**
+- Airflow Connections (encrypted)
+- External secret backends (AWS Secrets Manager, HashiCorp Vault)
+- Environment variables
+- Kubernetes secrets
+
+```python
+# Using secret backend
+from airflow.providers.amazon.aws.secrets.secrets_manager import SecretsManagerBackend
+
+secrets_backend = SecretsManagerBackend()
+api_key = secrets_backend.get_variable("api_key")
+```
+
+### 12. What is the TaskFlow API in Airflow 2.x?
+**Answer:**
+**TaskFlow API** simplifies DAG creation using Python decorators.
+
+```python
+from airflow.decorators import dag, task
+from datetime import datetime
+
+@dag(start_date=datetime(2023, 1, 1), schedule_interval='@daily')
+def my_dag():
+    
+    @task
+    def extract():
+        return {"data": [1, 2, 3, 4, 5]}
+    
+    @task
+    def transform(data):
+        return {"transformed": [x * 2 for x in data["data"]]}
+    
+    @task
+    def load(data):
+        print(f"Loading: {data}")
+    
+    # Define dependencies
+    extracted_data = extract()
+    transformed_data = transform(extracted_data)
+    load(transformed_data)
+
+my_dag_instance = my_dag()
+```
+
+### 13. Explain Airflow's logging system
+**Answer:**
+**Logging Features:**
+- Task-level logging
+- Remote log storage (S3, GCS, Azure)
+- Log rotation and retention
+- Structured logging support
+
+```python
+# Custom logging in tasks
+def my_task(**context):
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info("Task started")
+    logger.warning("This is a warning")
+    logger.error("This is an error")
+```
+
+### 14. What are Airflow Plugins and how do you create them?
+**Answer:**
+**Plugins** extend Airflow functionality with custom operators, hooks, and UI components.
+
+```python
+# plugins/my_plugin.py
+from airflow.plugins_manager import AirflowPlugin
+from airflow.models import BaseOperator
+
+class MyCustomOperator(BaseOperator):
+    def execute(self, context):
+        print("Custom operator executed")
+
+class MyPlugin(AirflowPlugin):
+    name = "my_plugin"
+    operators = [MyCustomOperator]
+```
+
+### 15. How do you implement data quality checks in Airflow?
+**Answer:**
+```python
+from airflow.operators.python import PythonOperator
+from airflow.exceptions import AirflowException
+
+def data_quality_check(**context):
+    # Example quality checks
+    data = get_data_from_source()
+    
+    # Check 1: Data completeness
+    if len(data) == 0:
+        raise AirflowException("No data found")
+    
+    # Check 2: Data freshness
+    latest_timestamp = max(data, key=lambda x: x['timestamp'])
+    if (datetime.now() - latest_timestamp['timestamp']).hours > 24:
+        raise AirflowException("Data is stale")
+    
+    # Check 3: Data integrity
+    null_count = sum(1 for record in data if any(v is None for v in record.values()))
+    if null_count / len(data) > 0.1:  # More than 10% nulls
+        raise AirflowException("Too many null values")
+    
+    return {"status": "passed", "records_checked": len(data)}
+
+quality_check = PythonOperator(
+    task_id='data_quality_check',
+    python_callable=data_quality_check,
+    dag=dag
+)
+```
+
+## DAGs and Task Management (16-30)
+
+### 16. How do you design efficient DAGs with proper task dependencies?
 
 **Answer:**
 Efficient DAG design involves proper task granularity, dependency management, resource allocation, and error handling strategies.
@@ -548,7 +775,7 @@ branch_task >> [small_data_processing, large_data_processing]
 join_branches >> quality_check >> load_warehouse >> success_email
 ```
 
-### Q5: How do you handle dynamic task generation in Airflow?
+### 17. How do you handle dynamic task generation in Airflow?
 
 **Answer:**
 Dynamic task generation allows creating tasks at runtime based on external data or conditions, enabling flexible and scalable workflows.
@@ -781,9 +1008,339 @@ runtime_task = PythonOperator(
 )
 ```
 
-## Operators and Hooks
+### 18. What are Task Groups and how do they improve DAG organization?
+**Answer:**
+**Task Groups** provide visual and logical grouping of related tasks.
 
-### Q6: Explain different types of Airflow operators and when to use each.
+```python
+from airflow.utils.task_group import TaskGroup
+
+with TaskGroup('data_processing_group') as processing_group:
+    extract_task = PythonOperator(
+        task_id='extract',
+        python_callable=extract_data
+    )
+    
+    transform_task = PythonOperator(
+        task_id='transform', 
+        python_callable=transform_data
+    )
+    
+    extract_task >> transform_task
+
+# Use the group in dependencies
+start_task >> processing_group >> end_task
+```
+
+### 19. How do you implement conditional logic in Airflow DAGs?
+**Answer:**
+**Conditional Execution Methods:**
+- BranchPythonOperator
+- Trigger rules
+- Skip operators
+
+```python
+from airflow.operators.python import BranchPythonOperator
+from airflow.utils.trigger_rule import TriggerRule
+
+def choose_branch(**context):
+    if context['ds_nodash'] > '20230101':
+        return 'new_process'
+    return 'legacy_process'
+
+branch_task = BranchPythonOperator(
+    task_id='branch_decision',
+    python_callable=choose_branch
+)
+
+# Tasks with different trigger rules
+join_task = PythonOperator(
+    task_id='join_branches',
+    python_callable=lambda: print("Joining"),
+    trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED
+)
+```
+
+### 20. What are the different trigger rules in Airflow?
+**Answer:**
+**Trigger Rules:**
+- `ALL_SUCCESS`: All upstream tasks succeeded (default)
+- `ALL_FAILED`: All upstream tasks failed
+- `ALL_DONE`: All upstream tasks completed
+- `ONE_SUCCESS`: At least one upstream task succeeded
+- `ONE_FAILED`: At least one upstream task failed
+- `NONE_FAILED`: No upstream tasks failed
+- `NONE_FAILED_OR_SKIPPED`: No upstream tasks failed or were skipped
+- `DUMMY`: Always trigger
+
+### 21. How do you handle large datasets in Airflow tasks?
+**Answer:**
+**Strategies for Large Datasets:**
+- Use external storage (S3, HDFS) instead of XCom
+- Implement chunking and parallel processing
+- Use appropriate executors (Celery, Kubernetes)
+- Optimize memory usage in tasks
+
+```python
+def process_large_dataset(**context):
+    # Process in chunks
+    chunk_size = 10000
+    total_processed = 0
+    
+    for chunk in read_data_in_chunks(chunk_size):
+        process_chunk(chunk)
+        total_processed += len(chunk)
+        
+        # Log progress
+        if total_processed % 100000 == 0:
+            print(f"Processed {total_processed} records")
+    
+    return total_processed
+```
+
+### 22. What is backfilling in Airflow and how do you use it?
+**Answer:**
+**Backfilling** runs DAGs for historical dates.
+
+```bash
+# Backfill command
+airflow dags backfill \
+    --start-date 2023-01-01 \
+    --end-date 2023-01-31 \
+    my_dag_id
+
+# Backfill with specific tasks
+airflow tasks backfill \
+    --start-date 2023-01-01 \
+    --end-date 2023-01-31 \
+    my_dag_id \
+    --task-regex "extract.*"
+```
+
+### 23. How do you implement SLA monitoring in Airflow?
+**Answer:**
+```python
+# SLA configuration
+default_args = {
+    'sla': timedelta(hours=2),  # Task should complete within 2 hours
+    'email_on_failure': True,
+    'email_on_retry': False
+}
+
+# Task-specific SLA
+task = PythonOperator(
+    task_id='critical_task',
+    python_callable=my_function,
+    sla=timedelta(minutes=30),  # Override default SLA
+    dag=dag
+)
+
+# SLA miss callback
+def sla_miss_callback(dag, task_list, blocking_task_list, slas, blocking_tis):
+    print(f"SLA missed for tasks: {[task.task_id for task in task_list]}")
+    # Send custom alerts
+
+dag.sla_miss_callback = sla_miss_callback
+```
+
+### 24. What are Airflow Macros and how do you use them?
+**Answer:**
+**Macros** provide dynamic values in templates.
+
+```python
+# Built-in macros
+task = BashOperator(
+    task_id='templated_task',
+    bash_command='''
+    echo "Execution date: {{ ds }}"
+    echo "Previous execution date: {{ prev_ds }}"
+    echo "Next execution date: {{ next_ds }}"
+    echo "DAG run ID: {{ dag_run.run_id }}"
+    '''
+)
+
+# Custom macros
+def custom_macro(execution_date):
+    return execution_date.strftime('%Y%m%d')
+
+dag.user_defined_macros = {
+    'custom_date_format': custom_macro
+}
+
+# Use custom macro
+task = BashOperator(
+    task_id='custom_macro_task',
+    bash_command='echo "Custom date: {{ custom_date_format(ds) }}"'
+)
+```
+
+### 25. How do you handle timezone considerations in Airflow?
+**Answer:**
+```python
+import pendulum
+
+# Set DAG timezone
+dag = DAG(
+    'timezone_aware_dag',
+    start_date=datetime(2023, 1, 1, tzinfo=pendulum.timezone('America/New_York')),
+    schedule_interval='0 9 * * *',  # 9 AM in DAG timezone
+    catchup=False
+)
+
+# Handle timezone in tasks
+def timezone_aware_task(**context):
+    execution_date = context['execution_date']
+    
+    # Convert to different timezones
+    utc_time = execution_date
+    local_time = utc_time.in_timezone('America/New_York')
+    
+    print(f"UTC: {utc_time}")
+    print(f"Local: {local_time}")
+```
+
+### 26. What is the difference between schedule_interval and timetable?
+**Answer:**
+**schedule_interval** (Airflow 1.x/2.x):
+- Cron expressions or timedelta objects
+- Simple scheduling patterns
+
+**timetable** (Airflow 2.2+):
+- More flexible scheduling logic
+- Custom business rules
+- Complex scheduling patterns
+
+```python
+# Traditional schedule_interval
+dag = DAG(
+    'simple_schedule',
+    schedule_interval='@daily'
+)
+
+# Custom timetable
+from airflow.timetables.base import Timetable
+
+class BusinessDayTimetable(Timetable):
+    def next_dagrun_info(self, last_automated_data_interval, restriction):
+        # Custom logic for business days only
+        pass
+
+dag = DAG(
+    'business_day_schedule',
+    timetable=BusinessDayTimetable()
+)
+```
+
+### 27. How do you implement data lineage tracking in Airflow?
+**Answer:**
+```python
+# Using Airflow's built-in lineage
+from airflow.lineage.entities import File
+
+def track_lineage(**context):
+    # Define input and output datasets
+    input_file = File(url="s3://bucket/input/data.csv")
+    output_file = File(url="s3://bucket/output/processed.csv")
+    
+    # Track lineage
+    context['task_instance'].add_inlets([input_file])
+    context['task_instance'].add_outlets([output_file])
+
+task = PythonOperator(
+    task_id='lineage_task',
+    python_callable=track_lineage,
+    # Define lineage at task level
+    inlets=[File(url="s3://bucket/input/data.csv")],
+    outlets=[File(url="s3://bucket/output/processed.csv")]
+)
+```
+
+### 28. What are the best practices for DAG design?
+**Answer:**
+**DAG Design Best Practices:**
+- Keep tasks atomic and idempotent
+- Use meaningful task and DAG names
+- Implement proper error handling
+- Avoid deep nesting of dependencies
+- Use Task Groups for organization
+- Set appropriate timeouts and retries
+- Document DAGs and tasks
+
+### 29. How do you test Airflow DAGs?
+**Answer:**
+```python
+import pytest
+from airflow.models import DagBag
+from datetime import datetime
+
+def test_dag_loading():
+    """Test that DAG loads without errors"""
+    dag_bag = DagBag()
+    dag = dag_bag.get_dag('my_dag_id')
+    assert dag is not None
+    assert len(dag.tasks) > 0
+
+def test_task_dependencies():
+    """Test task dependencies"""
+    dag_bag = DagBag()
+    dag = dag_bag.get_dag('my_dag_id')
+    
+    # Check specific dependencies
+    extract_task = dag.get_task('extract')
+    transform_task = dag.get_task('transform')
+    
+    assert transform_task in extract_task.downstream_list
+
+def test_task_execution():
+    """Test individual task execution"""
+    from airflow.models import TaskInstance
+    
+    dag_bag = DagBag()
+    dag = dag_bag.get_dag('my_dag_id')
+    task = dag.get_task('my_task')
+    
+    ti = TaskInstance(task=task, execution_date=datetime.now())
+    result = task.execute(ti.get_template_context())
+    
+    assert result is not None
+```
+
+### 30. How do you handle DAG versioning and deployment?
+**Answer:**
+**DAG Versioning Strategies:**
+- Git-based version control
+- Blue-green deployments
+- Feature flags for gradual rollouts
+- Automated testing in CI/CD
+
+```python
+# Version-aware DAG
+DAG_VERSION = "v2.1.0"
+
+dag = DAG(
+    f'my_dag_{DAG_VERSION}',
+    description=f'My DAG version {DAG_VERSION}',
+    tags=['production', DAG_VERSION]
+)
+
+# Feature flag example
+USE_NEW_ALGORITHM = Variable.get("use_new_algorithm", default_var=False)
+
+if USE_NEW_ALGORITHM:
+    process_task = PythonOperator(
+        task_id='process_new',
+        python_callable=new_algorithm
+    )
+else:
+    process_task = PythonOperator(
+        task_id='process_legacy',
+        python_callable=legacy_algorithm
+    )
+```
+
+## Operators and Hooks (31-45)
+
+### 31. Explain different types of Airflow operators and when to use each.
 
 **Answer:**
 Airflow operators define what actually gets executed in each task. Different operators are optimized for specific types of work and integrations.
@@ -1056,7 +1613,7 @@ api_health_check >> extract_data
 wait_for_config >> extract_data
 ```
 
-### Q7: How do you create custom operators and hooks in Airflow?
+### 32. How do you create custom operators and hooks in Airflow?
 
 **Answer:**
 Custom operators and hooks extend Airflow's functionality for specific business requirements or integrations not covered by existing operators.

@@ -85,6 +85,7 @@ This guide includes:
 
 ### 📚 **Alternative Navigation**
 - **[Interview Questions Master Index](./docs/INTERVIEW_QUESTIONS_MASTER_INDEX.md)** - Complete list of all interview questions
+- **[Awesome GitHub Repositories](./docs/AWESOME_GITHUB_REPOS.md)** - Curated list of essential GitHub repos for data engineering
 - **[Core-Data-Engineering/](./Core-Data-Engineering/)** - Essential data engineering topics
 - **[Supporting-Tools/](./Supporting-Tools/)** - Additional skills and tools
 

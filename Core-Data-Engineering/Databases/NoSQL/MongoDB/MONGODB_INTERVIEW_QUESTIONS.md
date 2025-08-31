@@ -1,4 +1,17 @@
-# MongoDB Interview Questions
+# 🍃 MongoDB Interview Questions for Data Engineering
+
+## 📋 Table of Contents
+1. [Basic MongoDB Concepts](#basic-mongodb-concepts)
+2. [Data Modeling](#data-modeling)
+3. [Querying and Aggregation](#querying-and-aggregation)
+4. [Performance and Indexing](#performance-and-indexing)
+5. [Replication and Sharding](#replication-and-sharding)
+6. [Data Engineering Scenarios](#data-engineering-scenarios)
+7. [Advanced Conceptual Questions](#advanced-conceptual-questions)
+8. [Enterprise Architecture Questions](#enterprise-architecture-questions)
+9. [Analytics & Business Intelligence Questions](#analytics--business-intelligence-questions)
+
+---
 
 ## Table of Contents
 
@@ -749,13 +762,648 @@ function monitorPerformance() {
 
 ---
 
+---
+
+## 🎯 **Advanced Conceptual Questions**
+
+### Q15: Explain MongoDB's storage engine architecture and WiredTiger
+**Answer:**
+WiredTiger is MongoDB's default storage engine providing document-level concurrency, compression, and encryption.
+
+**Key Features:**
+- **Document-level Locking**: Higher concurrency than collection-level
+- **Compression**: Reduces storage footprint
+- **Checkpointing**: Consistent snapshots for durability
+- **Write-Ahead Logging**: Transaction durability
+
+**Code Example:**
+```javascript
+// Storage engine configuration
+// mongod.conf
+storage:
+  engine: wiredTiger
+  wiredTiger:
+    engineConfig:
+      cacheSizeGB: 8
+      directoryForIndexes: true
+    collectionConfig:
+      blockCompressor: snappy
+    indexConfig:
+      prefixCompression: true
+
+// Check storage engine
+db.serverStatus().storageEngine;
+
+// Collection storage statistics
+db.users.stats({
+  indexDetails: true,
+  indexDetailsKey: { "email": 1 }
+});
+```
+
+### Q16: How does MongoDB handle transactions and ACID properties?
+**Answer:**
+MongoDB supports multi-document ACID transactions across replica sets and sharded clusters.
+
+**Transaction Levels:**
+- **Single Document**: Atomic by default
+- **Multi-Document**: Explicit transactions required
+- **Cross-Shard**: Distributed transactions
+
+**Code Example:**
+```javascript
+// Multi-document transaction
+const session = db.getMongo().startSession();
+
+try {
+  session.startTransaction();
+  
+  // Transfer money between accounts
+  db.accounts.updateOne(
+    { accountId: "A123" },
+    { $inc: { balance: -100 } },
+    { session }
+  );
+  
+  db.accounts.updateOne(
+    { accountId: "B456" },
+    { $inc: { balance: 100 } },
+    { session }
+  );
+  
+  // Log transaction
+  db.transactions.insertOne({
+    from: "A123",
+    to: "B456",
+    amount: 100,
+    timestamp: new Date()
+  }, { session });
+  
+  session.commitTransaction();
+  
+} catch (error) {
+  session.abortTransaction();
+  throw error;
+} finally {
+  session.endSession();
+}
+
+// Transaction with retry logic
+function withRetryableTransaction(sessionCallback) {
+  const session = db.getMongo().startSession();
+  
+  try {
+    return session.withTransaction(sessionCallback, {
+      readConcern: { level: "majority" },
+      writeConcern: { w: "majority" },
+      readPreference: "primary"
+    });
+  } finally {
+    session.endSession();
+  }
+}
+```
+
+### Q17: What are MongoDB's consistency models and read/write concerns?
+**Answer:**
+MongoDB provides configurable consistency through read and write concerns.
+
+**Read Concerns:**
+- **local**: Default, may return stale data
+- **available**: Fastest, no consistency guarantee
+- **majority**: Consistent across majority of replica set
+- **linearizable**: Strongest consistency
+
+**Write Concerns:**
+- **w: 1**: Acknowledge from primary only
+- **w: "majority"**: Acknowledge from majority
+- **j: true**: Wait for journal sync
+
+**Code Example:**
+```javascript
+// Strong consistency read
+db.users.find({ email: "john@example.com" })
+  .readConcern("majority")
+  .readPref("primary");
+
+// Durable write
+db.orders.insertOne(
+  { customerId: "C123", total: 99.99 },
+  {
+    writeConcern: {
+      w: "majority",
+      j: true,
+      wtimeout: 5000
+    }
+  }
+);
+
+// Causal consistency session
+const session = db.getMongo().startSession({
+  causalConsistency: true
+});
+
+// Write with session
+db.users.updateOne(
+  { _id: userId },
+  { $set: { lastLogin: new Date() } },
+  { session }
+);
+
+// Subsequent read sees the write
+db.users.findOne({ _id: userId }, { session });
+```
+
+---
+
+## 🏢 **Enterprise Architecture Questions**
+
+### Q18: How do you design MongoDB for microservices architecture?
+**Answer:**
+Implement database-per-service pattern with proper data consistency and communication strategies.
+
+**Design Principles:**
+- **Service Ownership**: Each service owns its data
+- **Loose Coupling**: Minimize cross-service dependencies
+- **Event-Driven**: Use events for service communication
+- **Data Consistency**: Handle eventual consistency
+
+**Code Example:**
+```javascript
+// User Service Database
+// users collection
+{
+  "_id": ObjectId("..."),
+  "email": "john@example.com",
+  "profile": {
+    "firstName": "John",
+    "lastName": "Doe"
+  },
+  "version": 1
+}
+
+// Order Service Database
+// orders collection
+{
+  "_id": ObjectId("..."),
+  "userId": ObjectId("..."),  // Reference to user service
+  "items": [...],
+  "status": "pending",
+  "userSnapshot": {  // Denormalized user data
+    "email": "john@example.com",
+    "name": "John Doe"
+  }
+}
+
+// Event-driven updates
+// User service publishes events
+function publishUserUpdatedEvent(userId, userData) {
+  const event = {
+    eventType: "UserUpdated",
+    userId: userId,
+    userData: userData,
+    timestamp: new Date(),
+    version: userData.version
+  };
+  
+  // Publish to message queue/event stream
+  publishEvent("user.updated", event);
+}
+
+// Order service subscribes to user events
+function handleUserUpdatedEvent(event) {
+  // Update denormalized user data in orders
+  db.orders.updateMany(
+    { userId: event.userId },
+    {
+      $set: {
+        "userSnapshot.email": event.userData.email,
+        "userSnapshot.name": `${event.userData.profile.firstName} ${event.userData.profile.lastName}`
+      }
+    }
+  );
+}
+```
+
+### Q19: How do you implement data governance and compliance in MongoDB?
+**Answer:**
+Implement comprehensive data governance through access control, auditing, encryption, and data lifecycle management.
+
+**Governance Components:**
+- **Role-Based Access Control (RBAC)**
+- **Field-Level Security**
+- **Audit Logging**
+- **Data Encryption**
+- **Data Retention Policies**
+
+**Code Example:**
+```javascript
+// Role-based access control
+// Create custom roles
+db.createRole({
+  role: "dataAnalyst",
+  privileges: [
+    {
+      resource: { db: "analytics", collection: "" },
+      actions: ["find", "listCollections"]
+    },
+    {
+      resource: { db: "analytics", collection: "sensitive_data" },
+      actions: ["find"],
+      // Field-level restrictions
+      fieldRestrictions: {
+        "ssn": 0,
+        "creditCard": 0
+      }
+    }
+  ],
+  roles: []
+});
+
+// Create user with role
+db.createUser({
+  user: "analyst1",
+  pwd: "securePassword",
+  roles: ["dataAnalyst"]
+});
+
+// Audit configuration
+// mongod.conf
+auditLog:
+  destination: file
+  format: JSON
+  path: /var/log/mongodb/audit.json
+  filter: '{
+    atype: "authCheck",
+    "param.command": { $in: ["find", "insert", "update", "delete"] }
+  }'
+
+// Data masking for non-production
+function maskSensitiveData(doc) {
+  if (process.env.NODE_ENV !== 'production') {
+    return {
+      ...doc,
+      ssn: doc.ssn ? '***-**-' + doc.ssn.slice(-4) : null,
+      creditCard: doc.creditCard ? '**** **** **** ' + doc.creditCard.slice(-4) : null
+    };
+  }
+  return doc;
+}
+
+// Data retention policy
+db.userSessions.createIndex(
+  { "createdAt": 1 },
+  { expireAfterSeconds: 86400 }  // 24 hours
+);
+
+// GDPR compliance - data deletion
+function deleteUserData(userId) {
+  const session = db.getMongo().startSession();
+  
+  try {
+    session.startTransaction();
+    
+    // Anonymize user data
+    db.users.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          email: `deleted_${userId}@deleted.com`,
+          profile: { deleted: true },
+          deletedAt: new Date()
+        },
+        $unset: {
+          personalData: "",
+          preferences: ""
+        }
+      },
+      { session }
+    );
+    
+    // Log deletion for audit
+    db.auditLog.insertOne({
+      action: "USER_DATA_DELETED",
+      userId: userId,
+      timestamp: new Date(),
+      reason: "GDPR_REQUEST"
+    }, { session });
+    
+    session.commitTransaction();
+  } catch (error) {
+    session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+}
+```
+
+---
+
+## 📊 **Analytics & Business Intelligence Questions**
+
+### Q20: How do you implement time-series data analysis in MongoDB?
+**Answer:**
+Use MongoDB's time-series collections and aggregation framework for efficient time-based analytics.
+
+**Time-Series Features:**
+- **Optimized Storage**: Compressed time-series data
+- **Automatic Bucketing**: Groups data by time intervals
+- **Window Functions**: Time-based calculations
+
+**Code Example:**
+```javascript
+// Create time-series collection
+db.createCollection("sensorData", {
+  timeseries: {
+    timeField: "timestamp",
+    metaField: "sensorId",
+    granularity: "minutes"
+  }
+});
+
+// Insert time-series data
+db.sensorData.insertMany([
+  {
+    timestamp: new Date(),
+    sensorId: "sensor_001",
+    temperature: 23.5,
+    humidity: 65.2,
+    location: "warehouse_a"
+  },
+  {
+    timestamp: new Date(Date.now() - 60000),
+    sensorId: "sensor_001",
+    temperature: 23.8,
+    humidity: 64.8,
+    location: "warehouse_a"
+  }
+]);
+
+// Time-series analytics queries
+// Moving average
+db.sensorData.aggregate([
+  {
+    $match: {
+      sensorId: "sensor_001",
+      timestamp: {
+        $gte: new Date(Date.now() - 24*60*60*1000)  // Last 24 hours
+      }
+    }
+  },
+  {
+    $setWindowFields: {
+      partitionBy: "$sensorId",
+      sortBy: { timestamp: 1 },
+      output: {
+        movingAvgTemp: {
+          $avg: "$temperature",
+          window: {
+            range: [-5, 0],  // 5 minutes window
+            unit: "minute"
+          }
+        }
+      }
+    }
+  }
+]);
+
+// Hourly aggregation
+db.sensorData.aggregate([
+  {
+    $match: {
+      timestamp: {
+        $gte: new Date(Date.now() - 7*24*60*60*1000)  // Last 7 days
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        sensorId: "$sensorId",
+        hour: {
+          $dateTrunc: {
+            date: "$timestamp",
+            unit: "hour"
+          }
+        }
+      },
+      avgTemperature: { $avg: "$temperature" },
+      maxTemperature: { $max: "$temperature" },
+      minTemperature: { $min: "$temperature" },
+      readingCount: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { "_id.hour": 1 }
+  }
+]);
+
+// Anomaly detection
+db.sensorData.aggregate([
+  {
+    $setWindowFields: {
+      partitionBy: "$sensorId",
+      sortBy: { timestamp: 1 },
+      output: {
+        avgTemp: {
+          $avg: "$temperature",
+          window: { range: [-30, 0], unit: "minute" }
+        },
+        stdDevTemp: {
+          $stdDevPop: "$temperature",
+          window: { range: [-30, 0], unit: "minute" }
+        }
+      }
+    }
+  },
+  {
+    $addFields: {
+      isAnomaly: {
+        $gt: [
+          { $abs: { $subtract: ["$temperature", "$avgTemp"] } },
+          { $multiply: ["$stdDevTemp", 2] }  // 2 standard deviations
+        ]
+      }
+    }
+  },
+  {
+    $match: { isAnomaly: true }
+  }
+]);
+```
+
+### Q21: How do you implement real-time dashboards with MongoDB?
+**Answer:**
+Combine change streams, aggregation pipelines, and caching strategies for real-time dashboard updates.
+
+**Architecture Components:**
+- **Change Streams**: Real-time data capture
+- **Aggregation Views**: Pre-computed metrics
+- **Caching Layer**: Fast data access
+- **WebSocket/SSE**: Real-time client updates
+
+**Code Example:**
+```javascript
+// Real-time dashboard system
+class RealTimeDashboard {
+  constructor() {
+    this.cache = new Map();
+    this.subscribers = new Set();
+    this.setupChangeStreams();
+  }
+  
+  setupChangeStreams() {
+    // Monitor order changes
+    const orderStream = db.orders.watch([
+      { $match: { "operationType": { $in: ["insert", "update"] } } }
+    ]);
+    
+    orderStream.on("change", (change) => {
+      this.updateMetrics(change);
+    });
+  }
+  
+  async updateMetrics(change) {
+    const order = change.fullDocument;
+    
+    // Update real-time metrics
+    const today = new Date().toISOString().split('T')[0];
+    const metrics = await this.getOrCreateMetrics(today);
+    
+    if (change.operationType === 'insert') {
+      metrics.totalOrders += 1;
+      metrics.totalRevenue += order.total;
+      metrics.ordersByRegion[order.region] = 
+        (metrics.ordersByRegion[order.region] || 0) + 1;
+    }
+    
+    // Cache updated metrics
+    this.cache.set(today, metrics);
+    
+    // Notify subscribers
+    this.notifySubscribers(metrics);
+  }
+  
+  async getOrCreateMetrics(date) {
+    // Check cache first
+    if (this.cache.has(date)) {
+      return this.cache.get(date);
+    }
+    
+    // Compute from database
+    const metrics = await db.orders.aggregate([
+      {
+        $match: {
+          orderDate: {
+            $gte: new Date(date),
+            $lt: new Date(new Date(date).getTime() + 24*60*60*1000)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$total" },
+          ordersByRegion: {
+            $push: {
+              k: "$region",
+              v: 1
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          totalOrders: 1,
+          totalRevenue: 1,
+          ordersByRegion: {
+            $arrayToObject: {
+              $reduce: {
+                input: "$ordersByRegion",
+                initialValue: [],
+                in: {
+                  $concatArrays: [
+                    "$$value",
+                    [{ k: "$$this.k", v: "$$this.v" }]
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    ]).next();
+    
+    return metrics || { totalOrders: 0, totalRevenue: 0, ordersByRegion: {} };
+  }
+  
+  notifySubscribers(metrics) {
+    this.subscribers.forEach(callback => {
+      try {
+        callback(metrics);
+      } catch (error) {
+        console.error('Error notifying subscriber:', error);
+      }
+    });
+  }
+  
+  subscribe(callback) {
+    this.subscribers.add(callback);
+    return () => this.subscribers.delete(callback);
+  }
+}
+
+// Usage
+const dashboard = new RealTimeDashboard();
+
+// Subscribe to updates
+const unsubscribe = dashboard.subscribe((metrics) => {
+  // Update dashboard UI
+  updateDashboardUI(metrics);
+});
+
+// Materialized view for complex analytics
+db.createView("salesSummary", "orders", [
+  {
+    $match: {
+      status: "completed",
+      orderDate: {
+        $gte: new Date(Date.now() - 30*24*60*60*1000)  // Last 30 days
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        date: { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } },
+        region: "$region"
+      },
+      dailyRevenue: { $sum: "$total" },
+      orderCount: { $sum: 1 },
+      avgOrderValue: { $avg: "$total" }
+    }
+  }
+]);
+```
+
+---
+
 ## Key Takeaways
 
-1. **Document Design**: Choose embedding vs referencing based on access patterns
-2. **Indexing Strategy**: Create indexes that support your query patterns
-3. **Aggregation Pipeline**: Leverage for complex data analysis and transformations
-4. **Scaling**: Use replication for availability, sharding for horizontal scaling
-5. **Performance**: Monitor with profiler and explain plans
-6. **Schema Validation**: Implement validation rules while maintaining flexibility
-7. **Real-time Processing**: Use change streams for reactive applications
-8. **Migration Planning**: Handle large data migrations with proper batching and monitoring
+1. **Document Design**: Choose embedding vs referencing based on access patterns and data relationships
+2. **Storage Engine**: Understand WiredTiger's features for optimal performance
+3. **Transactions**: Implement ACID transactions for data consistency across documents
+4. **Consistency Models**: Configure read/write concerns based on application requirements
+5. **Indexing Strategy**: Create compound and specialized indexes for query optimization
+6. **Aggregation Pipeline**: Master complex data transformations and analytics
+7. **Scaling Strategies**: Use replication for availability, sharding for horizontal scaling
+8. **Time-Series Data**: Leverage specialized collections for temporal analytics
+9. **Real-Time Processing**: Implement change streams for reactive applications
+10. **Enterprise Features**: Apply security, governance, and compliance best practices
+11. **Performance Monitoring**: Use profiler, explain plans, and monitoring tools
+12. **Migration Planning**: Handle schema evolution and large data migrations systematically
+13. **Microservices Integration**: Design database-per-service with event-driven architecture
+14. **Analytics Implementation**: Build real-time dashboards with proper caching strategies
+15. **Data Governance**: Implement comprehensive access control and audit logging

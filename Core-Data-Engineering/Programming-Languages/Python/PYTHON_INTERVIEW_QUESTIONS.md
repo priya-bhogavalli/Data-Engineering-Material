@@ -3010,22 +3010,533 @@ if __name__ == "__main__":
 
 ---
 
+---
+
+## 🎯 **Conceptual & Theoretical Questions**
+
+### 26. What are Python's design principles and philosophy?
+**Answer:**
+Python follows the "Zen of Python" (PEP 20) principles:
+- **Beautiful is better than ugly**
+- **Explicit is better than implicit**
+- **Simple is better than complex**
+- **Readability counts**
+- **There should be one obvious way to do it**
+
+### 27. Explain Python's object model and everything being an object
+**Answer:**
+In Python, everything is an object with:
+- **Identity**: Unique identifier (id())
+- **Type**: Defines operations (type())
+- **Value**: The data itself
+
+```python
+# Everything is an object
+print(type(5))          # <class 'int'>
+print(type(len))        # <class 'builtin_function_or_method'>
+print(type(int))        # <class 'type'>
+print(hasattr(5, '__add__'))  # True
+```
+
+### 28. What are metaclasses and when would you use them?
+**Answer:**
+Metaclasses are "classes that create classes" - they define how classes are constructed.
+
+```python
+class SingletonMeta(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class Database(metaclass=SingletonMeta):
+    def __init__(self):
+        self.connection = "Connected"
+
+# Usage
+db1 = Database()
+db2 = Database()
+print(db1 is db2)  # True
+```
+
+### 29. How does Python's import system work?
+**Answer:**
+Python's import system involves:
+1. **Module Search**: sys.path directories
+2. **Module Loading**: Compile .py to bytecode
+3. **Module Caching**: Store in sys.modules
+4. **Namespace Creation**: Execute module code
+
+### 30. What are descriptors and how do they work?
+**Answer:**
+Descriptors define how attribute access is handled through `__get__`, `__set__`, and `__delete__` methods.
+
+```python
+class ValidatedAttribute:
+    def __init__(self, validator):
+        self.validator = validator
+        self.name = None
+    
+    def __set_name__(self, owner, name):
+        self.name = name
+    
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return obj.__dict__.get(self.name)
+    
+    def __set__(self, obj, value):
+        if not self.validator(value):
+            raise ValueError(f"Invalid value for {self.name}")
+        obj.__dict__[self.name] = value
+
+class Person:
+    age = ValidatedAttribute(lambda x: isinstance(x, int) and x >= 0)
+```
+
+---
+
+## 🏢 **System Design & Architecture Questions**
+
+### 31. How would you design a scalable data processing system using Python?
+**Answer:**
+**Architecture Components:**
+- **Message Queue**: Redis/RabbitMQ for task distribution
+- **Worker Processes**: Celery for distributed processing
+- **Data Storage**: PostgreSQL + Redis for caching
+- **API Layer**: FastAPI for REST endpoints
+- **Monitoring**: Prometheus + Grafana
+
+### 32. Explain different Python deployment strategies
+**Answer:**
+**Deployment Options:**
+- **Traditional**: Virtual environments + systemd
+- **Containerized**: Docker + Kubernetes
+- **Serverless**: AWS Lambda, Google Cloud Functions
+- **Platform-as-a-Service**: Heroku, Google App Engine
+
+### 33. How do you handle configuration management in Python applications?
+**Answer:**
+```python
+# Using environment variables and config classes
+import os
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class DatabaseConfig:
+    host: str = os.getenv('DB_HOST', 'localhost')
+    port: int = int(os.getenv('DB_PORT', '5432'))
+    username: str = os.getenv('DB_USER', 'postgres')
+    password: str = os.getenv('DB_PASSWORD', '')
+    database: str = os.getenv('DB_NAME', 'myapp')
+    
+    @property
+    def connection_string(self) -> str:
+        return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
+
+@dataclass
+class AppConfig:
+    debug: bool = os.getenv('DEBUG', 'False').lower() == 'true'
+    secret_key: str = os.getenv('SECRET_KEY', 'dev-key')
+    database: DatabaseConfig = DatabaseConfig()
+    redis_url: str = os.getenv('REDIS_URL', 'redis://localhost:6379')
+```
+
+---
+
+## 🔍 **Debugging & Troubleshooting Questions**
+
+### 34. How do you debug memory leaks in Python applications?
+**Answer:**
+**Tools and Techniques:**
+- **memory_profiler**: Line-by-line memory usage
+- **tracemalloc**: Built-in memory tracking
+- **objgraph**: Object reference tracking
+- **gc module**: Garbage collection analysis
+
+```python
+import tracemalloc
+import gc
+
+# Start tracing
+tracemalloc.start()
+
+# Your code here
+data = [i for i in range(1000000)]
+
+# Get memory usage
+current, peak = tracemalloc.get_traced_memory()
+print(f"Current memory usage: {current / 1024 / 1024:.1f} MB")
+print(f"Peak memory usage: {peak / 1024 / 1024:.1f} MB")
+
+# Check for circular references
+print(f"Garbage collection stats: {gc.get_stats()}")
+```
+
+### 35. What are common Python performance bottlenecks and solutions?
+**Answer:**
+**Common Bottlenecks:**
+1. **String Concatenation**: Use join() instead of +=
+2. **List Operations**: Use list comprehensions, avoid repeated append()
+3. **Dictionary Lookups**: Use defaultdict, consider sets for membership
+4. **Function Calls**: Minimize function call overhead
+5. **I/O Operations**: Use async/await, connection pooling
+
+---
+
+## 🧪 **Testing & Quality Assurance Questions**
+
+### 36. How do you implement comprehensive testing strategies in Python?
+**Answer:**
+**Testing Pyramid:**
+- **Unit Tests**: Test individual functions/methods
+- **Integration Tests**: Test component interactions
+- **End-to-End Tests**: Test complete workflows
+- **Performance Tests**: Load and stress testing
+
+```python
+import pytest
+from unittest.mock import Mock, patch
+
+class TestDataProcessor:
+    @pytest.fixture
+    def sample_data(self):
+        return [{'id': 1, 'value': 100}, {'id': 2, 'value': 200}]
+    
+    def test_process_data_success(self, sample_data):
+        processor = DataProcessor()
+        result = processor.process(sample_data)
+        assert len(result) == 2
+        assert result[0]['processed'] == True
+    
+    @patch('requests.get')
+    def test_api_call_with_mock(self, mock_get):
+        mock_get.return_value.json.return_value = {'status': 'success'}
+        result = fetch_data_from_api('http://example.com')
+        assert result['status'] == 'success'
+    
+    def test_error_handling(self):
+        processor = DataProcessor()
+        with pytest.raises(ValueError):
+            processor.process(None)
+```
+
+### 37. How do you ensure code quality in Python projects?
+**Answer:**
+**Code Quality Tools:**
+- **Linting**: pylint, flake8, black (formatting)
+- **Type Checking**: mypy, pyright
+- **Security**: bandit, safety
+- **Complexity**: radon, mccabe
+- **Documentation**: pydocstyle
+
+---
+
+## 🌐 **Integration & API Questions**
+
+### 38. How do you design and implement RESTful APIs in Python?
+**Answer:**
+```python
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
+from typing import List, Optional
+
+app = FastAPI(title="Data API", version="1.0.0")
+
+class DataModel(BaseModel):
+    id: int
+    name: str
+    value: float
+    category: Optional[str] = None
+
+class DataResponse(BaseModel):
+    data: List[DataModel]
+    total: int
+    page: int
+    per_page: int
+
+@app.get("/data", response_model=DataResponse)
+async def get_data(
+    page: int = 1,
+    per_page: int = 10,
+    category: Optional[str] = None
+):
+    # Implement pagination and filtering
+    filtered_data = filter_data(category) if category else get_all_data()
+    paginated_data = paginate(filtered_data, page, per_page)
+    
+    return DataResponse(
+        data=paginated_data,
+        total=len(filtered_data),
+        page=page,
+        per_page=per_page
+    )
+
+@app.post("/data", response_model=DataModel)
+async def create_data(data: DataModel):
+    # Validate and create data
+    created_data = create_data_record(data)
+    return created_data
+```
+
+### 39. How do you handle authentication and authorization in Python web applications?
+**Answer:**
+```python
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+security = HTTPBearer()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return username
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+def require_role(required_role: str):
+    def role_checker(current_user: str = Depends(verify_token)):
+        user_roles = get_user_roles(current_user)
+        if required_role not in user_roles:
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        return current_user
+    return role_checker
+
+@app.get("/admin/data")
+async def admin_only_endpoint(current_user: str = Depends(require_role("admin"))):
+    return {"message": "Admin access granted", "user": current_user}
+```
+
+---
+
+## 📊 **Data Engineering Specific Scenarios**
+
+### 40. How would you implement a real-time data pipeline monitoring system?
+**Answer:**
+```python
+import asyncio
+import logging
+from datetime import datetime
+from typing import Dict, List, Any
+from dataclasses import dataclass
+from enum import Enum
+
+class PipelineStatus(Enum):
+    RUNNING = "running"
+    FAILED = "failed"
+    COMPLETED = "completed"
+    PAUSED = "paused"
+
+@dataclass
+class PipelineMetrics:
+    pipeline_id: str
+    status: PipelineStatus
+    records_processed: int
+    records_failed: int
+    processing_rate: float  # records per second
+    last_updated: datetime
+    error_message: str = None
+
+class PipelineMonitor:
+    def __init__(self):
+        self.pipelines: Dict[str, PipelineMetrics] = {}
+        self.alerts = []
+        self.logger = logging.getLogger(__name__)
+    
+    async def monitor_pipeline(self, pipeline_id: str):
+        """Monitor a specific pipeline"""
+        while True:
+            try:
+                metrics = await self.collect_metrics(pipeline_id)
+                self.pipelines[pipeline_id] = metrics
+                
+                # Check for alerts
+                await self.check_alerts(metrics)
+                
+                await asyncio.sleep(30)  # Check every 30 seconds
+                
+            except Exception as e:
+                self.logger.error(f"Error monitoring pipeline {pipeline_id}: {e}")
+                await asyncio.sleep(60)  # Wait longer on error
+    
+    async def collect_metrics(self, pipeline_id: str) -> PipelineMetrics:
+        """Collect metrics from pipeline"""
+        # Implementation would connect to actual pipeline
+        # This is a mock implementation
+        return PipelineMetrics(
+            pipeline_id=pipeline_id,
+            status=PipelineStatus.RUNNING,
+            records_processed=1000,
+            records_failed=5,
+            processing_rate=50.0,
+            last_updated=datetime.now()
+        )
+    
+    async def check_alerts(self, metrics: PipelineMetrics):
+        """Check for alert conditions"""
+        # High error rate
+        if metrics.records_failed > 0:
+            error_rate = metrics.records_failed / (metrics.records_processed + metrics.records_failed)
+            if error_rate > 0.05:  # 5% error rate threshold
+                await self.send_alert(f"High error rate in {metrics.pipeline_id}: {error_rate:.2%}")
+        
+        # Low processing rate
+        if metrics.processing_rate < 10.0:  # Less than 10 records/second
+            await self.send_alert(f"Low processing rate in {metrics.pipeline_id}: {metrics.processing_rate} rec/sec")
+        
+        # Pipeline failure
+        if metrics.status == PipelineStatus.FAILED:
+            await self.send_alert(f"Pipeline {metrics.pipeline_id} failed: {metrics.error_message}")
+    
+    async def send_alert(self, message: str):
+        """Send alert notification"""
+        self.alerts.append({
+            'timestamp': datetime.now(),
+            'message': message,
+            'severity': 'high'
+        })
+        self.logger.warning(f"ALERT: {message}")
+        # Could integrate with Slack, email, PagerDuty, etc.
+```
+
+### 41. How do you implement data lineage tracking in Python?
+**Answer:**
+```python
+from typing import Dict, List, Set
+from dataclasses import dataclass, field
+from datetime import datetime
+import json
+
+@dataclass
+class DataAsset:
+    name: str
+    asset_type: str  # table, file, api, etc.
+    location: str
+    schema: Dict[str, str] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class DataTransformation:
+    transformation_id: str
+    name: str
+    inputs: List[DataAsset]
+    outputs: List[DataAsset]
+    transformation_logic: str
+    timestamp: datetime
+    owner: str
+
+class DataLineageTracker:
+    def __init__(self):
+        self.assets: Dict[str, DataAsset] = {}
+        self.transformations: Dict[str, DataTransformation] = {}
+        self.lineage_graph: Dict[str, Set[str]] = {}  # asset -> dependent assets
+    
+    def register_asset(self, asset: DataAsset):
+        """Register a data asset"""
+        self.assets[asset.name] = asset
+        if asset.name not in self.lineage_graph:
+            self.lineage_graph[asset.name] = set()
+    
+    def register_transformation(self, transformation: DataTransformation):
+        """Register a data transformation"""
+        self.transformations[transformation.transformation_id] = transformation
+        
+        # Update lineage graph
+        for input_asset in transformation.inputs:
+            for output_asset in transformation.outputs:
+                self.lineage_graph[input_asset.name].add(output_asset.name)
+    
+    def get_upstream_dependencies(self, asset_name: str) -> Set[str]:
+        """Get all upstream dependencies of an asset"""
+        dependencies = set()
+        
+        def traverse_upstream(current_asset):
+            for transformation in self.transformations.values():
+                for output in transformation.outputs:
+                    if output.name == current_asset:
+                        for input_asset in transformation.inputs:
+                            if input_asset.name not in dependencies:
+                                dependencies.add(input_asset.name)
+                                traverse_upstream(input_asset.name)
+        
+        traverse_upstream(asset_name)
+        return dependencies
+    
+    def get_downstream_dependencies(self, asset_name: str) -> Set[str]:
+        """Get all downstream dependencies of an asset"""
+        dependencies = set()
+        
+        def traverse_downstream(current_asset):
+            if current_asset in self.lineage_graph:
+                for dependent in self.lineage_graph[current_asset]:
+                    if dependent not in dependencies:
+                        dependencies.add(dependent)
+                        traverse_downstream(dependent)
+        
+        traverse_downstream(asset_name)
+        return dependencies
+    
+    def get_impact_analysis(self, asset_name: str) -> Dict[str, Any]:
+        """Analyze impact of changes to an asset"""
+        return {
+            'asset': asset_name,
+            'upstream_dependencies': list(self.get_upstream_dependencies(asset_name)),
+            'downstream_dependencies': list(self.get_downstream_dependencies(asset_name)),
+            'transformations_affected': [
+                t.transformation_id for t in self.transformations.values()
+                if any(inp.name == asset_name for inp in t.inputs) or
+                   any(out.name == asset_name for out in t.outputs)
+            ]
+        }
+    
+    def export_lineage(self) -> str:
+        """Export lineage as JSON"""
+        lineage_data = {
+            'assets': {name: {
+                'name': asset.name,
+                'type': asset.asset_type,
+                'location': asset.location,
+                'schema': asset.schema,
+                'metadata': asset.metadata
+            } for name, asset in self.assets.items()},
+            'transformations': {tid: {
+                'id': t.transformation_id,
+                'name': t.name,
+                'inputs': [inp.name for inp in t.inputs],
+                'outputs': [out.name for out in t.outputs],
+                'logic': t.transformation_logic,
+                'timestamp': t.timestamp.isoformat(),
+                'owner': t.owner
+            } for tid, t in self.transformations.items()}
+        }
+        return json.dumps(lineage_data, indent=2)
+```
+
+---
+
 ## Key Takeaways
 
-1. **SQL-First Approach**: DBT enables analytics engineering using familiar SQL syntax
-2. **Version Control**: Git-based workflow brings software engineering practices to data
-3. **Testing Framework**: Comprehensive testing ensures data quality and business logic
-4. **Documentation**: Automatic documentation generation improves data discovery
-5. **Incremental Processing**: Efficient handling of large datasets with incremental models
-6. **Environment Management**: Consistent deployment across dev, staging, and production
-7. **Macro System**: Reusable SQL logic through Jinja templating
-8. **Lineage Tracking**: Visual representation of data dependencies and transformations
-9. **Advanced Macros**: Complex business logic and cross-database compatibility
-10. **Package Management**: Reusable components and dependency management
-11. **CI/CD Integration**: Automated testing and deployment pipelines
-12. **Data Quality**: Comprehensive testing and monitoring frameworks
-13. **Multiprocessing**: Bypass GIL for CPU-intensive tasks
-14. **Memory Efficiency**: Generators and iterators for large datasets
-15. **Thread Safety**: Concurrent programming with proper synchronization
-16. **Data Validation**: Schema enforcement and quality assurance
-```
+1. **Language Fundamentals**: Deep understanding of Python's object model and design principles
+2. **Performance Optimization**: Memory management, profiling, and bottleneck identification
+3. **Concurrency**: Threading, multiprocessing, and async programming patterns
+4. **Testing Strategy**: Comprehensive testing pyramid with proper mocking and fixtures
+5. **Code Quality**: Linting, type checking, and automated quality assurance
+6. **API Design**: RESTful services with proper authentication and authorization
+7. **System Architecture**: Scalable design patterns and deployment strategies
+8. **Data Engineering**: Pipeline monitoring, lineage tracking, and quality assurance
+9. **Debugging Skills**: Memory leak detection and performance troubleshooting
+10. **Integration**: Database connections, external APIs, and service communication
+11. **Configuration Management**: Environment-based configuration and secrets handling
+12. **Error Handling**: Comprehensive exception handling and recovery strategies
+13. **Documentation**: Code documentation and API specification
+14. **Security**: Authentication, authorization, and secure coding practices
+15. **Monitoring**: Application metrics, logging, and alerting systems
+16. **Data Validation**: Schema enforcement and data quality checks
