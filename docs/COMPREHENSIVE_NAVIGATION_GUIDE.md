@@ -53,7 +53,7 @@
 
 | Category | Technology | Type | Priority | Interview Questions | Key Concepts | Best Practices | Status |
 |----------|------------|------|----------|-------------------|--------------|----------------|---------|
-| **Programming** | Python | Language | 🥇 Essential | [📋](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Programming-Languages/Python/) | [📄](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_BEST_PRACTICES.md) | ⚠️ 21 Q |
+| **Programming** | Python | Language | 🥇 Essential | [📋](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Programming-Languages/Python/) | [📄](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_BEST_PRACTICES.md) | ✅ 35+ Q |
 | **Programming** | SQL | Language | 🥇 Essential | [📋](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [📄](./Core-Data-Engineering/Programming-Languages/SQL/) | [📄](./Core-Data-Engineering/Programming-Languages/SQL/SQL_BEST_PRACTICES.md) | ✅ 35+ Q |
 | **Programming** | PySpark | Framework | 🥇 Essential | [📋](./Core-Data-Engineering/Programming-Languages/PySpark/) | [📄](./Core-Data-Engineering/Programming-Languages/PySpark/) | [📄](./Core-Data-Engineering/Programming-Languages/PySpark/) | ✅ 27+ Q |
 | **Cloud** | AWS | Platform | 🥇 Essential | [📋](./Core-Data-Engineering/Cloud/AWS/) | [📄](./Core-Data-Engineering/Cloud/AWS/) | [📄](./Core-Data-Engineering/Cloud/AWS/) | ✅ 35+ Q |

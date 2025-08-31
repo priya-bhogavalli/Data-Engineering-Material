@@ -1684,3 +1684,1348 @@ result = pipeline.run("hello world")
 metrics = pipeline.get_metrics()
 print(f"Success rate: {metrics.success_rate:.2%}")
 ```
+
+### 22. How do you implement multiprocessing for CPU-intensive data processing tasks?
+
+**Answer:**
+Multiprocessing bypasses the GIL limitation and enables true parallelism for CPU-bound tasks, essential for large-scale data processing.
+
+**Code Example:**
+```python
+import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import time
+import numpy as np
+from typing import List, Tuple, Any
+import os
+
+def cpu_intensive_task(data_chunk: List[int]) -> Tuple[int, float, int]:
+    """Simulate CPU-intensive data processing.
+    
+    Args:
+        data_chunk: List of integers to process
+        
+    Returns:
+        Tuple of (sum, mean, max) of the chunk
+    """
+    # Simulate heavy computation
+    result_sum = sum(x ** 2 for x in data_chunk)
+    result_mean = sum(data_chunk) / len(data_chunk) if data_chunk else 0
+    result_max = max(data_chunk) if data_chunk else 0
+    
+    return result_sum, result_mean, result_max
+
+def process_large_dataset_multiprocessing(data: List[int], num_processes: int = None) -> dict:
+    """Process large dataset using multiprocessing.
+    
+    Args:
+        data: Large list of integers
+        num_processes: Number of processes to use (default: CPU count)
+        
+    Returns:
+        Dictionary with aggregated results
+    """
+    if num_processes is None:
+        num_processes = mp.cpu_count()
+    
+    # Split data into chunks
+    chunk_size = len(data) // num_processes
+    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+    
+    start_time = time.time()
+    
+    # Process chunks in parallel
+    with ProcessPoolExecutor(max_workers=num_processes) as executor:
+        # Submit all tasks
+        future_to_chunk = {executor.submit(cpu_intensive_task, chunk): i 
+                          for i, chunk in enumerate(chunks)}
+        
+        results = []
+        for future in as_completed(future_to_chunk):
+            chunk_idx = future_to_chunk[future]
+            try:
+                result = future.result()
+                results.append((chunk_idx, result))
+            except Exception as e:
+                print(f"Chunk {chunk_idx} generated an exception: {e}")
+    
+    # Aggregate results
+    total_sum = sum(result[1][0] for result in results)
+    total_mean = sum(result[1][1] for result in results) / len(results)
+    total_max = max(result[1][2] for result in results)
+    
+    end_time = time.time()
+    
+    return {
+        'total_sum': total_sum,
+        'average_mean': total_mean,
+        'global_max': total_max,
+        'processing_time': end_time - start_time,
+        'num_processes': num_processes,
+        'chunks_processed': len(results)
+    }
+
+# Shared memory example for large arrays
+def process_numpy_array_shared_memory(array_size: int = 10000000) -> dict:
+    """Process large NumPy array using shared memory."""
+    
+    def worker_function(shared_array, start_idx, end_idx, result_queue):
+        """Worker function that processes part of shared array."""
+        # Convert shared memory to numpy array
+        np_array = np.frombuffer(shared_array.get_obj(), dtype=np.float64)
+        
+        # Process assigned slice
+        slice_data = np_array[start_idx:end_idx]
+        result = {
+            'worker_id': os.getpid(),
+            'start_idx': start_idx,
+            'end_idx': end_idx,
+            'sum': np.sum(slice_data),
+            'mean': np.mean(slice_data),
+            'std': np.std(slice_data)
+        }
+        result_queue.put(result)
+    
+    # Create shared memory array
+    shared_array = mp.Array('d', array_size)  # 'd' for double (float64)
+    
+    # Initialize with random data
+    np_array = np.frombuffer(shared_array.get_obj(), dtype=np.float64)
+    np_array[:] = np.random.random(array_size)
+    
+    # Create processes
+    num_processes = mp.cpu_count()
+    chunk_size = array_size // num_processes
+    processes = []
+    result_queue = mp.Queue()
+    
+    start_time = time.time()
+    
+    # Start worker processes
+    for i in range(num_processes):
+        start_idx = i * chunk_size
+        end_idx = start_idx + chunk_size if i < num_processes - 1 else array_size
+        
+        process = mp.Process(
+            target=worker_function,
+            args=(shared_array, start_idx, end_idx, result_queue)
+        )
+        processes.append(process)
+        process.start()
+    
+    # Collect results
+    results = []
+    for _ in range(num_processes):
+        results.append(result_queue.get())
+    
+    # Wait for all processes to complete
+    for process in processes:
+        process.join()
+    
+    end_time = time.time()
+    
+    # Aggregate results
+    total_sum = sum(r['sum'] for r in results)
+    weighted_mean = sum(r['mean'] * (r['end_idx'] - r['start_idx']) for r in results) / array_size
+    
+    return {
+        'array_size': array_size,
+        'total_sum': total_sum,
+        'weighted_mean': weighted_mean,
+        'processing_time': end_time - start_time,
+        'num_processes': num_processes,
+        'worker_results': results
+    }
+
+# Performance comparison
+def compare_processing_methods(data_size: int = 1000000):
+    """Compare single-threaded vs multiprocessing performance."""
+    data = list(range(data_size))
+    
+    # Single-threaded processing
+    start_time = time.time()
+    single_result = cpu_intensive_task(data)
+    single_time = time.time() - start_time
+    
+    # Multiprocessing
+    multi_result = process_large_dataset_multiprocessing(data)
+    multi_time = multi_result['processing_time']
+    
+    print(f"Data size: {data_size:,}")
+    print(f"Single-threaded time: {single_time:.2f}s")
+    print(f"Multiprocessing time: {multi_time:.2f}s")
+    print(f"Speedup: {single_time / multi_time:.2f}x")
+    print(f"Efficiency: {(single_time / multi_time) / mp.cpu_count() * 100:.1f}%")
+
+if __name__ == "__main__":
+    # Example usage
+    compare_processing_methods(1000000)
+    
+    # Shared memory example
+    shared_result = process_numpy_array_shared_memory(5000000)
+    print(f"\nShared memory processing completed in {shared_result['processing_time']:.2f}s")
+```
+
+### 23. How do you implement custom iterators and generators for memory-efficient data processing?
+
+**Answer:**
+Custom iterators and generators enable processing of large datasets without loading everything into memory, crucial for big data applications.
+
+**Code Example:**
+```python
+from typing import Iterator, Generator, Any, Optional
+import csv
+import json
+import gzip
+from pathlib import Path
+
+class DataFileIterator:
+    """Custom iterator for processing large data files line by line."""
+    
+    def __init__(self, file_path: str, file_type: str = 'csv', 
+                 chunk_size: int = 1024, encoding: str = 'utf-8'):
+        """Initialize file iterator.
+        
+        Args:
+            file_path: Path to the data file
+            file_type: Type of file ('csv', 'json', 'txt')
+            chunk_size: Size of chunks to read
+            encoding: File encoding
+        """
+        self.file_path = Path(file_path)
+        self.file_type = file_type.lower()
+        self.chunk_size = chunk_size
+        self.encoding = encoding
+        self._file_handle = None
+        self._reader = None
+        self._current_line = 0
+    
+    def __iter__(self) -> Iterator:
+        """Return iterator object."""
+        return self
+    
+    def __next__(self) -> dict:
+        """Get next item from file."""
+        if self._file_handle is None:
+            self._open_file()
+        
+        try:
+            if self.file_type == 'csv':
+                row = next(self._reader)
+                self._current_line += 1
+                return dict(row)
+            elif self.file_type == 'json':
+                line = next(self._file_handle)
+                self._current_line += 1
+                return json.loads(line.strip())
+            else:  # txt
+                line = next(self._file_handle)
+                self._current_line += 1
+                return {'line_number': self._current_line, 'content': line.strip()}
+                
+        except StopIteration:
+            self._close_file()
+            raise StopIteration
+    
+    def _open_file(self):
+        """Open file with appropriate handler."""
+        if self.file_path.suffix == '.gz':
+            self._file_handle = gzip.open(self.file_path, 'rt', encoding=self.encoding)
+        else:
+            self._file_handle = open(self.file_path, 'r', encoding=self.encoding)
+        
+        if self.file_type == 'csv':
+            self._reader = csv.DictReader(self._file_handle)
+    
+    def _close_file(self):
+        """Close file handle."""
+        if self._file_handle:
+            self._file_handle.close()
+            self._file_handle = None
+            self._reader = None
+    
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self._close_file()
+
+def batch_generator(iterable: Iterator, batch_size: int) -> Generator[list, None, None]:
+    """Generate batches from an iterable.
+    
+    Args:
+        iterable: Input iterable
+        batch_size: Size of each batch
+        
+    Yields:
+        Lists of items with specified batch size
+    """
+    batch = []
+    for item in iterable:
+        batch.append(item)
+        if len(batch) >= batch_size:
+            yield batch
+            batch = []
+    
+    # Yield remaining items
+    if batch:
+        yield batch
+
+def sliding_window_generator(iterable: Iterator, window_size: int) -> Generator[list, None, None]:
+    """Generate sliding windows from an iterable.
+    
+    Args:
+        iterable: Input iterable
+        window_size: Size of sliding window
+        
+    Yields:
+        Lists representing sliding windows
+    """
+    window = []
+    for item in iterable:
+        window.append(item)
+        if len(window) > window_size:
+            window.pop(0)
+        if len(window) == window_size:
+            yield window.copy()
+
+class DataProcessor:
+    """Memory-efficient data processor using generators."""
+    
+    def __init__(self, batch_size: int = 1000):
+        self.batch_size = batch_size
+    
+    def filter_generator(self, data_iter: Iterator, 
+                        filter_func: callable) -> Generator[Any, None, None]:
+        """Filter data using generator.
+        
+        Args:
+            data_iter: Input data iterator
+            filter_func: Function to filter items
+            
+        Yields:
+            Filtered items
+        """
+        for item in data_iter:
+            if filter_func(item):
+                yield item
+    
+    def transform_generator(self, data_iter: Iterator, 
+                          transform_func: callable) -> Generator[Any, None, None]:
+        """Transform data using generator.
+        
+        Args:
+            data_iter: Input data iterator
+            transform_func: Function to transform items
+            
+        Yields:
+            Transformed items
+        """
+        for item in data_iter:
+            try:
+                transformed = transform_func(item)
+                yield transformed
+            except Exception as e:
+                print(f"Error transforming item {item}: {e}")
+                continue
+    
+    def aggregate_generator(self, data_iter: Iterator, 
+                          key_func: callable, 
+                          agg_func: callable) -> Generator[tuple, None, None]:
+        """Aggregate data using generator with grouping.
+        
+        Args:
+            data_iter: Input data iterator
+            key_func: Function to extract grouping key
+            agg_func: Function to aggregate values
+            
+        Yields:
+            Tuples of (key, aggregated_value)
+        """
+        current_key = None
+        current_group = []
+        
+        for item in data_iter:
+            key = key_func(item)
+            
+            if current_key is None:
+                current_key = key
+            
+            if key == current_key:
+                current_group.append(item)
+            else:
+                # Yield aggregated result for previous group
+                if current_group:
+                    yield current_key, agg_func(current_group)
+                
+                # Start new group
+                current_key = key
+                current_group = [item]
+        
+        # Yield final group
+        if current_group:
+            yield current_key, agg_func(current_group)
+    
+    def process_pipeline(self, file_path: str, 
+                        filter_func: Optional[callable] = None,
+                        transform_func: Optional[callable] = None,
+                        aggregate_key: Optional[callable] = None,
+                        aggregate_func: Optional[callable] = None) -> Generator:
+        """Complete processing pipeline using generators.
+        
+        Args:
+            file_path: Path to input file
+            filter_func: Optional filter function
+            transform_func: Optional transform function
+            aggregate_key: Optional aggregation key function
+            aggregate_func: Optional aggregation function
+            
+        Yields:
+            Processed data items
+        """
+        # Start with file iterator
+        data_iter = DataFileIterator(file_path, 'csv')
+        
+        # Apply filter if provided
+        if filter_func:
+            data_iter = self.filter_generator(data_iter, filter_func)
+        
+        # Apply transformation if provided
+        if transform_func:
+            data_iter = self.transform_generator(data_iter, transform_func)
+        
+        # Apply aggregation if provided
+        if aggregate_key and aggregate_func:
+            data_iter = self.aggregate_generator(data_iter, aggregate_key, aggregate_func)
+        
+        # Process in batches
+        for batch in batch_generator(data_iter, self.batch_size):
+            yield batch
+
+# Usage examples
+def example_usage():
+    """Demonstrate memory-efficient data processing."""
+    
+    # Example 1: Process large CSV file
+    def is_valid_record(record):
+        """Filter function to keep only valid records."""
+        return record.get('amount', 0) > 0
+    
+    def normalize_record(record):
+        """Transform function to normalize record."""
+        return {
+            'id': record.get('id', ''),
+            'amount': float(record.get('amount', 0)),
+            'category': record.get('category', '').upper()
+        }
+    
+    def get_category(record):
+        """Key function for aggregation."""
+        return record['category']
+    
+    def sum_amounts(records):
+        """Aggregation function to sum amounts."""
+        return sum(record['amount'] for record in records)
+    
+    # Create processor
+    processor = DataProcessor(batch_size=1000)
+    
+    # Process data pipeline
+    print("Processing data pipeline...")
+    batch_count = 0
+    total_records = 0
+    
+    try:
+        for batch in processor.process_pipeline(
+            'large_data.csv',
+            filter_func=is_valid_record,
+            transform_func=normalize_record,
+            aggregate_key=get_category,
+            aggregate_func=sum_amounts
+        ):
+            batch_count += 1
+            total_records += len(batch)
+            
+            # Process batch (e.g., save to database)
+            print(f"Processed batch {batch_count} with {len(batch)} records")
+            
+            # Show sample of first batch
+            if batch_count == 1:
+                print(f"Sample data: {batch[:3]}")
+    
+    except FileNotFoundError:
+        print("Demo file not found, creating sample data...")
+        
+        # Create sample data generator
+        def sample_data_generator(num_records: int = 10000):
+            """Generate sample data for demonstration."""
+            import random
+            categories = ['A', 'B', 'C', 'D']
+            
+            for i in range(num_records):
+                yield {
+                    'id': f'ID_{i:06d}',
+                    'amount': random.uniform(10, 1000),
+                    'category': random.choice(categories)
+                }
+        
+        # Process sample data
+        sample_iter = sample_data_generator(10000)
+        filtered_iter = processor.filter_generator(sample_iter, is_valid_record)
+        transformed_iter = processor.transform_generator(filtered_iter, normalize_record)
+        
+        # Process in batches
+        for i, batch in enumerate(batch_generator(transformed_iter, 1000)):
+            print(f"Sample batch {i+1}: {len(batch)} records")
+            if i >= 2:  # Process only first 3 batches for demo
+                break
+    
+    print(f"\nTotal batches processed: {batch_count}")
+    print(f"Total records processed: {total_records}")
+
+if __name__ == "__main__":
+    example_usage()
+```
+
+### 24. How do you implement thread-safe data structures and handle concurrency?
+
+**Answer:**
+Thread-safe data structures prevent race conditions in multi-threaded environments, essential for concurrent data processing applications.
+
+**Code Example:**
+```python
+import threading
+import queue
+import time
+from typing import Any, Optional, Dict, List
+from collections import defaultdict, deque
+from contextlib import contextmanager
+import weakref
+
+class ThreadSafeCounter:
+    """Thread-safe counter with atomic operations."""
+    
+    def __init__(self, initial_value: int = 0):
+        self._value = initial_value
+        self._lock = threading.RLock()  # Reentrant lock
+    
+    def increment(self, amount: int = 1) -> int:
+        """Atomically increment counter."""
+        with self._lock:
+            self._value += amount
+            return self._value
+    
+    def decrement(self, amount: int = 1) -> int:
+        """Atomically decrement counter."""
+        with self._lock:
+            self._value -= amount
+            return self._value
+    
+    def get(self) -> int:
+        """Get current value."""
+        with self._lock:
+            return self._value
+    
+    def set(self, value: int) -> None:
+        """Set counter value."""
+        with self._lock:
+            self._value = value
+    
+    def compare_and_swap(self, expected: int, new_value: int) -> bool:
+        """Atomic compare and swap operation."""
+        with self._lock:
+            if self._value == expected:
+                self._value = new_value
+                return True
+            return False
+
+class ThreadSafeDict:
+    """Thread-safe dictionary wrapper."""
+    
+    def __init__(self):
+        self._dict = {}
+        self._lock = threading.RWLock() if hasattr(threading, 'RWLock') else threading.RLock()
+    
+    def get(self, key: Any, default: Any = None) -> Any:
+        """Thread-safe get operation."""
+        with self._lock:
+            return self._dict.get(key, default)
+    
+    def set(self, key: Any, value: Any) -> None:
+        """Thread-safe set operation."""
+        with self._lock:
+            self._dict[key] = value
+    
+    def update(self, other: Dict[Any, Any]) -> None:
+        """Thread-safe update operation."""
+        with self._lock:
+            self._dict.update(other)
+    
+    def pop(self, key: Any, default: Any = None) -> Any:
+        """Thread-safe pop operation."""
+        with self._lock:
+            return self._dict.pop(key, default)
+    
+    def keys(self) -> List[Any]:
+        """Get snapshot of keys."""
+        with self._lock:
+            return list(self._dict.keys())
+    
+    def items(self) -> List[tuple]:
+        """Get snapshot of items."""
+        with self._lock:
+            return list(self._dict.items())
+    
+    def __len__(self) -> int:
+        with self._lock:
+            return len(self._dict)
+
+class ThreadSafeQueue:
+    """Enhanced thread-safe queue with additional features."""
+    
+    def __init__(self, maxsize: int = 0):
+        self._queue = queue.Queue(maxsize=maxsize)
+        self._stats_lock = threading.Lock()
+        self._total_items_added = 0
+        self._total_items_removed = 0
+    
+    def put(self, item: Any, block: bool = True, timeout: Optional[float] = None) -> None:
+        """Put item in queue with statistics tracking."""
+        self._queue.put(item, block=block, timeout=timeout)
+        with self._stats_lock:
+            self._total_items_added += 1
+    
+    def get(self, block: bool = True, timeout: Optional[float] = None) -> Any:
+        """Get item from queue with statistics tracking."""
+        item = self._queue.get(block=block, timeout=timeout)
+        with self._stats_lock:
+            self._total_items_removed += 1
+        return item
+    
+    def qsize(self) -> int:
+        """Get approximate queue size."""
+        return self._queue.qsize()
+    
+    def empty(self) -> bool:
+        """Check if queue is empty."""
+        return self._queue.empty()
+    
+    def full(self) -> bool:
+        """Check if queue is full."""
+        return self._queue.full()
+    
+    def get_stats(self) -> Dict[str, int]:
+        """Get queue statistics."""
+        with self._stats_lock:
+            return {
+                'current_size': self.qsize(),
+                'total_added': self._total_items_added,
+                'total_removed': self._total_items_removed,
+                'net_items': self._total_items_added - self._total_items_removed
+            }
+
+class ConnectionPool:
+    """Thread-safe connection pool for database connections."""
+    
+    def __init__(self, create_connection_func: callable, 
+                 max_connections: int = 10, 
+                 timeout: float = 30.0):
+        """Initialize connection pool.
+        
+        Args:
+            create_connection_func: Function to create new connections
+            max_connections: Maximum number of connections in pool
+            timeout: Timeout for getting connections
+        """
+        self._create_connection = create_connection_func
+        self._max_connections = max_connections
+        self._timeout = timeout
+        self._pool = queue.Queue(maxsize=max_connections)
+        self._created_connections = 0
+        self._lock = threading.Lock()
+        self._active_connections = weakref.WeakSet()
+    
+    def get_connection(self):
+        """Get connection from pool or create new one."""
+        try:
+            # Try to get existing connection
+            connection = self._pool.get(block=False)
+            return self._wrap_connection(connection)
+        except queue.Empty:
+            # Create new connection if under limit
+            with self._lock:
+                if self._created_connections < self._max_connections:
+                    connection = self._create_connection()
+                    self._created_connections += 1
+                    return self._wrap_connection(connection)
+            
+            # Wait for available connection
+            connection = self._pool.get(timeout=self._timeout)
+            return self._wrap_connection(connection)
+    
+    def _wrap_connection(self, connection):
+        """Wrap connection to automatically return to pool."""
+        class PooledConnection:
+            def __init__(self, conn, pool):
+                self._conn = conn
+                self._pool = pool
+                self._returned = False
+            
+            def __getattr__(self, name):
+                return getattr(self._conn, name)
+            
+            def close(self):
+                if not self._returned:
+                    self._pool._return_connection(self._conn)
+                    self._returned = True
+            
+            def __enter__(self):
+                return self
+            
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                self.close()
+        
+        wrapped = PooledConnection(connection, self)
+        self._active_connections.add(wrapped)
+        return wrapped
+    
+    def _return_connection(self, connection):
+        """Return connection to pool."""
+        try:
+            self._pool.put(connection, block=False)
+        except queue.Full:
+            # Pool is full, close connection
+            if hasattr(connection, 'close'):
+                connection.close()
+            with self._lock:
+                self._created_connections -= 1
+    
+    def get_stats(self) -> Dict[str, int]:
+        """Get pool statistics."""
+        return {
+            'pool_size': self._pool.qsize(),
+            'created_connections': self._created_connections,
+            'max_connections': self._max_connections,
+            'active_connections': len(self._active_connections)
+        }
+
+# Producer-Consumer pattern with thread safety
+class ProducerConsumerSystem:
+    """Thread-safe producer-consumer system for data processing."""
+    
+    def __init__(self, queue_size: int = 100, num_consumers: int = 3):
+        self.queue = ThreadSafeQueue(maxsize=queue_size)
+        self.num_consumers = num_consumers
+        self.running = threading.Event()
+        self.running.set()
+        self.consumers = []
+        self.producer_thread = None
+        self.stats = ThreadSafeCounter()
+    
+    def producer(self, data_generator: callable):
+        """Producer function that generates data."""
+        try:
+            for item in data_generator():
+                if not self.running.is_set():
+                    break
+                
+                self.queue.put(item, timeout=1.0)
+                self.stats.increment()
+                
+        except queue.Full:
+            print("Queue is full, producer stopping")
+        except Exception as e:
+            print(f"Producer error: {e}")
+        finally:
+            # Signal end of data
+            for _ in range(self.num_consumers):
+                try:
+                    self.queue.put(None, timeout=1.0)  # Sentinel value
+                except queue.Full:
+                    pass
+    
+    def consumer(self, consumer_id: int, process_func: callable):
+        """Consumer function that processes data."""
+        processed_count = 0
+        
+        try:
+            while self.running.is_set():
+                try:
+                    item = self.queue.get(timeout=1.0)
+                    
+                    # Check for sentinel value
+                    if item is None:
+                        break
+                    
+                    # Process item
+                    result = process_func(item)
+                    processed_count += 1
+                    
+                    if processed_count % 100 == 0:
+                        print(f"Consumer {consumer_id} processed {processed_count} items")
+                        
+                except queue.Empty:
+                    continue
+                except Exception as e:
+                    print(f"Consumer {consumer_id} error: {e}")
+                    
+        finally:
+            print(f"Consumer {consumer_id} finished, processed {processed_count} items")
+    
+    def start(self, data_generator: callable, process_func: callable):
+        """Start producer-consumer system."""
+        # Start producer
+        self.producer_thread = threading.Thread(
+            target=self.producer,
+            args=(data_generator,)
+        )
+        self.producer_thread.start()
+        
+        # Start consumers
+        for i in range(self.num_consumers):
+            consumer_thread = threading.Thread(
+                target=self.consumer,
+                args=(i, process_func)
+            )
+            self.consumers.append(consumer_thread)
+            consumer_thread.start()
+    
+    def stop(self):
+        """Stop producer-consumer system."""
+        self.running.clear()
+        
+        # Wait for producer to finish
+        if self.producer_thread:
+            self.producer_thread.join(timeout=5.0)
+        
+        # Wait for consumers to finish
+        for consumer in self.consumers:
+            consumer.join(timeout=5.0)
+        
+        # Print final statistics
+        queue_stats = self.queue.get_stats()
+        print(f"Final stats: {queue_stats}")
+        print(f"Items produced: {self.stats.get()}")
+
+# Usage example
+def example_concurrent_processing():
+    """Demonstrate thread-safe concurrent processing."""
+    
+    def data_generator():
+        """Generate sample data."""
+        for i in range(1000):
+            yield {'id': i, 'value': i * 2, 'timestamp': time.time()}
+            time.sleep(0.001)  # Simulate data generation delay
+    
+    def process_item(item):
+        """Process individual item."""
+        # Simulate processing time
+        time.sleep(0.01)
+        return {
+            'processed_id': item['id'],
+            'result': item['value'] ** 2,
+            'processed_at': time.time()
+        }
+    
+    # Create and start system
+    system = ProducerConsumerSystem(queue_size=50, num_consumers=4)
+    
+    print("Starting producer-consumer system...")
+    system.start(data_generator, process_item)
+    
+    # Let it run for a while
+    time.sleep(5)
+    
+    # Stop system
+    print("Stopping system...")
+    system.stop()
+    
+    print("System stopped.")
+
+if __name__ == "__main__":
+    example_concurrent_processing()
+```
+
+### 25. How do you implement data validation and schema enforcement in Python?
+
+**Answer:**
+Data validation ensures data quality and consistency, critical for reliable data pipelines and analytics.
+
+**Code Example:**
+```python
+from typing import Any, Dict, List, Optional, Union, Type
+from dataclasses import dataclass, field
+from abc import ABC, abstractmethod
+from datetime import datetime, date
+import re
+import json
+from enum import Enum
+
+class ValidationError(Exception):
+    """Custom exception for validation errors."""
+    def __init__(self, field: str, value: Any, message: str):
+        self.field = field
+        self.value = value
+        self.message = message
+        super().__init__(f"Validation error for field '{field}': {message}")
+
+class ValidationResult:
+    """Result of validation operation."""
+    def __init__(self):
+        self.is_valid = True
+        self.errors: List[ValidationError] = []
+        self.warnings: List[str] = []
+    
+    def add_error(self, field: str, value: Any, message: str):
+        """Add validation error."""
+        self.is_valid = False
+        self.errors.append(ValidationError(field, value, message))
+    
+    def add_warning(self, message: str):
+        """Add validation warning."""
+        self.warnings.append(message)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert result to dictionary."""
+        return {
+            'is_valid': self.is_valid,
+            'errors': [{
+                'field': error.field,
+                'value': error.value,
+                'message': error.message
+            } for error in self.errors],
+            'warnings': self.warnings
+        }
+
+class Validator(ABC):
+    """Abstract base class for validators."""
+    
+    @abstractmethod
+    def validate(self, value: Any) -> ValidationResult:
+        """Validate a value."""
+        pass
+
+class TypeValidator(Validator):
+    """Validates data types."""
+    
+    def __init__(self, expected_type: Type, allow_none: bool = False):
+        self.expected_type = expected_type
+        self.allow_none = allow_none
+    
+    def validate(self, value: Any) -> ValidationResult:
+        result = ValidationResult()
+        
+        if value is None and self.allow_none:
+            return result
+        
+        if not isinstance(value, self.expected_type):
+            result.add_error(
+                'type_check',
+                value,
+                f"Expected {self.expected_type.__name__}, got {type(value).__name__}"
+            )
+        
+        return result
+
+class RangeValidator(Validator):
+    """Validates numeric ranges."""
+    
+    def __init__(self, min_value: Optional[Union[int, float]] = None,
+                 max_value: Optional[Union[int, float]] = None,
+                 inclusive: bool = True):
+        self.min_value = min_value
+        self.max_value = max_value
+        self.inclusive = inclusive
+    
+    def validate(self, value: Any) -> ValidationResult:
+        result = ValidationResult()
+        
+        if not isinstance(value, (int, float)):
+            result.add_error('range_check', value, "Value must be numeric")
+            return result
+        
+        if self.min_value is not None:
+            if self.inclusive and value < self.min_value:
+                result.add_error('range_check', value, f"Value must be >= {self.min_value}")
+            elif not self.inclusive and value <= self.min_value:
+                result.add_error('range_check', value, f"Value must be > {self.min_value}")
+        
+        if self.max_value is not None:
+            if self.inclusive and value > self.max_value:
+                result.add_error('range_check', value, f"Value must be <= {self.max_value}")
+            elif not self.inclusive and value >= self.max_value:
+                result.add_error('range_check', value, f"Value must be < {self.max_value}")
+        
+        return result
+
+class RegexValidator(Validator):
+    """Validates strings against regex patterns."""
+    
+    def __init__(self, pattern: str, flags: int = 0):
+        self.pattern = pattern
+        self.regex = re.compile(pattern, flags)
+    
+    def validate(self, value: Any) -> ValidationResult:
+        result = ValidationResult()
+        
+        if not isinstance(value, str):
+            result.add_error('regex_check', value, "Value must be a string")
+            return result
+        
+        if not self.regex.match(value):
+            result.add_error('regex_check', value, f"Value does not match pattern: {self.pattern}")
+        
+        return result
+
+class LengthValidator(Validator):
+    """Validates string/list length."""
+    
+    def __init__(self, min_length: Optional[int] = None,
+                 max_length: Optional[int] = None):
+        self.min_length = min_length
+        self.max_length = max_length
+    
+    def validate(self, value: Any) -> ValidationResult:
+        result = ValidationResult()
+        
+        if not hasattr(value, '__len__'):
+            result.add_error('length_check', value, "Value must have length")
+            return result
+        
+        length = len(value)
+        
+        if self.min_length is not None and length < self.min_length:
+            result.add_error('length_check', value, f"Length must be >= {self.min_length}")
+        
+        if self.max_length is not None and length > self.max_length:
+            result.add_error('length_check', value, f"Length must be <= {self.max_length}")
+        
+        return result
+
+class ChoiceValidator(Validator):
+    """Validates value is in allowed choices."""
+    
+    def __init__(self, choices: List[Any]):
+        self.choices = choices
+    
+    def validate(self, value: Any) -> ValidationResult:
+        result = ValidationResult()
+        
+        if value not in self.choices:
+            result.add_error('choice_check', value, f"Value must be one of: {self.choices}")
+        
+        return result
+
+class DateValidator(Validator):
+    """Validates date formats and ranges."""
+    
+    def __init__(self, date_format: str = '%Y-%m-%d',
+                 min_date: Optional[date] = None,
+                 max_date: Optional[date] = None):
+        self.date_format = date_format
+        self.min_date = min_date
+        self.max_date = max_date
+    
+    def validate(self, value: Any) -> ValidationResult:
+        result = ValidationResult()
+        
+        # Convert string to date if necessary
+        if isinstance(value, str):
+            try:
+                parsed_date = datetime.strptime(value, self.date_format).date()
+            except ValueError:
+                result.add_error('date_format', value, f"Invalid date format, expected: {self.date_format}")
+                return result
+        elif isinstance(value, datetime):
+            parsed_date = value.date()
+        elif isinstance(value, date):
+            parsed_date = value
+        else:
+            result.add_error('date_type', value, "Value must be a date, datetime, or date string")
+            return result
+        
+        # Check date range
+        if self.min_date and parsed_date < self.min_date:
+            result.add_error('date_range', value, f"Date must be >= {self.min_date}")
+        
+        if self.max_date and parsed_date > self.max_date:
+            result.add_error('date_range', value, f"Date must be <= {self.max_date}")
+        
+        return result
+
+@dataclass
+class FieldSchema:
+    """Schema definition for a single field."""
+    name: str
+    validators: List[Validator] = field(default_factory=list)
+    required: bool = True
+    default: Any = None
+    description: str = ""
+    
+    def validate(self, value: Any) -> ValidationResult:
+        """Validate field value against all validators."""
+        combined_result = ValidationResult()
+        
+        # Check if field is required
+        if value is None:
+            if self.required:
+                combined_result.add_error(self.name, value, "Field is required")
+                return combined_result
+            else:
+                return combined_result  # Optional field with None value is valid
+        
+        # Run all validators
+        for validator in self.validators:
+            result = validator.validate(value)
+            if not result.is_valid:
+                combined_result.is_valid = False
+                combined_result.errors.extend(result.errors)
+            combined_result.warnings.extend(result.warnings)
+        
+        return combined_result
+
+class DataSchema:
+    """Complete schema for data validation."""
+    
+    def __init__(self, name: str, fields: List[FieldSchema]):
+        self.name = name
+        self.fields = {field.name: field for field in fields}
+    
+    def validate(self, data: Dict[str, Any]) -> ValidationResult:
+        """Validate complete data record."""
+        combined_result = ValidationResult()
+        
+        # Check for unexpected fields
+        unexpected_fields = set(data.keys()) - set(self.fields.keys())
+        for field in unexpected_fields:
+            combined_result.add_warning(f"Unexpected field: {field}")
+        
+        # Validate each field
+        for field_name, field_schema in self.fields.items():
+            field_value = data.get(field_name)
+            
+            field_result = field_schema.validate(field_value)
+            if not field_result.is_valid:
+                combined_result.is_valid = False
+                combined_result.errors.extend(field_result.errors)
+            combined_result.warnings.extend(field_result.warnings)
+        
+        return combined_result
+    
+    def validate_batch(self, data_list: List[Dict[str, Any]]) -> List[ValidationResult]:
+        """Validate batch of records."""
+        return [self.validate(record) for record in data_list]
+    
+    def clean_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Clean data by applying defaults and removing invalid fields."""
+        cleaned = {}
+        
+        for field_name, field_schema in self.fields.items():
+            if field_name in data:
+                cleaned[field_name] = data[field_name]
+            elif field_schema.default is not None:
+                cleaned[field_name] = field_schema.default
+        
+        return cleaned
+
+# Predefined common schemas
+class CommonSchemas:
+    """Collection of commonly used schemas."""
+    
+    @staticmethod
+    def email_schema() -> DataSchema:
+        """Schema for email validation."""
+        return DataSchema('email', [
+            FieldSchema(
+                name='email',
+                validators=[
+                    TypeValidator(str),
+                    RegexValidator(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
+                    LengthValidator(max_length=254)
+                ],
+                description='Valid email address'
+            )
+        ])
+    
+    @staticmethod
+    def user_schema() -> DataSchema:
+        """Schema for user data validation."""
+        return DataSchema('user', [
+            FieldSchema(
+                name='id',
+                validators=[TypeValidator(int), RangeValidator(min_value=1)],
+                description='Unique user ID'
+            ),
+            FieldSchema(
+                name='username',
+                validators=[
+                    TypeValidator(str),
+                    LengthValidator(min_length=3, max_length=50),
+                    RegexValidator(r'^[a-zA-Z0-9_]+$')
+                ],
+                description='Username (alphanumeric and underscore only)'
+            ),
+            FieldSchema(
+                name='email',
+                validators=[
+                    TypeValidator(str),
+                    RegexValidator(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+                ],
+                description='Valid email address'
+            ),
+            FieldSchema(
+                name='age',
+                validators=[TypeValidator(int), RangeValidator(min_value=0, max_value=150)],
+                required=False,
+                description='User age'
+            ),
+            FieldSchema(
+                name='status',
+                validators=[ChoiceValidator(['active', 'inactive', 'suspended'])],
+                default='active',
+                description='User account status'
+            ),
+            FieldSchema(
+                name='created_at',
+                validators=[DateValidator()],
+                description='Account creation date'
+            )
+        ])
+    
+    @staticmethod
+    def transaction_schema() -> DataSchema:
+        """Schema for financial transaction validation."""
+        return DataSchema('transaction', [
+            FieldSchema(
+                name='transaction_id',
+                validators=[TypeValidator(str), LengthValidator(min_length=10, max_length=50)],
+                description='Unique transaction identifier'
+            ),
+            FieldSchema(
+                name='amount',
+                validators=[TypeValidator((int, float)), RangeValidator(min_value=0.01)],
+                description='Transaction amount (must be positive)'
+            ),
+            FieldSchema(
+                name='currency',
+                validators=[ChoiceValidator(['USD', 'EUR', 'GBP', 'JPY', 'CAD'])],
+                description='Transaction currency'
+            ),
+            FieldSchema(
+                name='transaction_type',
+                validators=[ChoiceValidator(['debit', 'credit', 'transfer'])],
+                description='Type of transaction'
+            ),
+            FieldSchema(
+                name='timestamp',
+                validators=[DateValidator('%Y-%m-%d %H:%M:%S')],
+                description='Transaction timestamp'
+            )
+        ])
+
+# Usage examples
+def example_data_validation():
+    """Demonstrate comprehensive data validation."""
+    
+    # Create user schema
+    user_schema = CommonSchemas.user_schema()
+    
+    # Test data
+    test_users = [
+        {
+            'id': 1,
+            'username': 'john_doe',
+            'email': 'john@example.com',
+            'age': 30,
+            'status': 'active',
+            'created_at': '2023-01-15'
+        },
+        {
+            'id': 'invalid',  # Invalid type
+            'username': 'jd',  # Too short
+            'email': 'invalid-email',  # Invalid format
+            'age': -5,  # Invalid range
+            'status': 'unknown',  # Invalid choice
+            'created_at': '2023-13-45'  # Invalid date
+        },
+        {
+            'id': 3,
+            'username': 'jane_smith',
+            'email': 'jane@example.com',
+            # Missing required created_at
+            'extra_field': 'unexpected'  # Unexpected field
+        }
+    ]
+    
+    print("Validating user data...")
+    for i, user_data in enumerate(test_users):
+        print(f"\n--- User {i+1} ---")
+        result = user_schema.validate(user_data)
+        
+        if result.is_valid:
+            print("✅ Valid data")
+            cleaned_data = user_schema.clean_data(user_data)
+            print(f"Cleaned data: {json.dumps(cleaned_data, indent=2)}")
+        else:
+            print("❌ Invalid data")
+            for error in result.errors:
+                print(f"  Error: {error.message}")
+        
+        if result.warnings:
+            print("⚠️  Warnings:")
+            for warning in result.warnings:
+                print(f"  Warning: {warning}")
+    
+    # Batch validation example
+    print("\n=== Batch Validation ===")
+    batch_results = user_schema.validate_batch(test_users)
+    valid_count = sum(1 for result in batch_results if result.is_valid)
+    print(f"Valid records: {valid_count}/{len(test_users)}")
+    
+    # Transaction schema example
+    print("\n=== Transaction Validation ===")
+    transaction_schema = CommonSchemas.transaction_schema()
+    
+    transaction_data = {
+        'transaction_id': 'TXN_123456789',
+        'amount': 99.99,
+        'currency': 'USD',
+        'transaction_type': 'debit',
+        'timestamp': '2023-01-15 14:30:00'
+    }
+    
+    result = transaction_schema.validate(transaction_data)
+    if result.is_valid:
+        print("✅ Transaction data is valid")
+    else:
+        print("❌ Transaction data is invalid")
+        for error in result.errors:
+            print(f"  Error: {error.message}")
+
+if __name__ == "__main__":
+    example_data_validation()
+```
+
+---
+
+## Key Takeaways
+
+1. **SQL-First Approach**: DBT enables analytics engineering using familiar SQL syntax
+2. **Version Control**: Git-based workflow brings software engineering practices to data
+3. **Testing Framework**: Comprehensive testing ensures data quality and business logic
+4. **Documentation**: Automatic documentation generation improves data discovery
+5. **Incremental Processing**: Efficient handling of large datasets with incremental models
+6. **Environment Management**: Consistent deployment across dev, staging, and production
+7. **Macro System**: Reusable SQL logic through Jinja templating
+8. **Lineage Tracking**: Visual representation of data dependencies and transformations
+9. **Advanced Macros**: Complex business logic and cross-database compatibility
+10. **Package Management**: Reusable components and dependency management
+11. **CI/CD Integration**: Automated testing and deployment pipelines
+12. **Data Quality**: Comprehensive testing and monitoring frameworks
+13. **Multiprocessing**: Bypass GIL for CPU-intensive tasks
+14. **Memory Efficiency**: Generators and iterators for large datasets
+15. **Thread Safety**: Concurrent programming with proper synchronization
+16. **Data Validation**: Schema enforcement and quality assurance
+```
