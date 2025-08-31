@@ -6,7 +6,7 @@
 ### 🔧 **Want to master a skill?** → [by-skill-area/](./by-skill-area/)
 ### 🎪 **Ready to practice?** → [interview-simulator/](./interview-simulator/)
 
-👉 **New here?** Start with [Comprehensive Navigation Guide](./COMPREHENSIVE_NAVIGATION_GUIDE.md) for complete guidance
+👉 **New here?** Start with [Comprehensive Navigation Guide](./docs/COMPREHENSIVE_NAVIGATION_GUIDE.md) for complete guidance
 
 ## 🎯 **Quick Interview Questions Reference**
 
@@ -73,7 +73,7 @@ This comprehensive repository serves as a complete resource for Data Engineering
 
 ## 🧭 **Complete Navigation Guide**
 
-**🎯 [Comprehensive Navigation Guide](./COMPREHENSIVE_NAVIGATION_GUIDE.md) - Your complete roadmap to this repository**
+**🎯 [Comprehensive Navigation Guide](./docs/COMPREHENSIVE_NAVIGATION_GUIDE.md) - Your complete roadmap to this repository**
 
 This guide includes:
 - ⚡ **Quick prep resources** for last-minute interview preparation
@@ -84,7 +84,7 @@ This guide includes:
 - 🔗 **Direct links** to all interview questions and concepts
 
 ### 📚 **Alternative Navigation**
-- **[Interview Questions Master Index](./INTERVIEW_QUESTIONS_MASTER_INDEX.md)** - Complete list of all interview questions
+- **[Interview Questions Master Index](./docs/INTERVIEW_QUESTIONS_MASTER_INDEX.md)** - Complete list of all interview questions
 - **[Core-Data-Engineering/](./Core-Data-Engineering/)** - Essential data engineering topics
 - **[Supporting-Tools/](./Supporting-Tools/)** - Additional skills and tools
 
