@@ -41,4 +41,4 @@
 - [Python Interview Questions](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md)
 - [SQL Interview Questions](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
 - [AWS Interview Questions](../Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS.md)
-- [Spark Interview Questions](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md)
+- [Spark Interview Questions](../Core-Data-Engineering/Data-Processing/Apache-Spark/)

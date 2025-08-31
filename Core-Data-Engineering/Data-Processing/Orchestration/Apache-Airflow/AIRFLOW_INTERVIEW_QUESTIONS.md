@@ -1340,6 +1340,640 @@ multi_source_task = MultiSourceDataOperator(
 api_to_s3_task >> multi_source_task
 ```
 
+## Scheduling and Dependencies
+
+### Q8: How do you implement complex scheduling patterns and handle time zones in Airflow?
+
+**Answer:**
+Airflow supports complex scheduling through cron expressions, timedelta objects, and custom timetables. Time zone handling requires careful consideration of execution_date vs actual time.
+
+**Code Example:**
+```python
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.timetables.interval import CronDataIntervalTimetable
+from airflow.utils.dates import days_ago
+import pendulum
+
+# Complex scheduling examples
+
+# 1. Business hours only (9 AM - 5 PM, weekdays)
+business_hours_dag = DAG(
+    'business_hours_processing',
+    start_date=datetime(2023, 1, 1, tzinfo=pendulum.timezone('America/New_York')),
+    schedule_interval='0 9-17 * * 1-5',  # Every hour from 9-17, Mon-Fri
+    catchup=False,
+    max_active_runs=1
+)
+
+# 2. Custom timetable for complex business logic
+class BusinessDayTimetable(CronDataIntervalTimetable):
+    """Custom timetable that skips holidays"""
+    
+    def __init__(self):
+        super().__init__('0 2 * * 1-5', pendulum.timezone('UTC'))
+        # Define holidays (simplified)
+        self.holidays = [
+            datetime(2023, 1, 1),  # New Year
+            datetime(2023, 7, 4),  # Independence Day
+            datetime(2023, 12, 25) # Christmas
+        ]
+    
+    def next_dagrun_info(self, last_automated_data_interval, restriction):
+        """Calculate next DAG run, skipping holidays"""
+        next_info = super().next_dagrun_info(last_automated_data_interval, restriction)
+        
+        if next_info and next_info.run_after.date() in [h.date() for h in self.holidays]:
+            # Skip to next business day
+            next_date = next_info.run_after + timedelta(days=1)
+            while next_date.weekday() >= 5 or next_date.date() in [h.date() for h in self.holidays]:
+                next_date += timedelta(days=1)
+            
+            return next_info._replace(run_after=next_date)
+        
+        return next_info
+
+# DAG with custom timetable
+custom_schedule_dag = DAG(
+    'custom_business_schedule',
+    start_date=datetime(2023, 1, 1),
+    timetable=BusinessDayTimetable(),
+    catchup=False
+)
+
+# 3. Time zone aware processing
+def process_timezone_data(**context):
+    """Process data with timezone awareness"""
+    execution_date = context['execution_date']
+    
+    # Convert to different timezones
+    utc_time = execution_date
+    ny_time = utc_time.in_timezone('America/New_York')
+    tokyo_time = utc_time.in_timezone('Asia/Tokyo')
+    
+    print(f"UTC: {utc_time}")
+    print(f"New York: {ny_time}")
+    print(f"Tokyo: {tokyo_time}")
+    
+    # Process data based on business timezone
+    if ny_time.hour >= 9 and ny_time.hour <= 17:
+        print("Processing during NY business hours")
+        return "business_hours_processing"
+    else:
+        print("Processing during off hours")
+        return "off_hours_processing"
+
+# 4. Conditional scheduling based on external factors
+def check_data_availability(**context):
+    """Check if data is available for processing"""
+    import os
+    from datetime import datetime
+    
+    execution_date = context['execution_date']
+    expected_file = f"/data/input/data_{execution_date.strftime('%Y%m%d')}.csv"
+    
+    if os.path.exists(expected_file):
+        file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(expected_file))
+        if file_age.total_seconds() < 3600:  # File less than 1 hour old
+            return "process_data"
+    
+    return "skip_processing"
+
+# Branch operator for conditional execution
+from airflow.operators.python import BranchPythonOperator
+from airflow.operators.dummy import DummyOperator
+
+conditional_dag = DAG(
+    'conditional_processing',
+    start_date=datetime(2023, 1, 1),
+    schedule_interval='@hourly',
+    catchup=False
+)
+
+check_data = BranchPythonOperator(
+    task_id='check_data_availability',
+    python_callable=check_data_availability,
+    dag=conditional_dag
+)
+
+process_data = PythonOperator(
+    task_id='process_data',
+    python_callable=lambda: print("Processing data..."),
+    dag=conditional_dag
+)
+
+skip_processing = DummyOperator(
+    task_id='skip_processing',
+    dag=conditional_dag
+)
+
+check_data >> [process_data, skip_processing]
+```
+
+### Q9: How do you handle cross-DAG dependencies and communication?
+
+**Answer:**
+Cross-DAG dependencies can be managed through sensors, external task sensors, and XCom. Proper design prevents tight coupling while enabling workflow coordination.
+
+**Code Example:**
+```python
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.sensors.external_task import ExternalTaskSensor
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.sensors.filesystem import FileSensor
+from airflow.models import Variable
+
+# Producer DAG - generates data
+producer_dag = DAG(
+    'data_producer',
+    start_date=datetime(2023, 1, 1),
+    schedule_interval='@daily',
+    catchup=False
+)
+
+def extract_and_prepare_data(**context):
+    """Extract data and prepare for downstream processing"""
+    import json
+    
+    # Simulate data extraction
+    data_summary = {
+        'records_extracted': 10000,
+        'extraction_time': context['execution_date'].isoformat(),
+        'data_quality_score': 0.95,
+        'output_path': f"/data/extracted/data_{context['ds']}.json"
+    }
+    
+    # Store metadata in XCom for cross-DAG communication
+    context['ti'].xcom_push(key='data_summary', value=data_summary)
+    
+    # Also store in Airflow Variable for global access
+    Variable.set(f"data_summary_{context['ds']}", json.dumps(data_summary))
+    
+    print(f"Data extracted: {data_summary}")
+    return data_summary
+
+producer_task = PythonOperator(
+    task_id='extract_data',
+    python_callable=extract_and_prepare_data,
+    dag=producer_dag
+)
+
+# Consumer DAG - processes data from producer
+consumer_dag = DAG(
+    'data_consumer',
+    start_date=datetime(2023, 1, 1),
+    schedule_interval='@daily',
+    catchup=False
+)
+
+# Wait for producer DAG to complete
+wait_for_producer = ExternalTaskSensor(
+    task_id='wait_for_data_extraction',
+    external_dag_id='data_producer',
+    external_task_id='extract_data',
+    execution_delta=timedelta(hours=0),  # Same execution date
+    timeout=3600,  # 1 hour timeout
+    poke_interval=60,  # Check every minute
+    dag=consumer_dag
+)
+
+def process_extracted_data(**context):
+    """Process data from producer DAG"""
+    import json
+    
+    # Get data summary from producer
+    data_summary_json = Variable.get(f"data_summary_{context['ds']}")
+    data_summary = json.loads(data_summary_json)
+    
+    print(f"Processing data: {data_summary}")
+    
+    # Validate data quality
+    if data_summary['data_quality_score'] < 0.9:
+        raise ValueError(f"Data quality too low: {data_summary['data_quality_score']}")
+    
+    # Process the data
+    processed_records = data_summary['records_extracted'] * 0.8  # Simulate processing
+    
+    result = {
+        'processed_records': processed_records,
+        'processing_time': context['execution_date'].isoformat(),
+        'source_summary': data_summary
+    }
+    
+    return result
+
+process_task = PythonOperator(
+    task_id='process_data',
+    python_callable=process_extracted_data,
+    dag=consumer_dag
+)
+
+wait_for_producer >> process_task
+
+# Orchestrator DAG - coordinates multiple DAGs
+orchestrator_dag = DAG(
+    'workflow_orchestrator',
+    start_date=datetime(2023, 1, 1),
+    schedule_interval='@daily',
+    catchup=False
+)
+
+# Trigger multiple DAGs in sequence
+trigger_producer = TriggerDagRunOperator(
+    task_id='trigger_data_producer',
+    trigger_dag_id='data_producer',
+    wait_for_completion=True,
+    poke_interval=60,
+    dag=orchestrator_dag
+)
+
+trigger_consumer = TriggerDagRunOperator(
+    task_id='trigger_data_consumer',
+    trigger_dag_id='data_consumer',
+    wait_for_completion=True,
+    poke_interval=60,
+    dag=orchestrator_dag
+)
+
+# Parallel processing DAGs
+trigger_analytics = TriggerDagRunOperator(
+    task_id='trigger_analytics',
+    trigger_dag_id='analytics_pipeline',
+    wait_for_completion=False,  # Don't wait, run in parallel
+    dag=orchestrator_dag
+)
+
+trigger_reporting = TriggerDagRunOperator(
+    task_id='trigger_reporting',
+    trigger_dag_id='reporting_pipeline',
+    wait_for_completion=False,
+    dag=orchestrator_dag
+)
+
+# Set dependencies
+trigger_producer >> trigger_consumer
+trigger_consumer >> [trigger_analytics, trigger_reporting]
+
+# Advanced cross-DAG communication using custom XCom backend
+class CrossDAGXComManager:
+    """Utility class for cross-DAG XCom communication"""
+    
+    @staticmethod
+    def push_cross_dag_data(dag_id, task_id, execution_date, key, value):
+        """Push data that can be accessed by other DAGs"""
+        from airflow.models import XCom
+        
+        XCom.set(
+            key=f"cross_dag_{key}",
+            value=value,
+            dag_id=dag_id,
+            task_id=task_id,
+            execution_date=execution_date
+        )
+    
+    @staticmethod
+    def pull_cross_dag_data(source_dag_id, source_task_id, execution_date, key):
+        """Pull data from another DAG"""
+        from airflow.models import XCom
+        
+        return XCom.get_one(
+            key=f"cross_dag_{key}",
+            dag_id=source_dag_id,
+            task_id=source_task_id,
+            execution_date=execution_date
+        )
+
+# Usage in tasks
+def advanced_cross_dag_communication(**context):
+    """Example of advanced cross-DAG communication"""
+    xcom_manager = CrossDAGXComManager()
+    
+    # Push data for other DAGs
+    xcom_manager.push_cross_dag_data(
+        dag_id=context['dag'].dag_id,
+        task_id=context['task'].task_id,
+        execution_date=context['execution_date'],
+        key='processing_metadata',
+        value={
+            'status': 'completed',
+            'records_processed': 5000,
+            'processing_duration': 120
+        }
+    )
+    
+    # Pull data from another DAG
+    try:
+        upstream_data = xcom_manager.pull_cross_dag_data(
+            source_dag_id='data_producer',
+            source_task_id='extract_data',
+            execution_date=context['execution_date'],
+            key='data_summary'
+        )
+        print(f"Received upstream data: {upstream_data}")
+    except Exception as e:
+        print(f"Could not retrieve upstream data: {e}")
+```
+
+## Monitoring and Troubleshooting
+
+### Q10: How do you implement comprehensive monitoring and alerting in Airflow?
+
+**Answer:**
+Airflow monitoring involves tracking DAG performance, task failures, resource usage, and SLA violations. Integration with external monitoring systems provides comprehensive observability.
+
+**Code Example:**
+```python
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.operators.email import EmailOperator
+from airflow.models import Variable
+from airflow.utils.email import send_email
+from airflow.hooks.base import BaseHook
+import logging
+import json
+
+# Custom monitoring functions
+def monitor_dag_performance(**context):
+    """Monitor DAG performance metrics"""
+    from airflow.models import DagRun, TaskInstance
+    from sqlalchemy import func
+    
+    dag_id = context['dag'].dag_id
+    execution_date = context['execution_date']
+    
+    # Get DAG run statistics
+    session = context['session']
+    
+    # Recent DAG runs performance
+    recent_runs = session.query(DagRun).filter(
+        DagRun.dag_id == dag_id,
+        DagRun.execution_date >= execution_date - timedelta(days=7)
+    ).all()
+    
+    performance_metrics = {
+        'dag_id': dag_id,
+        'execution_date': execution_date.isoformat(),
+        'recent_runs_count': len(recent_runs),
+        'success_rate': len([r for r in recent_runs if r.state == 'success']) / len(recent_runs) if recent_runs else 0,
+        'avg_duration': sum([(r.end_date - r.start_date).total_seconds() for r in recent_runs if r.end_date]) / len(recent_runs) if recent_runs else 0
+    }
+    
+    # Task-level metrics
+    task_stats = session.query(
+        TaskInstance.task_id,
+        func.avg(TaskInstance.duration).label('avg_duration'),
+        func.count(TaskInstance.task_id).label('run_count'),
+        func.sum(func.case([(TaskInstance.state == 'success', 1)], else_=0)).label('success_count')
+    ).filter(
+        TaskInstance.dag_id == dag_id,
+        TaskInstance.execution_date >= execution_date - timedelta(days=7)
+    ).group_by(TaskInstance.task_id).all()
+    
+    performance_metrics['task_metrics'] = [
+        {
+            'task_id': stat.task_id,
+            'avg_duration': stat.avg_duration,
+            'success_rate': stat.success_count / stat.run_count if stat.run_count > 0 else 0
+        }
+        for stat in task_stats
+    ]
+    
+    # Store metrics for alerting
+    Variable.set(f"performance_metrics_{dag_id}", json.dumps(performance_metrics))
+    
+    return performance_metrics
+
+def check_sla_violations(**context):
+    """Check for SLA violations and alert"""
+    from airflow.models import SlaMiss
+    
+    # Check recent SLA misses
+    session = context['session']
+    recent_sla_misses = session.query(SlaMiss).filter(
+        SlaMiss.timestamp >= datetime.now() - timedelta(hours=24)
+    ).all()
+    
+    if recent_sla_misses:
+        sla_report = {
+            'total_violations': len(recent_sla_misses),
+            'violations': [
+                {
+                    'dag_id': miss.dag_id,
+                    'task_id': miss.task_id,
+                    'execution_date': miss.execution_date.isoformat(),
+                    'timestamp': miss.timestamp.isoformat()
+                }
+                for miss in recent_sla_misses
+            ]
+        }
+        
+        # Send alert
+        send_sla_alert(sla_report)
+        return sla_report
+    
+    return {'total_violations': 0}
+
+def send_sla_alert(sla_report):
+    """Send SLA violation alert"""
+    subject = f"Airflow SLA Violations - {sla_report['total_violations']} violations"
+    
+    html_content = f"""
+    <h2>SLA Violations Report</h2>
+    <p>Total violations in last 24 hours: {sla_report['total_violations']}</p>
+    
+    <table border="1">
+        <tr><th>DAG ID</th><th>Task ID</th><th>Execution Date</th><th>Violation Time</th></tr>
+    """
+    
+    for violation in sla_report['violations']:
+        html_content += f"""
+        <tr>
+            <td>{violation['dag_id']}</td>
+            <td>{violation['task_id']}</td>
+            <td>{violation['execution_date']}</td>
+            <td>{violation['timestamp']}</td>
+        </tr>
+        """
+    
+    html_content += "</table>"
+    
+    send_email(
+        to=['data-team@company.com'],
+        subject=subject,
+        html_content=html_content
+    )
+
+# Resource monitoring
+def monitor_resource_usage(**context):
+    """Monitor Airflow resource usage"""
+    import psutil
+    from airflow.models import TaskInstance
+    
+    # System resources
+    cpu_percent = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    disk = psutil.disk_usage('/')
+    
+    # Airflow-specific metrics
+    session = context['session']
+    
+    # Running tasks count
+    running_tasks = session.query(TaskInstance).filter(
+        TaskInstance.state == 'running'
+    ).count()
+    
+    # Queued tasks count
+    queued_tasks = session.query(TaskInstance).filter(
+        TaskInstance.state == 'queued'
+    ).count()
+    
+    resource_metrics = {
+        'timestamp': datetime.now().isoformat(),
+        'cpu_percent': cpu_percent,
+        'memory_percent': memory.percent,
+        'memory_available_gb': memory.available / (1024**3),
+        'disk_percent': disk.percent,
+        'disk_free_gb': disk.free / (1024**3),
+        'running_tasks': running_tasks,
+        'queued_tasks': queued_tasks
+    }
+    
+    # Alert if resources are high
+    if cpu_percent > 80 or memory.percent > 85 or disk.percent > 90:
+        send_resource_alert(resource_metrics)
+    
+    return resource_metrics
+
+def send_resource_alert(metrics):
+    """Send resource usage alert"""
+    subject = "Airflow High Resource Usage Alert"
+    
+    html_content = f"""
+    <h2>High Resource Usage Detected</h2>
+    <ul>
+        <li>CPU Usage: {metrics['cpu_percent']:.1f}%</li>
+        <li>Memory Usage: {metrics['memory_percent']:.1f}%</li>
+        <li>Disk Usage: {metrics['disk_percent']:.1f}%</li>
+        <li>Running Tasks: {metrics['running_tasks']}</li>
+        <li>Queued Tasks: {metrics['queued_tasks']}</li>
+    </ul>
+    
+    <p>Please check the Airflow cluster and consider scaling if necessary.</p>
+    """
+    
+    send_email(
+        to=['ops-team@company.com'],
+        subject=subject,
+        html_content=html_content
+    )
+
+# Integration with external monitoring systems
+def send_metrics_to_datadog(**context):
+    """Send Airflow metrics to Datadog"""
+    try:
+        from datadog import initialize, statsd
+        
+        # Initialize Datadog
+        options = {
+            'api_key': Variable.get('datadog_api_key'),
+            'app_key': Variable.get('datadog_app_key')
+        }
+        initialize(**options)
+        
+        # Get performance metrics
+        dag_id = context['dag'].dag_id
+        metrics_json = Variable.get(f"performance_metrics_{dag_id}")
+        metrics = json.loads(metrics_json)
+        
+        # Send metrics to Datadog
+        statsd.gauge('airflow.dag.success_rate', metrics['success_rate'], tags=[f'dag_id:{dag_id}'])
+        statsd.gauge('airflow.dag.avg_duration', metrics['avg_duration'], tags=[f'dag_id:{dag_id}'])
+        
+        for task_metric in metrics['task_metrics']:
+            task_id = task_metric['task_id']
+            statsd.gauge('airflow.task.avg_duration', task_metric['avg_duration'], 
+                        tags=[f'dag_id:{dag_id}', f'task_id:{task_id}'])
+            statsd.gauge('airflow.task.success_rate', task_metric['success_rate'], 
+                        tags=[f'dag_id:{dag_id}', f'task_id:{task_id}'])
+        
+        print("Metrics sent to Datadog successfully")
+        
+    except Exception as e:
+        print(f"Failed to send metrics to Datadog: {e}")
+
+# Monitoring DAG
+monitoring_dag = DAG(
+    'airflow_monitoring',
+    start_date=datetime(2023, 1, 1),
+    schedule_interval='*/15 * * * *',  # Every 15 minutes
+    catchup=False,
+    max_active_runs=1
+)
+
+# Monitoring tasks
+performance_monitor = PythonOperator(
+    task_id='monitor_performance',
+    python_callable=monitor_dag_performance,
+    dag=monitoring_dag
+)
+
+sla_monitor = PythonOperator(
+    task_id='check_sla_violations',
+    python_callable=check_sla_violations,
+    dag=monitoring_dag
+)
+
+resource_monitor = PythonOperator(
+    task_id='monitor_resources',
+    python_callable=monitor_resource_usage,
+    dag=monitoring_dag
+)
+
+datadog_metrics = PythonOperator(
+    task_id='send_datadog_metrics',
+    python_callable=send_metrics_to_datadog,
+    dag=monitoring_dag
+)
+
+# Set up monitoring pipeline
+[performance_monitor, sla_monitor, resource_monitor] >> datadog_metrics
+
+# Custom failure callback
+def task_failure_alert(context):
+    """Custom callback for task failures"""
+    task_instance = context['task_instance']
+    dag_id = task_instance.dag_id
+    task_id = task_instance.task_id
+    execution_date = context['execution_date']
+    
+    subject = f"Airflow Task Failure: {dag_id}.{task_id}"
+    
+    html_content = f"""
+    <h2>Task Failure Alert</h2>
+    <ul>
+        <li>DAG: {dag_id}</li>
+        <li>Task: {task_id}</li>
+        <li>Execution Date: {execution_date}</li>
+        <li>Log URL: {task_instance.log_url}</li>
+    </ul>
+    
+    <p>Please check the logs and take appropriate action.</p>
+    """
+    
+    send_email(
+        to=['data-team@company.com'],
+        subject=subject,
+        html_content=html_content
+    )
+
+# Apply failure callback to DAG
+monitoring_dag.default_args['on_failure_callback'] = task_failure_alert
+```
+
 ---
 
 ## Key Takeaways
@@ -1352,3 +1986,7 @@ api_to_s3_task >> multi_source_task
 6. **Error Handling**: Implement proper retry strategies and failure notifications
 7. **Monitoring**: Use Airflow UI and logging for pipeline observability
 8. **Best Practices**: Idempotent tasks, proper resource allocation, and code organization
+9. **Complex Scheduling**: Advanced scheduling patterns with timezone awareness
+10. **Cross-DAG Dependencies**: Coordinate workflows across multiple DAGs
+11. **Comprehensive Monitoring**: Track performance, SLAs, and resource usage
+12. **External Integration**: Connect with monitoring systems like Datadog

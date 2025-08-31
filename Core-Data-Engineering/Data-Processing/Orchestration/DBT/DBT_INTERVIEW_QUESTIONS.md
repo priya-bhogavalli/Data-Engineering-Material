@@ -962,6 +962,807 @@ dbt docs generate
 dbt docs serve
 ```
 
+## Macros and Packages
+
+### Q7: How do you create and use advanced DBT macros for complex business logic?
+
+**Answer:**
+DBT macros enable reusable SQL logic, complex calculations, and dynamic SQL generation. Advanced macros can handle complex business rules, data quality checks, and cross-database compatibility.
+
+**Code Example:**
+```sql
+-- macros/advanced_business_logic.sql
+
+-- Macro for calculating customer lifetime value with multiple methods
+{% macro calculate_ltv(customer_table, order_table, method='historical', prediction_months=12) %}
+    
+    {% if method == 'historical' %}
+        -- Historical LTV based on actual data
+        (
+            select coalesce(sum(order_amount), 0)
+            from {{ order_table }} o
+            where o.customer_id = {{ customer_table }}.customer_id
+            and o.order_date >= {{ customer_table }}.first_order_date
+        )
+        
+    {% elif method == 'predictive' %}
+        -- Predictive LTV using average monthly spend
+        (
+            select 
+                coalesce(
+                    avg(monthly_spend) * {{ prediction_months }}, 
+                    0
+                )
+            from (
+                select 
+                    date_trunc('month', order_date) as month,
+                    sum(order_amount) as monthly_spend
+                from {{ order_table }} o
+                where o.customer_id = {{ customer_table }}.customer_id
+                and o.order_date >= dateadd('month', -12, current_date())
+                group by 1
+            ) monthly_stats
+        )
+        
+    {% elif method == 'cohort_based' %}
+        -- Cohort-based LTV using registration cohort averages
+        (
+            select coalesce(avg_cohort_ltv, 0)
+            from (
+                select 
+                    date_trunc('month', registration_date) as cohort_month,
+                    avg(total_spent) as avg_cohort_ltv
+                from {{ customer_table }} c
+                join (
+                    select 
+                        customer_id,
+                        sum(order_amount) as total_spent
+                    from {{ order_table }}
+                    group by customer_id
+                ) customer_totals using (customer_id)
+                group by 1
+            ) cohort_stats
+            where cohort_month = date_trunc('month', {{ customer_table }}.registration_date)
+        )
+    {% endif %}
+    
+{% endmacro %}
+
+-- Macro for dynamic data quality checks
+{% macro data_quality_suite(table_name, checks) %}
+    
+    {% set quality_checks = [] %}
+    
+    {% for check in checks %}
+        
+        {% if check.type == 'completeness' %}
+            {% set check_sql %}
+                select 
+                    '{{ check.column }}' as column_name,
+                    'completeness' as check_type,
+                    count(*) as total_rows,
+                    count({{ check.column }}) as non_null_rows,
+                    round(100.0 * count({{ check.column }}) / count(*), 2) as completeness_pct,
+                    case when count({{ check.column }}) / count(*) >= {{ check.threshold }} 
+                         then 'PASS' else 'FAIL' end as status
+                from {{ table_name }}
+            {% endset %}
+            
+        {% elif check.type == 'uniqueness' %}
+            {% set check_sql %}
+                select 
+                    '{{ check.column }}' as column_name,
+                    'uniqueness' as check_type,
+                    count(*) as total_rows,
+                    count(distinct {{ check.column }}) as unique_values,
+                    round(100.0 * count(distinct {{ check.column }}) / count(*), 2) as uniqueness_pct,
+                    case when count(distinct {{ check.column }}) / count(*) >= {{ check.threshold }}
+                         then 'PASS' else 'FAIL' end as status
+                from {{ table_name }}
+            {% endset %}
+            
+        {% elif check.type == 'range' %}
+            {% set check_sql %}
+                select 
+                    '{{ check.column }}' as column_name,
+                    'range' as check_type,
+                    count(*) as total_rows,
+                    sum(case when {{ check.column }} between {{ check.min_value }} and {{ check.max_value }} 
+                             then 1 else 0 end) as values_in_range,
+                    round(100.0 * sum(case when {{ check.column }} between {{ check.min_value }} and {{ check.max_value }} 
+                                           then 1 else 0 end) / count(*), 2) as range_compliance_pct,
+                    case when sum(case when {{ check.column }} between {{ check.min_value }} and {{ check.max_value }} 
+                                       then 1 else 0 end) / count(*) >= {{ check.threshold }}
+                         then 'PASS' else 'FAIL' end as status
+                from {{ table_name }}
+                where {{ check.column }} is not null
+            {% endset %}
+            
+        {% elif check.type == 'pattern' %}
+            {% set check_sql %}
+                select 
+                    '{{ check.column }}' as column_name,
+                    'pattern' as check_type,
+                    count(*) as total_rows,
+                    sum(case when {{ check.column }} ~ '{{ check.pattern }}' then 1 else 0 end) as pattern_matches,
+                    round(100.0 * sum(case when {{ check.column }} ~ '{{ check.pattern }}' then 1 else 0 end) / count(*), 2) as pattern_compliance_pct,
+                    case when sum(case when {{ check.column }} ~ '{{ check.pattern }}' then 1 else 0 end) / count(*) >= {{ check.threshold }}
+                         then 'PASS' else 'FAIL' end as status
+                from {{ table_name }}
+                where {{ check.column }} is not null
+            {% endset %}
+        {% endif %}
+        
+        {% do quality_checks.append(check_sql) %}
+        
+    {% endfor %}
+    
+    {% for check_sql in quality_checks %}
+        {{ check_sql }}
+        {% if not loop.last %} union all {% endif %}
+    {% endfor %}
+    
+{% endmacro %}
+
+-- Macro for cross-database compatibility
+{% macro date_spine(start_date, end_date, datepart='day') %}
+    
+    {% if target.type == 'snowflake' %}
+        select 
+            dateadd('{{ datepart }}', row_number() over (order by null) - 1, '{{ start_date }}'::date) as date_{{ datepart }}
+        from table(generator(rowcount => datediff('{{ datepart }}', '{{ start_date }}'::date, '{{ end_date }}'::date) + 1))
+        
+    {% elif target.type == 'bigquery' %}
+        select 
+            date_add(date('{{ start_date }}'), interval (row_number() over (order by 1) - 1) {{ datepart }}) as date_{{ datepart }}
+        from unnest(generate_array(0, date_diff(date('{{ end_date }}'), date('{{ start_date }}'), {{ datepart }}))) as n
+        
+    {% elif target.type == 'redshift' %}
+        select 
+            dateadd('{{ datepart }}', row_number() over (order by 1) - 1, '{{ start_date }}'::date) as date_{{ datepart }}
+        from (
+            select 1 as n
+            from stv_tbl_perm
+            limit {{ datediff(datepart, start_date, end_date) + 1 }}
+        )
+        
+    {% else %}
+        -- Default SQL for other databases
+        with recursive date_spine as (
+            select '{{ start_date }}'::date as date_{{ datepart }}
+            union all
+            select date_{{ datepart }} + interval '1 {{ datepart }}'
+            from date_spine
+            where date_{{ datepart }} < '{{ end_date }}'::date
+        )
+        select date_{{ datepart }} from date_spine
+    {% endif %}
+    
+{% endmacro %}
+
+-- Macro for generating surrogate keys with multiple algorithms
+{% macro generate_surrogate_key(columns, algorithm='md5') %}
+    
+    {% if algorithm == 'md5' %}
+        {{ dbt_utils.generate_surrogate_key(columns) }}
+        
+    {% elif algorithm == 'sha256' %}
+        {% if target.type == 'snowflake' %}
+            sha2(concat({% for col in columns %}{{ col }}{% if not loop.last %}, '|', {% endif %}{% endfor %}), 256)
+        {% elif target.type == 'bigquery' %}
+            sha256(concat({% for col in columns %}cast({{ col }} as string){% if not loop.last %}, '|', {% endif %}{% endfor %}))
+        {% else %}
+            sha256(concat({% for col in columns %}{{ col }}::varchar{% if not loop.last %}, '|', {% endif %}{% endfor %}))
+        {% endif %}
+        
+    {% elif algorithm == 'sequential' %}
+        row_number() over (order by {% for col in columns %}{{ col }}{% if not loop.last %}, {% endif %}{% endfor %})
+        
+    {% endif %}
+    
+{% endmacro %}
+```
+
+```sql
+-- models/marts/customer_analytics_advanced.sql - Using advanced macros
+{{ config(
+    materialized='table',
+    indexes=[
+        {'columns': ['customer_id'], 'unique': True}
+    ]
+) }}
+
+with customer_base as (
+    select 
+        customer_id,
+        first_name,
+        last_name,
+        email,
+        registration_date,
+        first_order_date,
+        
+        -- Use advanced LTV calculation macro
+        {{ calculate_ltv('customers', ref('fact_orders'), 'predictive', 24) }} as predicted_24m_ltv,
+        {{ calculate_ltv('customers', ref('fact_orders'), 'historical') }} as historical_ltv,
+        {{ calculate_ltv('customers', ref('fact_orders'), 'cohort_based') }} as cohort_ltv,
+        
+        -- Generate surrogate key
+        {{ generate_surrogate_key(['customer_id', 'email'], 'sha256') }} as customer_hash
+        
+    from {{ ref('dim_customers') }} customers
+),
+
+customer_segments as (
+    select 
+        *,
+        case 
+            when predicted_24m_ltv >= 1000 then 'High Value'
+            when predicted_24m_ltv >= 500 then 'Medium Value'
+            when predicted_24m_ltv > 0 then 'Low Value'
+            else 'Prospect'
+        end as ltv_segment,
+        
+        case 
+            when historical_ltv > predicted_24m_ltv * 1.2 then 'Declining'
+            when historical_ltv < predicted_24m_ltv * 0.8 then 'Growing'
+            else 'Stable'
+        end as trend_segment
+        
+    from customer_base
+)
+
+select * from customer_segments
+```
+
+### Q8: How do you implement DBT packages and manage dependencies?
+
+**Answer:**
+DBT packages provide reusable macros, models, and tests. Managing packages involves version control, dependency resolution, and customization for specific use cases.
+
+**Code Example:**
+```yaml
+# packages.yml - Package dependencies
+packages:
+  - package: dbt-labs/dbt_utils
+    version: 1.1.1
+    
+  - package: calogica/dbt_expectations
+    version: 0.10.1
+    
+  - package: dbt-labs/audit_helper
+    version: 0.9.0
+    
+  - package: elementary-data/elementary
+    version: 0.13.2
+    
+  - git: "https://github.com/company/internal-dbt-utils.git"
+    revision: v1.2.0
+    
+  - local: ../shared_macros
+```
+
+```sql
+-- macros/custom_package_extensions.sql
+-- Extending dbt_utils functionality
+
+{% macro enhanced_pivot(column_name, values, agg_func='sum', then_value=1, else_value=0, quote_identifiers=true) %}
+    
+    {% for value in values %}
+        {{ agg_func }}(
+            case when {{ column_name }} = '{{ value }}'
+            then {{ then_value }}
+            else {{ else_value }} end
+        ) as {% if quote_identifiers %}"{{ value | replace(' ', '_') | replace('-', '_') | lower }}"{% else %}{{ value | replace(' ', '_') | replace('-', '_') | lower }}{% endif %}
+        {%- if not loop.last -%},{%- endif %}
+    {% endfor %}
+    
+{% endmacro %}
+
+-- Custom test using dbt_expectations
+{% test expect_column_values_to_be_in_set_with_tolerance(model, column_name, value_set, tolerance_pct=5) %}
+    
+    with validation as (
+        select 
+            {{ column_name }},
+            case when {{ column_name }} in ({% for value in value_set %}'{{ value }}'{% if not loop.last %}, {% endif %}{% endfor %})
+                 then 1 else 0 end as is_valid
+        from {{ model }}
+        where {{ column_name }} is not null
+    ),
+    
+    summary as (
+        select 
+            count(*) as total_rows,
+            sum(is_valid) as valid_rows,
+            100.0 * sum(is_valid) / count(*) as valid_percentage
+        from validation
+    )
+    
+    select *
+    from summary
+    where valid_percentage < (100 - {{ tolerance_pct }})
+    
+{% endtest %}
+
+-- Custom macro for data profiling
+{% macro profile_table(table_name, sample_size=10000) %}
+    
+    {% set columns_query %}
+        select column_name, data_type
+        from information_schema.columns
+        where table_name = '{{ table_name.split('.')[-1] }}'
+        {% if '.' in table_name %}
+        and table_schema = '{{ table_name.split('.')[-2] }}'
+        {% endif %}
+        order by ordinal_position
+    {% endset %}
+    
+    {% if execute %}
+        {% set results = run_query(columns_query) %}
+        {% set columns = results.columns[0].values() %}
+        {% set data_types = results.columns[1].values() %}
+    {% else %}
+        {% set columns = [] %}
+        {% set data_types = [] %}
+    {% endif %}
+    
+    with sample_data as (
+        select *
+        from {{ table_name }}
+        {% if target.type == 'snowflake' %}
+        sample ({{ sample_size }} rows)
+        {% elif target.type == 'bigquery' %}
+        tablesample system (10 percent)
+        {% else %}
+        order by random()
+        limit {{ sample_size }}
+        {% endif %}
+    ),
+    
+    profile_stats as (
+        select
+            '{{ table_name }}' as table_name,
+            count(*) as row_count,
+            
+            {% for column in columns %}
+            -- Stats for {{ column }}
+            count({{ column }}) as {{ column }}_non_null_count,
+            count(*) - count({{ column }}) as {{ column }}_null_count,
+            round(100.0 * count({{ column }}) / count(*), 2) as {{ column }}_completeness_pct,
+            
+            {% if data_types[loop.index0] in ['varchar', 'text', 'string'] %}
+            count(distinct {{ column }}) as {{ column }}_distinct_count,
+            min(length({{ column }})) as {{ column }}_min_length,
+            max(length({{ column }})) as {{ column }}_max_length,
+            avg(length({{ column }})) as {{ column }}_avg_length
+            
+            {% elif data_types[loop.index0] in ['int', 'integer', 'bigint', 'numeric', 'decimal', 'float'] %}
+            count(distinct {{ column }}) as {{ column }}_distinct_count,
+            min({{ column }}) as {{ column }}_min_value,
+            max({{ column }}) as {{ column }}_max_value,
+            avg({{ column }}) as {{ column }}_avg_value,
+            stddev({{ column }}) as {{ column }}_stddev
+            
+            {% elif data_types[loop.index0] in ['date', 'timestamp', 'datetime'] %}
+            count(distinct {{ column }}) as {{ column }}_distinct_count,
+            min({{ column }}) as {{ column }}_min_date,
+            max({{ column }}) as {{ column }}_max_date
+            
+            {% else %}
+            count(distinct {{ column }}) as {{ column }}_distinct_count
+            {% endif %}
+            
+            {% if not loop.last %},{% endif %}
+            {% endfor %}
+            
+        from sample_data
+    )
+    
+    select * from profile_stats
+    
+{% endmacro %}
+```
+
+```sql
+-- models/quality/data_quality_dashboard.sql - Using package macros
+{{ config(materialized='table') }}
+
+-- Comprehensive data quality checks using dbt_expectations
+with customer_quality as (
+    {{ data_quality_suite(ref('dim_customers'), [
+        {'type': 'completeness', 'column': 'email', 'threshold': 0.95},
+        {'type': 'uniqueness', 'column': 'customer_id', 'threshold': 1.0},
+        {'type': 'pattern', 'column': 'email', 'pattern': '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$', 'threshold': 0.98}
+    ]) }}
+),
+
+order_quality as (
+    {{ data_quality_suite(ref('fact_orders'), [
+        {'type': 'completeness', 'column': 'order_amount', 'threshold': 1.0},
+        {'type': 'range', 'column': 'order_amount', 'min_value': 0, 'max_value': 10000, 'threshold': 0.99},
+        {'type': 'completeness', 'column': 'order_date', 'threshold': 1.0}
+    ]) }}
+),
+
+product_quality as (
+    {{ data_quality_suite(ref('dim_products'), [
+        {'type': 'completeness', 'column': 'product_name', 'threshold': 1.0},
+        {'type': 'uniqueness', 'column': 'product_id', 'threshold': 1.0}
+    ]) }}
+)
+
+select 
+    'customers' as table_name,
+    column_name,
+    check_type,
+    status,
+    current_timestamp() as check_timestamp
+from customer_quality
+
+union all
+
+select 
+    'orders' as table_name,
+    column_name,
+    check_type,
+    status,
+    current_timestamp() as check_timestamp
+from order_quality
+
+union all
+
+select 
+    'products' as table_name,
+    column_name,
+    check_type,
+    status,
+    current_timestamp() as check_timestamp
+from product_quality
+```
+
+## Deployment and Operations
+
+### Q9: How do you implement CI/CD pipelines for DBT projects?
+
+**Answer:**
+DBT CI/CD involves automated testing, deployment across environments, and integration with version control. Modern practices include slim CI, automated documentation, and deployment orchestration.
+
+**Code Example:**
+```yaml
+# .github/workflows/dbt_ci.yml - GitHub Actions CI/CD
+name: DBT CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  DBT_PROFILES_DIR: ./profiles
+  DBT_PROJECT_DIR: ./
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install dbt-snowflake==1.6.0
+        pip install sqlfluff==2.3.2
+        pip install pre-commit==3.4.0
+        
+    - name: Install dbt packages
+      run: dbt deps
+      
+    - name: Lint SQL files
+      run: |
+        sqlfluff lint models/ --dialect snowflake
+        
+    - name: Check dbt project
+      run: |
+        dbt debug --target ci
+        dbt parse --target ci
+        
+    - name: Run dbt tests on changed models (Slim CI)
+      if: github.event_name == 'pull_request'
+      run: |
+        # Get changed files
+        git fetch origin main
+        
+        # Run only changed models and their downstream dependencies
+        dbt run --target ci --select state:modified+ --defer --state ./prod_manifest/
+        dbt test --target ci --select state:modified+ --defer --state ./prod_manifest/
+        
+    - name: Generate documentation
+      run: |
+        dbt docs generate --target ci
+        
+    - name: Upload documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: dbt-docs
+        path: target/
+
+  deploy-staging:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dbt
+      run: pip install dbt-snowflake==1.6.0
+      
+    - name: Install dbt packages
+      run: dbt deps
+      
+    - name: Deploy to staging
+      run: |
+        dbt seed --target staging
+        dbt run --target staging
+        dbt test --target staging
+        
+    - name: Generate and deploy docs
+      run: |
+        dbt docs generate --target staging
+        # Deploy to S3 or other hosting service
+        aws s3 sync target/ s3://company-dbt-docs/staging/ --delete
+        
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dbt
+      run: pip install dbt-snowflake==1.6.0
+      
+    - name: Install dbt packages
+      run: dbt deps
+      
+    - name: Deploy to production
+      run: |
+        dbt seed --target prod
+        dbt run --target prod
+        dbt test --target prod --store-failures
+        
+    - name: Generate production docs
+      run: |
+        dbt docs generate --target prod
+        aws s3 sync target/ s3://company-dbt-docs/prod/ --delete
+        
+    - name: Save production manifest
+      run: |
+        mkdir -p ./prod_manifest
+        cp target/manifest.json ./prod_manifest/
+        
+    - name: Commit production manifest
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ./prod_manifest/manifest.json
+        git commit -m "Update production manifest" || exit 0
+        git push
+```
+
+```python
+# scripts/dbt_deployment.py - Custom deployment script
+import subprocess
+import sys
+import json
+import os
+from datetime import datetime
+
+class DBTDeployment:
+    def __init__(self, target_env, project_dir='.'):
+        self.target_env = target_env
+        self.project_dir = project_dir
+        self.deployment_log = []
+        
+    def log_step(self, step, status, details=None):
+        """Log deployment step"""
+        log_entry = {
+            'timestamp': datetime.now().isoformat(),
+            'step': step,
+            'status': status,
+            'details': details
+        }
+        self.deployment_log.append(log_entry)
+        print(f"[{log_entry['timestamp']}] {step}: {status}")
+        if details:
+            print(f"  Details: {details}")
+    
+    def run_dbt_command(self, command):
+        """Run dbt command and capture output"""
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                cwd=self.project_dir,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return True, result.stdout, result.stderr
+        except subprocess.CalledProcessError as e:
+            return False, e.stdout, e.stderr
+    
+    def pre_deployment_checks(self):
+        """Run pre-deployment validation"""
+        self.log_step("Pre-deployment checks", "STARTED")
+        
+        # Check dbt installation
+        success, stdout, stderr = self.run_dbt_command("dbt --version")
+        if not success:
+            self.log_step("DBT version check", "FAILED", stderr)
+            return False
+        
+        # Parse dbt project
+        success, stdout, stderr = self.run_dbt_command(f"dbt parse --target {self.target_env}")
+        if not success:
+            self.log_step("DBT parse", "FAILED", stderr)
+            return False
+        
+        # Debug connection
+        success, stdout, stderr = self.run_dbt_command(f"dbt debug --target {self.target_env}")
+        if not success:
+            self.log_step("Connection test", "FAILED", stderr)
+            return False
+        
+        self.log_step("Pre-deployment checks", "PASSED")
+        return True
+    
+    def deploy_models(self, full_refresh=False):
+        """Deploy dbt models"""
+        self.log_step("Model deployment", "STARTED")
+        
+        # Install packages
+        success, stdout, stderr = self.run_dbt_command("dbt deps")
+        if not success:
+            self.log_step("Package installation", "FAILED", stderr)
+            return False
+        
+        # Run seeds
+        success, stdout, stderr = self.run_dbt_command(f"dbt seed --target {self.target_env}")
+        if not success:
+            self.log_step("Seed deployment", "FAILED", stderr)
+            return False
+        
+        # Run models
+        run_command = f"dbt run --target {self.target_env}"
+        if full_refresh:
+            run_command += " --full-refresh"
+        
+        success, stdout, stderr = self.run_dbt_command(run_command)
+        if not success:
+            self.log_step("Model deployment", "FAILED", stderr)
+            return False
+        
+        self.log_step("Model deployment", "SUCCESS")
+        return True
+    
+    def run_tests(self, store_failures=True):
+        """Run dbt tests"""
+        self.log_step("Test execution", "STARTED")
+        
+        test_command = f"dbt test --target {self.target_env}"
+        if store_failures:
+            test_command += " --store-failures"
+        
+        success, stdout, stderr = self.run_dbt_command(test_command)
+        
+        if not success:
+            self.log_step("Test execution", "FAILED", stderr)
+            # Parse test results for detailed reporting
+            self.parse_test_results(stdout)
+            return False
+        
+        self.log_step("Test execution", "SUCCESS")
+        return True
+    
+    def parse_test_results(self, test_output):
+        """Parse test results for reporting"""
+        # Extract failed tests from output
+        lines = test_output.split('\n')
+        failed_tests = []
+        
+        for line in lines:
+            if 'FAIL' in line and 'test' in line:
+                failed_tests.append(line.strip())
+        
+        if failed_tests:
+            self.log_step("Failed tests", "INFO", failed_tests)
+    
+    def generate_documentation(self):
+        """Generate dbt documentation"""
+        self.log_step("Documentation generation", "STARTED")
+        
+        success, stdout, stderr = self.run_dbt_command(f"dbt docs generate --target {self.target_env}")
+        if not success:
+            self.log_step("Documentation generation", "FAILED", stderr)
+            return False
+        
+        self.log_step("Documentation generation", "SUCCESS")
+        return True
+    
+    def deploy(self, full_refresh=False, skip_tests=False):
+        """Full deployment pipeline"""
+        self.log_step("Deployment", "STARTED", f"Target: {self.target_env}")
+        
+        # Pre-deployment checks
+        if not self.pre_deployment_checks():
+            return False
+        
+        # Deploy models
+        if not self.deploy_models(full_refresh):
+            return False
+        
+        # Run tests
+        if not skip_tests and not self.run_tests():
+            return False
+        
+        # Generate documentation
+        if not self.generate_documentation():
+            return False
+        
+        self.log_step("Deployment", "SUCCESS")
+        return True
+    
+    def save_deployment_log(self, log_file):
+        """Save deployment log to file"""
+        with open(log_file, 'w') as f:
+            json.dump(self.deployment_log, f, indent=2)
+
+# Usage example
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Deploy DBT project')
+    parser.add_argument('--target', required=True, help='Target environment')
+    parser.add_argument('--full-refresh', action='store_true', help='Full refresh models')
+    parser.add_argument('--skip-tests', action='store_true', help='Skip tests')
+    parser.add_argument('--log-file', default='deployment.log', help='Log file path')
+    
+    args = parser.parse_args()
+    
+    deployment = DBTDeployment(args.target)
+    success = deployment.deploy(
+        full_refresh=args.full_refresh,
+        skip_tests=args.skip_tests
+    )
+    
+    deployment.save_deployment_log(args.log_file)
+    
+    if not success:
+        sys.exit(1)
+```
+
 ---
 
 ## Key Takeaways
@@ -974,3 +1775,7 @@ dbt docs serve
 6. **Environment Management**: Consistent deployment across dev, staging, and production
 7. **Macro System**: Reusable SQL logic through Jinja templating
 8. **Lineage Tracking**: Visual representation of data dependencies and transformations
+9. **Advanced Macros**: Complex business logic and cross-database compatibility
+10. **Package Management**: Reusable components and dependency management
+11. **CI/CD Integration**: Automated testing and deployment pipelines
+12. **Data Quality**: Comprehensive testing and monitoring frameworks

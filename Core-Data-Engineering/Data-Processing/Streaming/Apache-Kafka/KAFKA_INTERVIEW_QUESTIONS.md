@@ -1069,6 +1069,636 @@ if __name__ == "__main__":
         pipeline.cleanup()
 ```
 
+### Q10: How do you implement Kafka Connect for data integration?
+
+**Answer:**
+Kafka Connect is a framework for connecting Kafka with external systems like databases, key-value stores, search indexes, and file systems. It provides scalable and reliable streaming data integration.
+
+**Code Example:**
+```json
+// Source connector configuration - PostgreSQL to Kafka
+{
+  "name": "postgres-source-connector",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+    "connection.url": "jdbc:postgresql://localhost:5432/ecommerce",
+    "connection.user": "kafka_user",
+    "connection.password": "password",
+    "table.whitelist": "orders,customers,products",
+    "mode": "incrementing",
+    "incrementing.column.name": "id",
+    "topic.prefix": "postgres-",
+    "poll.interval.ms": 5000,
+    "batch.max.rows": 1000,
+    "transforms": "addTimestamp",
+    "transforms.addTimestamp.type": "org.apache.kafka.connect.transforms.InsertField$Value",
+    "transforms.addTimestamp.timestamp.field": "kafka_timestamp"
+  }
+}
+```
+
+```python
+# Managing Kafka Connect via REST API
+import requests
+import json
+
+class KafkaConnectManager:
+    def __init__(self, connect_url="http://localhost:8083"):
+        self.connect_url = connect_url
+    
+    def create_connector(self, connector_config):
+        """Create a new connector"""
+        response = requests.post(
+            f"{self.connect_url}/connectors",
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(connector_config)
+        )
+        return response.json()
+    
+    def get_connector_status(self, connector_name):
+        """Get connector status"""
+        response = requests.get(f"{self.connect_url}/connectors/{connector_name}/status")
+        return response.json()
+    
+    def pause_connector(self, connector_name):
+        """Pause connector"""
+        response = requests.put(f"{self.connect_url}/connectors/{connector_name}/pause")
+        return response.status_code == 202
+    
+    def resume_connector(self, connector_name):
+        """Resume connector"""
+        response = requests.put(f"{self.connect_url}/connectors/{connector_name}/resume")
+        return response.status_code == 202
+
+# Usage example
+connect_manager = KafkaConnectManager()
+
+# Sink connector configuration - Kafka to Elasticsearch
+sink_config = {
+    "name": "elasticsearch-sink-connector",
+    "config": {
+        "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+        "topics": "user_events,order_events",
+        "connection.url": "http://elasticsearch:9200",
+        "type.name": "_doc",
+        "key.ignore": "true",
+        "schema.ignore": "true",
+        "batch.size": 100,
+        "max.buffered.records": 1000,
+        "flush.timeout.ms": 10000
+    }
+}
+
+# Create sink connector
+result = connect_manager.create_connector(sink_config)
+print(f"Connector created: {result}")
+```
+
+### Q11: How do you handle Kafka security and authentication?
+
+**Answer:**
+Kafka security involves authentication, authorization, and encryption. Common security mechanisms include SASL, SSL/TLS, and ACLs for fine-grained access control.
+
+**Code Example:**
+```properties
+# server.properties - Broker security configuration
+# SSL Configuration
+listeners=SASL_SSL://localhost:9093
+security.inter.broker.protocol=SASL_SSL
+sasl.mechanism.inter.broker.protocol=PLAIN
+sasl.enabled.mechanisms=PLAIN,SCRAM-SHA-256
+
+# SSL settings
+ssl.keystore.location=/var/private/ssl/kafka.server.keystore.jks
+ssl.keystore.password=keystore_password
+ssl.key.password=key_password
+ssl.truststore.location=/var/private/ssl/kafka.server.truststore.jks
+ssl.truststore.password=truststore_password
+
+# SASL settings
+sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required \
+    username="admin" \
+    password="admin-secret" \
+    user_admin="admin-secret" \
+    user_alice="alice-secret";
+
+# Authorization
+authorizer.class.name=kafka.security.authorizer.AclAuthorizer
+super.users=User:admin
+allow.everyone.if.no.acl.found=false
+```
+
+```python
+# Secure Kafka client configuration
+from kafka import KafkaProducer, KafkaConsumer
+import ssl
+
+class SecureKafkaClient:
+    def __init__(self):
+        self.security_config = {
+            'bootstrap_servers': ['localhost:9093'],
+            'security_protocol': 'SASL_SSL',
+            'sasl_mechanism': 'SCRAM-SHA-256',
+            'sasl_plain_username': 'alice',
+            'sasl_plain_password': 'alice-secret',
+            'ssl_context': ssl.create_default_context(),
+            'ssl_check_hostname': True,
+            'ssl_cafile': '/path/to/ca-cert',
+            'ssl_certfile': '/path/to/client-cert',
+            'ssl_keyfile': '/path/to/client-key'
+        }
+    
+    def create_secure_producer(self):
+        """Create secure producer"""
+        return KafkaProducer(
+            **self.security_config,
+            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+            acks='all',
+            retries=3,
+            enable_idempotence=True
+        )
+    
+    def create_secure_consumer(self, topics, group_id):
+        """Create secure consumer"""
+        return KafkaConsumer(
+            *topics,
+            **self.security_config,
+            group_id=group_id,
+            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+            enable_auto_commit=False
+        )
+
+# ACL management
+class KafkaACLManager:
+    def __init__(self, kafka_home, bootstrap_servers):
+        self.kafka_home = kafka_home
+        self.bootstrap_servers = bootstrap_servers
+    
+    def add_acl(self, principal, operation, resource_type, resource_name):
+        """Add ACL rule"""
+        import subprocess
+        
+        cmd = [
+            f"{self.kafka_home}/bin/kafka-acls.sh",
+            "--bootstrap-server", self.bootstrap_servers,
+            "--add",
+            "--allow-principal", f"User:{principal}",
+            "--operation", operation,
+            f"--{resource_type}", resource_name
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.returncode == 0
+    
+    def list_acls(self, principal=None):
+        """List ACL rules"""
+        import subprocess
+        
+        cmd = [
+            f"{self.kafka_home}/bin/kafka-acls.sh",
+            "--bootstrap-server", self.bootstrap_servers,
+            "--list"
+        ]
+        
+        if principal:
+            cmd.extend(["--principal", f"User:{principal}"])
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.stdout
+
+# Usage example
+acl_manager = KafkaACLManager("/opt/kafka", "localhost:9093")
+
+# Grant read access to topic
+acl_manager.add_acl("alice", "Read", "topic", "user_events")
+
+# Grant write access to topic
+acl_manager.add_acl("alice", "Write", "topic", "processed_events")
+
+# Grant consumer group access
+acl_manager.add_acl("alice", "Read", "group", "analytics_group")
+```
+
+### Q12: How do you implement Kafka Streams for stream processing?
+
+**Answer:**
+Kafka Streams is a client library for building applications and microservices where input and output data are stored in Kafka clusters. It provides high-level DSL and low-level Processor API.
+
+**Code Example:**
+```java
+// Java Kafka Streams application
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.Stores;
+
+public class UserEventProcessor {
+    
+    public static void main(String[] args) {
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "user-event-processor");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        
+        StreamsBuilder builder = new StreamsBuilder();
+        
+        // Input stream
+        KStream<String, String> userEvents = builder.stream("user_events");
+        
+        // Filter and transform events
+        KStream<String, String> processedEvents = userEvents
+            .filter((key, value) -> value.contains("purchase"))
+            .mapValues(value -> {
+                // Parse and enrich event
+                JsonNode event = parseJson(value);
+                return enrichEvent(event).toString();
+            });
+        
+        // Aggregate events by user
+        KTable<String, Long> userEventCounts = userEvents
+            .groupByKey()
+            .count(Materialized.as("user-event-counts"));
+        
+        // Join streams
+        KStream<String, String> enrichedEvents = processedEvents
+            .join(userEventCounts,
+                (event, count) -> addCountToEvent(event, count),
+                Joined.with(Serdes.String(), Serdes.String(), Serdes.Long()));
+        
+        // Output to topic
+        enrichedEvents.to("processed_user_events");
+        
+        // Build and start streams application
+        KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+        
+        // Graceful shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+    }
+}
+```
+
+```python
+# Python equivalent using kafka-python and custom stream processing
+import json
+from kafka import KafkaConsumer, KafkaProducer
+from collections import defaultdict
+import threading
+import time
+
+class KafkaStreamProcessor:
+    def __init__(self):
+        self.consumer = KafkaConsumer(
+            'user_events',
+            bootstrap_servers=['localhost:9092'],
+            group_id='stream_processor',
+            value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+        )
+        
+        self.producer = KafkaProducer(
+            bootstrap_servers=['localhost:9092'],
+            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+        )
+        
+        # State stores (in-memory for simplicity)
+        self.user_counts = defaultdict(int)
+        self.user_sessions = defaultdict(list)
+        
+    def process_events(self):
+        """Main event processing loop"""
+        for message in self.consumer:
+            event = message.value
+            user_id = event.get('user_id')
+            
+            # Filter events
+            if self.should_process_event(event):
+                # Transform event
+                processed_event = self.transform_event(event)
+                
+                # Update state
+                self.update_state(user_id, processed_event)
+                
+                # Enrich with state
+                enriched_event = self.enrich_event(processed_event, user_id)
+                
+                # Send to output topic
+                self.producer.send('processed_user_events', enriched_event)
+    
+    def should_process_event(self, event):
+        """Filter logic"""
+        return event.get('event_type') in ['purchase', 'add_to_cart', 'view_product']
+    
+    def transform_event(self, event):
+        """Transform event data"""
+        transformed = event.copy()
+        transformed['processed_timestamp'] = time.time()
+        
+        # Add derived fields
+        if event.get('event_type') == 'purchase':
+            transformed['revenue_impact'] = event.get('amount', 0) * 0.1
+        
+        return transformed
+    
+    def update_state(self, user_id, event):
+        """Update internal state"""
+        self.user_counts[user_id] += 1
+        self.user_sessions[user_id].append(event)
+        
+        # Keep only recent events (sliding window)
+        cutoff_time = time.time() - 3600  # 1 hour
+        self.user_sessions[user_id] = [
+            e for e in self.user_sessions[user_id]
+            if e.get('processed_timestamp', 0) > cutoff_time
+        ]
+    
+    def enrich_event(self, event, user_id):
+        """Enrich event with state data"""
+        enriched = event.copy()
+        enriched['user_event_count'] = self.user_counts[user_id]
+        enriched['session_events'] = len(self.user_sessions[user_id])
+        
+        # Calculate session metrics
+        session_events = self.user_sessions[user_id]
+        if session_events:
+            enriched['session_duration'] = (
+                max(e.get('processed_timestamp', 0) for e in session_events) -
+                min(e.get('processed_timestamp', 0) for e in session_events)
+            )
+        
+        return enriched
+
+# Windowed aggregations
+class WindowedAggregator:
+    def __init__(self, window_size_seconds=300):
+        self.window_size = window_size_seconds
+        self.windows = defaultdict(lambda: defaultdict(int))
+        
+    def add_event(self, event):
+        """Add event to appropriate window"""
+        timestamp = event.get('timestamp', time.time())
+        window_start = int(timestamp // self.window_size) * self.window_size
+        
+        event_type = event.get('event_type')
+        self.windows[window_start][event_type] += 1
+        
+        # Clean old windows
+        self.cleanup_old_windows()
+    
+    def cleanup_old_windows(self):
+        """Remove windows older than 1 hour"""
+        cutoff = time.time() - 3600
+        old_windows = [w for w in self.windows.keys() if w < cutoff]
+        for window in old_windows:
+            del self.windows[window]
+    
+    def get_window_aggregates(self, window_start):
+        """Get aggregates for specific window"""
+        return dict(self.windows[window_start])
+
+# Usage example
+if __name__ == "__main__":
+    processor = KafkaStreamProcessor()
+    
+    # Start processing in separate thread
+    processing_thread = threading.Thread(target=processor.process_events)
+    processing_thread.daemon = True
+    processing_thread.start()
+    
+    print("Stream processor started. Press Ctrl+C to stop.")
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Shutting down stream processor...")
+        processor.consumer.close()
+        processor.producer.close()
+```
+
+### Q13: How do you handle Kafka cluster scaling and rebalancing?
+
+**Answer:**
+Kafka scaling involves adding/removing brokers and managing partition rebalancing. Proper scaling ensures even load distribution and maintains performance during cluster changes.
+
+**Code Example:**
+```bash
+# Add new broker to cluster
+# 1. Start new broker with unique broker.id
+echo "broker.id=4" >> /opt/kafka/config/server-4.properties
+echo "listeners=PLAINTEXT://localhost:9095" >> /opt/kafka/config/server-4.properties
+echo "log.dirs=/var/kafka-logs-4" >> /opt/kafka/config/server-4.properties
+
+# Start the new broker
+/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server-4.properties
+
+# 2. Generate partition reassignment plan
+/opt/kafka/bin/kafka-reassign-partitions.sh \
+  --bootstrap-server localhost:9092 \
+  --topics-to-move-json-file topics-to-move.json \
+  --broker-list "0,1,2,3,4" \
+  --generate
+
+# 3. Execute partition reassignment
+/opt/kafka/bin/kafka-reassign-partitions.sh \
+  --bootstrap-server localhost:9092 \
+  --reassignment-json-file reassignment.json \
+  --execute
+
+# 4. Verify reassignment progress
+/opt/kafka/bin/kafka-reassign-partitions.sh \
+  --bootstrap-server localhost:9092 \
+  --reassignment-json-file reassignment.json \
+  --verify
+```
+
+```python
+# Automated cluster scaling management
+import json
+import subprocess
+import time
+from kafka.admin import KafkaAdminClient, ConfigResource, ConfigResourceType
+from kafka import KafkaConsumer
+
+class KafkaClusterManager:
+    def __init__(self, bootstrap_servers):
+        self.bootstrap_servers = bootstrap_servers
+        self.admin_client = KafkaAdminClient(
+            bootstrap_servers=bootstrap_servers
+        )
+    
+    def get_cluster_metadata(self):
+        """Get current cluster information"""
+        metadata = self.admin_client.describe_cluster()
+        return {
+            'cluster_id': metadata.cluster_id,
+            'brokers': [{'id': b.id, 'host': b.host, 'port': b.port} 
+                       for b in metadata.brokers],
+            'controller': metadata.controller.id if metadata.controller else None
+        }
+    
+    def analyze_partition_distribution(self):
+        """Analyze current partition distribution across brokers"""
+        consumer = KafkaConsumer(bootstrap_servers=self.bootstrap_servers)
+        
+        broker_partitions = {}
+        topics = consumer.topics()
+        
+        for topic in topics:
+            partitions = consumer.partitions_for_topic(topic)
+            if partitions:
+                for partition in partitions:
+                    # Get partition metadata
+                    partition_metadata = consumer._client.cluster.partitions_for_topic(topic)
+                    for pm in partition_metadata:
+                        if pm.partition == partition:
+                            leader = pm.leader
+                            if leader not in broker_partitions:
+                                broker_partitions[leader] = []
+                            broker_partitions[leader].append(f"{topic}-{partition}")
+        
+        consumer.close()
+        return broker_partitions
+    
+    def generate_rebalance_plan(self, target_brokers):
+        """Generate partition rebalance plan"""
+        current_distribution = self.analyze_partition_distribution()
+        
+        # Calculate target partitions per broker
+        total_partitions = sum(len(partitions) for partitions in current_distribution.values())
+        target_per_broker = total_partitions // len(target_brokers)
+        
+        rebalance_plan = {}
+        
+        # Distribute partitions evenly
+        all_partitions = []
+        for broker, partitions in current_distribution.items():
+            all_partitions.extend([(p, broker) for p in partitions])
+        
+        # Assign partitions to target brokers
+        for i, (partition, current_broker) in enumerate(all_partitions):
+            target_broker = target_brokers[i % len(target_brokers)]
+            topic, partition_num = partition.split('-')
+            
+            if topic not in rebalance_plan:
+                rebalance_plan[topic] = []
+            
+            rebalance_plan[topic].append({
+                'partition': int(partition_num),
+                'current_broker': current_broker,
+                'target_broker': target_broker
+            })
+        
+        return rebalance_plan
+    
+    def execute_rebalance(self, rebalance_plan):
+        """Execute partition rebalance"""
+        # Generate reassignment JSON
+        reassignments = []
+        
+        for topic, partitions in rebalance_plan.items():
+            for partition_info in partitions:
+                reassignments.append({
+                    'topic': topic,
+                    'partition': partition_info['partition'],
+                    'replicas': [partition_info['target_broker']]
+                })
+        
+        # Write to file for kafka-reassign-partitions.sh
+        reassignment_file = '/tmp/reassignment.json'
+        with open(reassignment_file, 'w') as f:
+            json.dump({'partitions': reassignments}, f, indent=2)
+        
+        # Execute reassignment
+        cmd = [
+            '/opt/kafka/bin/kafka-reassign-partitions.sh',
+            '--bootstrap-server', ','.join(self.bootstrap_servers),
+            '--reassignment-json-file', reassignment_file,
+            '--execute'
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.returncode == 0, result.stdout, result.stderr
+    
+    def monitor_rebalance_progress(self):
+        """Monitor ongoing rebalance operations"""
+        cmd = [
+            '/opt/kafka/bin/kafka-reassign-partitions.sh',
+            '--bootstrap-server', ','.join(self.bootstrap_servers),
+            '--reassignment-json-file', '/tmp/reassignment.json',
+            '--verify'
+        ]
+        
+        while True:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if 'successfully' in result.stdout:
+                print("Rebalance completed successfully")
+                break
+            elif 'in progress' in result.stdout:
+                print("Rebalance in progress...")
+                time.sleep(30)
+            else:
+                print(f"Rebalance status: {result.stdout}")
+                time.sleep(30)
+
+# Consumer group rebalancing
+class ConsumerGroupManager:
+    def __init__(self, bootstrap_servers):
+        self.bootstrap_servers = bootstrap_servers
+    
+    def get_consumer_group_info(self, group_id):
+        """Get consumer group information"""
+        cmd = [
+            '/opt/kafka/bin/kafka-consumer-groups.sh',
+            '--bootstrap-server', ','.join(self.bootstrap_servers),
+            '--group', group_id,
+            '--describe'
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.stdout
+    
+    def reset_consumer_group_offsets(self, group_id, topic, reset_type='earliest'):
+        """Reset consumer group offsets"""
+        cmd = [
+            '/opt/kafka/bin/kafka-consumer-groups.sh',
+            '--bootstrap-server', ','.join(self.bootstrap_servers),
+            '--group', group_id,
+            '--topic', topic,
+            '--reset-offsets',
+            f'--to-{reset_type}',
+            '--execute'
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.returncode == 0
+
+# Usage example
+if __name__ == "__main__":
+    cluster_manager = KafkaClusterManager(['localhost:9092'])
+    
+    # Get current cluster state
+    metadata = cluster_manager.get_cluster_metadata()
+    print(f"Cluster ID: {metadata['cluster_id']}")
+    print(f"Brokers: {metadata['brokers']}")
+    
+    # Analyze partition distribution
+    distribution = cluster_manager.analyze_partition_distribution()
+    print(f"Current distribution: {distribution}")
+    
+    # Generate rebalance plan for new broker set
+    target_brokers = [0, 1, 2, 3, 4]  # Including new broker 4
+    plan = cluster_manager.generate_rebalance_plan(target_brokers)
+    print(f"Rebalance plan: {plan}")
+    
+    # Execute rebalance (uncomment to run)
+    # success, stdout, stderr = cluster_manager.execute_rebalance(plan)
+    # if success:
+    #     cluster_manager.monitor_rebalance_progress()
+```
+
 ---
 
 ## Key Takeaways
@@ -1081,3 +1711,7 @@ if __name__ == "__main__":
 6. **Monitoring**: Track lag, throughput, and system metrics for health
 7. **Real-time Pipelines**: Central component for event-driven architectures
 8. **Fault Tolerance**: Replication and proper configuration ensure reliability
+9. **Connect Framework**: Seamless integration with external systems
+10. **Security**: Comprehensive authentication, authorization, and encryption
+11. **Stream Processing**: Built-in capabilities for real-time data transformation
+12. **Scaling**: Dynamic cluster scaling with automated rebalancing
