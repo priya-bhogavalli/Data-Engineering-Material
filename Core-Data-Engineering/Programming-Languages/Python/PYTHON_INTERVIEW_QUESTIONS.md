@@ -10,7 +10,7 @@
    - [List Comprehensions vs Generators](#5-explain-list-comprehensions-vs-generator-expressions)
 2. [Intermediate Questions](#intermediate-questions)
    - [Decorators](#6-what-are-decorators-and-how-do-they-work)
-   - [*args and **kwargs](#1-what-are-the-key-differences-between-python-2-and-python-3)
+   - [*args and **kwargs](#7-explain-the-difference-between-args-and-kwargs)
    - [Global Interpreter Lock](#8-what-is-the-global-interpreter-lock-gil)
    - [Method Resolution Order](#9-explain-pythons-method-resolution-order-mro)
    - [Deep vs Shallow Copy](#10-explain-the-difference-between-deep-copy-and-shallow-copy)
@@ -34,6 +34,7 @@
 ## Basic Python Questions
 
 ### 1. What are the key differences between Python 2 and Python 3?
+
 **Answer:**
 Python 3 was released in 2008 as a major revision that broke backward compatibility to fix fundamental design issues in Python 2. Understanding these differences is crucial for data engineers working with legacy systems or migrating codebases.
 
@@ -731,85 +732,526 @@ if __name__ == "__main__":
 ```
 
 ### 4. What are the key differences between lists and tuples in Python?
+
 **Answer:**
-- **Mutability**: Lists are mutable (can be modified), tuples are immutable
-- **Performance**: Tuples are faster for iteration and access
-- **Memory**: Tuples use less memory
-- **Use cases**: Lists for dynamic data, tuples for fixed data structures
+Lists and tuples are both sequence types in Python, but they serve different purposes and have distinct characteristics that make them suitable for different use cases in data engineering applications.
+
+**Key Differences:**
+
+**Mutability:**
+- **Lists**: Mutable - can be modified after creation (add, remove, change elements)
+- **Tuples**: Immutable - cannot be changed after creation
+- **Impact**: Lists for dynamic data that changes, tuples for fixed data structures
+
+**Performance:**
+- **Tuples**: Faster for iteration, indexing, and creation
+- **Lists**: Slightly slower due to mutability overhead
+- **Memory**: Tuples use less memory due to immutability optimizations
+
+**Use Cases:**
+- **Lists**: Dynamic collections, data that needs modification, stacks, queues
+- **Tuples**: Coordinates, database records, function return values, dictionary keys
+- **Data Engineering**: Tuples for schema definitions, lists for data processing
+
+**Hashability:**
+- **Tuples**: Hashable (can be dictionary keys or set elements) if all elements are hashable
+- **Lists**: Not hashable (cannot be dictionary keys)
+
+**Methods Available:**
+- **Lists**: Many methods (append, extend, remove, pop, sort, etc.)
+- **Tuples**: Limited methods (count, index)
+
+**When to Use Each:**
+- **Lists**: When you need to modify the collection during program execution
+- **Tuples**: When you have a fixed collection that won't change
 
 ```python
-# List example
+import sys
+import time
+
+# Basic examples
 my_list = [1, 2, 3]
+my_tuple = (1, 2, 3)
+
+# Mutability demonstration
+print("=== Mutability ===")
 my_list.append(4)  # Works
 print(f"List after append: {my_list}")
 # Output: List after append: [1, 2, 3, 4]
 
-# Tuple example
-my_tuple = (1, 2, 3)
+my_list[0] = 'changed'
+print(f"List after modification: {my_list}")
+# Output: List after modification: ['changed', 2, 3, 4]
+
 print(f"Tuple: {my_tuple}")
 # my_tuple.append(4)  # Error - tuples are immutable
+# my_tuple[0] = 'changed'  # Error - cannot modify
 # Output: Tuple: (1, 2, 3)
+
+# Memory usage comparison
+print("\n=== Memory Usage ===")
+list_data = [i for i in range(1000)]
+tuple_data = tuple(i for i in range(1000))
+
+print(f"List memory: {sys.getsizeof(list_data)} bytes")
+print(f"Tuple memory: {sys.getsizeof(tuple_data)} bytes")
+print(f"Memory savings with tuple: {sys.getsizeof(list_data) - sys.getsizeof(tuple_data)} bytes")
+
+# Performance comparison
+print("\n=== Performance Comparison ===")
+data = list(range(10000))
+
+# List creation time
+start = time.time()
+for _ in range(1000):
+    test_list = [1, 2, 3, 4, 5]
+list_time = time.time() - start
+
+# Tuple creation time
+start = time.time()
+for _ in range(1000):
+    test_tuple = (1, 2, 3, 4, 5)
+tuple_time = time.time() - start
+
+print(f"List creation time: {list_time:.6f}s")
+print(f"Tuple creation time: {tuple_time:.6f}s")
+print(f"Tuple is {list_time/tuple_time:.2f}x faster to create")
+
+# Iteration performance
+test_list = list(range(10000))
+test_tuple = tuple(range(10000))
+
+start = time.time()
+for item in test_list:
+    pass
+list_iter_time = time.time() - start
+
+start = time.time()
+for item in test_tuple:
+    pass
+tuple_iter_time = time.time() - start
+
+print(f"List iteration time: {list_iter_time:.6f}s")
+print(f"Tuple iteration time: {tuple_iter_time:.6f}s")
+
+# Hashability demonstration
+print("\n=== Hashability ===")
+try:
+    # Tuples can be dictionary keys
+    coordinate_dict = {(0, 0): 'origin', (1, 1): 'point1'}
+    print(f"Tuple as dict key works: {coordinate_dict}")
+except TypeError as e:
+    print(f"Tuple as dict key failed: {e}")
+
+try:
+    # Lists cannot be dictionary keys
+    list_dict = {[0, 0]: 'origin'}  # This will fail
+except TypeError as e:
+    print(f"List as dict key failed: {e}")
+
+# Practical data engineering examples
+print("\n=== Data Engineering Use Cases ===")
+
+# Tuple for database record (immutable structure)
+user_record = ('john_doe', 'john@example.com', 25, 'active')
+print(f"Database record (tuple): {user_record}")
+
+# List for data processing (mutable collection)
+data_batch = [100, 200, 300, 400, 500]
+print(f"Original batch: {data_batch}")
+
+# Process data (modify list)
+processed_batch = []
+for value in data_batch:
+    if value > 250:
+        processed_batch.append(value * 1.1)  # Apply 10% increase
+    else:
+        processed_batch.append(value)
+
+print(f"Processed batch: {processed_batch}")
+
+# Tuple for function return (multiple values)
+def get_statistics(data):
+    """Return statistics as tuple (immutable result)."""
+    return (min(data), max(data), sum(data)/len(data))
+
+stats = get_statistics(data_batch)
+min_val, max_val, avg_val = stats  # Tuple unpacking
+print(f"Statistics (min, max, avg): {stats}")
+
+# Named tuples for structured data
+from collections import namedtuple
+
+DataPoint = namedtuple('DataPoint', ['timestamp', 'value', 'source'])
+data_point = DataPoint('2023-01-01', 42.5, 'sensor_1')
+print(f"Named tuple: {data_point}")
+print(f"Access by name: {data_point.timestamp}, {data_point.value}")
+
+# List methods vs tuple methods
+print("\n=== Available Methods ===")
+print(f"List methods: {[method for method in dir(list) if not method.startswith('_')]}")
+print(f"Tuple methods: {[method for method in dir(tuple) if not method.startswith('_')]}")
+
+# Conversion between list and tuple
+print("\n=== Conversion ===")
+original_list = [1, 2, 3, 4, 5]
+converted_tuple = tuple(original_list)
+back_to_list = list(converted_tuple)
+
+print(f"Original list: {original_list}")
+print(f"Converted to tuple: {converted_tuple}")
+print(f"Back to list: {back_to_list}")
 ```
 
 ### 5. Explain list comprehensions vs generator expressions.
+
 **Answer:**
-List comprehensions and generator expressions are both concise ways to create sequences in Python, but they differ significantly in memory usage and evaluation strategy. Understanding this difference is crucial for data engineering when processing large datasets.
+List comprehensions and generator expressions are both concise ways to create sequences in Python, but they differ significantly in memory usage and evaluation strategy. Understanding this difference is crucial for data engineering when processing large datasets that may not fit in memory.
 
 **Key Differences:**
-- **List Comprehensions**: Create entire list in memory immediately (eager evaluation)
-- **Generator Expressions**: Create iterator that yields items on-demand (lazy evaluation)
-- **Memory Usage**: Generators use constant memory regardless of size
-- **Performance**: Lists faster for small datasets, generators better for large datasets
-- **Reusability**: Lists can be iterated multiple times, generators are consumed once
+
+**Evaluation Strategy:**
+- **List Comprehensions**: Eager evaluation - create entire list in memory immediately
+- **Generator Expressions**: Lazy evaluation - create iterator that yields items on-demand
+- **Syntax**: Lists use `[]`, generators use `()`
+
+**Memory Usage:**
+- **List Comprehensions**: Memory usage grows with data size (O(n) space)
+- **Generator Expressions**: Constant memory usage regardless of size (O(1) space)
+- **Impact**: Generators can handle datasets larger than available RAM
+
+**Performance Characteristics:**
+- **Lists**: Faster for small datasets, support random access, can be iterated multiple times
+- **Generators**: Better for large datasets, sequential access only, consumed once
+- **Creation Speed**: Generators are faster to create (no immediate computation)
 
 **When to Use Each:**
-- **List Comprehensions**: Small datasets, need random access, multiple iterations
-- **Generator Expressions**: Large datasets, memory constraints, single iteration
+- **List Comprehensions**: Small datasets, need random access, multiple iterations, need len()
+- **Generator Expressions**: Large datasets, memory constraints, single iteration, streaming data
+- **Data Engineering**: Generators for ETL pipelines, lists for small lookup tables
+
+**Advanced Concepts:**
+- **Generator Chaining**: Combine multiple generators for complex pipelines
+- **Memory Profiling**: Monitor memory usage to choose appropriate approach
+- **Hybrid Approaches**: Use generators with batching for balanced performance
 
 ```python
+import sys
+import time
+import tracemalloc
+from typing import Iterator, List
+
+# Basic syntax comparison
+print("=== Basic Syntax ===")
 # List comprehension - creates list in memory
 squares_list = [x**2 for x in range(10)]
+print(f"List comprehension: {squares_list}")
+print(f"Type: {type(squares_list)}")
 
 # Generator expression - lazy evaluation
 squares_gen = (x**2 for x in range(10))
+print(f"Generator expression: {squares_gen}")
+print(f"Type: {type(squares_gen)}")
+print(f"Generator content: {list(squares_gen)}")
 
 # Memory usage comparison
-import sys
-print(f"List size: {sys.getsizeof(squares_list)} bytes")
-print(f"Generator size: {sys.getsizeof(squares_gen)} bytes")
-# Output: List size: 200 bytes
-# Output: Generator size: 88 bytes
+print("\n=== Memory Usage Comparison ===")
+small_list = [x for x in range(1000)]
+small_gen = (x for x in range(1000))
 
-# Practical example for large datasets
-def process_large_dataset():
-    # Memory efficient - processes one item at a time
-    large_gen = (x**2 for x in range(1000000) if x % 2 == 0)
-    return sum(large_gen)  # Uses minimal memory
+print(f"Small list (1000 items): {sys.getsizeof(small_list)} bytes")
+print(f"Small generator: {sys.getsizeof(small_gen)} bytes")
 
-# Multiple iterations
+# Large dataset memory comparison
+large_list = [x for x in range(100000)]
+large_gen = (x for x in range(100000))
+
+print(f"Large list (100k items): {sys.getsizeof(large_list)} bytes")
+print(f"Large generator: {sys.getsizeof(large_gen)} bytes")
+print(f"Memory savings: {sys.getsizeof(large_list) - sys.getsizeof(large_gen)} bytes")
+
+# Performance comparison
+print("\n=== Performance Comparison ===")
+
+def time_creation(description, creation_func, iterations=1000):
+    """Time the creation of data structures."""
+    start = time.time()
+    for _ in range(iterations):
+        result = creation_func()
+    end = time.time()
+    print(f"{description}: {(end - start) * 1000:.2f}ms for {iterations} iterations")
+    return result
+
+# Compare creation times
+time_creation("List comprehension", lambda: [x**2 for x in range(1000)])
+time_creation("Generator expression", lambda: (x**2 for x in range(1000)))
+
+# Memory profiling example
+print("\n=== Memory Profiling ===")
+
+def memory_intensive_list_processing():
+    """Process data using list comprehension."""
+    # Create large list in memory
+    data = [x**2 for x in range(500000)]
+    # Process data
+    filtered = [x for x in data if x % 2 == 0]
+    return sum(filtered)
+
+def memory_efficient_generator_processing():
+    """Process data using generator expressions."""
+    # Create generator (no memory allocation)
+    data = (x**2 for x in range(500000))
+    # Chain generators for processing
+    filtered = (x for x in data if x % 2 == 0)
+    return sum(filtered)
+
+# Profile memory usage
+tracemalloc.start()
+
+# List approach
+snapshot1 = tracemalloc.take_snapshot()
+result1 = memory_intensive_list_processing()
+snapshot2 = tracemalloc.take_snapshot()
+
+# Generator approach
+snapshot3 = tracemalloc.take_snapshot()
+result2 = memory_efficient_generator_processing()
+snapshot4 = tracemalloc.take_snapshot()
+
+# Calculate memory differences
+list_memory = sum(stat.size for stat in snapshot2.statistics('lineno')) - sum(stat.size for stat in snapshot1.statistics('lineno'))
+gen_memory = sum(stat.size for stat in snapshot4.statistics('lineno')) - sum(stat.size for stat in snapshot3.statistics('lineno'))
+
+print(f"List approach memory: {list_memory / 1024 / 1024:.2f} MB")
+print(f"Generator approach memory: {gen_memory / 1024 / 1024:.2f} MB")
+print(f"Results match: {result1 == result2}")
+
+tracemalloc.stop()
+
+# Reusability demonstration
+print("\n=== Reusability ===")
 data_list = [1, 2, 3, 4, 5]
 data_gen = (x for x in [1, 2, 3, 4, 5])
 
-print(list(data_list))  # Works: [1, 2, 3, 4, 5]
-print(list(data_list))  # Works again: [1, 2, 3, 4, 5]
+print("List (multiple iterations):")
+print(f"First iteration: {list(data_list)}")
+print(f"Second iteration: {list(data_list)}")
+print(f"List length: {len(data_list)}")
 
-print(list(data_gen))   # Works: [1, 2, 3, 4, 5]
-print(list(data_gen))   # Empty: [] (generator exhausted)
+print("\nGenerator (single use):")
+print(f"First iteration: {list(data_gen)}")
+print(f"Second iteration: {list(data_gen)}")
+# print(f"Generator length: {len(data_gen)}")  # Error - generators don't have len()
+
+# Practical data engineering examples
+print("\n=== Data Engineering Use Cases ===")
+
+# Example 1: Processing large CSV file
+def process_csv_with_list(filename):
+    """Memory-intensive approach using list comprehension."""
+    # This would load entire file into memory
+    with open(filename, 'r') as f:
+        lines = [line.strip().split(',') for line in f]  # All in memory
+    
+    # Process all data
+    processed = [row for row in lines if len(row) > 2]
+    return processed
+
+def process_csv_with_generator(filename):
+    """Memory-efficient approach using generator."""
+    # Generator that processes one line at a time
+    def line_generator():
+        with open(filename, 'r') as f:
+            for line in f:
+                yield line.strip().split(',')
+    
+    # Chain generators for processing
+    processed = (row for row in line_generator() if len(row) > 2)
+    return processed
+
+# Example 2: Data transformation pipeline
+def create_data_pipeline(data_source: Iterator) -> Iterator:
+    """Create a memory-efficient data processing pipeline."""
+    # Stage 1: Filter valid records
+    valid_records = (record for record in data_source if record.get('valid', True))
+    
+    # Stage 2: Transform data
+    transformed = (
+        {
+            'id': record['id'],
+            'value': record['value'] * 2,
+            'category': record.get('category', 'unknown').upper()
+        }
+        for record in valid_records
+    )
+    
+    # Stage 3: Filter by value threshold
+    filtered = (record for record in transformed if record['value'] > 100)
+    
+    return filtered
+
+# Example usage of pipeline
+sample_data = [
+    {'id': 1, 'value': 50, 'category': 'a', 'valid': True},
+    {'id': 2, 'value': 75, 'category': 'b', 'valid': True},
+    {'id': 3, 'value': 25, 'category': 'c', 'valid': False},
+    {'id': 4, 'value': 100, 'category': 'd', 'valid': True}
+]
+
+print("Data pipeline with generators:")
+pipeline = create_data_pipeline(iter(sample_data))
+for processed_record in pipeline:
+    print(f"  Processed: {processed_record}")
+
+# Example 3: Batch processing with generators
+def batch_generator(iterable: Iterator, batch_size: int) -> Iterator[List]:
+    """Create batches from an iterable using generators."""
+    batch = []
+    for item in iterable:
+        batch.append(item)
+        if len(batch) >= batch_size:
+            yield batch
+            batch = []
+    
+    # Yield remaining items
+    if batch:
+        yield batch
+
+print("\nBatch processing:")
+large_dataset = (x for x in range(25))  # Simulate large dataset
+for i, batch in enumerate(batch_generator(large_dataset, batch_size=7)):
+    print(f"  Batch {i+1}: {batch}")
+
+# Example 4: Infinite generators
+def fibonacci_generator():
+    """Generate Fibonacci sequence infinitely."""
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
+
+def take(n: int, iterable: Iterator) -> List:
+    """Take first n items from an iterator."""
+    return [next(iterable) for _ in range(n)]
+
+print("\nInfinite generator (Fibonacci):")
+fib = fibonacci_generator()
+first_10 = take(10, fib)
+print(f"First 10 Fibonacci numbers: {first_10}")
+
+# Performance comparison for different scenarios
+print("\n=== Scenario-Based Performance ===")
+
+# Scenario 1: Small dataset, multiple access
+small_data = range(100)
+print("Small dataset (100 items):")
+
+# List - good for multiple access
+start = time.time()
+small_list = [x**2 for x in small_data]
+for _ in range(10):
+    total = sum(small_list)
+list_time = time.time() - start
+
+# Generator - recreated each time
+start = time.time()
+for _ in range(10):
+    small_gen = (x**2 for x in small_data)
+    total = sum(small_gen)
+gen_time = time.time() - start
+
+print(f"  List (multiple access): {list_time:.6f}s")
+print(f"  Generator (recreated): {gen_time:.6f}s")
+print(f"  List is {gen_time/list_time:.1f}x faster for multiple access")
+
+# Scenario 2: Large dataset, single access
+large_data = range(1000000)
+print("\nLarge dataset (1M items):")
+
+# List - memory intensive
+start = time.time()
+large_list = [x**2 for x in large_data if x % 2 == 0]
+total = sum(large_list)
+list_time = time.time() - start
+
+# Generator - memory efficient
+start = time.time()
+large_gen = (x**2 for x in large_data if x % 2 == 0)
+total = sum(large_gen)
+gen_time = time.time() - start
+
+print(f"  List (all in memory): {list_time:.6f}s")
+print(f"  Generator (streaming): {gen_time:.6f}s")
+print(f"  Generator is {list_time/gen_time:.1f}x faster for single pass")
+
+# Best practices summary
+print("\n=== Best Practices Summary ===")
+print("Use LIST COMPREHENSIONS when:")
+print("  • Dataset is small (< 10k items)")
+print("  • Need random access (indexing)")
+print("  • Multiple iterations required")
+print("  • Need len() or other list methods")
+print("  • Memory usage is not a concern")
+
+print("\nUse GENERATOR EXPRESSIONS when:")
+print("  • Dataset is large (> 100k items)")
+print("  • Memory is limited")
+print("  • Single iteration (streaming)")
+print("  • Building data pipelines")
+print("  • Processing files line by line")
+print("  • Infinite sequences")
 ```
 
 ## Intermediate Questions
 
 ### 6. What are decorators and how do they work?
+
 **Answer:**
-Decorators are a powerful Python feature that allows you to modify or extend the behavior of functions or classes without permanently modifying their code. They use the `@` syntax and are essentially functions that take another function as input and return a modified version.
+Decorators are a powerful Python feature that allows you to modify or extend the behavior of functions or classes without permanently modifying their code. They implement the decorator pattern and are essentially functions that take another function as input and return a modified version.
+
+**How Decorators Work:**
+- **Wrapper Functions**: Decorators wrap the original function with additional functionality
+- **@ Syntax**: Syntactic sugar for applying decorators cleanly
+- **Function Composition**: Chain multiple decorators for complex behavior
+- **Metadata Preservation**: Use `functools.wraps` to maintain original function information
+
+**Common Use Cases in Data Engineering:**
+- **Logging**: Track function calls and execution times
+- **Caching**: Store expensive computation results
+- **Retry Logic**: Automatically retry failed operations
+- **Authentication**: Verify user permissions before execution
+- **Rate Limiting**: Control API call frequency
+- **Data Validation**: Validate inputs and outputs
+- **Performance Monitoring**: Measure and log performance metrics
+
+**Types of Decorators:**
+- **Function Decorators**: Modify function behavior
+- **Class Decorators**: Modify class behavior
+- **Property Decorators**: Create computed properties
+- **Static/Class Method Decorators**: Define method types
+
+**Advanced Concepts:**
+- **Decorator Factories**: Decorators that accept parameters
+- **Class-based Decorators**: Using classes as decorators
+- **Decorator Chaining**: Applying multiple decorators
+- **Conditional Decorators**: Apply decorators based on conditions
 
 ```python
 import time
-from functools import wraps
+import functools
+import logging
+from typing import Callable, Any, Dict
+from datetime import datetime
+import json
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Basic decorator example
-def timing_decorator(func):
-    @wraps(func)  # Preserves original function metadata
+def timing_decorator(func: Callable) -> Callable:
+    """Decorator to measure function execution time."""
+    @functools.wraps(func)  # Preserves original function metadata
     def wrapper(*args, **kwargs):
         start = time.time()
         result = func(*args, **kwargs)
@@ -824,27 +1266,319 @@ def slow_function():
     time.sleep(1)
     return "Done"
 
-# Decorator with parameters
-def retry(max_attempts=3):
-    def decorator(func):
-        @wraps(func)
+# Decorator with parameters (decorator factory)
+def retry(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)):
+    """Decorator factory for retry logic with configurable parameters."""
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             for attempt in range(max_attempts):
                 try:
                     return func(*args, **kwargs)
-                except Exception as e:
+                except exceptions as e:
                     if attempt == max_attempts - 1:
+                        logger.error(f"Max attempts ({max_attempts}) reached for {func.__name__}")
                         raise e
-                    print(f"Attempt {attempt + 1} failed: {e}")
+                    
+                    logger.warning(f"Attempt {attempt + 1} failed for {func.__name__}: {e}")
+                    time.sleep(delay)
         return wrapper
     return decorator
 
-@retry(max_attempts=3)
+@retry(max_attempts=3, delay=0.5, exceptions=(ConnectionError, TimeoutError))
 def unreliable_function():
+    """Function that might fail randomly."""
     import random
     if random.random() < 0.7:
-        raise Exception("Random failure")
+        raise ConnectionError("Random connection failure")
     return "Success!"
+
+# Caching decorator
+def cache_results(max_size: int = 128):
+    """Simple caching decorator with size limit."""
+    def decorator(func: Callable) -> Callable:
+        cache = {}
+        
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Create cache key from arguments
+            key = str(args) + str(sorted(kwargs.items()))
+            
+            if key in cache:
+                print(f"Cache hit for {func.__name__}")
+                return cache[key]
+            
+            # Execute function and cache result
+            result = func(*args, **kwargs)
+            
+            # Implement simple LRU by removing oldest if cache is full
+            if len(cache) >= max_size:
+                oldest_key = next(iter(cache))
+                del cache[oldest_key]
+            
+            cache[key] = result
+            print(f"Cache miss for {func.__name__}, result cached")
+            return result
+        
+        # Add cache inspection methods
+        wrapper.cache_info = lambda: {'size': len(cache), 'max_size': max_size}
+        wrapper.cache_clear = lambda: cache.clear()
+        
+        return wrapper
+    return decorator
+
+@cache_results(max_size=10)
+def expensive_calculation(n: int) -> int:
+    """Simulate expensive computation."""
+    print(f"Computing factorial of {n}...")
+    time.sleep(0.1)  # Simulate work
+    result = 1
+    for i in range(1, n + 1):
+        result *= i
+    return result
+
+# Logging decorator
+def log_calls(include_args: bool = True, include_result: bool = False):
+    """Decorator to log function calls with configurable detail level."""
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Log function entry
+            log_msg = f"Calling {func.__name__}"
+            if include_args:
+                log_msg += f" with args={args}, kwargs={kwargs}"
+            logger.info(log_msg)
+            
+            try:
+                result = func(*args, **kwargs)
+                
+                # Log successful completion
+                success_msg = f"Completed {func.__name__}"
+                if include_result:
+                    success_msg += f" -> {result}"
+                logger.info(success_msg)
+                
+                return result
+            except Exception as e:
+                logger.error(f"Error in {func.__name__}: {e}")
+                raise
+        
+        return wrapper
+    return decorator
+
+@log_calls(include_args=True, include_result=True)
+def process_data(data: list, multiplier: int = 2) -> list:
+    """Process data with logging."""
+    return [x * multiplier for x in data]
+
+# Class-based decorator
+class RateLimiter:
+    """Class-based decorator for rate limiting."""
+    
+    def __init__(self, max_calls: int, time_window: float):
+        self.max_calls = max_calls
+        self.time_window = time_window
+        self.calls = []
+    
+    def __call__(self, func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            now = time.time()
+            
+            # Remove old calls outside time window
+            self.calls = [call_time for call_time in self.calls 
+                         if now - call_time < self.time_window]
+            
+            # Check rate limit
+            if len(self.calls) >= self.max_calls:
+                raise Exception(f"Rate limit exceeded: {self.max_calls} calls per {self.time_window}s")
+            
+            # Record this call
+            self.calls.append(now)
+            
+            return func(*args, **kwargs)
+        
+        return wrapper
+
+@RateLimiter(max_calls=3, time_window=10.0)
+def api_call(endpoint: str) -> dict:
+    """Simulate API call with rate limiting."""
+    print(f"Making API call to {endpoint}")
+    return {"status": "success", "endpoint": endpoint}
+
+# Data validation decorator
+def validate_types(**type_hints):
+    """Decorator to validate function argument types."""
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Get function signature
+            import inspect
+            sig = inspect.signature(func)
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            
+            # Validate types
+            for param_name, expected_type in type_hints.items():
+                if param_name in bound_args.arguments:
+                    value = bound_args.arguments[param_name]
+                    if not isinstance(value, expected_type):
+                        raise TypeError(
+                            f"Parameter '{param_name}' must be {expected_type.__name__}, "
+                            f"got {type(value).__name__}"
+                        )
+            
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+@validate_types(data=list, threshold=int)
+def filter_data(data: list, threshold: int) -> list:
+    """Filter data above threshold with type validation."""
+    return [x for x in data if x > threshold]
+
+# Performance monitoring decorator
+class PerformanceMonitor:
+    """Decorator class for comprehensive performance monitoring."""
+    
+    def __init__(self):
+        self.stats: Dict[str, list] = {}
+    
+    def __call__(self, func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            start_memory = self._get_memory_usage()
+            
+            try:
+                result = func(*args, **kwargs)
+                success = True
+                error = None
+            except Exception as e:
+                success = False
+                error = str(e)
+                raise
+            finally:
+                end_time = time.time()
+                end_memory = self._get_memory_usage()
+                
+                # Record performance metrics
+                execution_time = end_time - start_time
+                memory_delta = end_memory - start_memory
+                
+                if func.__name__ not in self.stats:
+                    self.stats[func.__name__] = []
+                
+                self.stats[func.__name__].append({
+                    'timestamp': datetime.now().isoformat(),
+                    'execution_time': execution_time,
+                    'memory_delta': memory_delta,
+                    'success': success,
+                    'error': error
+                })
+            
+            return result
+        
+        return wrapper
+    
+    def _get_memory_usage(self) -> int:
+        """Get current memory usage (simplified)."""
+        import psutil
+        import os
+        process = psutil.Process(os.getpid())
+        return process.memory_info().rss
+    
+    def get_stats(self, func_name: str = None) -> dict:
+        """Get performance statistics."""
+        if func_name:
+            return self.stats.get(func_name, [])
+        return self.stats
+    
+    def print_summary(self):
+        """Print performance summary."""
+        for func_name, calls in self.stats.items():
+            successful_calls = [call for call in calls if call['success']]
+            if successful_calls:
+                avg_time = sum(call['execution_time'] for call in successful_calls) / len(successful_calls)
+                print(f"{func_name}: {len(successful_calls)} calls, avg time: {avg_time:.4f}s")
+
+# Usage examples
+if __name__ == "__main__":
+    # Performance monitoring
+    monitor = PerformanceMonitor()
+    
+    @monitor
+    def data_processing_task(size: int) -> list:
+        """Simulate data processing."""
+        return [i ** 2 for i in range(size)]
+    
+    # Test decorators
+    print("=== Testing Decorators ===")
+    
+    # Test timing decorator
+    print("\n1. Timing Decorator:")
+    result = slow_function()
+    print(f"Result: {result}")
+    
+    # Test retry decorator
+    print("\n2. Retry Decorator:")
+    try:
+        result = unreliable_function()
+        print(f"Result: {result}")
+    except Exception as e:
+        print(f"Final failure: {e}")
+    
+    # Test caching decorator
+    print("\n3. Caching Decorator:")
+    print(expensive_calculation(5))  # Cache miss
+    print(expensive_calculation(5))  # Cache hit
+    print(expensive_calculation(6))  # Cache miss
+    print(f"Cache info: {expensive_calculation.cache_info()}")
+    
+    # Test logging decorator
+    print("\n4. Logging Decorator:")
+    result = process_data([1, 2, 3, 4], multiplier=3)
+    
+    # Test rate limiter
+    print("\n5. Rate Limiter:")
+    try:
+        for i in range(5):
+            api_call(f"endpoint_{i}")
+    except Exception as e:
+        print(f"Rate limit error: {e}")
+    
+    # Test type validation
+    print("\n6. Type Validation:")
+    try:
+        result = filter_data([1, 2, 3, 4, 5], 3)
+        print(f"Filtered data: {result}")
+        
+        # This will raise TypeError
+        filter_data("not a list", 3)
+    except TypeError as e:
+        print(f"Type validation error: {e}")
+    
+    # Test performance monitoring
+    print("\n7. Performance Monitoring:")
+    data_processing_task(1000)
+    data_processing_task(5000)
+    monitor.print_summary()
+    
+    print("\n=== Decorator Chaining Example ===")
+    
+    @timing_decorator
+    @log_calls(include_result=False)
+    @cache_results(max_size=5)
+    def complex_calculation(n: int) -> int:
+        """Function with multiple decorators applied."""
+        time.sleep(0.1)
+        return sum(i ** 2 for i in range(n))
+    
+    # Test chained decorators
+    result1 = complex_calculation(10)  # All decorators active
+    result2 = complex_calculation(10)  # Should hit cache
+    
+    print(f"\nResults: {result1}, {result2}")
 ```
 
 ### 7. Explain the difference between `*args` and `**kwargs`.
@@ -1070,6 +1804,364 @@ print(f"Shallow copy: {shallow}")  # Affected!
 print(f"Deep copy: {deep}")       # Not affected
 # Output: Original: [['X', 2, 3], [4, 5, 6]]
 # Output: Shallow copy: [['X', 2, 3], [4, 5, 6]]
+# Output: Deep copy: [[1, 2, 3], [4, 5, 6]]
+```
+
+## Advanced Questions
+
+### 11. How do you implement a singleton pattern in Python?
+**Answer:**
+```python
+import threading
+
+class Singleton:
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
+```
+
+### 12. Explain context managers and the `with` statement.
+**Answer:**
+```python
+class DatabaseConnection:
+    def __enter__(self):
+        print("Opening connection")
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("Closing connection")
+        return False
+```
+
+## Data Engineering Specific Questions
+
+### 14. How would you process a large CSV file that doesn't fit in memory?
+**Answer:**
+```python
+import pandas as pd
+
+def process_large_csv(filename, chunk_size=10000):
+    for chunk in pd.read_csv(filename, chunksize=chunk_size):
+        yield chunk.groupby('category').sum()
+```
+
+### 15. How do you handle database connections efficiently?
+**Answer:**
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def get_db_connection(pool):
+    conn = pool.get_connection()
+    try:
+        yield conn
+    finally:
+        pool.return_connection(conn)
+```
+
+## Coding Challenges
+
+### 19. Implement a LRU Cache from scratch.
+**Answer:**
+```python
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = {}
+        from collections import OrderedDict
+        self.order = OrderedDict()
+    
+    def get(self, key):
+        if key in self.cache:
+            self.order.move_to_end(key)
+            return self.cache[key]
+        return -1
+    
+    def put(self, key, value):
+        if key in self.cache:
+            self.order.move_to_end(key)
+        elif len(self.cache) >= self.capacity:
+            oldest = next(iter(self.order))
+            del self.cache[oldest]
+            del self.order[oldest]
+        
+        self.cache[key] = value
+        self.order[key] = None
+```
+
+### 20. Write a function to find the most frequent elements in a large dataset.
+**Answer:**
+```python
+from collections import Counter
+
+def top_k_frequent(data, k):
+    counter = Counter(data)
+    return counter.most_common(k)
+```
+
+### 21. Implement a data pipeline with error handling.
+**Answer:**
+```python
+class PipelineStage:
+    def __init__(self, name):
+        self.name = name
+    
+    def process(self, data):
+        raise NotImplementedError
+    
+    def __call__(self, data):
+        try:
+            return self.process(data)
+        except Exception as e:
+            print(f"Error in {self.name}: {e}")
+            raise
+
+class DataPipeline:
+    def __init__(self, stages):
+        self.stages = stages
+    
+    def run(self, data):
+        for stage in self.stages:
+            data = stage(data)
+        return data
+```4, 5, 6]]
+# Output: Deep copy: [[1, 2, 3], [4, 5, 6]]
+
+# Practical data engineering example
+class DataPipeline:
+    def __init__(self, config):
+        self.config = copy.deepcopy(config)  # Ensure independence
+    
+    def process_batch(self, data):
+        # Create independent copy for processing
+        working_data = copy.deepcopy(data)
+        # Process without affecting original
+        return self.transform(working_data)
+
+# Performance comparison
+def performance_test():
+    large_nested = [[i] * 1000 for i in range(1000)]
+    
+    start = time.time()
+    shallow = copy.copy(large_nested)
+    shallow_time = time.time() - start
+    
+    start = time.time()
+    deep = copy.deepcopy(large_nested)
+    deep_time = time.time() - start
+    
+    print(f"Shallow copy: {shallow_time:.4f}s")
+    print(f"Deep copy: {deep_time:.4f}s")
+```
+
+### 12. What are Python decorators and how do you use them?
+
+**Answer:**
+This question appears to be a duplicate of question 6. Please refer to question 6 for the comprehensive answer about Python decorators.
+
+### 13. What's the difference between iterators and generators?
+
+**Core Optimization Strategies:**
+
+1. **Algorithmic Optimization**: Choose the right algorithm and data structures first
+2. **Built-in Functions**: Use Python's optimized built-ins instead of custom loops
+3. **List Comprehensions**: Faster than equivalent for loops for simple operations
+4. **Generator Expressions**: Memory-efficient for large datasets
+5. **Caching**: Avoid redundant computations using memoization
+6. **Vectorization**: Use NumPy/Pandas for numerical operations
+7. **Profiling**: Identify actual bottlenecks before optimizing
+
+**Memory Optimization:**
+- Use generators for large datasets to avoid loading everything into memory
+- Choose appropriate data structures (sets for membership testing, deques for queues)
+- Use `__slots__` for classes with many instances
+- Consider memory-mapped files for large file processing
+
+**I/O Optimization:**
+- Use buffered I/O and appropriate buffer sizes
+- Batch database operations instead of individual queries
+- Use connection pooling for database connections
+- Implement async I/O for concurrent operations
+
+**Concurrency and Parallelism:**
+- Use multiprocessing for CPU-bound tasks (bypasses GIL)
+- Use threading or asyncio for I/O-bound tasks
+- Consider process pools for embarrassingly parallel problems
+- Use concurrent.futures for cleaner parallel code
+
+**When to Use External Libraries:**
+- NumPy/Pandas for numerical computations
+- Cython for performance-critical code sections
+- Numba for JIT compilation of numerical functions
+- PyPy as an alternative Python interpreter
+
+```python
+import time
+import numpy as np
+import pandas as pd
+from functools import lru_cache
+from concurrent.futures import ProcessPoolExecutor
+from collections import deque, defaultdict
+
+# 1. Use built-ins and list comprehensions
+def slow_sum_squares(numbers):
+    """Slow: Manual loop"""
+    result = []
+    for num in numbers:
+        result.append(num ** 2)
+    return sum(result)
+
+def fast_sum_squares(numbers):
+    """Fast: List comprehension + built-in sum"""
+    return sum(num ** 2 for num in numbers)
+
+def fastest_sum_squares(numbers):
+    """Fastest: NumPy vectorization"""
+    arr = np.array(numbers)
+    return np.sum(arr ** 2)
+
+# 2. Use generators for memory efficiency
+def process_large_file_bad(filename):
+    """Memory inefficient: Loads entire file"""
+    with open(filename) as f:
+        lines = f.readlines()  # Loads all into memory
+    return [line.strip().upper() for line in lines]
+
+def process_large_file_good(filename):
+    """Memory efficient: Generator"""
+    with open(filename) as f:
+        for line in f:  # Processes one line at a time
+            yield line.strip().upper()
+
+# 3. Use caching for expensive computations
+@lru_cache(maxsize=128)
+def expensive_calculation(n):
+    """Cached expensive function"""
+    time.sleep(0.1)  # Simulate expensive operation
+    return sum(i ** 2 for i in range(n))
+
+# 4. Choose right data structures
+def find_common_elements_slow(list1, list2):
+    """Slow: O(n*m) complexity"""
+    common = []
+    for item in list1:
+        if item in list2:  # Linear search in list
+            common.append(item)
+    return common
+
+def find_common_elements_fast(list1, list2):
+    """Fast: O(n+m) complexity using sets"""
+    return list(set(list1) & set(list2))
+
+# 5. Batch operations for databases
+def insert_records_slow(cursor, records):
+    """Slow: Individual inserts"""
+    for record in records:
+        cursor.execute("INSERT INTO table VALUES (?, ?)", record)
+
+def insert_records_fast(cursor, records):
+    """Fast: Batch insert"""
+    cursor.executemany("INSERT INTO table VALUES (?, ?)", records)
+
+# 6. Use multiprocessing for CPU-bound tasks
+def cpu_intensive_task(data_chunk):
+    """Simulate CPU-intensive processing"""
+    return sum(x ** 2 for x in data_chunk)
+
+def process_parallel(data, num_workers=4):
+    """Process data in parallel"""
+    chunk_size = len(data) // num_workers
+    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+    
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        results = list(executor.map(cpu_intensive_task, chunks))
+    
+    return sum(results)
+
+# 7. Profile and benchmark
+def benchmark_functions():
+    """Compare performance of different approaches"""
+    data = list(range(100000))
+    
+    # Test different sum_squares implementations
+    start = time.time()
+    result1 = slow_sum_squares(data)
+    slow_time = time.time() - start
+    
+    start = time.time()
+    result2 = fast_sum_squares(data)
+    fast_time = time.time() - start
+    
+    start = time.time()
+    result3 = fastest_sum_squares(data)
+    numpy_time = time.time() - start
+    
+    print(f"Slow (manual loop): {slow_time:.4f}s")
+    print(f"Fast (comprehension): {fast_time:.4f}s")
+    print(f"NumPy (vectorized): {numpy_time:.4f}s")
+    print(f"Speedup: {slow_time/numpy_time:.1f}x")
+
+# 8. Memory-efficient data processing
+class DataProcessor:
+    """Optimized data processor with various techniques"""
+    
+    def __init__(self):
+        self.cache = {}
+        self.buffer_size = 8192
+    
+    def process_csv_efficiently(self, filename):
+        """Process large CSV files efficiently"""
+        # Use pandas for optimized CSV reading
+        chunk_size = 10000
+        results = []
+        
+        for chunk in pd.read_csv(filename, chunksize=chunk_size):
+            # Process chunk efficiently
+            processed = self._process_chunk(chunk)
+            results.append(processed)
+        
+        return pd.concat(results, ignore_index=True)
+    
+    def _process_chunk(self, chunk):
+        """Vectorized chunk processing"""
+        # Use vectorized operations instead of apply
+        chunk['processed'] = chunk['value'] * 2 + chunk['offset']
+        return chunk[chunk['processed'] > 0]  # Vectorized filtering
+
+# Performance monitoring decorator
+def timing_decorator(func):
+    """Decorator to measure function execution time"""
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__} took {end - start:.4f} seconds")
+        return result
+    return wrapper
+
+@timing_decorator
+def optimized_data_pipeline(data):
+    """Example of an optimized data processing pipeline"""
+    # Use NumPy for numerical operations
+    arr = np.array(data)
+    
+    # Vectorized operations
+    normalized = (arr - np.mean(arr)) / np.std(arr)
+    filtered = normalized[normalized > 0]
+    
+    # Use built-in functions
+    return {
+        'mean': np.mean(filtered),
+        'std': np.std(filtered),
+        'count': len(filtered)
+    }
+```4, 5, 6]]
 # Output: Deep copy: [[1, 2, 3], [4, 5, 6]]
 
 # Real-world example: Data processing pipeline
@@ -1318,6 +2410,7 @@ class ThreadSafeResource:
 ```
 
 ### 13. What's the difference between iterators and generators?
+
 **Answer:**
 Iterators and generators are fundamental concepts for efficient data processing in Python, especially crucial when working with large datasets that don't fit in memory. Understanding their differences helps optimize memory usage and processing performance in data engineering applications.
 
@@ -1329,6 +2422,7 @@ Iterators and generators are fundamental concepts for efficient data processing 
 - Can be created from any iterable using `iter()`
 - More verbose to implement but offer fine-grained control
 - Can be reset by calling `__iter__()` again (if implemented)
+- Custom classes can implement complex iteration logic
 
 **Generators:**
 - Special iterators created using `yield` keyword or generator expressions
@@ -1336,16 +2430,26 @@ Iterators and generators are fundamental concepts for efficient data processing 
 - State maintained implicitly by Python
 - More concise and readable
 - Cannot be reset - consumed once
+- Function-based approach with `yield`
 
 **Memory and Performance:**
 - Both use lazy evaluation (compute values on-demand)
 - Generators typically use less memory overhead
 - Iterators offer more control over state management
 - Both excellent for processing large datasets
+- Generators have less function call overhead
 
 **When to Use Each:**
-- **Generators**: Simple iteration, data transformation pipelines, streaming data
-- **Iterators**: Complex state management, custom iteration logic, reusable iterators
+- **Generators**: Simple iteration, data transformation pipelines, streaming data, one-time processing
+- **Iterators**: Complex state management, custom iteration logic, reusable iterators, stateful processing
+
+**Protocol Implementation:**
+- **Iterators**: Must implement `__iter__()` and `__next__()` methods
+- **Generators**: Python handles protocol implementation automatically
+
+**State Management:**
+- **Iterators**: Explicit state variables and logic
+- **Generators**: Implicit state through function execution context
 
 ```python
 import sys
@@ -1528,58 +2632,876 @@ if __name__ == "__main__":
 ```
 
 ### 14. How would you implement a thread-safe singleton pattern for database connections?
+
 **Answer:**
+Implementing a thread-safe singleton for database connections is crucial in multi-threaded data engineering applications to ensure resource efficiency and prevent connection leaks. The singleton pattern ensures only one instance of the database connection manager exists throughout the application lifecycle.
+
+**Why Thread Safety Matters:**
+- **Race Conditions**: Multiple threads might create multiple instances simultaneously
+- **Resource Management**: Prevents connection pool duplication
+- **Memory Efficiency**: Single instance reduces memory footprint
+- **Configuration Consistency**: Ensures all threads use same connection settings
+
+**Implementation Approaches:**
+- **Double-Checked Locking**: Most common and efficient approach
+- **Module-Level Singleton**: Pythonic approach using module imports
+- **Metaclass Approach**: Advanced technique using metaclasses
+- **Decorator Pattern**: Functional approach to singleton creation
+
+**Key Considerations:**
+- **Lazy Initialization**: Create instance only when needed
+- **Thread Safety**: Use locks to prevent race conditions
+- **Connection Pooling**: Manage multiple database connections efficiently
+- **Error Handling**: Graceful handling of connection failures
+- **Configuration Management**: Support different environments
+
 ```python
 import threading
-from sqlalchemy import create_engine
+import time
+from typing import Optional, Dict, Any
+from contextlib import contextmanager
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Method 1: Thread-safe singleton with double-checked locking
 class DatabaseConnection:
-    _instance = None
-    _lock = threading.Lock()
+    """Thread-safe singleton for database connections."""
+    
+    _instance: Optional['DatabaseConnection'] = None
+    _lock = threading.RLock()  # Reentrant lock
+    _initialized = False
     
     def __new__(cls, connection_string: str = None):
+        """Create or return existing instance with thread safety."""
+        if cls._instance is None:
+            with cls._lock:
+                # Double-checked locking pattern
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self, connection_string: str = None):
+        """Initialize database connection (only once)."""
+        if not self._initialized:
+            with self._lock:
+                if not self._initialized:
+                    self.connection_string = connection_string or "sqlite:///default.db"
+                    self.pool = None
+                    self._connection_count = 0
+                    self._max_connections = 10
+                    self._active_connections = set()
+                    self._stats = {
+                        'connections_created': 0,
+                        'connections_closed': 0,
+                        'active_connections': 0
+                    }
+                    self._initialized = True
+                    logger.info(f"Database singleton initialized with {self.connection_string}")
+    
+    def get_connection(self):
+        """Get database connection from pool."""
+        with self._lock:
+            # Simulate connection creation (replace with actual DB connection)
+            connection_id = f"conn_{self._connection_count}"
+            self._connection_count += 1
+            self._stats['connections_created'] += 1
+            self._stats['active_connections'] += 1
+            
+            # Store active connection
+            self._active_connections.add(connection_id)
+            
+            logger.info(f"Created connection: {connection_id}")
+            return MockConnection(connection_id, self)
+    
+    def return_connection(self, connection_id: str):
+        """Return connection to pool."""
+        with self._lock:
+            if connection_id in self._active_connections:
+                self._active_connections.remove(connection_id)
+                self._stats['connections_closed'] += 1
+                self._stats['active_connections'] -= 1
+                logger.info(f"Returned connection: {connection_id}")
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get connection statistics."""
+        with self._lock:
+            return {
+                **self._stats,
+                'connection_string': self.connection_string,
+                'active_connection_ids': list(self._active_connections)
+            }
+    
+    @classmethod
+    def reset_instance(cls):
+        """Reset singleton instance (for testing)."""
+        with cls._lock:
+            cls._instance = None
+            cls._initialized = False
+
+class MockConnection:
+    """Mock database connection for demonstration."""
+    
+    def __init__(self, connection_id: str, manager: DatabaseConnection):
+        self.connection_id = connection_id
+        self.manager = manager
+        self.closed = False
+    
+    def execute(self, query: str):
+        """Execute database query."""
+        if self.closed:
+            raise Exception("Connection is closed")
+        return f"Executed '{query}' on {self.connection_id}"
+    
+    def close(self):
+        """Close database connection."""
+        if not self.closed:
+            self.manager.return_connection(self.connection_id)
+            self.closed = True
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+# Method 2: Module-level singleton (Pythonic approach)
+class _DatabaseManager:
+    """Private database manager class."""
+    
+    def __init__(self):
+        self.connection_string = "sqlite:///module_singleton.db"
+        self.connections = {}
+        self._lock = threading.Lock()
+    
+    def get_connection(self, connection_id: str = "default"):
+        """Get connection by ID."""
+        with self._lock:
+            if connection_id not in self.connections:
+                self.connections[connection_id] = f"connection_to_{connection_id}"
+            return self.connections[connection_id]
+    
+    def close_all(self):
+        """Close all connections."""
+        with self._lock:
+            self.connections.clear()
+
+# Create module-level singleton instance
+db_manager = _DatabaseManager()
+
+# Method 3: Metaclass-based singleton
+class SingletonMeta(type):
+    """Metaclass for creating singleton classes."""
+    
+    _instances = {}
+    _lock = threading.Lock()
+    
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            with cls._lock:
+                if cls not in cls._instances:
+                    cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class MetaclassDatabaseConnection(metaclass=SingletonMeta):
+    """Database connection using metaclass singleton."""
+    
+    def __init__(self, connection_string: str = "sqlite:///metaclass.db"):
+        if not hasattr(self, 'initialized'):
+            self.connection_string = connection_string
+            self.pool_size = 5
+            self.initialized = True
+            logger.info(f"Metaclass singleton initialized: {connection_string}")
+    
+    def connect(self):
+        return f"Connected to {self.connection_string}"
+
+# Method 4: Decorator-based singleton
+def singleton(cls):
+    """Decorator to make a class singleton."""
+    instances = {}
+    lock = threading.Lock()
+    
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            with lock:
+                if cls not in instances:
+                    instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    
+    return get_instance
+
+@singleton
+class DecoratorDatabaseConnection:
+    """Database connection using decorator singleton."""
+    
+    def __init__(self, connection_string: str = "sqlite:///decorator.db"):
+        self.connection_string = connection_string
+        self.created_at = time.time()
+        logger.info(f"Decorator singleton created: {connection_string}")
+    
+    def query(self, sql: str):
+        return f"Executing '{sql}' on {self.connection_string}"
+
+# Advanced: Thread-safe connection pool singleton
+class ConnectionPoolSingleton:
+    """Advanced singleton with actual connection pooling."""
+    
+    _instance = None
+    _lock = threading.RLock()
+    _initialized = False
+    
+    def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super().__new__(cls)
-                    cls._instance.engine = create_engine(connection_string)
         return cls._instance
     
-    def get_connection(self):
-        return self.engine.connect()
+    def __init__(self, connection_string: str = None, pool_size: int = 10):
+        if not self._initialized:
+            with self._lock:
+                if not self._initialized:
+                    self.connection_string = connection_string or "sqlite:///pool.db"
+                    self.pool_size = pool_size
+                    self.available_connections = []
+                    self.active_connections = set()
+                    self.total_created = 0
+                    self._create_initial_pool()
+                    self._initialized = True
+    
+    def _create_initial_pool(self):
+        """Create initial connection pool."""
+        for i in range(self.pool_size):
+            conn_id = f"pool_conn_{i}"
+            self.available_connections.append(conn_id)
+            self.total_created += 1
+        logger.info(f"Created connection pool with {self.pool_size} connections")
+    
+    @contextmanager
+    def get_connection(self, timeout: float = 5.0):
+        """Get connection from pool with context manager."""
+        connection = None
+        start_time = time.time()
+        
+        # Wait for available connection
+        while time.time() - start_time < timeout:
+            with self._lock:
+                if self.available_connections:
+                    connection = self.available_connections.pop()
+                    self.active_connections.add(connection)
+                    break
+            time.sleep(0.1)
+        
+        if connection is None:
+            raise TimeoutError("No connections available within timeout")
+        
+        try:
+            yield MockConnection(connection, self)
+        finally:
+            # Return connection to pool
+            with self._lock:
+                if connection in self.active_connections:
+                    self.active_connections.remove(connection)
+                    self.available_connections.append(connection)
+    
+    def get_pool_stats(self) -> Dict[str, Any]:
+        """Get connection pool statistics."""
+        with self._lock:
+            return {
+                'total_connections': self.total_created,
+                'available_connections': len(self.available_connections),
+                'active_connections': len(self.active_connections),
+                'pool_size': self.pool_size,
+                'connection_string': self.connection_string
+            }
 
-# Usage
-db1 = DatabaseConnection("postgresql://user:pass@localhost/db")
-db2 = DatabaseConnection()  # Same instance
-assert db1 is db2  # True
+# Testing and demonstration
+def test_singleton_thread_safety():
+    """Test singleton thread safety with multiple threads."""
+    
+    instances = []
+    
+    def create_instance(thread_id: int):
+        """Create database instance in thread."""
+        db = DatabaseConnection(f"sqlite:///thread_{thread_id}.db")
+        instances.append(db)
+        logger.info(f"Thread {thread_id} created instance: {id(db)}")
+    
+    # Create multiple threads
+    threads = []
+    for i in range(5):
+        thread = threading.Thread(target=create_instance, args=(i,))
+        threads.append(thread)
+        thread.start()
+    
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+    
+    # Verify all instances are the same
+    first_instance = instances[0]
+    all_same = all(instance is first_instance for instance in instances)
+    
+    print(f"All instances are the same: {all_same}")
+    print(f"Instance IDs: {[id(instance) for instance in instances]}")
+    
+    return all_same
+
+# Usage examples
+if __name__ == "__main__":
+    print("=== Thread-Safe Singleton Database Connection Examples ===")
+    
+    # Test 1: Basic singleton
+    print("\n1. Basic Singleton Test:")
+    db1 = DatabaseConnection("postgresql://user:pass@localhost/db")
+    db2 = DatabaseConnection()  # Same instance
+    print(f"Same instance: {db1 is db2}")
+    print(f"Stats: {db1.get_stats()}")
+    
+    # Test 2: Connection usage
+    print("\n2. Connection Usage:")
+    with db1.get_connection() as conn:
+        result = conn.execute("SELECT * FROM users")
+        print(f"Query result: {result}")
+    
+    print(f"Updated stats: {db1.get_stats()}")
+    
+    # Test 3: Module-level singleton
+    print("\n3. Module-Level Singleton:")
+    conn1 = db_manager.get_connection("app1")
+    conn2 = db_manager.get_connection("app1")
+    print(f"Same connection: {conn1 == conn2}")
+    
+    # Test 4: Metaclass singleton
+    print("\n4. Metaclass Singleton:")
+    meta_db1 = MetaclassDatabaseConnection("postgresql://localhost/meta")
+    meta_db2 = MetaclassDatabaseConnection("different_string")  # Same instance
+    print(f"Same instance: {meta_db1 is meta_db2}")
+    print(f"Connection string: {meta_db1.connection_string}")
+    
+    # Test 5: Decorator singleton
+    print("\n5. Decorator Singleton:")
+    dec_db1 = DecoratorDatabaseConnection("postgresql://localhost/decorator")
+    dec_db2 = DecoratorDatabaseConnection("ignored_string")
+    print(f"Same instance: {dec_db1 is dec_db2}")
+    
+    # Test 6: Connection pool singleton
+    print("\n6. Connection Pool Singleton:")
+    pool = ConnectionPoolSingleton("postgresql://localhost/pool", pool_size=3)
+    
+    with pool.get_connection() as conn:
+        result = conn.execute("SELECT COUNT(*) FROM products")
+        print(f"Pool query result: {result}")
+    
+    print(f"Pool stats: {pool.get_pool_stats()}")
+    
+    # Test 7: Thread safety
+    print("\n7. Thread Safety Test:")
+    # Reset singleton for clean test
+    DatabaseConnection.reset_instance()
+    thread_safe = test_singleton_thread_safety()
+    print(f"Thread safety verified: {thread_safe}")
+    
+    print("\n=== Best Practices Summary ===")
+    print("✓ Use double-checked locking for thread safety")
+    print("✓ Implement proper connection pooling")
+    print("✓ Use context managers for automatic cleanup")
+    print("✓ Include comprehensive error handling")
+    print("✓ Provide statistics and monitoring")
+    print("✓ Support configuration management")
+    print("✓ Test thread safety thoroughly")
 ```
 
 ## Data Engineering Specific Questions
 
-### 14. How would you process a large CSV file that doesn't fit in memory?
+### 15. How would you process a large CSV file that doesn't fit in memory?
+
 **Answer:**
+Processing large CSV files that exceed available memory is a common challenge in data engineering. The key is to use streaming approaches that process data in chunks rather than loading everything into memory at once.
+
+**Core Strategies:**
+
+**1. Chunking Approach:**
+- Read file in smaller, manageable pieces
+- Process each chunk independently
+- Aggregate results as needed
+- Memory usage remains constant regardless of file size
+
+**2. Streaming Processing:**
+- Process one line at a time
+- Minimal memory footprint
+- Suitable for simple transformations
+- Can handle arbitrarily large files
+
+**3. Parallel Processing:**
+- Split file into multiple parts
+- Process parts concurrently
+- Combine results at the end
+- Faster processing on multi-core systems
+
+**4. External Libraries:**
+- **Pandas**: `chunksize` parameter for chunked reading
+- **Dask**: Parallel computing with pandas-like API
+- **Vaex**: Out-of-core dataframe library
+- **Polars**: Fast dataframe library with lazy evaluation
+
+**When to Use Each Approach:**
+- **Chunking**: General-purpose, good balance of simplicity and efficiency
+- **Streaming**: Maximum memory efficiency, simple operations
+- **Parallel**: CPU-intensive operations, multiple cores available
+- **External Libraries**: Complex operations, existing pandas workflows
+
+**Performance Considerations:**
+- **Chunk Size**: Balance between memory usage and I/O efficiency
+- **Data Types**: Optimize column types to reduce memory usage
+- **Compression**: Use compressed formats when possible
+- **SSD vs HDD**: Storage type affects optimal chunk sizes
+
 ```python
 import pandas as pd
+import csv
+import json
+from typing import Iterator, Dict, Any, List
+import time
+import os
+from pathlib import Path
+import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor
 
-# Method 1: Chunking
-def process_large_csv(filename, chunk_size=10000):
-    for chunk in pd.read_csv(filename, chunksize=chunk_size):
-        # Process each chunk
-        processed_chunk = chunk.groupby('category').sum()
-        yield processed_chunk
+# Method 1: Pandas chunking approach
+def process_large_csv_pandas(filename: str, chunk_size: int = 10000) -> Iterator[pd.DataFrame]:
+    """Process large CSV using pandas chunking.
+    
+    Args:
+        filename: Path to CSV file
+        chunk_size: Number of rows per chunk
+        
+    Yields:
+        Processed dataframe chunks
+    """
+    try:
+        for chunk_num, chunk in enumerate(pd.read_csv(filename, chunksize=chunk_size)):
+            print(f"Processing chunk {chunk_num + 1} with {len(chunk)} rows")
+            
+            # Example processing: clean and aggregate data
+            processed_chunk = chunk.dropna()  # Remove null values
+            
+            # Apply transformations
+            if 'amount' in processed_chunk.columns:
+                processed_chunk['amount'] = pd.to_numeric(processed_chunk['amount'], errors='coerce')
+            
+            # Group and aggregate if needed
+            if 'category' in processed_chunk.columns:
+                aggregated = processed_chunk.groupby('category').agg({
+                    'amount': ['sum', 'mean', 'count']
+                }).round(2)
+                yield aggregated
+            else:
+                yield processed_chunk
+                
+    except Exception as e:
+        print(f"Error processing CSV: {e}")
+        raise
 
-# Method 2: Iterator approach
-def process_csv_iterator(filename):
-    with open(filename, 'r') as f:
-        header = next(f)
-        for line in f:
-            # Process line by line
-            yield process_line(line)
+# Method 2: Pure Python streaming approach
+def process_csv_streaming(filename: str) -> Iterator[Dict[str, Any]]:
+    """Process CSV file line by line with minimal memory usage.
+    
+    Args:
+        filename: Path to CSV file
+        
+    Yields:
+        Processed records as dictionaries
+    """
+    with open(filename, 'r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        
+        for row_num, row in enumerate(reader, 1):
+            try:
+                # Process individual row
+                processed_row = process_single_row(row)
+                
+                if processed_row:  # Only yield valid rows
+                    yield processed_row
+                    
+                # Progress indicator for large files
+                if row_num % 100000 == 0:
+                    print(f"Processed {row_num:,} rows")
+                    
+            except Exception as e:
+                print(f"Error processing row {row_num}: {e}")
+                continue
 
-# Method 3: Using Dask for parallel processing
-import dask.dataframe as dd
-df = dd.read_csv('large_file.csv')
-result = df.groupby('category').sum().compute()
+def process_single_row(row: Dict[str, str]) -> Dict[str, Any]:
+    """Process a single CSV row.
+    
+    Args:
+        row: Dictionary representing CSV row
+        
+    Returns:
+        Processed row or None if invalid
+    """
+    try:
+        # Data validation and cleaning
+        if not row.get('id') or not row.get('amount'):
+            return None
+        
+        # Type conversions
+        processed = {
+            'id': int(row['id']),
+            'amount': float(row['amount']),
+            'category': row.get('category', 'unknown').strip().lower(),
+            'timestamp': row.get('timestamp', ''),
+            'processed_at': time.time()
+        }
+        
+        # Business logic
+        processed['amount_category'] = 'high' if processed['amount'] > 1000 else 'low'
+        
+        return processed
+        
+    except (ValueError, TypeError) as e:
+        print(f"Invalid row data: {e}")
+        return None
+
+# Method 3: Parallel processing approach
+def process_csv_parallel(filename: str, num_processes: int = None) -> List[Dict[str, Any]]:
+    """Process large CSV using parallel processing.
+    
+    Args:
+        filename: Path to CSV file
+        num_processes: Number of processes to use
+        
+    Returns:
+        List of aggregated results
+    """
+    if num_processes is None:
+        num_processes = mp.cpu_count()
+    
+    # Split file into chunks for parallel processing
+    file_chunks = split_csv_file(filename, num_processes)
+    
+    # Process chunks in parallel
+    with ProcessPoolExecutor(max_workers=num_processes) as executor:
+        results = list(executor.map(process_csv_chunk, file_chunks))
+    
+    # Combine results
+    combined_results = []
+    for result in results:
+        combined_results.extend(result)
+    
+    # Clean up temporary files
+    for chunk_file in file_chunks:
+        if os.path.exists(chunk_file):
+            os.remove(chunk_file)
+    
+    return combined_results
+
+def split_csv_file(filename: str, num_chunks: int) -> List[str]:
+    """Split CSV file into smaller chunks for parallel processing.
+    
+    Args:
+        filename: Path to original CSV file
+        num_chunks: Number of chunks to create
+        
+    Returns:
+        List of chunk filenames
+    """
+    chunk_files = []
+    
+    with open(filename, 'r') as infile:
+        reader = csv.reader(infile)
+        header = next(reader)  # Read header
+        
+        # Count total rows
+        total_rows = sum(1 for _ in reader)
+        infile.seek(0)
+        next(reader)  # Skip header again
+        
+        rows_per_chunk = total_rows // num_chunks + 1
+        
+        for chunk_num in range(num_chunks):
+            chunk_filename = f"temp_chunk_{chunk_num}.csv"
+            chunk_files.append(chunk_filename)
+            
+            with open(chunk_filename, 'w', newline='') as outfile:
+                writer = csv.writer(outfile)
+                writer.writerow(header)  # Write header to each chunk
+                
+                # Write rows to chunk
+                for _ in range(rows_per_chunk):
+                    try:
+                        row = next(reader)
+                        writer.writerow(row)
+                    except StopIteration:
+                        break
+    
+    return chunk_files
+
+def process_csv_chunk(chunk_filename: str) -> List[Dict[str, Any]]:
+    """Process a single CSV chunk.
+    
+    Args:
+        chunk_filename: Path to chunk file
+        
+    Returns:
+        List of processed records
+    """
+    results = []
+    
+    with open(chunk_filename, 'r') as file:
+        reader = csv.DictReader(file)
+        
+        for row in reader:
+            processed_row = process_single_row(row)
+            if processed_row:
+                results.append(processed_row)
+    
+    return results
+
+# Method 4: Using Dask for distributed processing
+def process_csv_with_dask(filename: str) -> pd.DataFrame:
+    """Process large CSV using Dask for distributed computing.
+    
+    Args:
+        filename: Path to CSV file
+        
+    Returns:
+        Processed dataframe
+    """
+    try:
+        import dask.dataframe as dd
+        
+        # Read CSV with Dask (lazy evaluation)
+        df = dd.read_csv(filename)
+        
+        print(f"Dask dataframe shape: {df.shape[0].compute()} rows, {df.shape[1]} columns")
+        
+        # Perform operations (still lazy)
+        processed_df = df.dropna()
+        
+        # Type conversions
+        if 'amount' in df.columns:
+            processed_df['amount'] = dd.to_numeric(processed_df['amount'], errors='coerce')
+        
+        # Aggregations
+        if 'category' in df.columns:
+            result = processed_df.groupby('category')['amount'].agg(['sum', 'mean', 'count'])
+            return result.compute()  # Trigger computation
+        else:
+            return processed_df.compute()
+            
+    except ImportError:
+        print("Dask not installed. Install with: pip install dask[dataframe]")
+        return None
+    except Exception as e:
+        print(f"Error with Dask processing: {e}")
+        return None
+
+# Method 5: Memory-efficient aggregation
+class CSVAggregator:
+    """Memory-efficient CSV aggregator for large files."""
+    
+    def __init__(self):
+        self.stats = {
+            'total_rows': 0,
+            'valid_rows': 0,
+            'categories': {},
+            'amount_sum': 0,
+            'amount_count': 0
+        }
+    
+    def process_file(self, filename: str, chunk_size: int = 50000) -> Dict[str, Any]:
+        """Process entire file and return aggregated statistics.
+        
+        Args:
+            filename: Path to CSV file
+            chunk_size: Rows per chunk
+            
+        Returns:
+            Aggregated statistics
+        """
+        start_time = time.time()
+        
+        for chunk in pd.read_csv(filename, chunksize=chunk_size):
+            self._process_chunk(chunk)
+        
+        processing_time = time.time() - start_time
+        
+        # Calculate final statistics
+        self.stats['processing_time'] = processing_time
+        self.stats['average_amount'] = (
+            self.stats['amount_sum'] / self.stats['amount_count'] 
+            if self.stats['amount_count'] > 0 else 0
+        )
+        
+        return self.stats
+    
+    def _process_chunk(self, chunk: pd.DataFrame) -> None:
+        """Process a single chunk and update statistics.
+        
+        Args:
+            chunk: Pandas dataframe chunk
+        """
+        self.stats['total_rows'] += len(chunk)
+        
+        # Clean data
+        valid_chunk = chunk.dropna(subset=['amount'])
+        self.stats['valid_rows'] += len(valid_chunk)
+        
+        if len(valid_chunk) == 0:
+            return
+        
+        # Convert amount to numeric
+        valid_chunk['amount'] = pd.to_numeric(valid_chunk['amount'], errors='coerce')
+        valid_amounts = valid_chunk['amount'].dropna()
+        
+        # Update amount statistics
+        self.stats['amount_sum'] += valid_amounts.sum()
+        self.stats['amount_count'] += len(valid_amounts)
+        
+        # Update category statistics
+        if 'category' in valid_chunk.columns:
+            category_counts = valid_chunk['category'].value_counts()
+            for category, count in category_counts.items():
+                if category in self.stats['categories']:
+                    self.stats['categories'][category] += count
+                else:
+                    self.stats['categories'][category] = count
+
+# Performance comparison and benchmarking
+def benchmark_csv_processing_methods(filename: str, file_size_mb: float) -> Dict[str, float]:
+    """Benchmark different CSV processing methods.
+    
+    Args:
+        filename: Path to test CSV file
+        file_size_mb: File size in MB for reference
+        
+    Returns:
+        Dictionary of method names and processing times
+    """
+    results = {}
+    
+    print(f"Benchmarking CSV processing methods on {file_size_mb:.1f}MB file...")
+    
+    # Method 1: Pandas chunking
+    start_time = time.time()
+    chunk_count = 0
+    for chunk in process_large_csv_pandas(filename, chunk_size=10000):
+        chunk_count += 1
+    results['pandas_chunking'] = time.time() - start_time
+    print(f"Pandas chunking: {results['pandas_chunking']:.2f}s ({chunk_count} chunks)")
+    
+    # Method 2: Streaming
+    start_time = time.time()
+    row_count = sum(1 for _ in process_csv_streaming(filename))
+    results['streaming'] = time.time() - start_time
+    print(f"Streaming: {results['streaming']:.2f}s ({row_count:,} rows)")
+    
+    # Method 3: Aggregator
+    start_time = time.time()
+    aggregator = CSVAggregator()
+    stats = aggregator.process_file(filename)
+    results['aggregator'] = time.time() - start_time
+    print(f"Aggregator: {results['aggregator']:.2f}s ({stats['total_rows']:,} rows)")
+    
+    # Method 4: Dask (if available)
+    try:
+        start_time = time.time()
+        dask_result = process_csv_with_dask(filename)
+        if dask_result is not None:
+            results['dask'] = time.time() - start_time
+            print(f"Dask: {results['dask']:.2f}s")
+    except Exception as e:
+        print(f"Dask benchmark failed: {e}")
+    
+    return results
+
+# Usage examples and testing
+def create_sample_csv(filename: str, num_rows: int = 100000) -> None:
+    """Create a sample CSV file for testing.
+    
+    Args:
+        filename: Output filename
+        num_rows: Number of rows to generate
+    """
+    import random
+    
+    categories = ['electronics', 'clothing', 'books', 'home', 'sports']
+    
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['id', 'amount', 'category', 'timestamp'])
+        
+        for i in range(num_rows):
+            writer.writerow([
+                i + 1,
+                round(random.uniform(10, 5000), 2),
+                random.choice(categories),
+                f"2023-01-{random.randint(1, 28):02d}"
+            ])
+    
+    print(f"Created sample CSV with {num_rows:,} rows: {filename}")
+
+if __name__ == "__main__":
+    # Create sample data for demonstration
+    sample_file = "large_sample.csv"
+    create_sample_csv(sample_file, 50000)
+    
+    file_size = os.path.getsize(sample_file) / (1024 * 1024)  # Size in MB
+    print(f"Sample file size: {file_size:.2f} MB")
+    
+    # Demonstrate different processing methods
+    print("\n=== Processing Methods Demonstration ===")
+    
+    # Method 1: Pandas chunking
+    print("\n1. Pandas Chunking:")
+    chunk_results = []
+    for i, chunk_result in enumerate(process_large_csv_pandas(sample_file, chunk_size=10000)):
+        chunk_results.append(chunk_result)
+        if i >= 2:  # Show first 3 chunks
+            break
+    print(f"Processed {len(chunk_results)} chunks")
+    
+    # Method 2: Streaming processing
+    print("\n2. Streaming Processing:")
+    streaming_count = 0
+    for record in process_csv_streaming(sample_file):
+        streaming_count += 1
+        if streaming_count >= 5:  # Show first 5 records
+            print(f"Sample record: {record}")
+            break
+    
+    # Method 3: Aggregation
+    print("\n3. Memory-Efficient Aggregation:")
+    aggregator = CSVAggregator()
+    final_stats = aggregator.process_file(sample_file)
+    print(f"Final statistics: {json.dumps(final_stats, indent=2, default=str)}")
+    
+    # Benchmark all methods
+    print("\n4. Performance Benchmark:")
+    benchmark_results = benchmark_csv_processing_methods(sample_file, file_size)
+    
+    # Find fastest method
+    fastest_method = min(benchmark_results, key=benchmark_results.get)
+    print(f"\nFastest method: {fastest_method} ({benchmark_results[fastest_method]:.2f}s)")
+    
+    # Clean up
+    if os.path.exists(sample_file):
+        os.remove(sample_file)
+    
+    print("\n=== Best Practices Summary ===")
+    print("✓ Use chunking for balanced memory usage and performance")
+    print("✓ Stream processing for maximum memory efficiency")
+    print("✓ Parallel processing for CPU-intensive operations")
+    print("✓ Choose chunk size based on available memory")
+    print("✓ Optimize data types to reduce memory usage")
+    print("✓ Use compression for storage efficiency")
+    print("✓ Monitor memory usage during processing")
+    print("✓ Implement error handling for data quality issues")
 ```
 
 ### 15. How do you handle database connections efficiently?
@@ -1962,8 +3884,44 @@ if __name__ == "__main__":
 ```
 
 ### 16. Explain async/await and when to use it in data engineering.
+
 **Answer:**
-Async/await enables concurrent execution of I/O-bound operations, crucial for data engineering tasks involving multiple API calls, file operations, or database queries.
+Async/await is Python's approach to asynchronous programming that enables concurrent execution of I/O-bound operations without blocking the main thread. This is particularly crucial for data engineering tasks that involve multiple API calls, file operations, database queries, or any scenario where you're waiting for external resources.
+
+**How Async/Await Works:**
+
+**Asynchronous Programming Concepts:**
+- **Coroutines**: Functions defined with `async def` that can be paused and resumed
+- **Event Loop**: Manages and executes asynchronous tasks
+- **Awaitable Objects**: Objects that can be used with `await` keyword
+- **Concurrency vs Parallelism**: Async provides concurrency (interleaved execution) not true parallelism
+
+**Key Benefits for Data Engineering:**
+- **I/O Efficiency**: Don't block while waiting for network/disk operations
+- **Resource Utilization**: Better CPU utilization during I/O waits
+- **Scalability**: Handle many concurrent operations with fewer resources
+- **Responsiveness**: Applications remain responsive during long operations
+
+**When to Use Async/Await in Data Engineering:**
+- **API Integration**: Fetching data from multiple REST APIs simultaneously
+- **Database Operations**: Concurrent database queries and transactions
+- **File Processing**: Reading/writing multiple files concurrently
+- **ETL Pipelines**: Parallel extraction from multiple sources
+- **Real-time Processing**: Handling streaming data from multiple sources
+- **Web Scraping**: Concurrent scraping of multiple websites
+- **Message Queue Processing**: Consuming from multiple queues simultaneously
+
+**When NOT to Use Async/Await:**
+- **CPU-bound Tasks**: Use multiprocessing instead
+- **Simple Sequential Operations**: Overhead may not be worth it
+- **Legacy Code Integration**: May require significant refactoring
+- **Debugging Complexity**: Async code can be harder to debug
+
+**Common Patterns:**
+- **Gather**: Execute multiple coroutines concurrently
+- **Semaphores**: Limit concurrent operations
+- **Queues**: Producer-consumer patterns
+- **Context Managers**: Async resource management
 
 ```python
 import asyncio
@@ -2218,21 +4176,48 @@ if __name__ == "__main__":
 ```
 
 ### 17. How do you optimize Python code for performance?
+
 **Answer:**
-Python performance optimization is crucial for data engineering applications that process large datasets. The key is to identify bottlenecks first, then apply appropriate optimization techniques systematically.
+Python performance optimization is crucial for data engineering applications that process large datasets and need efficient execution. The key is understanding Python's execution model and applying the right optimization techniques based on your specific bottlenecks.
 
 **Performance Optimization Strategy:**
-1. **Profile First**: Identify actual bottlenecks before optimizing
-2. **Measure Impact**: Quantify improvements with benchmarks
-3. **Optimize Systematically**: Start with biggest impact, lowest effort changes
-4. **Monitor Production**: Track performance in real-world scenarios
 
-**Common Optimization Techniques:**
+**1. Profile First Approach:**
+- **Identify Bottlenecks**: Use profiling tools before optimizing
+- **Measure Impact**: Quantify improvements with benchmarks
+- **Optimize Systematically**: Start with biggest impact, lowest effort changes
+- **Monitor Production**: Track performance in real-world scenarios
+
+**2. Common Optimization Techniques:**
 - **Algorithm Optimization**: Choose better algorithms and data structures
 - **Built-in Functions**: Leverage optimized C implementations
 - **Memory Management**: Reduce memory allocations and copies
 - **Concurrency**: Use appropriate parallelism for workload type
 - **External Libraries**: Use NumPy, Pandas for numerical operations
+
+**3. Memory Optimization:**
+- Use generators for large datasets to avoid loading everything into memory
+- Choose appropriate data structures (sets for membership testing, deques for queues)
+- Use `__slots__` for classes with many instances
+- Consider memory-mapped files for large file processing
+
+**4. I/O Optimization:**
+- Use buffered I/O and appropriate buffer sizes
+- Batch database operations instead of individual queries
+- Use connection pooling for database connections
+- Implement async I/O for concurrent operations
+
+**5. Concurrency and Parallelism:**
+- Use multiprocessing for CPU-bound tasks (bypasses GIL)
+- Use threading or asyncio for I/O-bound tasks
+- Consider process pools for embarrassingly parallel problems
+- Use concurrent.futures for cleaner parallel code
+
+**6. When to Use External Libraries:**
+- NumPy/Pandas for numerical computations
+- Cython for performance-critical code sections
+- Numba for JIT compilation of numerical functions
+- PyPy as an alternative Python interpreter
 
 ```python
 import time
@@ -3403,78 +5388,42 @@ def expensive_function(n):
 ```
 
 ### 18. How do you handle errors and logging in production Python code?
+
 **Answer:**
-```python
-import logging
-import traceback
-from functools import wraps
+Proper error handling and logging are critical for production data engineering systems to ensure reliability, debuggability, and maintainability. A comprehensive approach includes structured logging, custom exception hierarchies, retry mechanisms, and monitoring integration.
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('app.log'),
-        logging.StreamHandler()
-    ]
-)
+**Error Handling Strategy:**
 
-logger = logging.getLogger(__name__)
+**1. Exception Hierarchy:**
+- **Custom Exceptions**: Create domain-specific exception classes
+- **Exception Chaining**: Preserve original error context
+- **Graceful Degradation**: Handle errors without crashing the system
+- **Error Classification**: Distinguish between recoverable and fatal errors
 
-# Error handling decorator
-def handle_errors(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            logger.error(f"Error in {func.__name__}: {str(e)}")
-            logger.error(traceback.format_exc())
-            raise
-    return wrapper
+**2. Logging Best Practices:**
+- **Structured Logging**: Use consistent log formats with metadata
+- **Log Levels**: Appropriate use of DEBUG, INFO, WARNING, ERROR, CRITICAL
+- **Contextual Information**: Include relevant data for debugging
+- **Performance Impact**: Minimize logging overhead in hot paths
+- **Security**: Avoid logging sensitive information
 
-# Custom exceptions
-class DataProcessingError(Exception):
-    """Custom exception for data processing errors"""
-    pass
+**3. Retry Mechanisms:**
+- **Exponential Backoff**: Gradually increase delay between retries
+- **Circuit Breaker**: Stop retrying after consecutive failures
+- **Jitter**: Add randomness to prevent thundering herd
+- **Selective Retry**: Only retry on specific error types
 
-@handle_errors
-def process_data(data):
-    if not data:
-        raise DataProcessingError("No data provided")
-    
-    logger.info(f"Processing {len(data)} records")
-    # Process data
-    logger.info("Data processing completed successfully")
-    return processed_data
+**4. Monitoring Integration:**
+- **Metrics Collection**: Track error rates and patterns
+- **Alerting**: Notify on critical errors or threshold breaches
+- **Health Checks**: Implement endpoint monitoring
+- **Distributed Tracing**: Track requests across services
 
-# Retry mechanism
-import time
-from functools import wraps
-
-def retry(max_attempts=3, delay=1, backoff=2):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            attempts = 0
-            current_delay = delay
-            
-            while attempts < max_attempts:
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    attempts += 1
-                    if attempts == max_attempts:
-                        logger.error(f"Max retry attempts reached for {func.__name__}")
-                        raise
-                    
-                    logger.warning(f"Attempt {attempts} failed: {str(e)}. Retrying in {current_delay}s")
-                    time.sleep(current_delay)
-                    current_delay *= backoff
-            
-        return wrapper
-    return decorator
-```
+**5. Production Considerations:**
+- **Log Rotation**: Prevent disk space issues
+- **Centralized Logging**: Aggregate logs from multiple instances
+- **Error Reporting**: Integration with error tracking services
+- **Performance Monitoring**: Track system performance metrics
 
 ## Coding Challenges
 
