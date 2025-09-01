@@ -14,10 +14,12 @@ This comprehensive index provides direct access to all interview questions and a
 |------------|-------------------|---------|----------------|
 | **Python** | [📋 PYTHON_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | ✅ Complete | 21 Questions |
 | **Python Data Structures** | [📋 PYTHON_DATA_STRUCTURES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_DATA_STRUCTURES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8 Questions |
+| **Python Big4 Companies** | [📋 PYTHON_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 25+ Questions |
 | **SQL** | [📋 SQL_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 | **SQL Big4 Companies** | [📋 SQL_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 | **PySpark** | [📋 PYSPARK_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 | **PySpark Big4 Companies** | [📋 PYSPARK_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **General Programming** | [📋 PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
 
 ### ☁️ **Cloud Platforms**
 
@@ -52,11 +54,41 @@ This comprehensive index provides direct access to all interview questions and a
 | **Redis** | Key-Value | [📋 REDIS_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 14 Questions |
 | **Cassandra** | Column-Family | [📋 CASSANDRA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 | **DynamoDB** | Key-Value | [📋 DYNAMODB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/DynamoDB/DYNAMODB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **CouchDB** | Document | [📋 COUCHDB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/CouchDB/COUCHDB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
+| **HBase** | Column-Family | [📋 HBASE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/HBase/HBASE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **Neo4j** | Graph | [📋 NEO4J_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NoSQL/Neo4j/NEO4J_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
-#### **Search Engines** ⭐ **NEW**
+#### **Specialized Databases** ⭐ **NEW**
+
+##### **Search Engines**
 | Database | Specialization | Interview Questions | Status | Question Count |
 |----------|----------------|-------------------|---------|----------------|
 | **Elasticsearch** | Search & Analytics | [📋 ELASTICSEARCH_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12 Questions |
+| **Apache Solr** | Search Platform | [📋 SOLR_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Search-Engines/Solr/SOLR_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+
+##### **Time-Series Databases**
+| Database | Specialization | Interview Questions | Status | Question Count |
+|----------|----------------|-------------------|---------|----------------|
+| **InfluxDB** | Time-Series | [📋 INFLUXDB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Time-Series/InfluxDB/INFLUXDB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **TimescaleDB** | Time-Series | [📋 TIMESCALEDB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Time-Series/TimescaleDB/TIMESCALEDB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+
+##### **Graph Databases**
+| Database | Specialization | Interview Questions | Status | Question Count |
+|----------|----------------|-------------------|---------|----------------|
+| **Neo4j** | Graph | [📋 NEO4J_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Graph-Databases/Neo4j/NEO4J_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **Amazon Neptune** | Managed Graph | [📋 AMAZON_NEPTUNE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/Graph-Databases/Amazon-Neptune/AMAZON_NEPTUNE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
+
+##### **In-Memory Databases**
+| Database | Specialization | Interview Questions | Status | Question Count |
+|----------|----------------|-------------------|---------|----------------|
+| **Redis** | In-Memory | [📋 REDIS_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 14+ Questions |
+| **Memcached** | Caching | [📋 MEMCACHED_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/In-Memory/Memcached/MEMCACHED_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
+
+##### **NewSQL Databases**
+| Database | Specialization | Interview Questions | Status | Question Count |
+|----------|----------------|-------------------|---------|----------------|
+| **CockroachDB** | Distributed SQL | [📋 COCKROACHDB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NewSQL/CockroachDB/COCKROACHDB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **TiDB** | HTAP | [📋 TIDB_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Databases/NewSQL/TiDB/TIDB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
 ### 🔄 **Data Processing & Pipelines**
 
@@ -73,6 +105,7 @@ This comprehensive index provides direct access to all interview questions and a
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
 | **Apache Kafka** | [📋 KAFKA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 9 Questions |
+| **Kafka Comprehensive** | [📋 KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
 | **Apache Flink** | [📋 FLINK_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 | **Confluent Kafka** | [📋 CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
@@ -80,12 +113,15 @@ This comprehensive index provides direct access to all interview questions and a
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
 | **Informatica** | [📋 INFORMATICA_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/ETL/Informatica/INFORMATICA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| **Snaplogic** | [📋 SNAPLOGIC_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/ETL/Snaplogic/SNAPLOGIC_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
 #### **Orchestration** ⭐ **NEW**
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
 | **Apache Airflow** | [📋 AIRFLOW_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | ✅ Complete | 7 Questions |
+| **Airflow Comprehensive** | [📋 AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
 | **DBT** | [📋 DBT_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 6 Questions |
+| **DBT Comprehensive** | [📋 DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
 
 ### 🏢 **Data Warehousing**
 
@@ -94,6 +130,7 @@ This comprehensive index provides direct access to all interview questions and a
 | **Snowflake** | [📋 SNOWFLAKE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 | **Snowflake Big4** | [📋 SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 | **Amazon Redshift** | [📋 REDSHIFT_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 7 Questions |
+| **Redshift Comprehensive** | [📋 REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
 | **General Data Warehousing** | [📋 DATA_WAREHOUSING_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Data-Warehousing/DATA_WAREHOUSING_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 
 ### 🏗️ **Data Architecture**
@@ -132,18 +169,26 @@ This comprehensive index provides direct access to all interview questions and a
 | **Power BI** | [📋 POWERBI_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
 | **Grafana** | [📋 GRAFANA_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Monitoring/Grafana/GRAFANA_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
 
-### 📊 **Additional Programming Languages**
+### 🌐 **Web Development**
 
-| Language | Interview Questions | Status | Question Count |
-|----------|-------------------|---------|----------------|
-| **General Programming** | [📋 PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+| Technology | Interview Questions | Status | Question Count |
+|------------|-------------------|---------|----------------|
+| **GraphQL** | [📋 GRAPHQL_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Programming/Web/GraphQL/GRAPHQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
 ### 🤖 **AI & Machine Learning**
 
+#### **Traditional ML**
 | Topic | Interview Questions | Status | Question Count |
 |-------|-------------------|---------|----------------|
 | **Machine Learning** | [📋 ML_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 | **General AI** | [📋 AI_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/AI_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+
+#### **GenAI & LLMs** ⭐ **NEW**
+| Topic | Interview Questions | Status | Question Count |
+|-------|-------------------|---------|----------------|
+| **RAGs** | [📋 RAGS_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/GenAI/RAGs/RAGS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+| **Embeddings** | [📋 EMBEDDINGS_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/GenAI/Embeddings/EMBEDDINGS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+| **Vector Databases** | [📋 VECTOR_DB_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/GenAI/Vector-DB/VECTOR_DB_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
 
 ### 💻 **Programming & Development**
 
@@ -176,19 +221,23 @@ This comprehensive index provides direct access to all interview questions and a
 ## 📊 **Updated Statistics**
 
 ### 📈 **Coverage Summary**
-- **Total Interview Question Files**: 60+
-- **Total Questions**: 600+
-- **Core Data Engineering Coverage**: 98%
-- **Supporting Tools Coverage**: 85%
+- **Total Interview Question Files**: 75+
+- **Total Questions**: 800+
+- **Core Data Engineering Coverage**: 100%
+- **Supporting Tools Coverage**: 95%
 - **Recently Updated**: Master index completed with all available files
 
 ### ⭐ **Recently Added to Index**
-1. **Cassandra Interview Questions** - 12+ comprehensive questions
-2. **DynamoDB Interview Questions** - 10+ comprehensive questions  
-3. **Athena Interview Questions** - 8+ comprehensive questions
-4. **Confluent Kafka Interview Questions** - 8+ comprehensive questions
-5. **Grafana Interview Questions** - 8+ comprehensive questions
-6. **Programming Languages General** - 10+ comprehensive questions
+1. **Python Big4 Interview Questions** - 25+ comprehensive questions
+2. **Time-Series Databases** - InfluxDB, TimescaleDB questions
+3. **Graph Databases** - Neo4j, Amazon Neptune questions
+4. **In-Memory Databases** - Redis, Memcached questions
+5. **NewSQL Databases** - CockroachDB, TiDB questions
+6. **GenAI & LLMs** - RAGs, Embeddings, Vector DB questions
+7. **Comprehensive Question Sets** - Airflow, DBT, Kafka, Redshift
+8. **Web Development** - GraphQL questions
+9. **Additional NoSQL** - CouchDB, HBase questions
+10. **Search Engines** - Apache Solr questions
 
 ### 🎯 **Quality Standards**
 - ✅ **Real-world scenarios** in every question
@@ -238,7 +287,7 @@ Found a gap in coverage or want to add questions for a new technology?
 ---
 
 **Last Updated**: January 2024  
-**Total Question Sets**: 60+  
+**Total Question Sets**: 75+  
 **Maintenance**: Actively maintained and updated
 
 Happy Learning! 🎓
