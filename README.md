@@ -14,14 +14,14 @@
 - **Programming**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md)
 - **Cloud**: [AWS](./Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [Azure](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [GCP](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
 - **Big Data**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) | [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md)
-- **Databases**: [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md)
+- **Databases**: [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/REDIS_INTERVIEW_QUESTIONS.md) | [Neo4j](./Core-Data-Engineering/Databases/NoSQL/Neo4j/NEO4J_INTERVIEW_QUESTIONS.md) | [Elasticsearch](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md)
 - **Orchestration**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md)
 - **Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md)
 
 ### Supporting Technologies
 - **DevOps**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md)
 - **Visualization**: [Tableau](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | [Power BI](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md)
-- **ML/AI**: [Machine Learning](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | [MLOps](./Supporting-Tools/AI/MLOps/)
+- **ML/AI**: [Machine Learning](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | [MLOps](./Supporting-Tools/AI/MLOps/) | [OpenAI API](./Supporting-Tools/AI/GenAI/OpenAI-API/OPENAI_API_KEY_CONCEPTS.md) | [RAGs](./Supporting-Tools/AI/GenAI/RAGs/RAGS_KEY_CONCEPTS.md)
 
 ---
 
@@ -194,11 +194,12 @@ Each topic folder contains:
 - [Machine Learning](./Supporting-Tools/AI/Machine-Learning/)
 - [MLOps](./Supporting-Tools/AI/MLOps/)
 - **GenAI & LLMs**
-  - [GenAI Concepts](./Supporting-Tools/AI/GenAI/)
-  - [RAGs & Embeddings](./Supporting-Tools/AI/GenAI/)
-  - [LangChain](./Supporting-Tools/AI/GenAI/LangChain/)
-  - [OpenAI APIs](./Supporting-Tools/AI/GenAI/)
-  - [Vector Databases](./Supporting-Tools/AI/GenAI/)
+  - [OpenAI API](./Supporting-Tools/AI/GenAI/OpenAI-API/) - GPT-4, embeddings, and API integration
+  - [Azure OpenAI](./Supporting-Tools/AI/GenAI/Azure-OpenAI-API/) - Enterprise OpenAI services
+  - [RAGs](./Supporting-Tools/AI/GenAI/RAGs/) - Retrieval-Augmented Generation
+  - [Embeddings](./Supporting-Tools/AI/GenAI/Embeddings/) - Vector representations and similarity
+  - [Vector Databases](./Supporting-Tools/AI/GenAI/Vector-DB/) - Pinecone, Weaviate, Chroma
+  - [LangChain](./Supporting-Tools/AI/GenAI/LangChain/) - LLM application framework
 
 ### Programming & Development
 - [Extended Languages](./Supporting-Tools/Programming/) (C/C++, C#, JavaScript, MATLAB)
