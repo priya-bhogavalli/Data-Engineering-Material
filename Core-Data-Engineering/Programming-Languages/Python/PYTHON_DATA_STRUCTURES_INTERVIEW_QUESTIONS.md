@@ -16,52 +16,49 @@
 ### Q1: What are the key differences between lists and tuples in Python?
 
 **Answer:**
-Lists are mutable sequences that can be modified after creation, while tuples are immutable sequences that cannot be changed. Tuples are more memory-efficient and can be used as dictionary keys due to their immutability. Lists provide more methods for modification (append, extend, remove) while tuples are primarily used for data that shouldn't change.
+Lists are mutable sequences that can be modified after creation, while tuples are immutable sequences that cannot be changed. Tuples are more memory-efficient and can be used as dictionary keys due to their immutability.
 
 **Code Example:**
 ```python
 # Lists - mutable, ordered
 my_list = [1, 2, 3]
-my_list.append(4)  # Allowed
-my_list[0] = 10    # Allowed
+my_list.append(4)
+my_list[0] = 10
 print(f"Modified list: {my_list}")
-# Output: Modified list: [10, 2, 3, 4]
+# Output: [10, 2, 3, 4]
 
 # Tuples - immutable, ordered
 my_tuple = (1, 2, 3)
-# my_tuple.append(4)  # Error: AttributeError
-# my_tuple[0] = 10    # Error: TypeError
+# my_tuple[0] = 10  # TypeError
 print(f"Tuple: {my_tuple}")
-# Output: Tuple: (1, 2, 3)
+# Output: (1, 2, 3)
 
-# Performance comparison
+# Memory comparison
 import sys
 list_data = [1, 2, 3, 4, 5]
 tuple_data = (1, 2, 3, 4, 5)
-print(f"List size: {sys.getsizeof(list_data)} bytes")
-print(f"Tuple size: {sys.getsizeof(tuple_data)} bytes")
-# Output: List size: 104 bytes
-# Output: Tuple size: 80 bytes
+print(f"List: {sys.getsizeof(list_data)} bytes")
+print(f"Tuple: {sys.getsizeof(tuple_data)} bytes")
+# Output: List: 104 bytes, Tuple: 80 bytes
 ```
 
 **Key Points:**
-- Lists are mutable, tuples are immutable
-- Tuples are more memory efficient
-- Tuples can be used as dictionary keys
-- Lists have more methods (append, extend, remove, etc.)
+- Lists: mutable, more methods (append, extend, remove)
+- Tuples: immutable, memory efficient, hashable (can be dict keys)
+- Use tuples for fixed data, lists for dynamic collections
 
 ### Q2: How do you efficiently remove duplicates from a list while preserving order?
 
 **Answer:**
-Two main approaches: `dict.fromkeys()` (Python 3.7+) leverages dictionary's ordered nature and uniqueness, or manually track seen items with a set. The dict method is generally faster due to C implementation, while the set method gives more control over the process.
+Use `dict.fromkeys()` for Python 3.7+ or manual tracking with a set. The dict method is faster due to C implementation.
 
 **Code Example:**
 ```python
-# Method 1: Using dict.fromkeys() (Python 3.7+)
-def remove_duplicates_ordered(lst):
+# Method 1: dict.fromkeys() (Python 3.7+)
+def remove_duplicates_dict(lst):
     return list(dict.fromkeys(lst))
 
-# Method 2: Using set with manual ordering
+# Method 2: Set tracking
 def remove_duplicates_set(lst):
     seen = set()
     result = []
@@ -71,114 +68,129 @@ def remove_duplicates_set(lst):
             result.append(item)
     return result
 
-# Test both methods
-original = [1, 2, 3, 2, 4, 1, 5, 3]
-method1 = remove_duplicates_ordered(original)
-method2 = remove_duplicates_set(original)
-
+# Test
+original = [1, 2, 3, 2, 4, 1, 5]
 print(f"Original: {original}")
-print(f"Method 1 (dict.fromkeys): {method1}")
-print(f"Method 2 (set): {method2}")
-# Output: Original: [1, 2, 3, 2, 4, 1, 5, 3]
-# Output: Method 1 (dict.fromkeys): [1, 2, 3, 4, 5]
-# Output: Method 2 (set): [1, 2, 3, 4, 5]
-
-# Performance comparison
-import time
-large_list = list(range(10000)) * 2  # 20k items with duplicates
-
-start = time.time()
-result1 = remove_duplicates_ordered(large_list)
-time1 = time.time() - start
-
-start = time.time()
-result2 = remove_duplicates_set(large_list)
-time2 = time.time() - start
-
-print(f"dict.fromkeys time: {time1:.4f}s")
-print(f"set method time: {time2:.4f}s")
-# Output: dict.fromkeys time: 0.0012s
-# Output: set method time: 0.0018s
+print(f"Dict method: {remove_duplicates_dict(original)}")
+print(f"Set method: {remove_duplicates_set(original)}")
+# Output: [1, 2, 3, 4, 5]
 ```
 
-### Q3: Explain the difference between shallow and deep copy with examples.
+### Q3: Explain shallow vs deep copy with examples.
 
 **Answer:**
-Shallow copy creates a new object but references to nested objects remain the same. Deep copy creates completely independent copies of all nested objects. Shallow copy affects nested elements when modified, while deep copy creates truly independent structures.
+Shallow copy creates a new object but references nested objects. Deep copy creates independent copies of all nested objects.
 
 **Code Example:**
 ```python
 import copy
 
-# Original nested structure
-original = [[1, 2, 3], [4, 5, 6]]
+original = [[1, 2], [3, 4]]
 shallow = copy.copy(original)
 deep = copy.deepcopy(original)
 
-print(f"Original: {original}")
-print(f"Shallow: {shallow}")
-print(f"Deep: {deep}")
-# Output: Original: [[1, 2, 3], [4, 5, 6]]
-# Output: Shallow: [[1, 2, 3], [4, 5, 6]]
-# Output: Deep: [[1, 2, 3], [4, 5, 6]]
-
 # Modify nested element
-original[0][0] = 'CHANGED'
+original[0][0] = 'X'
 
-print(f"\nAfter modifying original[0][0]:")
 print(f"Original: {original}")
-print(f"Shallow: {shallow}")  # Affected!
+print(f"Shallow: {shallow}")   # Affected!
 print(f"Deep: {deep}")        # Not affected
-# Output: After modifying original[0][0]:
-# Output: Original: [['CHANGED', 2, 3], [4, 5, 6]]
-# Output: Shallow: [['CHANGED', 2, 3], [4, 5, 6]]
-# Output: Deep: [[1, 2, 3], [4, 5, 6]]
+# Output: Original: [['X', 2], [3, 4]]
+# Output: Shallow: [['X', 2], [3, 4]]
+# Output: Deep: [[1, 2], [3, 4]]
+```
 
-# Add new sublist to original
-original.append([7, 8, 9])
+### Q4: What's the difference between `is` and `==` operators?
 
-print(f"\nAfter adding new sublist:")
-print(f"Original: {original}")
-print(f"Shallow: {shallow}")  # Not affected
-print(f"Deep: {deep}")        # Not affected
-# Output: After adding new sublist:
-# Output: Original: [['CHANGED', 2, 3], [4, 5, 6], [7, 8, 9]]
-# Output: Shallow: [['CHANGED', 2, 3], [4, 5, 6]]
-# Output: Deep: [[1, 2, 3], [4, 5, 6]]
+**Answer:**
+`is` checks object identity (same memory location), `==` checks value equality.
+
+**Code Example:**
+```python
+a = [1, 2, 3]
+b = [1, 2, 3]
+c = a
+
+print(f"a == b: {a == b}")  # True (same values)
+print(f"a is b: {a is b}")  # False (different objects)
+print(f"a is c: {a is c}")  # True (same object)
+
+# Small integers are cached
+x = 256
+y = 256
+print(f"x is y: {x is y}")  # True (cached)
+
+x = 257
+y = 257
+print(f"x is y: {x is y}")  # False (not cached)
+```
+
+### Q5: How do sets work internally and when should you use them?
+
+**Answer:**
+Sets use hash tables for O(1) average lookup, insertion, and deletion. Use for membership testing, removing duplicates, and set operations.
+
+**Code Example:**
+```python
+# Set operations
+set1 = {1, 2, 3, 4}
+set2 = {3, 4, 5, 6}
+
+print(f"Union: {set1 | set2}")
+print(f"Intersection: {set1 & set2}")
+print(f"Difference: {set1 - set2}")
+print(f"Symmetric difference: {set1 ^ set2}")
+# Output: Union: {1, 2, 3, 4, 5, 6}
+# Output: Intersection: {3, 4}
+# Output: Difference: {1, 2}
+# Output: Symmetric difference: {1, 2, 5, 6}
+
+# Performance comparison
+import time
+large_list = list(range(10000))
+large_set = set(range(10000))
+
+# List membership test
+start = time.time()
+9999 in large_list
+list_time = time.time() - start
+
+# Set membership test
+start = time.time()
+9999 in large_set
+set_time = time.time() - start
+
+print(f"List lookup: {list_time:.6f}s")
+print(f"Set lookup: {set_time:.6f}s")
+print(f"Set is {list_time/set_time:.0f}x faster")
 ```
 
 ## Collections Module
 
-### Q4: When would you use Counter vs defaultdict vs regular dict?
+### Q6: When would you use Counter vs defaultdict vs regular dict?
 
 **Answer:**
-Use Counter for frequency counting and statistical operations. Use defaultdict when you need automatic initialization of missing keys to avoid KeyError exceptions. Use regular dict for general key-value storage when you want explicit control over key existence checking.
+- **Counter**: Frequency counting and statistical operations
+- **defaultdict**: Automatic initialization of missing keys
+- **dict**: General key-value storage with explicit control
 
 **Code Example:**
 ```python
 from collections import Counter, defaultdict
 
-# Counter - for counting and frequency analysis
+# Counter for frequency analysis
 text = "hello world"
 char_count = Counter(text)
-print(f"Character frequencies: {dict(char_count)}")
 print(f"Most common: {char_count.most_common(3)}")
-# Output: Character frequencies: {'h': 1, 'e': 1, 'l': 3, 'o': 2, ' ': 1, 'w': 1, 'r': 1, 'd': 1}
-# Output: Most common: [('l', 3), ('o', 2), ('h', 1)]
+# Output: [('l', 3), ('o', 2), ('h', 1)]
 
-# defaultdict - for grouping without key checks
-students = [
-    ("Alice", "Math"), ("Bob", "Science"), ("Alice", "English"), 
-    ("Charlie", "Math"), ("Bob", "Math")
-]
+# defaultdict for grouping
+students = [("Alice", "Math"), ("Bob", "Science"), ("Alice", "English")]
 
 # With defaultdict
 subjects_dd = defaultdict(list)
 for student, subject in students:
     subjects_dd[student].append(subject)
-
-print(f"defaultdict result: {dict(subjects_dd)}")
-# Output: defaultdict result: {'Alice': ['Math', 'English'], 'Bob': ['Science', 'Math'], 'Charlie': ['Math']}
 
 # With regular dict (more verbose)
 subjects_dict = {}
@@ -187,42 +199,15 @@ for student, subject in students:
         subjects_dict[student] = []
     subjects_dict[student].append(subject)
 
-print(f"Regular dict result: {subjects_dict}")
-# Output: Regular dict result: {'Alice': ['Math', 'English'], 'Bob': ['Science', 'Math'], 'Charlie': ['Math']}
-
-# Performance comparison for grouping
-import time
-
-data = [("key1", i) for i in range(10000)] + [("key2", i) for i in range(10000)]
-
-# defaultdict timing
-start = time.time()
-dd_result = defaultdict(list)
-for key, value in data:
-    dd_result[key].append(value)
-dd_time = time.time() - start
-
-# regular dict timing
-start = time.time()
-dict_result = {}
-for key, value in data:
-    if key not in dict_result:
-        dict_result[key] = []
-    dict_result[key].append(value)
-dict_time = time.time() - start
-
-print(f"defaultdict time: {dd_time:.4f}s")
-print(f"regular dict time: {dict_time:.4f}s")
-print(f"defaultdict is {dict_time/dd_time:.1f}x faster")
-# Output: defaultdict time: 0.0023s
-# Output: regular dict time: 0.0031s
-# Output: defaultdict is 1.3x faster
+print(f"defaultdict: {dict(subjects_dd)}")
+print(f"regular dict: {subjects_dict}")
+# Both output: {'Alice': ['Math', 'English'], 'Bob': ['Science']}
 ```
 
-### Q5: Implement a LRU cache using OrderedDict.
+### Q7: Implement an LRU cache using OrderedDict.
 
 **Answer:**
-LRU (Least Recently Used) cache evicts the least recently accessed item when capacity is exceeded. OrderedDict maintains insertion order and provides `move_to_end()` for efficient reordering. This gives O(1) access, insertion, and deletion operations.
+LRU cache evicts least recently used items when capacity is exceeded. OrderedDict provides O(1) operations with `move_to_end()`.
 
 **Code Example:**
 ```python
@@ -235,49 +220,560 @@ class LRUCache:
     
     def get(self, key):
         if key in self.cache:
-            # Move to end (most recently used)
-            self.cache.move_to_end(key)
+            self.cache.move_to_end(key)  # Mark as recently used
             return self.cache[key]
         return -1
     
     def put(self, key, value):
         if key in self.cache:
-            # Update existing key
             self.cache.move_to_end(key)
         elif len(self.cache) >= self.capacity:
-            # Remove least recently used (first item)
-            self.cache.popitem(last=False)
-        
+            self.cache.popitem(last=False)  # Remove oldest
         self.cache[key] = value
-    
-    def display(self):
-        return list(self.cache.items())
 
-# Test the LRU cache
-lru = LRUCache(3)
-
-# Add items
+# Test
+lru = LRUCache(2)
 lru.put(1, "one")
 lru.put(2, "two")
-lru.put(3, "three")
-print(f"After adding 1,2,3: {lru.display()}")
-# Output: After adding 1,2,3: [(1, 'one'), (2, 'two'), (3, 'three')]
+print(lru.get(1))      # "one"
+lru.put(3, "three")   # Evicts key 2
+print(lru.get(2))      # -1 (not found)
+print(lru.get(3))      # "three"
+```
 
-# Access item 1 (moves to end)
-value = lru.get(1)
-print(f"Get key 1: {value}")
-print(f"After accessing 1: {lru.display()}")
-# Output: Get key 1: one
-# Output: After accessing 1: [(2, 'two'), (3, 'three'), (1, 'one')]
+### Q8: What is namedtuple and when should you use it?
 
-# Add item 4 (evicts least recently used: key 2)
-lru.put(4, "four")
-print(f"After adding 4: {lru.display()}")
-# Output: After adding 4: [(3, 'three'), (1, 'one'), (4, 'four')]
+**Answer:**
+namedtuple creates tuple subclasses with named fields. Use for lightweight, immutable data structures with field access by name.
 
-# Try to get evicted item
-value = lru.get(2)
-print(f"Get evicted key 2: {value}")
+**Code Example:**
+```python
+from collections import namedtuple
+
+# Define Point namedtuple
+Point = namedtuple('Point', ['x', 'y'])
+
+# Create instances
+p1 = Point(1, 2)
+p2 = Point(x=3, y=4)
+
+print(f"p1: {p1}")
+print(f"p1.x: {p1.x}, p1.y: {p1.y}")
+print(f"p1[0]: {p1[0]}")  # Still works like tuple
+
+# Immutable
+# p1.x = 5  # AttributeError
+
+# Methods
+print(f"p1._asdict(): {p1._asdict()}")
+print(f"p1._replace(x=10): {p1._replace(x=10)}")
+
+# Memory efficient compared to class
+import sys
+class RegularPoint:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+regular = RegularPoint(1, 2)
+named = Point(1, 2)
+
+print(f"Regular class: {sys.getsizeof(regular.__dict__)} bytes")
+print(f"namedtuple: {sys.getsizeof(named)} bytes")
+```
+
+## Advanced Data Structures
+
+### Q9: Implement a priority queue using heapq.
+
+**Answer:**
+heapq implements a binary min-heap. For priority queues, use tuples where first element is priority (lower = higher priority).
+
+**Code Example:**
+```python
+import heapq
+from dataclasses import dataclass
+
+@dataclass
+class Task:
+    priority: int
+    name: str
+    
+    def __lt__(self, other):
+        return self.priority < other.priority
+
+class PriorityQueue:
+    def __init__(self):
+        self.heap = []
+    
+    def push(self, item, priority):
+        heapq.heappush(self.heap, Task(priority, item))
+    
+    def pop(self):
+        if self.heap:
+            return heapq.heappop(self.heap)
+        return None
+    
+    def peek(self):
+        return self.heap[0] if self.heap else None
+
+# Test
+pq = PriorityQueue()
+pq.push("Low priority", 3)
+pq.push("High priority", 1)
+pq.push("Medium priority", 2)
+
+while pq.heap:
+    task = pq.pop()
+    print(f"{task.name} (priority: {task.priority})")
+# Output: High priority (priority: 1)
+# Output: Medium priority (priority: 2)
+# Output: Low priority (priority: 3)
+```
+
+### Q10: Implement sliding window maximum using deque.
+
+**Answer:**
+Use deque to maintain indices of potential maximums in decreasing order. This achieves O(n) time complexity.
+
+**Code Example:**
+```python
+from collections import deque
+
+def sliding_window_maximum(nums, k):
+    if not nums or k == 0:
+        return []
+    
+    dq = deque()  # Store indices
+    result = []
+    
+    for i in range(len(nums)):
+        # Remove indices outside window
+        while dq and dq[0] <= i - k:
+            dq.popleft()
+        
+        # Remove indices with smaller values
+        while dq and nums[dq[-1]] <= nums[i]:
+            dq.pop()
+        
+        dq.append(i)
+        
+        # Add to result when window is complete
+        if i >= k - 1:
+            result.append(nums[dq[0]])
+    
+    return result
+
+# Test
+nums = [1, 3, -1, -3, 5, 3, 6, 7]
+k = 3
+result = sliding_window_maximum(nums, k)
+print(f"Array: {nums}")
+print(f"Window size: {k}")
+print(f"Maximums: {result}")
+# Output: [3, 3, 5, 5, 6, 7]
+```
+
+### Q11: Create a Trie for autocomplete functionality.
+
+**Answer:**
+Trie (prefix tree) stores strings character by character. Each node represents a character, paths form words.
+
+**Code Example:**
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+        self.frequency = 0
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word, freq=1):
+        node = self.root
+        for char in word.lower():
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+        node.frequency += freq
+    
+    def search(self, word):
+        node = self._find_node(word.lower())
+        return node is not None and node.is_end
+    
+    def _find_node(self, prefix):
+        node = self.root
+        for char in prefix:
+            if char not in node.children:
+                return None
+            node = node.children[char]
+        return node
+    
+    def get_suggestions(self, prefix, limit=5):
+        node = self._find_node(prefix.lower())
+        if not node:
+            return []
+        
+        suggestions = []
+        self._collect_words(node, prefix.lower(), suggestions)
+        suggestions.sort(key=lambda x: x[1], reverse=True)
+        return [word for word, freq in suggestions[:limit]]
+    
+    def _collect_words(self, node, prefix, suggestions):
+        if node.is_end:
+            suggestions.append((prefix, node.frequency))
+        
+        for char, child in node.children.items():
+            self._collect_words(child, prefix + char, suggestions)
+
+# Test
+trie = Trie()
+words = [("python", 100), ("programming", 80), ("program", 60), 
+         ("project", 70), ("problem", 50)]
+
+for word, freq in words:
+    trie.insert(word, freq)
+
+print(f"Suggestions for 'pro': {trie.get_suggestions('pro')}")
+# Output: ['programming', 'project', 'program', 'problem']
+```
+
+## Performance and Optimization
+
+### Q12: Compare time complexity of operations on different data structures.
+
+**Answer:**
+Understanding time complexity helps choose the right data structure for specific operations.
+
+**Code Example:**
+```python
+import time
+
+def benchmark_operation(operation, iterations=10000):
+    start = time.time()
+    for _ in range(iterations):
+        operation()
+    return (time.time() - start) / iterations
+
+# Test data
+data_list = list(range(1000))
+data_set = set(range(1000))
+data_dict = {i: i for i in range(1000)}
+
+# Search operations
+search_item = 999
+
+list_search = benchmark_operation(lambda: search_item in data_list)
+set_search = benchmark_operation(lambda: search_item in data_set)
+dict_search = benchmark_operation(lambda: search_item in data_dict)
+
+print("Search Time Complexity:")
+print(f"List (O(n)): {list_search:.8f}s")
+print(f"Set (O(1)): {set_search:.8f}s")
+print(f"Dict (O(1)): {dict_search:.8f}s")
+
+# Insert operations
+list_append = benchmark_operation(lambda: data_list.append(1001))
+list_insert = benchmark_operation(lambda: data_list.insert(0, 1001))
+set_add = benchmark_operation(lambda: data_set.add(1001))
+
+print("\nInsert Time Complexity:")
+print(f"List append (O(1)): {list_append:.8f}s")
+print(f"List insert at start (O(n)): {list_insert:.8f}s")
+print(f"Set add (O(1)): {set_add:.8f}s")
+```
+
+**Time Complexity Summary:**
+
+| Operation | List | Set | Dict | Tuple |
+|-----------|------|-----|------|-------|
+| Access by index | O(1) | N/A | N/A | O(1) |
+| Search | O(n) | O(1) | O(1) | O(n) |
+| Insert at end | O(1) | O(1) | O(1) | N/A |
+| Insert at start | O(n) | O(1) | O(1) | N/A |
+| Delete | O(n) | O(1) | O(1) | N/A |
+
+### Q13: How to optimize memory usage for large datasets?
+
+**Answer:**
+Use generators, arrays, slots, and chunked processing to reduce memory footprint.
+
+**Code Example:**
+```python
+import sys
+from array import array
+
+# Memory comparison
+regular_list = [i for i in range(100000)]
+int_array = array('i', range(100000))
+generator = (i for i in range(100000))
+
+print("Memory Usage:")
+print(f"List: {sys.getsizeof(regular_list):,} bytes")
+print(f"Array: {sys.getsizeof(int_array):,} bytes")
+print(f"Generator: {sys.getsizeof(generator):,} bytes")
+
+# Using __slots__ for memory-efficient classes
+class RegularClass:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class SlottedClass:
+    __slots__ = ['x', 'y']
+    
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+regular = RegularClass(1, 2)
+slotted = SlottedClass(1, 2)
+
+print(f"\nClass Memory:")
+print(f"Regular: {sys.getsizeof(regular.__dict__)} bytes")
+print(f"Slotted: {sys.getsizeof(slotted)} bytes")
+
+# Chunked processing for large datasets
+def process_large_data(data_generator, chunk_size=1000):
+    chunk = []
+    for item in data_generator:
+        chunk.append(item)
+        if len(chunk) >= chunk_size:
+            yield chunk
+            chunk = []
+    if chunk:
+        yield chunk
+
+# Example usage
+for chunk in process_large_data(range(5500), 2000):
+    print(f"Processing chunk of {len(chunk)} items")
+# Output: Processing chunk of 2000 items
+# Output: Processing chunk of 2000 items
+# Output: Processing chunk of 1500 items
+```
+
+## Real-World Scenarios
+
+### Q14: Design a data structure for real-time analytics.
+
+**Answer:**
+Combine multiple data structures for different access patterns: deque for time windows, defaultdict for grouping, Counter for aggregations.
+
+**Code Example:**
+```python
+from collections import defaultdict, deque, Counter
+import time
+import threading
+
+class RealTimeAnalytics:
+    def __init__(self, window_minutes=60):
+        self.window_size = window_minutes * 60
+        self.events = deque()
+        self.user_sessions = defaultdict(lambda: {
+            'events': deque(),
+            'first_seen': None,
+            'last_seen': None
+        })
+        self.event_counts = Counter()
+        self.lock = threading.Lock()
+    
+    def add_event(self, user_id, event_type, data=None):
+        timestamp = time.time()
+        event = {
+            'user_id': user_id,
+            'event_type': event_type,
+            'timestamp': timestamp,
+            'data': data or {}
+        }
+        
+        with self.lock:
+            self.events.append((timestamp, event))
+            
+            # Update user session
+            session = self.user_sessions[user_id]
+            session['events'].append(event)
+            if session['first_seen'] is None:
+                session['first_seen'] = timestamp
+            session['last_seen'] = timestamp
+            
+            self.event_counts[event_type] += 1
+            self._cleanup_old_data(timestamp)
+    
+    def _cleanup_old_data(self, current_time):
+        cutoff = current_time - self.window_size
+        
+        # Clean main events
+        while self.events and self.events[0][0] < cutoff:
+            self.events.popleft()
+        
+        # Clean user sessions
+        for user_id, session in list(self.user_sessions.items()):
+            while session['events'] and session['events'][0]['timestamp'] < cutoff:
+                session['events'].popleft()
+            if not session['events']:
+                del self.user_sessions[user_id]
+    
+    def get_stats(self):
+        with self.lock:
+            return {
+                'active_users': len(self.user_sessions),
+                'total_events': len(self.events),
+                'event_types': dict(self.event_counts)
+            }
+
+# Test
+analytics = RealTimeAnalytics(window_minutes=5)
+
+events = [
+    ("user1", "page_view", {"page": "home"}),
+    ("user1", "click", {"button": "signup"}),
+    ("user2", "page_view", {"page": "products"}),
+    ("user1", "signup", {"method": "email"})
+]
+
+for user_id, event_type, data in events:
+    analytics.add_event(user_id, event_type, data)
+
+print(analytics.get_stats())
+# Output: {'active_users': 2, 'total_events': 4, 'event_types': {'page_view': 2, 'click': 1, 'signup': 1}}
+```
+
+## Coding Challenges
+
+### Q15: Implement a data structure supporting insert, delete, and getRandom in O(1).
+
+**Answer:**
+Use array for storage and hash map for index tracking. Swap with last element for O(1) deletion.
+
+**Code Example:**
+```python
+import random
+
+class RandomizedSet:
+    def __init__(self):
+        self.data = []
+        self.indices = {}
+    
+    def insert(self, val):
+        if val in self.indices:
+            return False
+        
+        self.indices[val] = len(self.data)
+        self.data.append(val)
+        return True
+    
+    def remove(self, val):
+        if val not in self.indices:
+            return False
+        
+        # Swap with last element
+        index = self.indices[val]
+        last_val = self.data[-1]
+        
+        self.data[index] = last_val
+        self.indices[last_val] = index
+        
+        # Remove last element
+        self.data.pop()
+        del self.indices[val]
+        return True
+    
+    def getRandom(self):
+        return random.choice(self.data) if self.data else None
+
+# Test
+rs = RandomizedSet()
+print(rs.insert(1))    # True
+print(rs.insert(2))    # True
+print(rs.insert(1))    # False (already exists)
+print(rs.remove(1))    # True
+print(rs.getRandom())  # 2 (only element left)
+```
+
+### Q16: Design a cache with TTL (Time To Live) functionality.
+
+**Answer:**
+Combine dictionary for storage with heap for TTL tracking. Clean expired entries lazily or with background cleanup.
+
+**Code Example:**
+```python
+import time
+import heapq
+from threading import Lock
+
+class TTLCache:
+    def __init__(self, default_ttl=300):
+        self.cache = {}
+        self.expiry_heap = []  # (expiry_time, key)
+        self.default_ttl = default_ttl
+        self.lock = Lock()
+    
+    def put(self, key, value, ttl=None):
+        ttl = ttl or self.default_ttl
+        expiry_time = time.time() + ttl
+        
+        with self.lock:
+            self.cache[key] = (value, expiry_time)
+            heapq.heappush(self.expiry_heap, (expiry_time, key))
+            self._cleanup_expired()
+    
+    def get(self, key):
+        with self.lock:
+            self._cleanup_expired()
+            if key in self.cache:
+                value, expiry_time = self.cache[key]
+                if time.time() < expiry_time:
+                    return value
+                else:
+                    del self.cache[key]
+            return None
+    
+    def _cleanup_expired(self):
+        current_time = time.time()
+        while self.expiry_heap and self.expiry_heap[0][0] <= current_time:
+            expiry_time, key = heapq.heappop(self.expiry_heap)
+            if key in self.cache:
+                stored_expiry = self.cache[key][1]
+                if stored_expiry <= current_time:
+                    del self.cache[key]
+    
+    def size(self):
+        with self.lock:
+            self._cleanup_expired()
+            return len(self.cache)
+
+# Test
+cache = TTLCache(default_ttl=2)
+cache.put("key1", "value1", ttl=1)
+cache.put("key2", "value2", ttl=3)
+
+print(f"Immediate: {cache.get('key1')}")  # value1
+time.sleep(1.5)
+print(f"After 1.5s: {cache.get('key1')}")  # None (expired)
+print(f"After 1.5s: {cache.get('key2')}")  # value2 (still valid)
+```
+
+---
+
+## Summary
+
+This comprehensive guide covers essential Python data structures concepts for data engineering interviews:
+
+**Key Takeaways:**
+1. **Choose the right structure**: Lists for ordered mutable data, sets for uniqueness, dicts for key-value mapping
+2. **Understand time complexity**: O(1) for hash-based operations, O(n) for linear searches
+3. **Memory optimization**: Use generators, arrays, and slots for large datasets
+4. **Collections module**: Leverage Counter, defaultdict, OrderedDict for specialized use cases
+5. **Advanced structures**: Implement heaps, tries, and custom caches for complex requirements
+
+**Interview Tips:**
+- Always discuss time and space complexity
+- Provide working code examples
+- Consider edge cases and error handling
+- Explain trade-offs between different approaches
+- Demonstrate understanding of when to use each data structureet evicted key 2: {value}")
 # Output: Get evicted key 2: -1
 ```
 
