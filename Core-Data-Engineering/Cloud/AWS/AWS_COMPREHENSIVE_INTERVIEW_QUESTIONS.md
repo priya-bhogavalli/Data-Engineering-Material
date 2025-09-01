@@ -16,7 +16,10 @@
 ## Basic Level Questions (1-20)
 
 ### 1. What are the core AWS services for data engineering and their use cases?
-**Answer**: Essential AWS services for data engineering:
+**Answer**: 
+AWS provides a comprehensive suite of services for building modern data engineering solutions. Understanding these services and their optimal use cases is crucial for designing scalable, cost-effective data architectures.
+
+**Essential AWS services for data engineering:
 
 **Storage Services**:
 - **S3**: Object storage for data lakes, backups, static websites

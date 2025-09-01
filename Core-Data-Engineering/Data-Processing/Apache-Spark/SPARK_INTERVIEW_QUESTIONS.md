@@ -17,7 +17,10 @@
 
 ### 1. What is Apache Spark and how does it differ from Hadoop MapReduce?
 **Answer:**
-Apache Spark is a unified analytics engine for large-scale data processing with built-in modules for streaming, SQL, machine learning, and graph processing.
+Apache Spark is a unified analytics engine for large-scale data processing that has revolutionized big data processing. Understanding its architecture and advantages over traditional MapReduce is fundamental for data engineers.
+
+**Apache Spark Overview:**
+Spark is a distributed computing framework designed for speed, ease of use, and sophisticated analytics. It provides high-level APIs in multiple languages and includes built-in modules for streaming, SQL, machine learning, and graph processing.
 
 **Key Differences:**
 - **Speed**: Spark is 100x faster than MapReduce due to in-memory computing

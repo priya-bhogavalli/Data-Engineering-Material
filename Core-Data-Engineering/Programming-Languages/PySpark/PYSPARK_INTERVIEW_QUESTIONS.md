@@ -1,10 +1,37 @@
 # PySpark Interview Questions for Data Engineering
 
-## Core Concepts Questions
+## 📋 Table of Contents
 
-**Q1: What is the difference between RDD, DataFrame, and Dataset in PySpark?**
+1. [Core Concepts Questions (1-15)](#core-concepts-questions-1-15)
+2. [Performance Optimization Questions (16-30)](#performance-optimization-questions-16-30)
+3. [Data Processing Questions (31-45)](#data-processing-questions-31-45)
+4. [Advanced Topics Questions (46-60)](#advanced-topics-questions-46-60)
+5. [Streaming Questions (61-75)](#streaming-questions-61-75)
+6. [Error Handling & Testing (76-90)](#error-handling--testing-76-90)
+7. [Architecture & Design (91-100)](#architecture--design-91-100)
 
+---
+
+## 🎯 **Introduction**
+
+PySpark is the Python API for Apache Spark, enabling data engineers to leverage Spark's distributed computing capabilities using Python. This comprehensive guide covers essential PySpark concepts, from basic RDD operations to advanced streaming and machine learning pipelines.
+
+**Why PySpark is Critical for Data Engineers:**
+- **Scalability**: Process terabytes of data across clusters
+- **Performance**: In-memory computing with intelligent caching
+- **Versatility**: Batch processing, streaming, ML, and graph processing
+- **Integration**: Seamless integration with Python data ecosystem
+- **Ease of Use**: High-level APIs with automatic optimization
+
+---
+
+## Core Concepts Questions (1-15)
+
+### 1. What is the difference between RDD, DataFrame, and Dataset in PySpark?
 **Answer**: 
+Understanding these three abstractions is fundamental to PySpark development. Each serves different use cases and offers varying levels of optimization and type safety.
+
+**Key Differences:**
 - **RDD (Resilient Distributed Dataset)**: Low-level API, immutable distributed collection of objects. No schema, no optimization by Catalyst optimizer.
 - **DataFrame**: Higher-level API built on RDDs with schema. Optimized by Catalyst optimizer, supports SQL operations.
 - **Dataset**: Type-safe version of DataFrame (not available in Python, only Scala/Java).
@@ -583,4 +610,226 @@ class SchemaRegistry:
         current_schema = df.schema
         target_schema = self.get_schema(target_schema_name, target_version)
         return handle_schema_evolution(spark, df, target_schema)
+
+---
+
+## 📚 **PySpark Study Guide & Best Practices**
+
+### 🎯 **Essential PySpark Concepts for Data Engineers**
+
+#### **Core Architecture Understanding**
+1. **Spark Components**: Driver, Executors, Cluster Manager
+2. **Data Abstractions**: RDD → DataFrame → Dataset evolution
+3. **Execution Model**: Lazy evaluation, DAG optimization, stages and tasks
+4. **Memory Management**: Storage levels, caching strategies, garbage collection
+5. **Partitioning**: Hash partitioning, range partitioning, custom partitioners
+
+#### **Performance Optimization Mastery**
+1. **Join Optimization**: Broadcast joins, bucketing, sort-merge joins
+2. **Caching Strategies**: When and what to cache, storage levels
+3. **Partition Management**: Optimal partition size, avoiding small files
+4. **Catalyst Optimizer**: Understanding query plans, predicate pushdown
+5. **Adaptive Query Execution**: Dynamic partition coalescing, join strategy switching
+
+#### **Data Processing Patterns**
+1. **ETL Pipelines**: Extract, transform, load patterns
+2. **Data Quality**: Validation, cleansing, monitoring
+3. **Schema Evolution**: Handling changing data structures
+4. **Incremental Processing**: Delta processing, change data capture
+5. **Error Handling**: Fault tolerance, recovery strategies
+
+### 🚀 **Production-Ready PySpark Patterns**
+
+#### **Configuration Best Practices**
+```python
+# Optimal Spark configuration for production
+spark_config = {
+    # Memory management
+    "spark.executor.memory": "4g",
+    "spark.executor.memoryFraction": "0.8",
+    "spark.storage.memoryFraction": "0.5",
+    
+    # Performance tuning
+    "spark.sql.adaptive.enabled": "true",
+    "spark.sql.adaptive.coalescePartitions.enabled": "true",
+    "spark.sql.adaptive.skewJoin.enabled": "true",
+    
+    # Serialization
+    "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+    
+    # Dynamic allocation
+    "spark.dynamicAllocation.enabled": "true",
+    "spark.dynamicAllocation.minExecutors": "1",
+    "spark.dynamicAllocation.maxExecutors": "20"
+}
+```
+
+#### **Error Handling Framework**
+```python
+class PySparkErrorHandler:
+    def __init__(self, spark):
+        self.spark = spark
+        self.error_accumulator = spark.sparkContext.accumulator(0)
+    
+    def safe_transform(self, df, transform_func, error_handler=None):
+        """Apply transformation with error handling"""
+        try:
+            return transform_func(df)
+        except Exception as e:
+            self.error_accumulator.add(1)
+            if error_handler:
+                return error_handler(df, e)
+            raise
+    
+    def validate_and_process(self, df, validations, transformations):
+        """Validate data before processing"""
+        for validation in validations:
+            if not validation(df):
+                raise ValueError(f"Validation failed: {validation.__name__}")
+        
+        result = df
+        for transform in transformations:
+            result = self.safe_transform(result, transform)
+        
+        return result
+```
+
+### 📈 **Performance Monitoring & Debugging**
+
+#### **Monitoring Checklist**
+```python
+def analyze_spark_job_performance(spark):
+    """Comprehensive performance analysis"""
+    
+    # Check partition distribution
+    def check_partitions(df):
+        partition_counts = df.rdd.mapPartitions(lambda x: [sum(1 for _ in x)]).collect()
+        return {
+            "num_partitions": len(partition_counts),
+            "min_partition_size": min(partition_counts),
+            "max_partition_size": max(partition_counts),
+            "avg_partition_size": sum(partition_counts) / len(partition_counts),
+            "skew_ratio": max(partition_counts) / (sum(partition_counts) / len(partition_counts))
+        }
+    
+    # Monitor cache usage
+    def check_cache_usage():
+        storage_status = spark.sparkContext.statusTracker().getExecutorInfos()
+        return {
+            "cached_rdds": len(spark.sparkContext.getPersistentRDDs()),
+            "memory_used": sum(e.memoryUsed for e in storage_status),
+            "memory_available": sum(e.maxMemory for e in storage_status)
+        }
+    
+    # Analyze query plans
+    def analyze_query_plan(df):
+        plan = df.explain(extended=True)
+        return {
+            "has_broadcast_join": "BroadcastHashJoin" in str(plan),
+            "has_shuffle": "Exchange" in str(plan),
+            "partition_pruning": "PartitionFilters" in str(plan)
+        }
+    
+    return {
+        "cache_usage": check_cache_usage(),
+        "partition_analysis": check_partitions,
+        "query_analysis": analyze_query_plan
+    }
+```
+
+### 🎓 **Interview Preparation Strategy**
+
+#### **Technical Depth Levels**
+1. **Basic (Entry Level)**: RDD operations, DataFrame basics, simple transformations
+2. **Intermediate (2-3 years)**: Performance tuning, join optimization, streaming basics
+3. **Advanced (3-5 years)**: Custom partitioners, advanced streaming, ML pipelines
+4. **Expert (5+ years)**: Architecture design, custom data sources, performance troubleshooting
+
+#### **Common Interview Categories**
+1. **Fundamentals** (25%): RDD vs DataFrame, lazy evaluation, partitioning
+2. **Performance** (30%): Join optimization, caching, partition tuning
+3. **Data Processing** (25%): ETL patterns, data quality, schema handling
+4. **Advanced Topics** (20%): Streaming, ML, custom implementations
+
+### 🛠️ **Practical Exercises**
+
+#### **Exercise 1: Optimize Slow Join**
+```python
+# Problem: Slow join between large and small tables
+def optimize_join_performance():
+    # Before: Slow sort-merge join
+    result_slow = large_df.join(small_df, "key")
+    
+    # After: Optimized broadcast join
+    from pyspark.sql.functions import broadcast
+    result_fast = large_df.join(broadcast(small_df), "key")
+    
+    # Measure performance difference
+    import time
+    start = time.time()
+    result_slow.count()
+    slow_time = time.time() - start
+    
+    start = time.time()
+    result_fast.count()
+    fast_time = time.time() - start
+    
+    print(f"Speedup: {slow_time / fast_time:.2f}x")
+```
+
+#### **Exercise 2: Handle Data Skew**
+```python
+# Problem: Skewed data causing performance issues
+def handle_skewed_data(df, skewed_column):
+    # Identify skewed keys
+    skew_analysis = df.groupBy(skewed_column).count().orderBy(col("count").desc())
+    
+    # Apply salting for skewed keys
+    from pyspark.sql.functions import rand, concat, lit
+    
+    salted_df = df.withColumn(
+        "salted_key",
+        concat(col(skewed_column), lit("_"), (rand() * 10).cast("int"))
+    )
+    
+    return salted_df
+```
+
+### 📚 **Recommended Learning Path**
+
+#### **Week 1-2: Foundations**
+- Spark architecture and components
+- RDD operations and transformations
+- DataFrame API and SQL operations
+- Basic performance concepts
+
+#### **Week 3-4: Intermediate Concepts**
+- Join strategies and optimization
+- Caching and persistence
+- Partitioning strategies
+- Window functions and aggregations
+
+#### **Week 5-6: Advanced Topics**
+- Streaming data processing
+- Custom UDFs and performance implications
+- Schema evolution and data quality
+- Error handling and monitoring
+
+#### **Week 7-8: Production Readiness**
+- Performance tuning and debugging
+- Testing strategies
+- Deployment patterns
+- Real-world project implementation
+
+### 🔗 **Essential Resources**
+
+- **Official Documentation**: [Spark Programming Guide](https://spark.apache.org/docs/latest/)
+- **Performance Tuning**: [Spark Performance Tuning Guide](https://spark.apache.org/docs/latest/tuning.html)
+- **Best Practices**: "High Performance Spark" by Holden Karau
+- **Streaming**: [Structured Streaming Guide](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
+- **Testing**: [Spark Testing Base](https://github.com/holdenk/spark-testing-base)
+
+---
+
+**Remember**: PySpark mastery comes from understanding both the theoretical concepts and practical implementation patterns. Focus on building real-world projects and optimizing performance in production scenarios.
 ```

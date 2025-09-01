@@ -16,8 +16,12 @@
 
 ### 1. What's the difference between INNER JOIN and LEFT JOIN?
 **Answer:**
-- **INNER JOIN**: Returns only matching records from both tables
-- **LEFT JOIN**: Returns all records from left table + matching records from right table
+JOINs are fundamental SQL operations for combining data from multiple tables. Understanding the different types is crucial for data engineering.
+
+- **INNER JOIN**: Returns only records that have matching values in both tables
+- **LEFT JOIN**: Returns all records from the left table, plus matching records from the right table (NULL for non-matches)
+- **RIGHT JOIN**: Returns all records from the right table, plus matching records from the left table
+- **FULL OUTER JOIN**: Returns all records when there's a match in either table
 
 ```sql
 -- INNER JOIN - only customers with orders
@@ -33,8 +37,12 @@ LEFT JOIN orders o ON c.customer_id = o.customer_id;
 
 ### 2. Explain the difference between WHERE and HAVING clauses
 **Answer:**
-- **WHERE**: Filters rows before grouping
-- **HAVING**: Filters groups after GROUP BY
+These clauses serve different purposes in the SQL execution order and are essential for data filtering in analytics queries.
+
+- **WHERE**: Filters individual rows before any grouping occurs (row-level filtering)
+- **HAVING**: Filters grouped results after GROUP BY aggregation (group-level filtering)
+- **Execution Order**: WHERE → GROUP BY → HAVING → SELECT → ORDER BY
+- **Performance**: WHERE is generally faster as it reduces data before grouping
 
 ```sql
 -- WHERE filters individual rows
@@ -71,10 +79,14 @@ CREATE TABLE employees (
 
 ### 4. Explain ACID properties in databases
 **Answer:**
-- **Atomicity**: All operations in transaction succeed or fail together
-- **Consistency**: Database remains in valid state after transaction
-- **Isolation**: Concurrent transactions don't interfere with each other
-- **Durability**: Committed changes persist even after system failure
+ACID properties ensure database reliability and data integrity, critical for data engineering systems handling financial, healthcare, or other sensitive data.
+
+- **Atomicity**: All operations in a transaction succeed or fail as a single unit ("all or nothing")
+- **Consistency**: Database transitions from one valid state to another, maintaining all constraints and rules
+- **Isolation**: Concurrent transactions execute independently without interfering with each other
+- **Durability**: Once committed, changes persist permanently even after system crashes or power failures
+
+**Real-world Example**: Bank transfer - debit from account A and credit to account B must both succeed or both fail (atomicity), maintain account balance constraints (consistency), not interfere with other transfers (isolation), and persist after completion (durability).
 
 ### 5. What's the difference between DELETE, TRUNCATE, and DROP?
 **Answer:**
