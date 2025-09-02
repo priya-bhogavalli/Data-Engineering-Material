@@ -1,5 +1,17 @@
 # Tableau Interview Questions
 
+## 📋 Table of Contents
+
+1. [Basic Level Questions (1-3 years experience)](#basic-level-questions-1-3-years-experience)
+2. [Intermediate Level Questions (3-5 years experience)](#intermediate-level-questions-3-5-years-experience)
+3. [Advanced Level Questions (5+ years experience)](#advanced-level-questions-5-years-experience)
+4. [Performance & Optimization](#performance--optimization)
+5. [Data Governance & Security](#data-governance--security)
+6. [Integration & APIs](#integration--apis)
+7. [Troubleshooting & Best Practices](#troubleshooting--best-practices)
+
+---
+
 ## Basic Level Questions (1-3 years experience)
 
 ### 1. What is Tableau and why is it important for data engineering?
@@ -956,4 +968,585 @@ Orphaned Records:
 IF ISNULL([Foreign Key]) THEN "Orphaned" ELSE "Valid" END
 ```
 
-This comprehensive set covers Tableau fundamentals through advanced dashboard development and troubleshooting with practical data engineering examples.
+---
+
+## Advanced Level Questions (5+ years experience)
+
+### 20. How do you implement enterprise-scale Tableau architecture?
+**Answer**: Design scalable Tableau Server architecture with proper load balancing, high availability, and disaster recovery.
+
+```python
+# Enterprise Tableau Server configuration
+def configure_enterprise_tableau():
+    """Configure enterprise Tableau Server deployment."""
+    
+    architecture_config = {
+        'primary_server': {
+            'role': 'primary',
+            'processes': {
+                'gateway': 2,
+                'application_server': 4,
+                'viz_ql_server': 2,
+                'data_engine': 2,
+                'backgrounder': 4,
+                'data_server': 2
+            },
+            'resources': {
+                'cpu_cores': 16,
+                'memory_gb': 64,
+                'storage_gb': 1000
+            }
+        },
+        'worker_nodes': [
+            {
+                'role': 'worker',
+                'processes': {
+                    'application_server': 2,
+                    'viz_ql_server': 2,
+                    'backgrounder': 6
+                },
+                'resources': {
+                    'cpu_cores': 12,
+                    'memory_gb': 32,
+                    'storage_gb': 500
+                }
+            }
+        ],
+        'load_balancer': {
+            'type': 'nginx',
+            'ssl_termination': True,
+            'health_checks': True,
+            'session_affinity': True
+        }
+    }
+    
+    return architecture_config
+
+# High availability setup
+def setup_high_availability():
+    """Configure Tableau Server for high availability."""
+    
+    ha_config = {
+        'repository': {
+            'type': 'postgresql',
+            'replication': 'streaming',
+            'backup_schedule': 'daily',
+            'retention_days': 30
+        },
+        'file_store': {
+            'type': 'network_attached_storage',
+            'replication': 'synchronous',
+            'backup_schedule': 'hourly'
+        },
+        'coordination_service': {
+            'ensemble_size': 3,
+            'nodes': ['node1', 'node2', 'node3']
+        }
+    }
+    
+    return ha_config
+```
+
+---
+
+## Performance & Optimization
+
+### 21. How do you implement advanced performance optimization?
+**Answer**: Use comprehensive performance tuning strategies including caching, indexing, and query optimization.
+
+```python
+# Advanced performance monitoring
+def monitor_tableau_performance():
+    """Comprehensive performance monitoring system."""
+    
+    import psutil
+    import time
+    
+    performance_metrics = {
+        'server_metrics': {
+            'cpu_usage': psutil.cpu_percent(interval=1),
+            'memory_usage': psutil.virtual_memory().percent,
+            'disk_io': psutil.disk_io_counters(),
+            'network_io': psutil.net_io_counters()
+        },
+        'tableau_metrics': {
+            'active_sessions': 'SELECT COUNT(*) FROM sessions WHERE active = true',
+            'query_performance': 'SELECT AVG(duration) FROM query_log WHERE timestamp >= NOW() - INTERVAL 1 HOUR',
+            'extract_refresh_status': 'SELECT status, COUNT(*) FROM extract_refreshes GROUP BY status'
+        },
+        'thresholds': {
+            'cpu_warning': 80,
+            'memory_warning': 85,
+            'query_duration_warning': 30,
+            'concurrent_users_max': 500
+        }
+    }
+    
+    return performance_metrics
+
+# Query optimization strategies
+def optimize_tableau_queries():
+    """Advanced query optimization techniques."""
+    
+    optimization_strategies = {
+        'data_source_optimization': [
+            'Use custom SQL with proper indexing',
+            'Implement incremental extracts',
+            'Create aggregated tables for common queries',
+            'Use context filters to reduce data volume'
+        ],
+        'calculation_optimization': [
+            'Replace complex nested IFs with CASE statements',
+            'Use FIXED LOD expressions instead of table calculations',
+            'Minimize use of ATTR() function',
+            'Optimize date calculations using built-in functions'
+        ],
+        'visualization_optimization': [
+            'Limit number of marks per view (< 10,000)',
+            'Use filters to reduce data density',
+            'Implement progressive disclosure',
+            'Optimize tooltip queries'
+        ]
+    }
+    
+    return optimization_strategies
+```
+
+---
+
+## Data Governance & Security
+
+### 22. How do you implement comprehensive data governance?
+**Answer**: Establish enterprise data governance with certification, lineage tracking, and access controls.
+
+```python
+# Data governance framework
+def implement_data_governance():
+    """Comprehensive data governance implementation."""
+    
+    governance_framework = {
+        'data_certification': {
+            'certification_levels': ['Bronze', 'Silver', 'Gold'],
+            'criteria': {
+                'Bronze': ['Basic documentation', 'Contact information'],
+                'Silver': ['Data quality checks', 'Refresh schedule', 'Business glossary'],
+                'Gold': ['Full lineage', 'SLA compliance', 'Automated testing']
+            },
+            'review_cycle': 'quarterly'
+        },
+        'access_control': {
+            'role_based_permissions': {
+                'data_steward': ['certify', 'manage_permissions', 'view_usage'],
+                'business_analyst': ['view', 'download', 'create_workbooks'],
+                'executive': ['view_certified_only'],
+                'guest': ['view_public_only']
+            },
+            'row_level_security': {
+                'implementation': 'user_filter',
+                'security_field': 'user_region',
+                'mapping_table': 'user_region_mapping'
+            }
+        },
+        'data_lineage': {
+            'tracking_levels': ['data_source', 'workbook', 'dashboard', 'field'],
+            'impact_analysis': True,
+            'automated_documentation': True
+        }
+    }
+    
+    return governance_framework
+
+# Security implementation
+def implement_tableau_security():
+    """Advanced security configuration."""
+    
+    security_config = {
+        'authentication': {
+            'saml_sso': True,
+            'multi_factor_auth': True,
+            'session_timeout': 480,  # minutes
+            'password_policy': {
+                'min_length': 12,
+                'complexity_required': True,
+                'expiration_days': 90
+            }
+        },
+        'authorization': {
+            'project_permissions': 'inherited',
+            'content_permissions': 'explicit',
+            'default_permissions': 'none'
+        },
+        'data_security': {
+            'ssl_encryption': True,
+            'data_at_rest_encryption': True,
+            'extract_encryption': True,
+            'audit_logging': True
+        }
+    }
+    
+    return security_config
+```
+
+---
+
+## Integration & APIs
+
+### 23. How do you implement advanced Tableau integrations?
+**Answer**: Use Tableau's REST API, JavaScript API, and embedding capabilities for seamless integration.
+
+```python
+# Advanced Tableau REST API integration
+import tableauserverclient as TSC
+import requests
+import json
+
+def advanced_tableau_integration():
+    """Advanced integration patterns with Tableau Server."""
+    
+    server = TSC.Server('https://tableau.company.com')
+    
+    # Advanced authentication
+    tableau_auth = TSC.PersonalAccessTokenAuth(
+        token_name='api_integration',
+        personal_access_token='your_token',
+        site_id='production'
+    )
+    
+    with server.auth.sign_in(tableau_auth):
+        
+        # Automated workbook deployment
+        def deploy_workbook_pipeline():
+            """Automated workbook deployment pipeline."""
+            
+            # Get project
+            projects = server.projects.get()
+            target_project = next(p for p in projects if p.name == 'Production')
+            
+            # Publish workbook with options
+            publish_options = TSC.PublishMode.Overwrite
+            connection_credentials = TSC.ConnectionCredentials(
+                name='production_db',
+                password='secure_password',
+                embed=True
+            )
+            
+            workbook = server.workbooks.publish(
+                workbook_item=TSC.WorkbookItem(target_project.id),
+                file_path='dashboard.twbx',
+                mode=publish_options,
+                connection_credentials=connection_credentials
+            )
+            
+            return workbook
+        
+        # Automated data source refresh
+        def schedule_extract_refreshes():
+            """Schedule and monitor extract refreshes."""
+            
+            schedules = server.schedules.get()
+            daily_schedule = next(s for s in schedules if s.name == 'Daily Refresh')
+            
+            # Get data sources
+            datasources = server.datasources.get()
+            
+            for ds in datasources:
+                if ds.name.startswith('Production_'):
+                    # Add to refresh schedule
+                    server.schedules.add_to_schedule(
+                        schedule_id=daily_schedule.id,
+                        task=TSC.TaskItem(
+                            task_type='ExtractRefresh',
+                            target=ds
+                        )
+                    )
+        
+        # Usage analytics
+        def analyze_usage_patterns():
+            """Analyze Tableau usage patterns."""
+            
+            # Custom SQL for usage analysis
+            usage_query = """
+            SELECT 
+                w.name as workbook_name,
+                COUNT(DISTINCT s.session_id) as unique_sessions,
+                COUNT(v.view_id) as total_views,
+                AVG(v.duration) as avg_view_duration
+            FROM workbooks w
+            JOIN views v ON w.workbook_id = v.workbook_id
+            JOIN sessions s ON v.session_id = s.session_id
+            WHERE v.created_at >= CURRENT_DATE - INTERVAL '30 days'
+            GROUP BY w.workbook_id, w.name
+            ORDER BY total_views DESC
+            """
+            
+            # Execute via REST API
+            response = requests.post(
+                f'{server.server_address}/api/3.9/sites/{server.site_id}/queries',
+                headers={
+                    'X-Tableau-Auth': server.auth_token,
+                    'Content-Type': 'application/json'
+                },
+                json={'query': usage_query}
+            )
+            
+            return response.json()
+
+# JavaScript API integration
+def tableau_javascript_integration():
+    """Advanced JavaScript API integration."""
+    
+    js_integration_code = """
+    // Advanced Tableau JavaScript API
+    class TableauDashboardManager {
+        constructor(containerDiv, url, options = {}) {
+            this.containerDiv = containerDiv;
+            this.url = url;
+            this.viz = null;
+            this.options = {
+                hideTabs: true,
+                hideToolbar: true,
+                width: '100%',
+                height: '600px',
+                onFirstInteractive: this.onFirstInteractive.bind(this),
+                ...options
+            };
+        }
+        
+        initialize() {
+            this.viz = new tableau.Viz(this.containerDiv, this.url, this.options);
+        }
+        
+        onFirstInteractive() {
+            console.log('Dashboard loaded successfully');
+            this.setupEventListeners();
+        }
+        
+        setupEventListeners() {
+            // Filter change listener
+            this.viz.addEventListener(tableau.TableauEventName.FILTER_CHANGE, (event) => {
+                console.log('Filter changed:', event.getFilterAsync());
+                this.updateExternalComponents(event);
+            });
+            
+            // Selection change listener
+            this.viz.addEventListener(tableau.TableauEventName.MARKS_SELECTION, (event) => {
+                event.getMarksAsync().then((marks) => {
+                    this.handleSelectionChange(marks);
+                });
+            });
+        }
+        
+        async applyFilter(fieldName, values) {
+            const workbook = this.viz.getWorkbook();
+            const activeSheet = workbook.getActiveSheet();
+            
+            if (activeSheet.getSheetType() === 'worksheet') {
+                await activeSheet.applyFilterAsync(fieldName, values, 
+                    tableau.FilterUpdateType.REPLACE);
+            } else {
+                // Handle dashboard with multiple worksheets
+                const worksheets = activeSheet.getWorksheets();
+                for (let worksheet of worksheets) {
+                    try {
+                        await worksheet.applyFilterAsync(fieldName, values, 
+                            tableau.FilterUpdateType.REPLACE);
+                    } catch (error) {
+                        console.log(`Filter not applicable to ${worksheet.getName()}`);
+                    }
+                }
+            }
+        }
+        
+        async exportData(format = 'csv') {
+            const workbook = this.viz.getWorkbook();
+            const activeSheet = workbook.getActiveSheet();
+            
+            if (activeSheet.getSheetType() === 'worksheet') {
+                const data = await activeSheet.getSummaryDataAsync();
+                return this.formatExportData(data, format);
+            }
+        }
+        
+        formatExportData(data, format) {
+            const columns = data.getColumns();
+            const rows = data.getData();
+            
+            if (format === 'csv') {
+                let csv = columns.map(col => col.getFieldName()).join(',') + '\n';
+                rows.forEach(row => {
+                    csv += row.map(cell => cell.formattedValue).join(',') + '\n';
+                });
+                return csv;
+            }
+            
+            return { columns, rows };
+        }
+    }
+    
+    // Usage example
+    const dashboard = new TableauDashboardManager(
+        document.getElementById('tableau-container'),
+        'https://tableau.company.com/views/SalesDashboard/Overview',
+        {
+            device: 'desktop',
+            toolbar: 'hidden'
+        }
+    );
+    
+    dashboard.initialize();
+    """
+    
+    return js_integration_code
+```
+
+---
+
+## Troubleshooting & Best Practices
+
+### 24. How do you implement comprehensive monitoring and alerting?
+**Answer**: Create automated monitoring systems with proactive alerting and performance tracking.
+
+```python
+# Comprehensive monitoring system
+def create_monitoring_system():
+    """Advanced Tableau monitoring and alerting system."""
+    
+    import smtplib
+    from email.mime.text import MIMEText
+    import logging
+    
+    class TableauMonitor:
+        def __init__(self, server_url, auth_token):
+            self.server_url = server_url
+            self.auth_token = auth_token
+            self.logger = logging.getLogger('tableau_monitor')
+            
+        def check_server_health(self):
+            """Comprehensive server health check."""
+            
+            health_checks = {
+                'server_status': self.check_server_status(),
+                'database_connectivity': self.check_database_connectivity(),
+                'extract_refresh_status': self.check_extract_refreshes(),
+                'disk_space': self.check_disk_space(),
+                'memory_usage': self.check_memory_usage(),
+                'active_sessions': self.check_active_sessions()
+            }
+            
+            # Evaluate health status
+            critical_issues = []
+            warnings = []
+            
+            for check, result in health_checks.items():
+                if result['status'] == 'critical':
+                    critical_issues.append(f"{check}: {result['message']}")
+                elif result['status'] == 'warning':
+                    warnings.append(f"{check}: {result['message']}")
+            
+            # Send alerts if needed
+            if critical_issues:
+                self.send_alert('CRITICAL', critical_issues)
+            elif warnings:
+                self.send_alert('WARNING', warnings)
+            
+            return health_checks
+        
+        def check_extract_refreshes(self):
+            """Monitor extract refresh status."""
+            
+            failed_refreshes = self.query_tableau_db("""
+                SELECT 
+                    ds.name,
+                    er.started_at,
+                    er.completed_at,
+                    er.notes
+                FROM extract_refreshes er
+                JOIN datasources ds ON er.datasource_id = ds.id
+                WHERE er.started_at >= NOW() - INTERVAL '24 hours'
+                  AND er.success = false
+            """)
+            
+            if len(failed_refreshes) > 0:
+                return {
+                    'status': 'critical',
+                    'message': f'{len(failed_refreshes)} extract refreshes failed',
+                    'details': failed_refreshes
+                }
+            
+            return {'status': 'ok', 'message': 'All extracts refreshed successfully'}
+        
+        def send_alert(self, severity, issues):
+            """Send alert notifications."""
+            
+            subject = f'Tableau {severity} Alert - {len(issues)} issues detected'
+            body = '\n'.join(issues)
+            
+            # Email alert
+            msg = MIMEText(body)
+            msg['Subject'] = subject
+            msg['From'] = 'tableau-monitor@company.com'
+            msg['To'] = 'data-team@company.com'
+            
+            with smtplib.SMTP('smtp.company.com') as server:
+                server.send_message(msg)
+            
+            # Log alert
+            self.logger.error(f'{severity}: {body}')
+    
+    return TableauMonitor
+
+# Best practices implementation
+def tableau_best_practices():
+    """Comprehensive best practices guide."""
+    
+    best_practices = {
+        'development': {
+            'version_control': [
+                'Use Git for workbook version control',
+                'Implement branching strategy (dev/test/prod)',
+                'Tag releases with semantic versioning',
+                'Document changes in commit messages'
+            ],
+            'testing': [
+                'Automated data quality tests',
+                'Visual regression testing',
+                'Performance benchmarking',
+                'User acceptance testing'
+            ]
+        },
+        'deployment': {
+            'ci_cd_pipeline': [
+                'Automated deployment scripts',
+                'Environment-specific configurations',
+                'Rollback procedures',
+                'Deployment validation checks'
+            ],
+            'change_management': [
+                'Change approval process',
+                'Impact assessment',
+                'Communication plan',
+                'Rollback strategy'
+            ]
+        },
+        'operations': {
+            'monitoring': [
+                'Real-time performance monitoring',
+                'Usage analytics tracking',
+                'Error rate monitoring',
+                'Capacity planning'
+            ],
+            'maintenance': [
+                'Regular backup procedures',
+                'Extract optimization',
+                'Index maintenance',
+                'Log rotation'
+            ]
+        }
+    }
+    
+    return best_practices
+```
+
+---
+
+This comprehensive Tableau guide covers fundamental concepts through advanced enterprise architecture, performance optimization, security implementation, and operational best practices essential for data engineering professionals.

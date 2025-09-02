@@ -4946,3 +4946,1020 @@ SELECT
     COUNT(*) as pending_changes
 FROM processed_events_stream;
 ```
+---
+
+## Data Sharing & Marketplace Questions
+
+### 76. How does Snowflake Data Sharing work?
+**Answer**: Secure, live data sharing without copying or moving data.
+
+```sql
+-- Create a share (Provider side)
+CREATE SHARE customer_analytics_share
+    COMMENT = 'Customer analytics data for partners';
+
+-- Grant database access to share
+GRANT USAGE ON DATABASE analytics_db TO SHARE customer_analytics_share;
+GRANT USAGE ON SCHEMA analytics_db.public TO SHARE customer_analytics_share;
+
+-- Grant table access
+GRANT SELECT ON TABLE analytics_db.public.customer_summary TO SHARE customer_analytics_share;
+GRANT SELECT ON TABLE analytics_db.public.product_performance TO SHARE customer_analytics_share;
+
+-- Create secure view for sharing
+CREATE SECURE VIEW analytics_db.public.shared_customer_metrics AS
+SELECT 
+    customer_segment,
+    region,
+    COUNT(*) as customer_count,
+    AVG(total_spent) as avg_spending,
+    SUM(total_orders) as total_orders
+FROM analytics_db.public.customer_summary
+WHERE data_classification = 'shareable'
+GROUP BY customer_segment, region;
+
+GRANT SELECT ON VIEW analytics_db.public.shared_customer_metrics TO SHARE customer_analytics_share;
+
+-- Add consumer accounts
+ALTER SHARE customer_analytics_share 
+ADD ACCOUNTS = ('PARTNER1.ACCOUNT', 'PARTNER2.ACCOUNT');
+
+-- Consumer side: Create database from share
+CREATE DATABASE shared_analytics 
+FROM SHARE provider_account.customer_analytics_share;
+
+-- Query shared data
+SELECT * FROM shared_analytics.public.shared_customer_metrics;
+
+-- Monitor share usage
+SELECT 
+    share_name,
+    consumer_account,
+    database_name,
+    query_count,
+    credits_used
+FROM snowflake.account_usage.data_transfer_history
+WHERE share_name = 'CUSTOMER_ANALYTICS_SHARE'
+ORDER BY query_count DESC;
+```
+
+### 77. How do you implement secure data sharing with row-level security?
+**Answer**: Use secure views with access policies for granular data sharing.
+
+```sql
+-- Create secure view with row-level filtering
+CREATE SECURE VIEW partner_sales_data AS
+SELECT 
+    sale_id,
+    product_id,
+    sale_date,
+    amount,
+    region
+FROM sales_fact
+WHERE region IN (
+    SELECT allowed_region 
+    FROM partner_access_control 
+    WHERE partner_account = CURRENT_ACCOUNT()
+);
+
+-- Partner access control table
+CREATE TABLE partner_access_control (
+    partner_account STRING,
+    allowed_region STRING,
+    access_level STRING,
+    valid_from DATE,
+    valid_to DATE
+);
+
+INSERT INTO partner_access_control VALUES
+    ('PARTNER1.ACCOUNT', 'NORTH_AMERICA', 'READ', '2024-01-01', '2024-12-31'),
+    ('PARTNER2.ACCOUNT', 'EUROPE', 'READ', '2024-01-01', '2024-12-31');
+
+-- Dynamic data masking in shared views
+CREATE SECURE VIEW partner_customer_data AS
+SELECT 
+    customer_id,
+    CASE 
+        WHEN CURRENT_ACCOUNT() = 'PARTNER1.ACCOUNT' THEN customer_name
+        ELSE 'MASKED'
+    END as customer_name,
+    region,
+    total_orders,
+    CASE 
+        WHEN CURRENT_ACCOUNT() IN ('PARTNER1.ACCOUNT', 'PARTNER2.ACCOUNT') THEN total_spent
+        ELSE NULL
+    END as total_spent
+FROM customer_summary
+WHERE region IN (
+    SELECT allowed_region 
+    FROM partner_access_control 
+    WHERE partner_account = CURRENT_ACCOUNT()
+      AND CURRENT_DATE() BETWEEN valid_from AND valid_to
+);
+
+-- Time-based access control
+CREATE SECURE VIEW time_limited_share AS
+SELECT 
+    product_id,
+    product_name,
+    category,
+    price
+FROM products
+WHERE CURRENT_DATE() BETWEEN '2024-01-01' AND '2024-12-31'  -- Share valid for 2024 only
+  AND category != 'CONFIDENTIAL';
+```
+
+### 78. How do you monetize data through Snowflake Marketplace?
+**Answer**: Create data products and list them on Snowflake Marketplace.
+
+```sql
+-- Prepare data product for marketplace
+-- 1. Create clean, well-documented datasets
+CREATE DATABASE marketplace_product
+    COMMENT = 'E-commerce Analytics Dataset - Consumer Behavior Insights';
+
+CREATE SCHEMA marketplace_product.consumer_insights
+    COMMENT = 'Consumer behavior and purchasing patterns';
+
+-- 2. Create marketplace-ready views
+CREATE VIEW marketplace_product.consumer_insights.purchase_patterns AS
+SELECT 
+    DATE_TRUNC('month', purchase_date) as month,
+    customer_segment,
+    product_category,
+    COUNT(*) as transaction_count,
+    SUM(amount) as total_revenue,
+    AVG(amount) as avg_transaction_value,
+    COUNT(DISTINCT customer_id) as unique_customers
+FROM cleaned_transactions
+WHERE purchase_date >= DATEADD('year', -2, CURRENT_DATE())
+GROUP BY DATE_TRUNC('month', purchase_date), customer_segment, product_category;
+
+CREATE VIEW marketplace_product.consumer_insights.seasonal_trends AS
+SELECT 
+    EXTRACT(MONTH FROM purchase_date) as month,
+    EXTRACT(QUARTER FROM purchase_date) as quarter,
+    product_category,
+    AVG(amount) as avg_spend,
+    STDDEV(amount) as spend_volatility,
+    COUNT(*) as transaction_volume
+FROM cleaned_transactions
+GROUP BY EXTRACT(MONTH FROM purchase_date), EXTRACT(QUARTER FROM purchase_date), product_category;
+
+-- 3. Create sample data for preview
+CREATE VIEW marketplace_product.consumer_insights.sample_data AS
+SELECT * FROM marketplace_product.consumer_insights.purchase_patterns
+WHERE month >= DATEADD('month', -3, CURRENT_DATE())
+LIMIT 1000;
+
+-- 4. Add metadata and documentation
+COMMENT ON VIEW marketplace_product.consumer_insights.purchase_patterns IS 
+'Monthly aggregated purchase patterns by customer segment and product category. 
+Updated daily. Covers 24 months of transaction history.';
+
+-- 5. Create share for marketplace
+CREATE SHARE ecommerce_analytics_product;
+GRANT USAGE ON DATABASE marketplace_product TO SHARE ecommerce_analytics_product;
+GRANT USAGE ON SCHEMA marketplace_product.consumer_insights TO SHARE ecommerce_analytics_product;
+GRANT SELECT ON ALL VIEWS IN SCHEMA marketplace_product.consumer_insights TO SHARE ecommerce_analytics_product;
+
+-- 6. Usage tracking for billing
+CREATE TABLE data_product_usage (
+    consumer_account STRING,
+    query_timestamp TIMESTAMP_NTZ,
+    query_id STRING,
+    bytes_scanned NUMBER,
+    rows_returned NUMBER,
+    compute_credits NUMBER
+);
+
+-- Usage monitoring procedure
+CREATE OR REPLACE PROCEDURE track_data_product_usage()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+BEGIN
+    INSERT INTO data_product_usage
+    SELECT 
+        user_name as consumer_account,
+        start_time,
+        query_id,
+        bytes_scanned,
+        rows_produced,
+        credits_used_cloud_services
+    FROM snowflake.account_usage.query_history
+    WHERE database_name = 'MARKETPLACE_PRODUCT'
+      AND start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP());
+    
+    RETURN 'Usage tracking updated';
+END;
+$$;
+```
+
+### 79. How do you manage data sharing governance and compliance?
+**Answer**: Implement access controls, audit trails, and compliance monitoring.
+
+```sql
+-- Data sharing governance framework
+CREATE TABLE data_sharing_policies (
+    policy_id NUMBER AUTOINCREMENT,
+    share_name STRING,
+    data_classification STRING,
+    allowed_regions ARRAY,
+    retention_period NUMBER,
+    compliance_requirements ARRAY,
+    approval_required BOOLEAN,
+    created_by STRING,
+    created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Share approval workflow
+CREATE TABLE share_requests (
+    request_id NUMBER AUTOINCREMENT,
+    share_name STRING,
+    consumer_account STRING,
+    business_justification STRING,
+    requested_by STRING,
+    approved_by STRING,
+    approval_status STRING,
+    request_date TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+    approval_date TIMESTAMP_NTZ
+);
+
+-- Compliance monitoring
+CREATE OR REPLACE PROCEDURE monitor_share_compliance()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    violation_count NUMBER := 0;
+BEGIN
+    -- Check for unauthorized data access
+    INSERT INTO compliance_violations
+    SELECT 
+        'UNAUTHORIZED_ACCESS' as violation_type,
+        qh.user_name,
+        qh.database_name,
+        qh.query_text,
+        qh.start_time
+    FROM snowflake.account_usage.query_history qh
+    LEFT JOIN share_requests sr ON sr.consumer_account = qh.user_name
+    WHERE qh.database_name LIKE '%SHARED%'
+      AND qh.start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+      AND (sr.approval_status != 'APPROVED' OR sr.approval_status IS NULL);
+    
+    GET DIAGNOSTICS violation_count = ROW_COUNT;
+    
+    -- Check for data export violations
+    INSERT INTO compliance_violations
+    SELECT 
+        'POTENTIAL_DATA_EXPORT' as violation_type,
+        user_name,
+        database_name,
+        query_text,
+        start_time
+    FROM snowflake.account_usage.query_history
+    WHERE query_text ILIKE '%COPY INTO%@%'
+      AND database_name LIKE '%SHARED%'
+      AND start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP());
+    
+    RETURN 'Compliance check completed. Found ' || violation_count || ' violations.';
+END;
+$$;
+
+-- Data lineage for shared data
+CREATE VIEW shared_data_lineage AS
+SELECT 
+    share_name,
+    database_name,
+    schema_name,
+    table_name,
+    consumer_account,
+    access_timestamp,
+    query_id,
+    bytes_accessed
+FROM snowflake.account_usage.access_history ah
+JOIN snowflake.information_schema.shares s ON ah.database_name = s.database_name
+WHERE ah.start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP());
+
+-- Automated compliance reporting
+CREATE TASK compliance_monitor
+    WAREHOUSE = 'governance_wh'
+    SCHEDULE = 'USING CRON 0 */4 * * * UTC'  -- Every 4 hours
+AS
+    CALL monitor_share_compliance();
+```
+
+### 80. How do you implement cross-cloud data sharing?
+**Answer**: Share data across different cloud providers using Snowflake's multi-cloud architecture.
+
+```sql
+-- Cross-cloud sharing setup
+-- Provider on AWS, Consumer on Azure
+
+-- 1. Create share on AWS account
+CREATE SHARE cross_cloud_analytics_share
+    COMMENT = 'Cross-cloud analytics data sharing';
+
+-- Grant access to data
+GRANT USAGE ON DATABASE analytics_db TO SHARE cross_cloud_analytics_share;
+GRANT USAGE ON SCHEMA analytics_db.public TO SHARE cross_cloud_analytics_share;
+GRANT SELECT ON TABLE analytics_db.public.global_sales TO SHARE cross_cloud_analytics_share;
+
+-- 2. Add Azure consumer account
+ALTER SHARE cross_cloud_analytics_share 
+ADD ACCOUNTS = ('AZURE_CONSUMER.ACCOUNT');
+
+-- 3. Consumer creates database from share (on Azure)
+CREATE DATABASE aws_shared_data 
+FROM SHARE aws_provider.cross_cloud_analytics_share;
+
+-- 4. Monitor cross-cloud data transfer costs
+SELECT 
+    share_name,
+    source_cloud,
+    target_cloud,
+    bytes_transferred,
+    transfer_cost,
+    transfer_date
+FROM snowflake.account_usage.data_transfer_history
+WHERE share_name = 'CROSS_CLOUD_ANALYTICS_SHARE'
+ORDER BY transfer_date DESC;
+
+-- Cross-region replication for performance
+-- Replicate database to target region
+ALTER DATABASE analytics_db ENABLE REPLICATION TO ACCOUNTS ('TARGET.REGION.ACCOUNT');
+
+-- Create share from replicated database
+CREATE SHARE regional_analytics_share;
+GRANT USAGE ON DATABASE analytics_db_replica TO SHARE regional_analytics_share;
+
+-- Performance optimization for cross-cloud access
+-- Create materialized views for frequently accessed data
+CREATE MATERIALIZED VIEW analytics_db.public.optimized_sales_summary AS
+SELECT 
+    DATE_TRUNC('month', sale_date) as month,
+    region,
+    product_category,
+    SUM(amount) as total_sales,
+    COUNT(*) as transaction_count
+FROM analytics_db.public.global_sales
+GROUP BY DATE_TRUNC('month', sale_date), region, product_category;
+
+-- Share the optimized view
+GRANT SELECT ON VIEW analytics_db.public.optimized_sales_summary TO SHARE cross_cloud_analytics_share;
+```
+
+---
+
+## Monitoring & Troubleshooting Questions
+
+### 81. How do you monitor Snowflake performance and usage?
+**Answer**: Use account usage views and implement comprehensive monitoring dashboards.
+
+```sql
+-- Comprehensive performance monitoring
+-- 1. Query performance analysis
+WITH query_performance AS (
+    SELECT 
+        DATE_TRUNC('hour', start_time) as hour,
+        warehouse_name,
+        COUNT(*) as query_count,
+        AVG(total_elapsed_time/1000) as avg_duration_seconds,
+        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY total_elapsed_time/1000) as p95_duration,
+        SUM(bytes_scanned) as total_bytes_scanned,
+        COUNT_IF(total_elapsed_time > 60000) as slow_queries,
+        COUNT_IF(execution_status = 'FAIL') as failed_queries
+    FROM snowflake.account_usage.query_history
+    WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+    GROUP BY DATE_TRUNC('hour', start_time), warehouse_name
+)
+SELECT 
+    hour,
+    warehouse_name,
+    query_count,
+    avg_duration_seconds,
+    p95_duration,
+    total_bytes_scanned/1024/1024/1024 as gb_scanned,
+    slow_queries,
+    failed_queries,
+    (failed_queries::FLOAT / query_count::FLOAT) * 100 as failure_rate
+FROM query_performance
+ORDER BY hour DESC, warehouse_name;
+
+-- 2. Warehouse utilization monitoring
+SELECT 
+    warehouse_name,
+    warehouse_size,
+    DATE_TRUNC('day', start_time) as date,
+    SUM(credits_used) as daily_credits,
+    AVG(avg_running) as avg_concurrent_queries,
+    AVG(avg_queued_load) as avg_queue_time,
+    MAX(avg_running) as peak_concurrency
+FROM snowflake.account_usage.warehouse_load_history
+WHERE start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+GROUP BY warehouse_name, warehouse_size, DATE_TRUNC('day', start_time)
+ORDER BY date DESC, daily_credits DESC;
+
+-- 3. Storage growth monitoring
+SELECT 
+    database_name,
+    DATE_TRUNC('day', usage_date) as date,
+    SUM(storage_bytes)/1024/1024/1024 as storage_gb,
+    SUM(stage_bytes)/1024/1024/1024 as stage_gb,
+    SUM(failsafe_bytes)/1024/1024/1024 as failsafe_gb
+FROM snowflake.account_usage.storage_usage
+WHERE usage_date >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+GROUP BY database_name, DATE_TRUNC('day', usage_date)
+ORDER BY date DESC, storage_gb DESC;
+
+-- 4. User activity monitoring
+SELECT 
+    user_name,
+    DATE_TRUNC('day', start_time) as date,
+    COUNT(*) as query_count,
+    SUM(total_elapsed_time/1000) as total_time_seconds,
+    SUM(credits_used_cloud_services) as cloud_services_credits,
+    COUNT(DISTINCT warehouse_name) as warehouses_used
+FROM snowflake.account_usage.query_history
+WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+GROUP BY user_name, DATE_TRUNC('day', start_time)
+ORDER BY date DESC, query_count DESC;
+```
+
+### 82. How do you troubleshoot slow queries in Snowflake?
+**Answer**: Use query profiling, execution plans, and optimization techniques.
+
+```sql
+-- Identify slow queries
+SELECT 
+    query_id,
+    query_text,
+    user_name,
+    warehouse_name,
+    warehouse_size,
+    start_time,
+    total_elapsed_time/1000 as duration_seconds,
+    compilation_time/1000 as compilation_seconds,
+    execution_time/1000 as execution_seconds,
+    queued_provisioning_time/1000 as queue_provisioning_seconds,
+    queued_overload_time/1000 as queue_overload_seconds,
+    bytes_scanned,
+    rows_produced,
+    partitions_scanned,
+    partitions_total
+FROM snowflake.account_usage.query_history
+WHERE start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
+  AND total_elapsed_time > 30000  -- Queries taking more than 30 seconds
+ORDER BY total_elapsed_time DESC
+LIMIT 20;
+
+-- Analyze query execution plan
+SELECT SYSTEM$EXPLAIN_PLAN_JSON('query_id_here');
+
+-- Query profile analysis
+SELECT 
+    query_id,
+    step_id,
+    operator_type,
+    operator_statistics,
+    execution_time_breakdown,
+    operator_attributes
+FROM snowflake.account_usage.query_acceleration_history
+WHERE query_id = 'specific_query_id';
+
+-- Identify queries with poor partition pruning
+SELECT 
+    query_id,
+    query_text,
+    partitions_scanned,
+    partitions_total,
+    (partitions_scanned::FLOAT / partitions_total::FLOAT) * 100 as scan_percentage,
+    bytes_scanned/1024/1024/1024 as gb_scanned
+FROM snowflake.account_usage.query_history
+WHERE partitions_total > 100
+  AND (partitions_scanned::FLOAT / partitions_total::FLOAT) > 0.5  -- Scanning more than 50%
+  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+ORDER BY scan_percentage DESC;
+
+-- Clustering analysis for optimization
+SELECT 
+    table_name,
+    clustering_key,
+    total_partition_count,
+    total_constant_partition_count,
+    average_overlaps,
+    average_depth,
+    partition_depth_histogram
+FROM snowflake.information_schema.automatic_clustering_history
+WHERE table_name IN (
+    SELECT DISTINCT table_name 
+    FROM snowflake.account_usage.query_history 
+    WHERE total_elapsed_time > 60000
+)
+ORDER BY average_depth DESC;
+
+-- Query optimization recommendations
+CREATE OR REPLACE PROCEDURE analyze_query_performance(query_id STRING)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    duration NUMBER;
+    bytes_scanned NUMBER;
+    partitions_scanned NUMBER;
+    partitions_total NUMBER;
+    recommendations STRING := '';
+BEGIN
+    -- Get query metrics
+    SELECT 
+        total_elapsed_time/1000,
+        bytes_scanned,
+        partitions_scanned,
+        partitions_total
+    INTO duration, bytes_scanned, partitions_scanned, partitions_total
+    FROM snowflake.account_usage.query_history
+    WHERE query_id = query_id;
+    
+    -- Generate recommendations
+    IF (duration > 300) THEN
+        SET recommendations = recommendations || 'Consider using a larger warehouse; ';
+    END IF;
+    
+    IF (partitions_scanned::FLOAT / partitions_total::FLOAT > 0.5) THEN
+        SET recommendations = recommendations || 'Poor partition pruning - check clustering keys; ';
+    END IF;
+    
+    IF (bytes_scanned > 10737418240) THEN  -- 10GB
+        SET recommendations = recommendations || 'Large data scan - consider result caching or materialized views; ';
+    END IF;
+    
+    RETURN 'Query analysis complete. Recommendations: ' || recommendations;
+END;
+$$;
+```
+
+### 83. How do you implement alerting and monitoring automation?
+**Answer**: Create automated monitoring tasks with alerting mechanisms.
+
+```sql
+-- Create monitoring tables
+CREATE TABLE performance_alerts (
+    alert_id NUMBER AUTOINCREMENT,
+    alert_type STRING,
+    severity STRING,
+    message STRING,
+    metric_value NUMBER,
+    threshold_value NUMBER,
+    warehouse_name STRING,
+    user_name STRING,
+    alert_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+CREATE TABLE monitoring_thresholds (
+    metric_name STRING,
+    threshold_value NUMBER,
+    severity STRING,
+    enabled BOOLEAN DEFAULT TRUE
+);
+
+-- Insert monitoring thresholds
+INSERT INTO monitoring_thresholds VALUES
+    ('query_duration_seconds', 300, 'WARNING', TRUE),
+    ('query_duration_seconds', 600, 'CRITICAL', TRUE),
+    ('warehouse_queue_time', 60, 'WARNING', TRUE),
+    ('failed_query_rate', 5, 'WARNING', TRUE),
+    ('credit_usage_hourly', 100, 'WARNING', TRUE);
+
+-- Automated monitoring procedure
+CREATE OR REPLACE PROCEDURE monitor_performance_metrics()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    alert_count NUMBER := 0;
+BEGIN
+    -- Monitor slow queries
+    INSERT INTO performance_alerts (alert_type, severity, message, metric_value, threshold_value, warehouse_name, user_name)
+    SELECT 
+        'SLOW_QUERY',
+        CASE WHEN total_elapsed_time/1000 > 600 THEN 'CRITICAL' ELSE 'WARNING' END,
+        'Query exceeded duration threshold: ' || query_text,
+        total_elapsed_time/1000,
+        CASE WHEN total_elapsed_time/1000 > 600 THEN 600 ELSE 300 END,
+        warehouse_name,
+        user_name
+    FROM snowflake.account_usage.query_history
+    WHERE start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+      AND total_elapsed_time/1000 > 300;
+    
+    -- Monitor warehouse queue times
+    INSERT INTO performance_alerts (alert_type, severity, message, metric_value, threshold_value, warehouse_name)
+    SELECT 
+        'HIGH_QUEUE_TIME',
+        'WARNING',
+        'Warehouse experiencing high queue times',
+        avg_queued_load,
+        60,
+        warehouse_name
+    FROM snowflake.account_usage.warehouse_load_history
+    WHERE start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+      AND avg_queued_load > 60;
+    
+    -- Monitor failed queries
+    WITH failure_rates AS (
+        SELECT 
+            warehouse_name,
+            user_name,
+            COUNT(*) as total_queries,
+            COUNT_IF(execution_status = 'FAIL') as failed_queries,
+            (COUNT_IF(execution_status = 'FAIL')::FLOAT / COUNT(*)::FLOAT) * 100 as failure_rate
+        FROM snowflake.account_usage.query_history
+        WHERE start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+        GROUP BY warehouse_name, user_name
+        HAVING COUNT(*) > 10  -- Only consider users with significant activity
+    )
+    INSERT INTO performance_alerts (alert_type, severity, message, metric_value, threshold_value, warehouse_name, user_name)
+    SELECT 
+        'HIGH_FAILURE_RATE',
+        'WARNING',
+        'High query failure rate detected',
+        failure_rate,
+        5,
+        warehouse_name,
+        user_name
+    FROM failure_rates
+    WHERE failure_rate > 5;
+    
+    -- Monitor credit usage
+    INSERT INTO performance_alerts (alert_type, severity, message, metric_value, threshold_value, warehouse_name)
+    SELECT 
+        'HIGH_CREDIT_USAGE',
+        'WARNING',
+        'Warehouse credit usage exceeded threshold',
+        credits_used,
+        100,
+        warehouse_name
+    FROM snowflake.account_usage.warehouse_metering_history
+    WHERE start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+      AND credits_used > 100;
+    
+    GET DIAGNOSTICS alert_count = ROW_COUNT;
+    
+    RETURN 'Performance monitoring completed. Generated ' || alert_count || ' alerts.';
+END;
+$$;
+
+-- Automated monitoring task
+CREATE TASK performance_monitor
+    WAREHOUSE = 'monitoring_wh'
+    SCHEDULE = 'USING CRON 0 */1 * * * UTC'  -- Every hour
+AS
+    CALL monitor_performance_metrics();
+
+-- Alert notification procedure (integrate with external systems)
+CREATE OR REPLACE PROCEDURE send_alert_notifications()
+RETURNS STRING
+LANGUAGE JAVASCRIPT
+AS
+$$
+    var alert_query = `
+        SELECT alert_type, severity, message, warehouse_name, user_name, alert_timestamp
+        FROM performance_alerts
+        WHERE alert_timestamp >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+        ORDER BY severity DESC, alert_timestamp DESC
+    `;
+    
+    var stmt = snowflake.createStatement({sqlText: alert_query});
+    var result = stmt.execute();
+    
+    var alerts = [];
+    while (result.next()) {
+        alerts.push({
+            type: result.getColumnValue(1),
+            severity: result.getColumnValue(2),
+            message: result.getColumnValue(3),
+            warehouse: result.getColumnValue(4),
+            user: result.getColumnValue(5),
+            timestamp: result.getColumnValue(6)
+        });
+    }
+    
+    if (alerts.length > 0) {
+        // Integration point for external alerting systems
+        // (Slack, email, PagerDuty, etc.)
+        var notification_message = "Snowflake Performance Alerts:\n";
+        for (var i = 0; i < alerts.length; i++) {
+            notification_message += `${alerts[i].severity}: ${alerts[i].message}\n`;
+        }
+        
+        return `${alerts.length} alerts processed: ${notification_message}`;
+    }
+    
+    return "No alerts to send";
+$$;
+
+ALTER TASK performance_monitor RESUME;
+```
+
+### 84. How do you troubleshoot data loading issues?
+**Answer**: Use copy history, error analysis, and systematic debugging approaches.
+
+```sql
+-- Analyze data loading history
+SELECT 
+    table_name,
+    file_name,
+    status,
+    rows_parsed,
+    rows_loaded,
+    error_count,
+    first_error_message,
+    first_error_line_number,
+    first_error_character_position,
+    first_error_column_name,
+    last_load_time
+FROM snowflake.information_schema.copy_history
+WHERE table_name = 'problematic_table'
+ORDER BY last_load_time DESC
+LIMIT 20;
+
+-- Detailed error analysis
+SELECT 
+    file_name,
+    line_number,
+    character_position,
+    column_name,
+    error_message,
+    rejected_record
+FROM TABLE(VALIDATE(
+    'target_table',
+    JOB_ID => 'copy_job_id_here'
+));
+
+-- File format validation
+COPY INTO target_table
+FROM @problem_stage/problem_file.csv
+FILE_FORMAT = (TYPE = 'CSV' FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+VALIDATION_MODE = 'RETURN_ERRORS';
+
+-- Systematic troubleshooting procedure
+CREATE OR REPLACE PROCEDURE troubleshoot_data_loading(
+    table_name STRING,
+    stage_name STRING,
+    file_pattern STRING
+)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    file_count NUMBER;
+    sample_file STRING;
+    error_summary STRING := '';
+    validation_result RESULTSET;
+BEGIN
+    -- Step 1: Check stage contents
+    EXECUTE IMMEDIATE 'LIST @' || stage_name || '/' || file_pattern INTO file_count;
+    
+    IF (file_count = 0) THEN
+        RETURN 'ERROR: No files found matching pattern ' || file_pattern;
+    END IF;
+    
+    -- Step 2: Validate file format
+    validation_result := (
+        EXECUTE IMMEDIATE 
+        'COPY INTO ' || table_name || 
+        ' FROM @' || stage_name || '/' || file_pattern ||
+        ' VALIDATION_MODE = ''RETURN_ERRORS'' LIMIT 100'
+    );
+    
+    -- Step 3: Analyze errors
+    LET error_cursor CURSOR FOR validation_result;
+    FOR error_record IN error_cursor DO
+        SET error_summary = error_summary || 
+            'File: ' || error_record.FILE || 
+            ', Line: ' || error_record.LINE || 
+            ', Error: ' || error_record.ERROR || '; ';
+    END FOR;
+    
+    -- Step 4: Provide recommendations
+    IF (error_summary LIKE '%delimiter%') THEN
+        SET error_summary = error_summary || 'RECOMMENDATION: Check field delimiter; ';
+    END IF;
+    
+    IF (error_summary LIKE '%date%') THEN
+        SET error_summary = error_summary || 'RECOMMENDATION: Check date format; ';
+    END IF;
+    
+    IF (error_summary LIKE '%column%') THEN
+        SET error_summary = error_summary || 'RECOMMENDATION: Check column count and order; ';
+    END IF;
+    
+    RETURN 'Validation completed. Issues found: ' || error_summary;
+END;
+$$;
+
+-- Data quality validation during loading
+CREATE OR REPLACE PROCEDURE load_with_validation(
+    source_stage STRING,
+    target_table STRING,
+    temp_table STRING
+)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    load_count NUMBER;
+    validation_errors NUMBER := 0;
+    error_details STRING;
+BEGIN
+    -- Step 1: Load into temporary table
+    EXECUTE IMMEDIATE 'CREATE OR REPLACE TABLE ' || temp_table || ' LIKE ' || target_table;
+    
+    EXECUTE IMMEDIATE 
+        'COPY INTO ' || temp_table || 
+        ' FROM @' || source_stage || 
+        ' ON_ERROR = ''CONTINUE''';
+    
+    GET DIAGNOSTICS load_count = ROW_COUNT;
+    
+    -- Step 2: Data quality checks
+    -- Check for nulls in required fields
+    EXECUTE IMMEDIATE 
+        'SELECT COUNT(*) FROM ' || temp_table || ' WHERE id IS NULL'
+    INTO validation_errors;
+    
+    IF (validation_errors > 0) THEN
+        SET error_details = error_details || validation_errors || ' records with null IDs; ';
+    END IF;
+    
+    -- Check for duplicates
+    EXECUTE IMMEDIATE 
+        'SELECT COUNT(*) - COUNT(DISTINCT id) FROM ' || temp_table
+    INTO validation_errors;
+    
+    IF (validation_errors > 0) THEN
+        SET error_details = error_details || validation_errors || ' duplicate records; ';
+    END IF;
+    
+    -- Step 3: Load clean data if validation passes
+    IF (error_details = '') THEN
+        EXECUTE IMMEDIATE 'INSERT INTO ' || target_table || ' SELECT * FROM ' || temp_table;
+        EXECUTE IMMEDIATE 'DROP TABLE ' || temp_table;
+        RETURN 'SUCCESS: Loaded ' || load_count || ' records';
+    ELSE
+        RETURN 'VALIDATION_FAILED: ' || error_details || 'Data retained in ' || temp_table;
+    END IF;
+END;
+$$;
+```
+
+### 85. How do you monitor and optimize Snowflake costs?
+**Answer**: Implement comprehensive cost monitoring and optimization strategies.
+
+```sql
+-- Cost monitoring dashboard
+WITH daily_costs AS (
+    SELECT 
+        DATE_TRUNC('day', start_time) as date,
+        warehouse_name,
+        SUM(credits_used) as daily_credits,
+        SUM(credits_used) * 2.5 as estimated_daily_cost  -- Assuming $2.5 per credit
+    FROM snowflake.account_usage.warehouse_metering_history
+    WHERE start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+    GROUP BY DATE_TRUNC('day', start_time), warehouse_name
+),
+storage_costs AS (
+    SELECT 
+        DATE_TRUNC('day', usage_date) as date,
+        database_name,
+        SUM(storage_bytes + stage_bytes + failsafe_bytes)/1024/1024/1024 as total_gb,
+        (SUM(storage_bytes + stage_bytes + failsafe_bytes)/1024/1024/1024) * 0.023 as storage_cost
+    FROM snowflake.account_usage.storage_usage
+    WHERE usage_date >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+    GROUP BY DATE_TRUNC('day', usage_date), database_name
+)
+SELECT 
+    c.date,
+    COALESCE(SUM(c.estimated_daily_cost), 0) as compute_cost,
+    COALESCE(SUM(s.storage_cost), 0) as storage_cost,
+    COALESCE(SUM(c.estimated_daily_cost), 0) + COALESCE(SUM(s.storage_cost), 0) as total_daily_cost
+FROM daily_costs c
+FULL OUTER JOIN storage_costs s ON c.date = s.date
+GROUP BY c.date
+ORDER BY c.date DESC;
+
+-- Cost anomaly detection
+CREATE OR REPLACE PROCEDURE detect_cost_anomalies()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    anomaly_count NUMBER := 0;
+    avg_daily_cost NUMBER;
+    current_cost NUMBER;
+    threshold_multiplier NUMBER := 2.0;  -- Alert if cost is 2x average
+BEGIN
+    -- Calculate average daily cost for last 30 days
+    SELECT AVG(daily_credits * 2.5) INTO avg_daily_cost
+    FROM (
+        SELECT 
+            DATE_TRUNC('day', start_time) as date,
+            SUM(credits_used) as daily_credits
+        FROM snowflake.account_usage.warehouse_metering_history
+        WHERE start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+          AND start_time < DATEADD('day', -1, CURRENT_TIMESTAMP())  -- Exclude today
+        GROUP BY DATE_TRUNC('day', start_time)
+    );
+    
+    -- Check today's cost
+    SELECT SUM(credits_used) * 2.5 INTO current_cost
+    FROM snowflake.account_usage.warehouse_metering_history
+    WHERE DATE_TRUNC('day', start_time) = CURRENT_DATE();
+    
+    -- Generate alert if anomaly detected
+    IF (current_cost > avg_daily_cost * threshold_multiplier) THEN
+        INSERT INTO cost_alerts VALUES (
+            CURRENT_TIMESTAMP(),
+            'COST_ANOMALY',
+            'Daily cost (' || current_cost || ') exceeds threshold (' || (avg_daily_cost * threshold_multiplier) || ')',
+            current_cost,
+            avg_daily_cost * threshold_multiplier
+        );
+        SET anomaly_count = 1;
+    END IF;
+    
+    RETURN 'Cost anomaly detection completed. Found ' || anomaly_count || ' anomalies.';
+END;
+$$;
+
+-- Warehouse optimization recommendations
+WITH warehouse_analysis AS (
+    SELECT 
+        warehouse_name,
+        warehouse_size,
+        AVG(avg_running) as avg_concurrency,
+        AVG(avg_queued_load) as avg_queue_time,
+        SUM(credits_used) as total_credits,
+        COUNT(DISTINCT DATE_TRUNC('day', start_time)) as active_days
+    FROM snowflake.account_usage.warehouse_load_history
+    WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+    GROUP BY warehouse_name, warehouse_size
+)
+SELECT 
+    warehouse_name,
+    warehouse_size,
+    avg_concurrency,
+    avg_queue_time,
+    total_credits,
+    total_credits / active_days as avg_daily_credits,
+    CASE 
+        WHEN avg_queue_time > 30 AND warehouse_size IN ('X-SMALL', 'SMALL') THEN 'Scale up warehouse'
+        WHEN avg_concurrency < 0.5 AND warehouse_size IN ('LARGE', 'X-LARGE') THEN 'Scale down warehouse'
+        WHEN total_credits / active_days < 1 THEN 'Consider consolidating with other warehouses'
+        WHEN avg_queue_time < 5 AND avg_concurrency < 1 THEN 'Optimize auto-suspend settings'
+        ELSE 'Current sizing appears optimal'
+    END as recommendation
+FROM warehouse_analysis
+ORDER BY total_credits DESC;
+
+-- Automated cost optimization task
+CREATE TASK cost_optimizer
+    WAREHOUSE = 'monitoring_wh'
+    SCHEDULE = 'USING CRON 0 6 * * * UTC'  -- Daily at 6 AM
+AS
+    CALL optimize_warehouse_costs();
+
+CREATE OR REPLACE PROCEDURE optimize_warehouse_costs()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    optimization_count NUMBER := 0;
+BEGIN
+    -- Auto-suspend underutilized warehouses
+    FOR warehouse_record IN (
+        SELECT warehouse_name
+        FROM snowflake.account_usage.warehouse_load_history
+        WHERE start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
+        GROUP BY warehouse_name
+        HAVING AVG(avg_running) < 0.1  -- Very low utilization
+    ) DO
+        EXECUTE IMMEDIATE 'ALTER WAREHOUSE ' || warehouse_record.warehouse_name || ' SET AUTO_SUSPEND = 60';
+        SET optimization_count = optimization_count + 1;
+    END FOR;
+    
+    RETURN 'Cost optimization completed. Optimized ' || optimization_count || ' warehouses.';
+END;
+$$;
+
+ALTER TASK cost_optimizer RESUME;
+```

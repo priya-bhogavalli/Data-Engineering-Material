@@ -1,521 +1,342 @@
-# InfluxDB Interview Questions
+# 📈 InfluxDB Interview Questions for Data Engineering
 
-## Table of Contents
+## 📋 Table of Contents
 
-1. [Basic InfluxDB Questions](#basic-influxdb-questions)
-2. [Data Model & Schema](#data-model--schema)
-3. [InfluxQL & Flux Queries](#influxql--flux-queries)
-4. [Performance & Optimization](#performance--optimization)
-5. [Retention & Storage](#retention--storage)
-6. [Clustering & High Availability](#clustering--high-availability)
-7. [Integration & Monitoring](#integration--monitoring)
-8. [Scenario-Based Questions](#scenario-based-questions)
+1. [Core Concepts (1-25)](#core-concepts-1-25)
+2. [Data Modeling (26-50)](#data-modeling-26-50)
+3. [Queries & Analytics (51-75)](#queries--analytics-51-75)
+4. [Operations & Scaling (76-100)](#operations--scaling-76-100)
 
 ---
 
-## Basic InfluxDB Questions
+## Core Concepts (1-25)
 
-### 1. What is InfluxDB and what makes it suitable for time-series data?
-**Answer:**
-InfluxDB is a purpose-built time-series database optimized for handling time-stamped data.
+### 1. What is InfluxDB and why use it for time-series data?
+**Answer**: InfluxDB is a purpose-built time-series database optimized for time-stamped data.
 
 **Key Features:**
-- **Time-Optimized Storage**: Columnar storage optimized for time-series
-- **High Write Throughput**: Handles millions of writes per second
-- **Automatic Downsampling**: Built-in data aggregation and retention
-- **SQL-like Query Language**: InfluxQL and Flux for querying
-- **Built-in Functions**: Time-series specific functions and operations
+- **High Write Performance**: Millions of points per second
+- **Compression**: Efficient storage of time-series data
+- **Retention Policies**: Automatic data lifecycle management
+- **Continuous Queries**: Real-time aggregation
+- **Built-in Functions**: Time-series specific operations
 
-### 2. How does InfluxDB differ from traditional relational databases?
-**Answer:**
-- **Schema**: Schema-on-write vs. rigid schema
-- **Time Focus**: Time as first-class citizen vs. regular column
-- **Write Optimization**: Optimized for high-frequency writes
-- **Compression**: Time-series specific compression algorithms
-- **Retention**: Built-in data lifecycle management
-- **Aggregation**: Native time-based aggregation functions
+```sql
+-- Create database
+CREATE DATABASE sensors
 
-### 3. What are the main use cases for InfluxDB?
-**Answer:**
-- **IoT Monitoring**: Sensor data collection and analysis
-- **Application Performance Monitoring**: Metrics and traces
-- **Infrastructure Monitoring**: Server and network metrics
-- **Financial Data**: Stock prices, trading volumes
-- **Industrial Automation**: Manufacturing and process data
-- **Real-time Analytics**: Live dashboards and alerting
+-- Create retention policy
+CREATE RETENTION POLICY "one_week" ON "sensors" DURATION 7d REPLICATION 1 DEFAULT
 
-### 4. Explain InfluxDB's position in the TICK stack.
-**Answer:**
-**TICK Stack Components:**
-- **Telegraf**: Data collection agent
-- **InfluxDB**: Time-series database storage
-- **Chronograf**: Visualization and dashboarding
-- **Kapacitor**: Real-time streaming data processing and alerting
+-- Write data points
+INSERT cpu,host=server1,region=us-east value=80.5 1609459200000000000
+INSERT memory,host=server1,region=us-east value=65.2 1609459200000000000
+INSERT disk,host=server1,region=us-east,device=sda1 value=45.8 1609459200000000000
+```
 
-### 5. What are the different versions of InfluxDB?
-**Answer:**
-- **InfluxDB 1.x**: Original version with InfluxQL
-- **InfluxDB 2.x**: Unified platform with Flux query language
-- **InfluxDB Cloud**: Fully managed cloud service
-- **InfluxDB Enterprise**: Commercial version with clustering
+### 2. Explain InfluxDB's data model
+**Answer**: InfluxDB uses measurements, tags, fields, and timestamps.
 
-## Data Model & Schema
+```sql
+-- Data structure: measurement,tag_key=tag_value field_key=field_value timestamp
+-- measurement: table equivalent
+-- tags: indexed metadata (string only)
+-- fields: actual data values (various types)
+-- timestamp: nanosecond precision
 
-### 6. Explain InfluxDB's data model components.
-**Answer:**
-- **Measurement**: Similar to table, container for related data
-- **Tags**: Indexed metadata (key-value pairs)
-- **Fields**: Actual data values (not indexed)
-- **Timestamp**: Time when data point was recorded
-- **Series**: Unique combination of measurement, tag set, and field key
+-- Example data points
+temperature,sensor=sensor1,location=room1 value=23.5,humidity=45.2 1609459200000000000
+temperature,sensor=sensor2,location=room2 value=24.1,humidity=43.8 1609459260000000000
 
-### 7. What is the difference between tags and fields in InfluxDB?
-**Answer:**
-**Tags:**
-- Indexed for fast queries
-- String values only
-- Used for grouping and filtering
-- Limited cardinality recommended
-- Metadata about the measurement
+-- Query structure
+SELECT value, humidity 
+FROM temperature 
+WHERE sensor='sensor1' AND time > now() - 1h
+```
 
-**Fields:**
-- Not indexed by default
-- Multiple data types (float, integer, string, boolean)
-- Actual measured values
-- Can have high cardinality
-- The data you want to analyze
+### 3. How do you write data to InfluxDB?
+**Answer**: Use line protocol, HTTP API, or client libraries.
 
-### 8. How do you design an efficient InfluxDB schema?
-**Answer:**
+```python
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+
+# Initialize client
+client = InfluxDBClient(url="http://localhost:8086", token="your-token", org="your-org")
+write_api = client.write_api(write_option=SYNCHRONOUS)
+
+# Write single point
+point = Point("temperature") \
+    .tag("sensor", "sensor1") \
+    .tag("location", "room1") \
+    .field("value", 23.5) \
+    .field("humidity", 45.2) \
+    .time(datetime.utcnow())
+
+write_api.write(bucket="sensors", record=point)
+
+# Batch write
+points = []
+for i in range(1000):
+    point = Point("cpu_usage") \
+        .tag("host", f"server{i%10}") \
+        .tag("region", "us-east") \
+        .field("value", random.uniform(0, 100)) \
+        .time(datetime.utcnow() - timedelta(seconds=i))
+    points.append(point)
+
+write_api.write(bucket="metrics", record=points)
+```
+
+## Data Modeling (26-50)
+
+### 26. How do you design schemas for time-series data?
+**Answer**: Optimize for query patterns and cardinality.
+
 ```sql
 -- Good schema design
-measurement: cpu_usage
-tags: host=server1, region=us-east, environment=prod
-fields: usage_percent=75.5, cores=8
-timestamp: 2023-01-15T10:30:00Z
+-- measurement: metric type
+-- tags: dimensions for filtering/grouping (low cardinality)
+-- fields: actual measurements (high cardinality OK)
 
--- Best practices:
--- 1. Use tags for metadata (low cardinality)
--- 2. Use fields for measured values
--- 3. Keep tag cardinality low (< 100K unique combinations)
--- 4. Choose appropriate measurement names
--- 5. Use consistent naming conventions
+-- IoT sensor data
+CREATE MEASUREMENT sensor_readings
+-- Tags (indexed, low cardinality)
+sensor_id,device_type,location,building
+-- Fields (not indexed, high cardinality OK)  
+temperature,humidity,pressure,battery_level
+
+-- Application metrics
+CREATE MEASUREMENT app_metrics
+-- Tags
+service_name,environment,instance_id,method
+-- Fields
+response_time,error_count,request_count,cpu_usage
+
+-- Bad design (high cardinality tags)
+-- DON'T DO: user_id as tag (millions of unique values)
+-- DO: user_id as field, use other dimensions as tags
 ```
 
-### 9. What is series cardinality and why is it important?
-**Answer:**
-Series cardinality is the number of unique tag combinations:
-- **High Cardinality Problems**: Memory usage, slow queries, indexing overhead
-- **Calculation**: Product of unique values across all tags
-- **Best Practices**: Keep total series under 1 million per database
-- **Monitoring**: Use `SHOW SERIES CARDINALITY` to monitor
-- **Mitigation**: Redesign schema, use fields instead of tags
+### 27. How do you handle high cardinality data?
+**Answer**: Use field values instead of tags for high cardinality dimensions.
 
-### 10. How do you handle high-cardinality data in InfluxDB?
-**Answer:**
-- **Schema Redesign**: Move high-cardinality data to fields
-- **Bucketing**: Group similar values into buckets
-- **Sampling**: Reduce data resolution for high-cardinality sources
-- **Separate Measurements**: Split data across multiple measurements
-- **Time-based Partitioning**: Use time-based measurement names
-
-## InfluxQL & Flux Queries
-
-### 11. What is InfluxQL and its basic syntax?
-**Answer:**
-InfluxQL is SQL-like query language for InfluxDB 1.x:
 ```sql
--- Basic query structure
-SELECT <field_key> FROM <measurement_name> WHERE <conditions> GROUP BY <tag_key>
+-- High cardinality example: user activity tracking
+-- Instead of: user_id as tag (bad)
+user_activity,event_type=login,platform=web user_id="user123",session_duration=300
 
--- Example
-SELECT mean(usage_percent) 
-FROM cpu_usage 
-WHERE time >= now() - 1h 
-GROUP BY host, time(5m)
+-- Better approach: aggregate by time windows
+user_activity_hourly,platform=web,event_type=login 
+  unique_users=1250,total_sessions=2100,avg_duration=245
+
+-- Use continuous queries for aggregation
+CREATE CONTINUOUS QUERY "hourly_user_stats" ON "analytics"
+BEGIN
+  SELECT COUNT(DISTINCT(user_id)) AS unique_users,
+         COUNT(user_id) AS total_sessions,
+         MEAN(session_duration) AS avg_duration
+  INTO "user_activity_hourly"
+  FROM "user_activity"
+  GROUP BY time(1h), platform, event_type
+END
 ```
 
-### 12. What is Flux and how does it differ from InfluxQL?
-**Answer:**
-Flux is a functional query language for InfluxDB 2.x:
-- **Functional**: Data flows through functions
-- **More Powerful**: Advanced data processing capabilities
-- **Cross-Database**: Query multiple data sources
-- **Scripting**: Support for variables and custom functions
+## Queries & Analytics (51-75)
 
-```flux
-from(bucket: "metrics")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == "cpu_usage")
-  |> aggregateWindow(every: 5m, fn: mean)
-  |> group(columns: ["host"])
-```
+### 51. How do you write complex InfluxQL queries?
+**Answer**: Use aggregation functions, grouping, and time windows.
 
-### 13. How do you perform aggregations in InfluxDB?
-**Answer:**
-**InfluxQL:**
 ```sql
 -- Time-based aggregation
-SELECT mean(value) FROM temperature 
-WHERE time >= now() - 1d 
-GROUP BY time(1h)
+SELECT MEAN(value) AS avg_temp, MAX(value) AS max_temp
+FROM temperature
+WHERE time > now() - 24h
+GROUP BY time(1h), sensor
+FILL(linear)
 
--- Tag-based aggregation
-SELECT sum(bytes_sent) FROM network 
-WHERE time >= now() - 1h 
-GROUP BY host
+-- Moving averages
+SELECT MOVING_AVERAGE(MEAN(value), 5) AS moving_avg
+FROM cpu_usage
+WHERE time > now() - 6h
+GROUP BY time(5m), host
+
+-- Percentiles and statistical functions
+SELECT PERCENTILE(response_time, 95) AS p95,
+       PERCENTILE(response_time, 99) AS p99,
+       STDDEV(response_time) AS stddev
+FROM api_metrics
+WHERE time > now() - 1h
+GROUP BY time(5m), service
+
+-- Subqueries and transformations
+SELECT DERIVATIVE(MEAN(bytes_sent), 1s) AS bytes_per_second
+FROM network_stats
+WHERE time > now() - 30m
+GROUP BY time(10s), interface
+
+-- Complex filtering and conditions
+SELECT COUNT(value) AS error_count
+FROM application_logs
+WHERE level = 'ERROR' 
+  AND time > now() - 1h
+  AND (service = 'api' OR service = 'worker')
+GROUP BY time(5m), service, error_type
 ```
 
-**Flux:**
-```flux
-from(bucket: "sensors")
-  |> range(start: -1d)
-  |> filter(fn: (r) => r._measurement == "temperature")
-  |> aggregateWindow(every: 1h, fn: mean)
-```
+### 52. How do you implement real-time analytics?
+**Answer**: Use continuous queries and Kapacitor for stream processing.
 
-### 14. What are continuous queries and how do you use them?
-**Answer:**
-Continuous queries automatically downsample data at regular intervals:
 ```sql
--- Create continuous query
-CREATE CONTINUOUS QUERY "cq_mean_temp" ON "mydb"
+-- Continuous query for real-time aggregation
+CREATE CONTINUOUS QUERY "realtime_cpu_avg" ON "monitoring"
+RESAMPLE EVERY 10s FOR 30s
 BEGIN
-  SELECT mean(temperature) 
-  INTO "average_temp"
-  FROM "raw_temp"
-  GROUP BY time(1h), *
+  SELECT MEAN(value) AS avg_cpu
+  INTO "cpu_averages"
+  FROM "cpu_usage"
+  GROUP BY time(10s), host
 END
 
--- Benefits: Automatic downsampling, improved query performance
--- Use cases: Creating rollup data, reducing storage requirements
+-- Downsampling for long-term storage
+CREATE CONTINUOUS QUERY "downsample_hourly" ON "sensors"
+BEGIN
+  SELECT MEAN(temperature) AS avg_temp,
+         MIN(temperature) AS min_temp,
+         MAX(temperature) AS max_temp,
+         COUNT(temperature) AS count
+  INTO "sensors"."one_year"."temperature_hourly"
+  FROM "sensors"."one_week"."temperature"
+  GROUP BY time(1h), *
+END
 ```
 
-### 15. How do you handle missing data and interpolation?
-**Answer:**
-**InfluxQL:**
+```python
+# Real-time alerting with Python
+from influxdb_client import InfluxDBClient
+import time
+
+def monitor_metrics():
+    client = InfluxDBClient(url="http://localhost:8086", token="your-token")
+    query_api = client.query_api()
+    
+    while True:
+        # Check for high CPU usage
+        query = '''
+        from(bucket: "monitoring")
+          |> range(start: -5m)
+          |> filter(fn: (r) => r._measurement == "cpu_usage")
+          |> mean()
+          |> filter(fn: (r) => r._value > 90.0)
+        '''
+        
+        result = query_api.query(query)
+        
+        for table in result:
+            for record in table.records:
+                print(f"ALERT: High CPU on {record.values['host']}: {record.get_value()}%")
+                # Send alert notification
+        
+        time.sleep(30)  # Check every 30 seconds
+```
+
+## Operations & Scaling (76-100)
+
+### 76. How do you optimize InfluxDB performance?
+**Answer**: Configure retention policies, sharding, and hardware optimization.
+
 ```sql
--- Fill missing values
-SELECT mean(value) FROM measurement 
-WHERE time >= now() - 1h 
-GROUP BY time(5m) fill(linear)
+-- Retention policies for data lifecycle
+CREATE RETENTION POLICY "realtime" ON "sensors" DURATION 1h REPLICATION 1
+CREATE RETENTION POLICY "recent" ON "sensors" DURATION 7d REPLICATION 1  
+CREATE RETENTION POLICY "historical" ON "sensors" DURATION 365d REPLICATION 1 DEFAULT
 
--- Fill options: null, none, previous, linear, <value>
+-- Shard duration optimization
+ALTER RETENTION POLICY "recent" ON "sensors" SHARD DURATION 1h
+ALTER RETENTION POLICY "historical" ON "sensors" SHARD DURATION 7d
+
+-- Index optimization
+-- Limit series cardinality
+SHOW CARDINALITY ON "sensors"
+SHOW TAG KEY CARDINALITY ON "sensors"
+
+-- Monitor shard statistics
+SHOW SHARDS
+SHOW SHARD GROUPS
 ```
 
-**Flux:**
-```flux
-from(bucket: "data")
-  |> range(start: -1h)
-  |> aggregateWindow(every: 5m, fn: mean, createEmpty: true)
-  |> fill(usePrevious: true)
+### 77. How do you backup and restore InfluxDB?
+**Answer**: Use backup/restore commands and continuous replication.
+
+```bash
+# Backup database
+influxd backup -database sensors /backup/sensors/
+
+# Backup with time range
+influxd backup -database sensors -start 2023-01-01T00:00:00Z -end 2023-01-31T23:59:59Z /backup/sensors_january/
+
+# Restore database
+influxd restore -database sensors /backup/sensors/
+
+# Online backup with retention policy
+influxd backup -database sensors -retention recent /backup/sensors_recent/
+
+# Incremental backup
+influxd backup -database sensors -since 2023-01-01T00:00:00Z /backup/sensors_incremental/
 ```
 
-## Performance & Optimization
+### 78. How do you monitor InfluxDB performance?
+**Answer**: Use internal statistics and external monitoring tools.
 
-### 16. How do you optimize InfluxDB write performance?
-**Answer:**
-- **Batch Writes**: Write multiple points in single request
-- **Line Protocol**: Use efficient line protocol format
-- **Consistent Timestamps**: Write data in time order when possible
-- **Appropriate Precision**: Use appropriate timestamp precision
-- **Connection Pooling**: Reuse HTTP connections
-- **Parallel Writes**: Use multiple writers for high throughput
-
-### 17. What factors affect InfluxDB query performance?
-**Answer:**
-- **Time Range**: Smaller time ranges query faster
-- **Series Cardinality**: Lower cardinality improves performance
-- **Indexing**: Tags are indexed, fields are not
-- **Memory**: Sufficient RAM for working set
-- **Storage**: SSD storage for better I/O performance
-- **Query Structure**: Efficient WHERE clauses and GROUP BY
-
-### 18. How do you monitor InfluxDB performance?
-**Answer:**
-**Key Metrics:**
-- **Write Throughput**: Points per second
-- **Query Response Time**: Query execution duration
-- **Memory Usage**: Heap and cache utilization
-- **Disk I/O**: Read/write operations per second
-- **Series Cardinality**: Number of unique series
-
-**Monitoring Tools:**
 ```sql
--- Internal metrics
+-- Internal statistics
 SHOW STATS
-SHOW DIAGNOSTICS
 
 -- Query performance
 SHOW QUERIES
-KILL QUERY <query_id>
+KILL QUERY 123
+
+-- Series cardinality monitoring
+SHOW SERIES CARDINALITY ON "sensors"
+SHOW TAG KEY CARDINALITY ON "sensors" FROM "temperature"
+
+-- Shard statistics
+SHOW SHARDS
+SELECT * FROM "_internal"."monitor"."shard" WHERE time > now() - 1h
+
+-- Write statistics
+SELECT * FROM "_internal"."monitor"."write" WHERE time > now() - 1h
+
+-- Query statistics  
+SELECT * FROM "_internal"."monitor"."queryExecutor" WHERE time > now() - 1h
 ```
 
-### 19. What are the best practices for InfluxDB indexing?
-**Answer:**
-- **Tag Indexing**: Tags are automatically indexed
-- **Selective Tags**: Only use tags for frequently queried dimensions
-- **Cardinality Control**: Keep tag cardinality reasonable
-- **Composite Indexes**: InfluxDB creates composite indexes automatically
-- **Field Indexing**: Fields are not indexed (by design)
-- **Time Indexing**: Time is always indexed efficiently
+### 79. How do you scale InfluxDB?
+**Answer**: Use clustering, federation, and horizontal partitioning.
 
-### 20. How do you handle large datasets in InfluxDB?
-**Answer:**
-- **Retention Policies**: Automatically delete old data
-- **Downsampling**: Use continuous queries for aggregation
-- **Sharding**: Distribute data across multiple databases
-- **Compression**: Enable compression for storage efficiency
-- **Partitioning**: Use measurement-based partitioning
-- **Hardware Scaling**: Scale storage and memory appropriately
-
-## Retention & Storage
-
-### 21. What are retention policies in InfluxDB?
-**Answer:**
-Retention policies define how long data is kept:
-```sql
--- Create retention policy
-CREATE RETENTION POLICY "one_week" ON "mydb" 
-DURATION 7d REPLICATION 1 DEFAULT
-
--- Show retention policies
-SHOW RETENTION POLICIES ON "mydb"
-
--- Modify retention policy
-ALTER RETENTION POLICY "one_week" ON "mydb" 
-DURATION 14d DEFAULT
-```
-
-### 22. How does InfluxDB handle data compression?
-**Answer:**
-- **Automatic Compression**: Data compressed when written to disk
-- **Time-Series Optimization**: Specialized compression for time-series
-- **Snappy Compression**: Default compression algorithm
-- **Compression Ratios**: Typically 10:1 to 100:1 compression
-- **Trade-offs**: CPU usage vs. storage savings
-
-### 23. What is the Time Structured Merge Tree (TSM) storage engine?
-**Answer:**
-TSM is InfluxDB's storage engine:
-- **Write-Ahead Log (WAL)**: Temporary storage for incoming writes
-- **Cache**: In-memory storage for recent data
-- **TSM Files**: Compressed, immutable files on disk
-- **Compaction**: Background process to optimize storage
-- **Index**: Separate index files for fast lookups
-
-### 24. How do you backup and restore InfluxDB?
-**Answer:**
-**Backup:**
 ```bash
-# Full backup
-influxd backup -portable /path/to/backup
+# InfluxDB Enterprise clustering
+# Meta nodes configuration
+[meta]
+  dir = "/var/lib/influxdb/meta"
+  bind-address = ":8088"
+  http-bind-address = ":8091"
 
-# Database-specific backup
-influxd backup -portable -database mydb /path/to/backup
+# Data nodes configuration  
+[data]
+  dir = "/var/lib/influxdb/data"
+  wal-dir = "/var/lib/influxdb/wal"
 
-# Incremental backup
-influxd backup -portable -start 2023-01-01T00:00:00Z /path/to/backup
-```
+# Add data node to cluster
+influxd-ctl add-data server2:8088
 
-**Restore:**
-```bash
-# Restore from backup
-influxd restore -portable /path/to/backup
+# Add meta node to cluster
+influxd-ctl add-meta server3:8091
 
-# Restore specific database
-influxd restore -portable -db mydb /path/to/backup
-```
-
-### 25. What are shard groups and how do they work?
-**Answer:**
-Shard groups organize data by time:
-- **Time-based Partitioning**: Data partitioned by time ranges
-- **Shard Duration**: Configurable time range per shard
-- **Automatic Management**: InfluxDB manages shard lifecycle
-- **Query Optimization**: Queries only access relevant shards
-- **Retention**: Entire shards deleted when expired
-
-## Clustering & High Availability
-
-### 26. How does InfluxDB Enterprise clustering work?
-**Answer:**
-**Architecture:**
-- **Data Nodes**: Store time-series data
-- **Meta Nodes**: Store cluster metadata
-- **Replication**: Data replicated across nodes
-- **Consistency**: Eventually consistent system
-- **Load Balancing**: Distribute queries across nodes
-
-### 27. What are the high availability options for InfluxDB?
-**Answer:**
-- **InfluxDB Enterprise**: Built-in clustering and replication
-- **InfluxDB Cloud**: Managed service with HA
-- **Backup/Restore**: Regular backups for disaster recovery
-- **Read Replicas**: Multiple read-only instances
-- **Load Balancers**: Distribute traffic across instances
-
-### 28. How do you handle failover in InfluxDB?
-**Answer:**
-- **Automatic Failover**: Enterprise edition supports automatic failover
-- **Health Checks**: Monitor node health and availability
-- **Client Configuration**: Configure clients for multiple endpoints
-- **Data Replication**: Ensure data is replicated before failover
-- **Recovery Procedures**: Document recovery processes
-
-## Integration & Monitoring
-
-### 29. How do you integrate InfluxDB with other systems?
-**Answer:**
-**Data Ingestion:**
-- **Telegraf**: Agent-based data collection
-- **HTTP API**: Direct writes via REST API
-- **Client Libraries**: Official libraries for various languages
-- **Kafka**: Stream data from Kafka topics
-- **MQTT**: IoT device integration
-
-**Data Export:**
-- **Grafana**: Visualization and dashboarding
-- **Kapacitor**: Stream processing and alerting
-- **REST API**: Query data via HTTP
-- **CSV Export**: Export data to CSV format
-
-### 30. What is Telegraf and how does it work with InfluxDB?
-**Answer:**
-Telegraf is a plugin-driven agent for collecting metrics:
-- **Input Plugins**: Collect data from various sources
-- **Output Plugins**: Send data to InfluxDB and other destinations
-- **Processor Plugins**: Transform data in transit
-- **Aggregator Plugins**: Aggregate metrics before output
-- **Configuration**: TOML-based configuration files
-
-```toml
-# Example Telegraf configuration
-[[inputs.cpu]]
-  percpu = true
-  totalcpu = true
-
-[[outputs.influxdb]]
-  urls = ["http://localhost:8086"]
-  database = "telegraf"
-```
-
-### 31. How do you set up alerting with InfluxDB?
-**Answer:**
-**Using Kapacitor:**
-```javascript
-// TICKscript for alerting
-stream
-  |from()
-    .measurement('cpu_usage')
-  |alert()
-    .crit(lambda: "usage_percent" > 90)
-    .message('High CPU usage detected')
-    .email('admin@company.com')
-```
-
-**Using InfluxDB 2.x:**
-- **Checks**: Define threshold-based checks
-- **Notification Rules**: Configure alert destinations
-- **Notification Endpoints**: Slack, email, webhooks
-- **Task System**: Custom alerting logic with Flux
-
-## Scenario-Based Questions
-
-### 32. You need to monitor IoT sensors generating 1M data points per second. How do you design the solution?
-**Answer:**
-1. **Schema Design**: Use efficient tag/field structure
-2. **Batch Writes**: Aggregate writes to reduce overhead
-3. **Retention Strategy**: Implement tiered retention policies
-4. **Downsampling**: Use continuous queries for aggregation
-5. **Hardware**: Scale storage and memory appropriately
-6. **Monitoring**: Track write performance and resource usage
-
-```sql
--- Example schema
-measurement: sensor_data
-tags: sensor_id, location, type
-fields: temperature, humidity, pressure
-retention: raw(7d), hourly(30d), daily(1y)
-```
-
-### 33. Your InfluxDB queries are running slowly. How do you troubleshoot?
-**Answer:**
-1. **Check Series Cardinality**: High cardinality causes performance issues
-2. **Analyze Query Patterns**: Identify expensive operations
-3. **Review Time Ranges**: Large time ranges slow queries
-4. **Monitor Resources**: Check memory and CPU usage
-5. **Optimize Schema**: Redesign tags/fields if necessary
-6. **Index Usage**: Ensure queries use indexed tags
-7. **Hardware**: Consider scaling resources
-
-### 34. How would you migrate time-series data from a relational database to InfluxDB?
-**Answer:**
-1. **Schema Analysis**: Map relational schema to InfluxDB model
-2. **Data Extraction**: Export data with timestamps
-3. **Transformation**: Convert to line protocol format
-4. **Batch Import**: Use batch writes for efficiency
-5. **Validation**: Verify data integrity and completeness
-6. **Performance Testing**: Validate query performance
-7. **Application Updates**: Modify applications to use InfluxDB
-
-### 35. Design a real-time monitoring system for a web application using InfluxDB.
-**Answer:**
-```sql
--- Metrics schema
-measurement: http_requests
-tags: method, status_code, endpoint, server
-fields: response_time, request_size, response_size
-
-measurement: system_metrics  
-tags: host, service
-fields: cpu_percent, memory_percent, disk_usage
-
--- Alerting rules
-SELECT mean(response_time) FROM http_requests 
-WHERE time >= now() - 5m 
-GROUP BY endpoint
-HAVING mean(response_time) > 1000
-```
-
-**Architecture:**
-1. **Data Collection**: Telegraf agents on servers
-2. **Storage**: InfluxDB for metrics storage
-3. **Processing**: Kapacitor for real-time alerting
-4. **Visualization**: Grafana dashboards
-5. **Alerting**: Multi-channel notifications
-
-### 36. How would you implement data retention and lifecycle management?
-**Answer:**
-```sql
--- Multi-tier retention strategy
-CREATE RETENTION POLICY "raw_data" ON "metrics" 
-DURATION 7d REPLICATION 1
-
-CREATE RETENTION POLICY "hourly_data" ON "metrics" 
-DURATION 30d REPLICATION 1
-
-CREATE RETENTION POLICY "daily_data" ON "metrics" 
-DURATION 365d REPLICATION 1 DEFAULT
-
--- Continuous queries for downsampling
-CREATE CONTINUOUS QUERY "downsample_hourly" ON "metrics"
-BEGIN
-  SELECT mean(*) INTO "metrics"."hourly_data".:MEASUREMENT
-  FROM "metrics"."raw_data"./.*/ 
-  GROUP BY time(1h), *
-END
+# Check cluster status
+influxd-ctl show
 ```
 
 ---
 
-## Key Takeaways for Interviews
-
-1. **Time-Series Focus**: Understand why InfluxDB is optimized for time-series data
-2. **Data Model**: Master the concepts of measurements, tags, fields, and series
-3. **Query Languages**: Know both InfluxQL and Flux capabilities
-4. **Performance**: Understand cardinality impact and optimization techniques
-5. **Retention**: Know how to implement data lifecycle management
-6. **Integration**: Be familiar with TICK stack and common integrations
-7. **Monitoring**: Understand how to monitor and troubleshoot InfluxDB
-8. **Real-world Scenarios**: Practice designing solutions for IoT and monitoring use cases
+**Total Questions: 100** | **Coverage: Complete InfluxDB Ecosystem**
