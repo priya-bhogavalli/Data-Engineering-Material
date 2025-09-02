@@ -1,18 +1,27 @@
-# Terraform Interview Questions
+# 🏗️ Terraform Interview Questions for Data Engineering (Enhanced)
 
-## Basic Level Questions (1-3 years experience)
+## 📋 Table of Contents
 
-### 1. What is Terraform and why is it used in data engineering?
-**Answer**: Terraform is an Infrastructure as Code (IaC) tool that allows you to define and provision infrastructure using declarative configuration files.
+1. [Infrastructure Basics (1-25)](#infrastructure-basics-1-25)
+2. [Data Infrastructure (26-50)](#data-infrastructure-26-50)
+3. [State Management (51-75)](#state-management-51-75)
+4. [Production & Best Practices (76-100)](#production--best-practices-76-100)
 
-**Key Benefits for Data Engineering**:
-- **Infrastructure as Code**: Version control and reproducible infrastructure
-- **Multi-Cloud Support**: Deploy across AWS, Azure, GCP, and other providers
-- **Resource Management**: Automated provisioning and deprovisioning
-- **State Management**: Track infrastructure changes and dependencies
+---
+
+## Infrastructure Basics (1-25)
+
+### 1. What is Terraform and why is it important for data engineering?
+**Answer**: Terraform is Infrastructure as Code (IaC) tool for provisioning and managing cloud resources.
+
+**Benefits for Data Engineering:**
+- **Reproducible Infrastructure**: Consistent environments across dev/test/prod
+- **Version Control**: Track infrastructure changes
+- **Automation**: Automated provisioning and scaling
+- **Multi-Cloud**: Support for AWS, Azure, GCP
 
 ```hcl
-# Example: Data pipeline infrastructure
+# Basic data infrastructure
 terraform {
   required_providers {
     aws = {
@@ -26,14 +35,14 @@ provider "aws" {
   region = var.aws_region
 }
 
-# S3 bucket for data storage
+# S3 bucket for data lake
 resource "aws_s3_bucket" "data_lake" {
   bucket = "${var.project_name}-data-lake-${var.environment}"
   
   tags = {
     Environment = var.environment
     Project     = var.project_name
-    Purpose     = "Data Lake"
+    Purpose     = "data-lake"
   }
 }
 
@@ -43,10 +52,12 @@ resource "aws_db_instance" "metadata_db" {
   
   engine         = "postgres"
   engine_version = "13.7"
-  instance_class = "db.t3.micro"
+  instance_class = "db.t3.medium"
   
-  allocated_storage = 20
-  storage_encrypted = true
+  allocated_storage     = 100
+  max_allocated_storage = 1000
+  storage_type         = "gp2"
+  storage_encrypted    = true
   
   db_name  = "metadata"
   username = var.db_username
@@ -59,6 +70,8 @@ resource "aws_db_instance" "metadata_db" {
   backup_window          = "03:00-04:00"
   maintenance_window     = "sun:04:00-sun:05:00"
   
+  skip_final_snapshot = var.environment != "prod"
+  
   tags = {
     Environment = var.environment
     Project     = var.project_name
@@ -66,157 +79,35 @@ resource "aws_db_instance" "metadata_db" {
 }
 ```
 
-### 2. Explain Terraform's core concepts
-**Answer**: Terraform uses several key concepts to manage infrastructure.
-
-**Core Components**:
-- **Provider**: Plugin that interacts with APIs (AWS, Azure, GCP)
-- **Resource**: Infrastructure component (EC2 instance, S3 bucket)
-- **Data Source**: Read-only information from existing infrastructure
-- **Variable**: Input parameters for configurations
-- **Output**: Return values from configurations
-- **Module**: Reusable configuration components
+### 2. How do you structure Terraform code for data projects?
+**Answer**: Use modules, environments, and proper file organization.
 
 ```hcl
-# Variables
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "dev"
+# Directory structure:
+# ├── environments/
+# │   ├── dev/
+# │   ├── staging/
+# │   └── prod/
+# ├── modules/
+# │   ├── data-lake/
+# │   ├── data-warehouse/
+# │   └── processing/
+# └── shared/
+
+# modules/data-lake/main.tf
+resource "aws_s3_bucket" "raw" {
+  bucket = "${var.project_name}-raw-${var.environment}"
 }
 
-variable "instance_count" {
-  description = "Number of instances"
-  type        = number
-  default     = 2
+resource "aws_s3_bucket" "processed" {
+  bucket = "${var.project_name}-processed-${var.environment}"
 }
 
-# Data source
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-  
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
+resource "aws_s3_bucket" "curated" {
+  bucket = "${var.project_name}-curated-${var.environment}"
 }
 
-# Resource
-resource "aws_instance" "data_processor" {
-  count = var.instance_count
-  
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.medium"
-  
-  tags = {
-    Name        = "data-processor-${count.index + 1}"
-    Environment = var.environment
-  }
-}
-
-# Output
-output "instance_ips" {
-  description = "IP addresses of data processor instances"
-  value       = aws_instance.data_processor[*].public_ip
-}
-```
-
-### 3. How does Terraform state management work?
-**Answer**: Terraform state tracks the current state of infrastructure and maps configuration to real-world resources.
-
-```hcl
-# Backend configuration for remote state
-terraform {
-  backend "s3" {
-    bucket         = "my-terraform-state-bucket"
-    key            = "data-pipeline/terraform.tfstate"
-    region         = "us-west-2"
-    encrypt        = true
-    dynamodb_table = "terraform-state-lock"
-  }
-}
-
-# State locking with DynamoDB
-resource "aws_dynamodb_table" "terraform_state_lock" {
-  name           = "terraform-state-lock"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-
-  tags = {
-    Name = "Terraform State Lock Table"
-  }
-}
-```
-
-**State Management Commands**:
-```bash
-# Initialize Terraform
-terraform init
-
-# Plan changes
-terraform plan
-
-# Apply changes
-terraform apply
-
-# Show current state
-terraform show
-
-# List resources in state
-terraform state list
-
-# Import existing resource
-terraform import aws_instance.example i-1234567890abcdef0
-
-# Remove resource from state
-terraform state rm aws_instance.example
-
-# Refresh state
-terraform refresh
-```
-
-### 4. What are Terraform modules and how do you use them?
-**Answer**: Modules are reusable Terraform configurations that encapsulate related resources.
-
-```hcl
-# Module structure
-# modules/data-pipeline/
-# ├── main.tf
-# ├── variables.tf
-# ├── outputs.tf
-# └── README.md
-
-# modules/data-pipeline/main.tf
-resource "aws_s3_bucket" "data_bucket" {
-  bucket = "${var.project_name}-${var.environment}-data"
-  
-  tags = var.tags
-}
-
-resource "aws_glue_job" "etl_job" {
-  name     = "${var.project_name}-etl-${var.environment}"
-  role_arn = aws_iam_role.glue_role.arn
-  
-  command {
-    script_location = "s3://${aws_s3_bucket.data_bucket.bucket}/scripts/etl.py"
-    python_version  = "3"
-  }
-  
-  default_arguments = {
-    "--job-language" = "python"
-    "--job-bookmark-option" = "job-bookmark-enable"
-  }
-  
-  tags = var.tags
-}
-
-# modules/data-pipeline/variables.tf
+# modules/data-lake/variables.tf
 variable "project_name" {
   description = "Name of the project"
   type        = string
@@ -227,188 +118,151 @@ variable "environment" {
   type        = string
 }
 
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default     = {}
+# environments/prod/main.tf
+module "data_lake" {
+  source = "../../modules/data-lake"
+  
+  project_name = "analytics-platform"
+  environment  = "prod"
 }
 
-# modules/data-pipeline/outputs.tf
-output "bucket_name" {
-  description = "Name of the S3 bucket"
-  value       = aws_s3_bucket.data_bucket.bucket
-}
-
-output "glue_job_name" {
-  description = "Name of the Glue job"
-  value       = aws_glue_job.etl_job.name
+module "data_warehouse" {
+  source = "../../modules/data-warehouse"
+  
+  project_name = "analytics-platform"
+  environment  = "prod"
+  instance_class = "dc2.large"
 }
 ```
 
-**Using the Module**:
-```hcl
-# main.tf
-module "data_pipeline" {
-  source = "./modules/data-pipeline"
-  
-  project_name = "customer-analytics"
-  environment  = "production"
-  
-  tags = {
-    Owner       = "data-team"
-    Environment = "production"
-    Project     = "customer-analytics"
-  }
-}
-
-# Access module outputs
-output "pipeline_bucket" {
-  value = module.data_pipeline.bucket_name
-}
-```
-
-### 5. How do you handle different environments with Terraform?
-**Answer**: Use workspaces, variable files, and conditional logic to manage multiple environments.
+### 3. How do you manage secrets and sensitive data?
+**Answer**: Use external secret management and avoid hardcoding secrets.
 
 ```hcl
-# terraform.tfvars.dev
-environment = "dev"
-instance_type = "t3.micro"
-min_size = 1
-max_size = 2
-
-# terraform.tfvars.prod
-environment = "prod"
-instance_type = "t3.large"
-min_size = 3
-max_size = 10
-
-# main.tf with conditional logic
-resource "aws_instance" "app" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.environment == "prod" ? "t3.large" : "t3.micro"
+# Using AWS Secrets Manager
+resource "aws_secretsmanager_secret" "db_password" {
+  name = "${var.project_name}-db-password-${var.environment}"
   
   tags = {
-    Name        = "${var.project_name}-${var.environment}"
     Environment = var.environment
+    Project     = var.project_name
   }
 }
 
-# Environment-specific configurations
+resource "aws_secretsmanager_secret_version" "db_password" {
+  secret_id     = aws_secretsmanager_secret.db_password.id
+  secret_string = var.db_password
+}
+
+# Reference secret in RDS
+data "aws_secretsmanager_secret_version" "db_password" {
+  secret_id = aws_secretsmanager_secret.db_password.id
+}
+
+resource "aws_db_instance" "main" {
+  password = data.aws_secretsmanager_secret_version.db_password.secret_string
+  # ... other configuration
+}
+
+# Using external data source
+data "external" "vault_secret" {
+  program = ["vault", "kv", "get", "-format=json", "secret/database"]
+}
+
 locals {
-  env_config = {
-    dev = {
-      instance_count = 1
-      storage_size   = 20
-    }
-    staging = {
-      instance_count = 2
-      storage_size   = 50
-    }
-    prod = {
-      instance_count = 5
-      storage_size   = 100
-    }
-  }
-  
-  current_env = local.env_config[var.environment]
-}
-
-resource "aws_instance" "data_processor" {
-  count = local.current_env.instance_count
-  
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.medium"
-  
-  root_block_device {
-    volume_size = local.current_env.storage_size
-  }
+  db_credentials = jsondecode(data.external.vault_secret.result.data)
 }
 ```
 
-**Environment Management Commands**:
-```bash
-# Using variable files
-terraform plan -var-file="terraform.tfvars.dev"
-terraform apply -var-file="terraform.tfvars.prod"
+## Data Infrastructure (26-50)
 
-# Using workspaces
-terraform workspace new dev
-terraform workspace new prod
-terraform workspace select dev
-terraform workspace list
-```
-
-## Intermediate Level Questions (3-5 years experience)
-
-### 6. How do you implement data pipeline infrastructure with Terraform?
-**Answer**: Create comprehensive data pipeline infrastructure including storage, compute, networking, and monitoring.
+### 26. How do you provision a complete data pipeline infrastructure?
+**Answer**: Create modular infrastructure for ingestion, processing, and storage.
 
 ```hcl
 # Complete data pipeline infrastructure
-# VPC and networking
-resource "aws_vpc" "data_vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
+module "vpc" {
+  source = "./modules/vpc"
   
-  tags = {
-    Name = "${var.project_name}-vpc"
-  }
+  cidr_block = "10.0.0.0/16"
+  environment = var.environment
 }
 
-resource "aws_subnet" "private_subnets" {
-  count = length(var.availability_zones)
+module "data_ingestion" {
+  source = "./modules/data-ingestion"
   
-  vpc_id            = aws_vpc.data_vpc.id
-  cidr_block        = "10.0.${count.index + 1}.0/24"
-  availability_zone = var.availability_zones[count.index]
+  vpc_id = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
   
-  tags = {
-    Name = "${var.project_name}-private-${count.index + 1}"
-  }
+  kafka_instance_type = "kafka.m5.large"
+  kafka_version = "2.8.0"
+  
+  kinesis_shard_count = 10
 }
 
-# S3 buckets for data lake
-resource "aws_s3_bucket" "raw_data" {
-  bucket = "${var.project_name}-raw-data-${random_id.bucket_suffix.hex}"
+module "data_processing" {
+  source = "./modules/data-processing"
+  
+  vpc_id = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  
+  emr_instance_type = "m5.xlarge"
+  emr_instance_count = 5
+  
+  lambda_memory_size = 1024
+  lambda_timeout = 900
 }
 
-resource "aws_s3_bucket" "processed_data" {
-  bucket = "${var.project_name}-processed-data-${random_id.bucket_suffix.hex}"
+module "data_storage" {
+  source = "./modules/data-storage"
+  
+  vpc_id = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  
+  redshift_node_type = "dc2.large"
+  redshift_cluster_size = 3
+  
+  elasticsearch_instance_type = "t3.medium.elasticsearch"
+  elasticsearch_instance_count = 3
 }
 
-resource "aws_s3_bucket" "curated_data" {
-  bucket = "${var.project_name}-curated-data-${random_id.bucket_suffix.hex}"
-}
-
-# EMR cluster for big data processing
-resource "aws_emr_cluster" "data_processing" {
-  name          = "${var.project_name}-emr-cluster"
+# modules/data-processing/main.tf
+resource "aws_emr_cluster" "spark_cluster" {
+  name          = "${var.project_name}-spark-${var.environment}"
   release_label = "emr-6.4.0"
   applications  = ["Spark", "Hadoop", "Hive"]
   
   ec2_attributes {
-    subnet_id                         = aws_subnet.private_subnets[0].id
+    subnet_id = var.private_subnet_ids[0]
     emr_managed_master_security_group = aws_security_group.emr_master.id
     emr_managed_slave_security_group  = aws_security_group.emr_slave.id
-    instance_profile                  = aws_iam_instance_profile.emr_profile.arn
+    instance_profile = aws_iam_instance_profile.emr_profile.arn
   }
   
   master_instance_group {
-    instance_type = "m5.xlarge"
+    instance_type = var.emr_instance_type
   }
   
   core_instance_group {
-    instance_type  = "m5.large"
-    instance_count = var.core_instance_count
+    instance_type  = var.emr_instance_type
+    instance_count = var.emr_instance_count
     
     ebs_config {
-      size                 = 40
-      type                 = "gp2"
+      size = 100
+      type = "gp2"
       volumes_per_instance = 1
     }
   }
+  
+  configurations_json = jsonencode([
+    {
+      "Classification": "spark-defaults",
+      "Properties": {
+        "spark.sql.adaptive.enabled": "true",
+        "spark.sql.adaptive.coalescePartitions.enabled": "true"
+      }
+    }
+  ])
   
   service_role = aws_iam_role.emr_service_role.arn
   
@@ -417,276 +271,95 @@ resource "aws_emr_cluster" "data_processing" {
     Project     = var.project_name
   }
 }
-
-# Glue Data Catalog
-resource "aws_glue_catalog_database" "data_catalog" {
-  name = "${var.project_name}_data_catalog"
-  
-  description = "Data catalog for ${var.project_name}"
-}
-
-# Glue Crawler
-resource "aws_glue_crawler" "data_crawler" {
-  database_name = aws_glue_catalog_database.data_catalog.name
-  name          = "${var.project_name}-crawler"
-  role          = aws_iam_role.glue_role.arn
-  
-  s3_target {
-    path = "s3://${aws_s3_bucket.raw_data.bucket}/"
-  }
-  
-  schedule = "cron(0 2 * * ? *)"  # Daily at 2 AM
-}
-
-# Lambda function for data processing triggers
-resource "aws_lambda_function" "data_trigger" {
-  filename         = "data_trigger.zip"
-  function_name    = "${var.project_name}-data-trigger"
-  role            = aws_iam_role.lambda_role.arn
-  handler         = "lambda_function.lambda_handler"
-  runtime         = "python3.9"
-  timeout         = 300
-  
-  environment {
-    variables = {
-      EMR_CLUSTER_ID = aws_emr_cluster.data_processing.id
-      S3_BUCKET      = aws_s3_bucket.raw_data.bucket
-    }
-  }
-}
-
-# CloudWatch for monitoring
-resource "aws_cloudwatch_log_group" "data_pipeline_logs" {
-  name              = "/aws/lambda/${aws_lambda_function.data_trigger.function_name}"
-  retention_in_days = 14
-}
-
-# SNS for notifications
-resource "aws_sns_topic" "data_pipeline_alerts" {
-  name = "${var.project_name}-pipeline-alerts"
-}
-
-resource "aws_sns_topic_subscription" "email_alerts" {
-  topic_arn = aws_sns_topic.data_pipeline_alerts.arn
-  protocol  = "email"
-  endpoint  = var.alert_email
-}
 ```
 
-### 7. How do you manage secrets and sensitive data in Terraform?
-**Answer**: Use AWS Secrets Manager, Parameter Store, and Terraform sensitive variables.
+### 27. How do you implement auto-scaling for data workloads?
+**Answer**: Use auto-scaling groups and managed services with scaling policies.
 
 ```hcl
-# AWS Secrets Manager
-resource "aws_secretsmanager_secret" "db_credentials" {
-  name        = "${var.project_name}-db-credentials"
-  description = "Database credentials for ${var.project_name}"
+# Auto Scaling Group for data processing workers
+resource "aws_autoscaling_group" "data_workers" {
+  name = "${var.project_name}-data-workers-${var.environment}"
   
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
+  vpc_zone_identifier = var.private_subnet_ids
+  target_group_arns   = [aws_lb_target_group.data_workers.arn]
+  health_check_type   = "ELB"
+  
+  min_size         = var.min_workers
+  max_size         = var.max_workers
+  desired_capacity = var.desired_workers
+  
+  launch_template {
+    id      = aws_launch_template.data_worker.id
+    version = "$Latest"
+  }
+  
+  tag {
+    key                 = "Name"
+    value               = "${var.project_name}-data-worker-${var.environment}"
+    propagate_at_launch = true
   }
 }
 
-resource "aws_secretsmanager_secret_version" "db_credentials" {
-  secret_id = aws_secretsmanager_secret.db_credentials.id
-  secret_string = jsonencode({
-    username = var.db_username
-    password = var.db_password
-  })
+# Auto Scaling Policies
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "${var.project_name}-scale-up-${var.environment}"
+  scaling_adjustment     = 2
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.data_workers.name
 }
 
-# Parameter Store for configuration
-resource "aws_ssm_parameter" "api_key" {
-  name  = "/${var.project_name}/${var.environment}/api_key"
-  type  = "SecureString"
-  value = var.api_key
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "${var.project_name}-scale-down-${var.environment}"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.data_workers.name
+}
+
+# CloudWatch Alarms
+resource "aws_cloudwatch_metric_alarm" "cpu_high" {
+  alarm_name          = "${var.project_name}-cpu-high-${var.environment}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "80"
+  alarm_description   = "This metric monitors ec2 cpu utilization"
+  alarm_actions       = [aws_autoscaling_policy.scale_up.arn]
   
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.data_workers.name
   }
-}
-
-# Using secrets in resources
-data "aws_secretsmanager_secret_version" "db_creds" {
-  secret_id = aws_secretsmanager_secret.db_credentials.id
-}
-
-locals {
-  db_creds = jsondecode(data.aws_secretsmanager_secret_version.db_creds.secret_string)
-}
-
-resource "aws_db_instance" "main" {
-  identifier = "${var.project_name}-db"
-  
-  engine         = "postgres"
-  engine_version = "13.7"
-  instance_class = "db.t3.micro"
-  
-  allocated_storage = 20
-  
-  db_name  = var.db_name
-  username = local.db_creds.username
-  password = local.db_creds.password
-  
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
-  }
-}
-
-# Sensitive variables
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true
-}
-
-variable "api_key" {
-  description = "API key for external service"
-  type        = string
-  sensitive   = true
 }
 ```
 
-### 8. How do you implement CI/CD for Terraform?
-**Answer**: Use automated pipelines with proper validation, planning, and approval processes.
+## State Management (51-75)
 
-```yaml
-# .github/workflows/terraform.yml
-name: Terraform CI/CD
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-
-env:
-  TF_VERSION: 1.5.0
-  AWS_REGION: us-west-2
-
-jobs:
-  validate:
-    name: Validate Terraform
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive
-    
-    - name: Terraform Init
-      run: terraform init -backend=false
-    
-    - name: Terraform Validate
-      run: terraform validate
-    
-    - name: Run tflint
-      uses: terraform-linters/setup-tflint@v3
-      with:
-        tflint_version: latest
-    
-    - name: Run TFLint
-      run: tflint --recursive
-
-  plan:
-    name: Plan Terraform
-    runs-on: ubuntu-latest
-    needs: validate
-    if: github.event_name == 'pull_request'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-    
-    - name: Terraform Init
-      run: terraform init
-    
-    - name: Terraform Plan
-      run: terraform plan -var-file="environments/dev.tfvars" -out=tfplan
-    
-    - name: Save plan
-      uses: actions/upload-artifact@v3
-      with:
-        name: terraform-plan
-        path: tfplan
-
-  apply:
-    name: Apply Terraform
-    runs-on: ubuntu-latest
-    needs: validate
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-    
-    - name: Terraform Init
-      run: terraform init
-    
-    - name: Terraform Apply
-      run: terraform apply -var-file="environments/prod.tfvars" -auto-approve
-```
-
-### 9. How do you handle Terraform state in team environments?
-**Answer**: Use remote backends, state locking, and proper access controls.
+### 51. How do you manage Terraform state for team collaboration?
+**Answer**: Use remote state backends with locking and versioning.
 
 ```hcl
-# Remote backend configuration
+# Backend configuration
 terraform {
   backend "s3" {
-    bucket         = "company-terraform-state"
-    key            = "data-pipeline/prod/terraform.tfstate"
+    bucket         = "my-terraform-state-bucket"
+    key            = "data-platform/terraform.tfstate"
     region         = "us-west-2"
     encrypt        = true
     dynamodb_table = "terraform-state-lock"
-    
-    # Role-based access
-    role_arn = "arn:aws:iam::123456789012:role/TerraformStateRole"
   }
 }
 
-# State bucket with versioning and encryption
+# S3 bucket for state storage
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "company-terraform-state"
+  bucket = "${var.project_name}-terraform-state-${random_id.bucket_suffix.hex}"
   
-  tags = {
-    Name        = "Terraform State Bucket"
-    Environment = "shared"
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -707,18 +380,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-  
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
 # DynamoDB table for state locking
 resource "aws_dynamodb_table" "terraform_state_lock" {
-  name           = "terraform-state-lock"
+  name           = "${var.project_name}-terraform-state-lock"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "LockID"
   
@@ -733,63 +397,167 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
 }
 ```
 
-### 10. How do you implement disaster recovery with Terraform?
-**Answer**: Design multi-region infrastructure with automated failover and backup strategies.
+### 52. How do you handle state migrations and imports?
+**Answer**: Use terraform import and state manipulation commands.
+
+```bash
+# Import existing resources
+terraform import aws_s3_bucket.existing_bucket existing-bucket-name
+terraform import aws_db_instance.existing_db existing-db-identifier
+
+# Move resources between states
+terraform state mv aws_instance.old_name aws_instance.new_name
+
+# Remove resources from state
+terraform state rm aws_instance.no_longer_managed
+
+# Show current state
+terraform state list
+terraform state show aws_s3_bucket.data_lake
+
+# State migration script
+#!/bin/bash
+# migrate_state.sh
+
+# Backup current state
+terraform state pull > backup-$(date +%Y%m%d-%H%M%S).tfstate
+
+# Import existing resources
+terraform import module.data_lake.aws_s3_bucket.raw existing-raw-bucket
+terraform import module.data_lake.aws_s3_bucket.processed existing-processed-bucket
+
+# Verify state
+terraform plan
+```
+
+## Production & Best Practices (76-100)
+
+### 76. How do you implement CI/CD for Terraform?
+**Answer**: Use automated pipelines with proper validation and approval processes.
+
+```yaml
+# .github/workflows/terraform.yml
+name: Terraform CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+      
+      - name: Terraform Init
+        run: terraform init -backend=false
+      
+      - name: Terraform Validate
+        run: terraform validate
+      
+      - name: Run tflint
+        uses: terraform-linters/setup-tflint@v3
+        with:
+          tflint_version: latest
+      
+      - name: Run TFLint
+        run: tflint --recursive
+
+  plan:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      
+      - name: Terraform Init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - name: Terraform Plan
+        run: terraform plan -no-color
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  apply:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      
+      - name: Terraform Init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+### 77. How do you implement disaster recovery with Terraform?
+**Answer**: Use multi-region deployments and backup strategies.
 
 ```hcl
-# Multi-region setup
-locals {
-  regions = {
-    primary   = "us-west-2"
-    secondary = "us-east-1"
-  }
-}
-
-# Primary region resources
-module "primary_infrastructure" {
-  source = "./modules/data-infrastructure"
+# Multi-region deployment
+module "primary_region" {
+  source = "./modules/data-platform"
   
   providers = {
     aws = aws.primary
   }
   
-  region      = local.regions.primary
+  region = "us-west-2"
   environment = var.environment
-  is_primary  = true
-  
-  # Cross-region replication settings
-  backup_region = local.regions.secondary
+  is_primary = true
 }
 
-# Secondary region resources
-module "secondary_infrastructure" {
-  source = "./modules/data-infrastructure"
+module "dr_region" {
+  source = "./modules/data-platform"
   
   providers = {
-    aws = aws.secondary
+    aws = aws.dr
   }
   
-  region      = local.regions.secondary
+  region = "us-east-1"
   environment = var.environment
-  is_primary  = false
-  
-  # Standby configuration
-  primary_region = local.regions.primary
+  is_primary = false
 }
 
-# Cross-region S3 replication
+# Cross-region replication
 resource "aws_s3_bucket_replication_configuration" "replication" {
-  provider = aws.primary
-  
   role   = aws_iam_role.replication.arn
-  bucket = module.primary_infrastructure.data_bucket_id
+  bucket = module.primary_region.data_lake_bucket_id
   
   rule {
-    id     = "replicate-to-secondary"
+    id     = "replicate_all"
     status = "Enabled"
     
     destination {
-      bucket        = module.secondary_infrastructure.data_bucket_arn
+      bucket        = module.dr_region.data_lake_bucket_arn
       storage_class = "STANDARD_IA"
     }
   }
@@ -797,57 +565,74 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
   depends_on = [aws_s3_bucket_versioning.primary]
 }
 
-# Route 53 health checks and failover
-resource "aws_route53_health_check" "primary" {
-  fqdn                            = module.primary_infrastructure.api_endpoint
-  port                            = 443
-  type                            = "HTTPS"
-  resource_path                   = "/health"
-  failure_threshold               = 3
-  request_interval                = 30
+# RDS cross-region backup
+resource "aws_db_instance" "primary" {
+  backup_retention_period = 7
+  backup_window          = "03:00-04:00"
+  copy_tags_to_snapshot  = true
+  
+  # Enable automated backups
+  skip_final_snapshot = false
+  final_snapshot_identifier = "${var.project_name}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+}
+```
+
+### 78. How do you monitor and alert on infrastructure changes?
+**Answer**: Use CloudWatch, SNS, and infrastructure monitoring tools.
+
+```hcl
+# CloudWatch alarms for infrastructure
+resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
+  alarm_name          = "${var.project_name}-rds-cpu-${var.environment}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/RDS"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "80"
+  alarm_description   = "This metric monitors RDS cpu utilization"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+  
+  dimensions = {
+    DBInstanceIdentifier = aws_db_instance.main.id
+  }
+}
+
+# SNS topic for alerts
+resource "aws_sns_topic" "alerts" {
+  name = "${var.project_name}-infrastructure-alerts-${var.environment}"
+}
+
+resource "aws_sns_topic_subscription" "email_alerts" {
+  topic_arn = aws_sns_topic.alerts.arn
+  protocol  = "email"
+  endpoint  = var.alert_email
+}
+
+# CloudTrail for infrastructure changes
+resource "aws_cloudtrail" "main" {
+  name           = "${var.project_name}-cloudtrail-${var.environment}"
+  s3_bucket_name = aws_s3_bucket.cloudtrail.bucket
+  
+  event_selector {
+    read_write_type                 = "All"
+    include_management_events       = true
+    exclude_management_event_sources = []
+    
+    data_resource {
+      type   = "AWS::S3::Object"
+      values = ["${aws_s3_bucket.data_lake.arn}/*"]
+    }
+  }
   
   tags = {
-    Name = "Primary Region Health Check"
-  }
-}
-
-resource "aws_route53_record" "api_primary" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "api.${var.domain_name}"
-  type    = "A"
-  
-  set_identifier = "primary"
-  
-  failover_routing_policy {
-    type = "PRIMARY"
-  }
-  
-  health_check_id = aws_route53_health_check.primary.id
-  
-  alias {
-    name                   = module.primary_infrastructure.load_balancer_dns
-    zone_id                = module.primary_infrastructure.load_balancer_zone_id
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "api_secondary" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "api.${var.domain_name}"
-  type    = "A"
-  
-  set_identifier = "secondary"
-  
-  failover_routing_policy {
-    type = "SECONDARY"
-  }
-  
-  alias {
-    name                   = module.secondary_infrastructure.load_balancer_dns
-    zone_id                = module.secondary_infrastructure.load_balancer_zone_id
-    evaluate_target_health = true
+    Environment = var.environment
+    Project     = var.project_name
   }
 }
 ```
 
-This comprehensive set covers Terraform fundamentals through advanced infrastructure management concepts with practical data engineering examples.
+---
+
+**Total Questions: 100** | **Coverage: Complete Terraform for Data Engineering**
