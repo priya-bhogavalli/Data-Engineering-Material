@@ -452,39 +452,39 @@
 
 ### **Technical Coding Interview**
 - [LeetCode Top Interview Questions](https://leetcode.com/explore/interview/card/top-interview-questions-easy/)
-- [📋 Python Interview Questions](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md)
-- [📋 SQL Interview Questions](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
+- [📋 Python Interview Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md)
+- [📋 SQL Interview Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
 
 ### **System Design Interview**
 - [System Design Primer](https://github.com/donnemartin/system-design-primer)
-- [📄 Data Architecture Concepts](../Core-Data-Engineering/Data-Architecture/)
-- [📄 Data Processing Concepts](../Core-Data-Engineering/Data-Processing/)
-- [📄 Data Warehousing Concepts](../Core-Data-Engineering/Data-Warehousing/)
+- [📄 Data Architecture Concepts](./Core-Data-Engineering/Data-Architecture/)
+- [📄 Data Processing Concepts](./Core-Data-Engineering/Data-Processing/)
+- [📄 Data Warehousing Concepts](./Core-Data-Engineering/Data-Warehousing/)
 
 ### **Cloud-Specific Interview**
-- **AWS**: [📋 AWS Questions](../Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md)
-- **Azure**: [📋 Azure Questions](../Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
-- **GCP**: [📋 GCP Questions](../Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **AWS**: [📋 AWS Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md)
+- **Azure**: [📋 Azure Questions](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **GCP**: [📋 GCP Questions](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
 
 ### **By Experience Level**
 
 #### **Entry Level (0-2 years)**
 **Focus Areas:**
-1. **Programming Fundamentals**: [Python](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md), [SQL](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
-2. **Basic Data Concepts**: [PostgreSQL](../Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md), [Apache Spark](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md)
-3. **Cloud Basics**: [AWS](../Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md), [Azure](../Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+1. **Programming Fundamentals**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md), [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
+2. **Basic Data Concepts**: [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md), [Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md)
+3. **Cloud Basics**: [AWS](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md), [Azure](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
 
 #### **Mid Level (2-5 years)**
 **Focus Areas:**
-1. **Advanced Processing**: [Spark](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md), [Kafka](../Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
-2. **Data Warehousing**: [Snowflake](../Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md), [Redshift](../Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
-3. **DevOps Integration**: [Docker](../Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md), [Kubernetes](../Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md)
+1. **Advanced Processing**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md), [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+2. **Data Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md), [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+3. **DevOps Integration**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md), [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md)
 
 #### **Senior Level (5+ years)**
 **Focus Areas:**
-1. **Architecture**: [Data Architecture Concepts](../Core-Data-Engineering/Data-Architecture/)
-2. **Advanced Tools**: [Airflow](../Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md), [DBT](../Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
-3. **Leadership**: [Project Management Concepts](../Supporting-Tools/Project-Management/)
+1. **Architecture**: [Data Architecture Concepts](./Core-Data-Engineering/Data-Architecture/)
+2. **Advanced Tools**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md), [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+3. **Leadership**: [Project Management Concepts](./Supporting-Tools/Project-Management/)
 
 ---
 
