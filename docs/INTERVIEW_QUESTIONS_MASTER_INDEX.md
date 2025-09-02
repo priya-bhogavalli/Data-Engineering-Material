@@ -36,12 +36,11 @@ Before diving into interview questions, explore our comprehensive tool reference
 | Technology | Interview Questions | Status | Question Count |
 |------------|-------------------|---------|----------------|
 | **Python** | [📋 PYTHON_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | ✅ Complete | 21 Questions |
-
 | **SQL** | [📋 SQL_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 | **SQL Big4 Companies** | [📋 SQL_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 | **PySpark** | [📋 PYSPARK_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 | **PySpark Big4 Companies** | [📋 PYSPARK_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
-| **General Programming** | [📋 PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PROGRAMMING_LANGUAGES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+
 
 ### ☁️ **Cloud Platforms**
 
@@ -49,7 +48,7 @@ Before diving into interview questions, explore our comprehensive tool reference
 | Service | Interview Questions | Status | Question Count |
 |---------|-------------------|---------|----------------|
 | **AWS Comprehensive** | [📋 AWS_INTERVIEW_QUESTIONS_COMPLETE.md](../Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | ✅ Complete | 25+ Questions |
-| **S3** | [📋 S3_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Cloud/AWS/S3_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
+
 | **General Cloud** | [📋 CLOUD_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Cloud/CLOUD_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
 #### **Azure & GCP**
@@ -174,14 +173,14 @@ Before diving into interview questions, explore our comprehensive tool reference
 | **Docker** | [📋 DOCKER_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
 | **Kubernetes** | [📋 KUBERNETES_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 | **Terraform** | [📋 TERRAFORM_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
-| **General DevOps** | [📋 DEVOPS_AUTOMATION_INTERVIEW_QUESTIONS.md](../Supporting-Tools/DevOps-Automation/DEVOPS_AUTOMATION_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
+
 
 ### 🔧 **Version Control**
 
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
 | **Git** | [📋 GIT_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Version-Control/Git/GIT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 10+ Questions |
-| **General Version Control** | [📋 VERSION_CONTROL_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Version-Control/VERSION_CONTROL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8+ Questions |
+
 
 ### 📊 **Visualization & Reporting**
 
@@ -203,7 +202,7 @@ Before diving into interview questions, explore our comprehensive tool reference
 | Topic | Interview Questions | Status | Question Count |
 |-------|-------------------|---------|----------------|
 | **Machine Learning** | [📋 ML_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
-| **General AI** | [📋 AI_INTERVIEW_QUESTIONS.md](../Supporting-Tools/AI/AI_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
+
 
 #### **GenAI & LLMs** ⭐ **NEW**
 | Topic | Interview Questions | Status | Question Count |
@@ -227,12 +226,7 @@ Before diving into interview questions, explore our comprehensive tool reference
 |-------|-------------------|---------|----------------|
 | **Linux** | [📋 LINUX_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Systems/Linux/LINUX_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
 
-### 📋 **Project Management**
 
-| Topic | Interview Questions | Status | Question Count |
-|-------|-------------------|---------|----------------|
-| **Project Management** | [📋 PROJECT_MANAGEMENT_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Project-Management/PROJECT_MANAGEMENT_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
-| **Project Management Big4** | [📋 PROJECT_MANAGEMENT_BIG4_INTERVIEW_QUESTIONS.md](../Supporting-Tools/Project-Management/PROJECT_MANAGEMENT_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 
 ---
 
