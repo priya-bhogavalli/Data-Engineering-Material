@@ -31,14 +31,14 @@
 1. [Purpose](#-purpose)
 2. [Complete Navigation Guide](#-complete-navigation-guide)
 3. [Repository Structure](#-repository-structure)
-4. [Core Data Engineering Topics](#️-core-data-engineering-topics)
+4. [Core Data Engineering Topics](#-core-data-engineering-topics)
    - [Programming Languages](#programming-languages)
    - [Cloud Platforms](#cloud-platforms)
    - [Databases](#databases)
    - [Data Processing & Pipelines](#data-processing--pipelines)
    - [Data Warehousing](#data-warehousing)
    - [Data Architecture & Principles](#data-architecture--principles)
-5. [Supporting Tools & Technologies](#️-supporting-tools--technologies)
+5. [Supporting Tools & Technologies](#-supporting-tools--technologies)
    - [DevOps & Automation](#devops--automation)
    - [Version Control](#version-control)
    - [Visualization & Reporting](#visualization--reporting)
@@ -81,7 +81,7 @@ This guide includes:
 ## 🛠️ **NEW: Comprehensive Tool References**
 
 ### 🔥 **Interactive Tool Selection Wizards**
-- **[📊 Data Processing & Analytics](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md)** - Spark, Kafka, Airflow, Databricks, Snowflake (50+ tools)
+- **[📊 Data Processing & Analytics](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md)** - Spark, Kafka, Airflow, Databricks, Snowflake (50+ tools)
 - **[☁️ AWS Services](./Core-Data-Engineering/Cloud/AWS/AWS_ALL_SERVICES_REFERENCE.md)** - Complete AWS reference with 320+ services
 - **[🚀 DevOps & Infrastructure](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md)** - Docker, Kubernetes, Terraform, Jenkins (60+ tools)
 - **[🤖 AI/ML & Data Science](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md)** - TensorFlow, PyTorch, MLflow, OpenAI API (80+ tools)
@@ -146,7 +146,6 @@ Each topic folder contains:
   - [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/) - JSON-like document database
   - [CouchDB](./Core-Data-Engineering/Databases/NoSQL/CouchDB/) - Multi-master document database
 - **Key-Value Stores**
-  - [Redis](./Core-Data-Engineering/Databases/NoSQL/Redis/) - In-memory data structure store
   - [DynamoDB](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/) - AWS managed NoSQL database
 - **Column-Family**
   - [Cassandra](./Core-Data-Engineering/Databases/NoSQL/Cassandra/) - Distributed wide-column database
@@ -170,7 +169,7 @@ Each topic folder contains:
   - [TiDB](./Core-Data-Engineering/Databases/NewSQL/TiDB/) - Hybrid transactional/analytical processing
 
 ### Data Processing & Pipelines
-- **[🆕 Complete Data Processing Tools Reference](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md)** - 50+ tools with selection wizard
+- **[🆕 Complete Data Processing Tools Reference](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md)** - 50+ tools with selection wizard
 - **Big Data Processing**
   - [Apache Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/)
   - [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/)
@@ -216,7 +215,7 @@ Each topic folder contains:
 - [Tableau](./Supporting-Tools/Visualization-Reporting/Tableau/)
 - [Power BI](./Supporting-Tools/Visualization-Reporting/Power-BI/)
 - [Kibana](./Supporting-Tools/Visualization-Reporting/Kibana/)
-- [Elastic Search](./Supporting-Tools/Visualization-Reporting/Elastic-Search/)
+- [Elasticsearch](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/)
 
 ### AI & Machine Learning
 - **[🆕 Complete AI/ML Tools Reference](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md)** - 80+ tools with framework comparison
@@ -235,23 +234,23 @@ Each topic folder contains:
 - [Extended Languages](./Supporting-Tools/Programming/) (C/C++, C#, JavaScript, MATLAB)
 - [Data Structures & Algorithms](./Supporting-Tools/Programming/Data-Structures-Algorithms/)
 - [Design Patterns](./Supporting-Tools/Programming/Design-Patterns/)
-- [Web Development](./Supporting-Tools/Programming/Web/) (GraphQL, Node.js)
+- [Web Development](./Supporting-Tools/Programming/Web/) ([GraphQL](./Supporting-Tools/Programming/Web/GraphQL/), [Node.js](./Supporting-Tools/Programming/Web/Node-js/), [jQuery](./Supporting-Tools/Programming/Web/jQuery/))
 
 ### Systems & Infrastructure
 - **[🆕 Complete Systems Tools Reference](./Supporting-Tools/Systems/ALL_SYSTEMS_INFRASTRUCTURE_TOOLS_REFERENCE.md)** - 70+ tools with infrastructure patterns
-- [Linux & Shell Scripting](./Supporting-Tools/Systems/Linux/)
+- [Linux](./Supporting-Tools/Systems/Linux/) & [Shell Scripting](./Supporting-Tools/Systems/Shell-Scripting/)
 - [Windows](./Supporting-Tools/Systems/Windows/)
-- [Security & Compliance](./Supporting-Tools/Systems/Security/)
+- [Security](./Supporting-Tools/Systems/Security/) & Compliance
 - [System Design](./Supporting-Tools/Systems/System-Design/) (Distributed Systems, Microservices)
-- [Networking](./Supporting-Tools/Systems/Networking/) (TCP/IP, HTTP/HTTPS, DNS)
+- [Networking](./Supporting-Tools/Systems/Networking/) ([TCP/IP](./Supporting-Tools/Systems/Networking/TCP-IP/), [HTTP/HTTPS](./Supporting-Tools/Systems/Networking/HTTP-HTTPS/), [DNS](./Supporting-Tools/Systems/Networking/DNS/), [VPN](./Supporting-Tools/Systems/Networking/VPN/))
 
 ### Monitoring & Management
 - [Datadog](./Supporting-Tools/Monitoring/Datadog/)
 - [Grafana](./Supporting-Tools/Monitoring/Grafana/)
 
 ### Project Management
-- [Agile & Scrum](./Supporting-Tools/Project-Management/Scrum/)
-- [Jira & Confluence](./Supporting-Tools/Project-Management/Jira/)
+- [Agile Methodologies](./Supporting-Tools/Project-Management/Agile-Methodologies/) & [Scrum](./Supporting-Tools/Project-Management/Scrum/)
+- [Jira](./Supporting-Tools/Project-Management/Jira/) & [Confluence](./Supporting-Tools/Project-Management/Confluence/)
 - [Kanban](./Supporting-Tools/Project-Management/Kanban/)
 - [ServiceNow](./Supporting-Tools/Project-Management/ServiceNow/)
 
@@ -293,7 +292,7 @@ Each topic folder contains:
 2. **Version Control**: Git workflows
 3. **Visualization**: Tableau, Power BI
 4. **Monitoring**: Datadog, Grafana
-5. **Project Management**: Agile, Scrum, Jira
+5. **Project Management**: Agile Methodologies, Scrum, Jira, Confluence
 
 ### 🎓 **Priority 4: Specialized & Emerging**
 1. **AI/ML**: Machine Learning, MLOps

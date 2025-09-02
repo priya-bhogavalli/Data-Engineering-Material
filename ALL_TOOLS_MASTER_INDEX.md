@@ -5,7 +5,7 @@
 ## 🎯 Quick Navigation
 
 ### 🔥 **Most Popular References**
-- [📊 Data Processing & Analytics Tools](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md) - Spark, Kafka, Airflow, Databricks, Snowflake
+- [📊 Data Processing & Analytics Tools](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) - Spark, Kafka, Airflow, Databricks, Snowflake
 - [☁️ AWS Services](./Core-Data-Engineering/Cloud/AWS/AWS_ALL_SERVICES_REFERENCE.md) - 320+ AWS services with interactive wizard
 - [🚀 DevOps & Infrastructure Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) - Docker, Kubernetes, Terraform, Jenkins
 - [🤖 AI/ML & Data Science Tools](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md) - TensorFlow, PyTorch, MLflow, OpenAI API
@@ -22,7 +22,7 @@
 ## 🔄 Data Processing & Analytics
 | Category | Tools Covered | Key Technologies | Reference Link |
 |----------|---------------|------------------|----------------|
-| **Big Data Processing** | 20+ | Spark, Hadoop, Databricks, Presto | [📊 Data Processing Tools](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md) |
+| **Big Data Processing** | 20+ | Spark, Hadoop, Databricks, Presto | [📊 Data Processing Tools](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) |
 | **Streaming** | 15+ | Kafka, Flink, Pulsar, Kinesis | Included in Data Processing |
 | **ETL/ELT** | 25+ | Airflow, Fivetran, Informatica, DBT | Included in Data Processing |
 | **Data Warehousing** | 10+ | Snowflake, Redshift, BigQuery | Included in Data Processing |
@@ -124,11 +124,11 @@ Enterprise (500+) → Add Systems + Visualization + AI/ML
 ### Find Tools by Technology Stack
 - **MEAN/MERN Stack** → [Programming Tools](./Supporting-Tools/Programming/ALL_PROGRAMMING_TOOLS_REFERENCE.md) + [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md)
 - **Data Science Stack** → [AI/ML Tools](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md) + [Data Processing](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md)
-- **Modern Data Stack** → [Data Processing](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/)
+- **Modern Data Stack** → [Data Processing](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/)
 - **Cloud-Native Stack** → [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/)
 
 ### Find Tools by Role
-- **Data Engineer** → Data Processing + Cloud Platforms + DevOps
+- **Data Engineer** → [Data Processing](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/) + [DevOps](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md)
 - **Software Engineer** → Programming + DevOps + Systems
 - **Data Scientist** → AI/ML + Data Processing + Visualization
 - **DevOps Engineer** → DevOps + Systems + Cloud Platforms
@@ -150,7 +150,7 @@ Enterprise (500+) → Add Systems + Visualization + AI/ML
 3. Add [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) - Docker basics
 
 ### Intermediate Path (6-18 months)
-1. Master [Data Processing](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md) - Spark, Kafka
+1. Master [Data Processing](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) - Spark, Kafka
 2. Advance in [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) - Kubernetes, Terraform
 3. Explore [AI/ML Tools](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md) - Basic ML
 
