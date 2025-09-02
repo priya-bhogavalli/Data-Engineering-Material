@@ -42,14 +42,14 @@
 #### **Programming Languages**
 | Technology | Interview Questions | Status | Question Count |
 |------------|-------------------|---------|----------------|
-| **Python** | [📋 PYTHON_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
-| **SQL** | [📋 SQL_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
-| **PySpark** | [📋 PYSPARK_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 27+ Questions |
+| **Python** | [📋 PYTHON_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | ✅ Complete | 41 Questions |
+| **SQL** | [📋 SQL_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 103 Questions |
+| **PySpark** | [📋 PYSPARK_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 11 Questions |
 
 #### **Cloud Platforms**
 | Platform | Interview Questions | Status | Question Count |
 |----------|-------------------|---------|----------------|
-| **AWS** | [📋 AWS_INTERVIEW_QUESTIONS_COMPLETE.md](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | ✅ Complete | 35+ Questions |
+| **AWS** | [📋 AWS_INTERVIEW_QUESTIONS_COMPLETE.md](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | ✅ Complete | 15 Questions |
 | **Azure** | [📋 AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 | **GCP** | [📋 GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 18+ Questions |
 
@@ -64,9 +64,9 @@
 #### **Data Processing & Pipelines**
 | Tool | Interview Questions | Status | Question Count |
 |------|-------------------|---------|----------------|
-| **Apache Spark** | [📋 SPARK_INTERVIEW_QUESTIONS_COMPLETE.md](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | ✅ Complete | 35+ Questions |
+| **Apache Spark** | [📋 SPARK_INTERVIEW_QUESTIONS_COMPLETE.md](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | ✅ Complete | 20 Questions |
 | **Databricks** | [📋 DATABRICKS_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | ✅ Complete | 27+ Questions |
-| **Apache Kafka** | [📋 KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
+| **Apache Kafka** | [📋 KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 40 Questions |
 | **Apache Airflow** | [📋 AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
 | **DBT** | [📋 DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Complete | 35+ Questions |
 
@@ -106,6 +106,143 @@
 | 1 | Python | Programming fundamentals | 4-6 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/Python/) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) |
 | 2 | SQL | Database querying | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/SQL/) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) |
 | 3 | PostgreSQL | Relational databases | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Databases/PostgreSQL/) \| [📋 Questions](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) |
+| 4 | AWS Basics | Cloud fundamentals | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Cloud/AWS/) \| [📋 Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) |
+| 5 | Apache Spark | Big data processing | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Apache-Spark/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) |
+
+### 🚀 **Intermediate (1-3 years)**
+| Order | Technology | Focus Area | Time Investment | Resources |
+|-------|------------|------------|-----------------|-----------|
+| 1 | Apache Kafka | Streaming data | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| 2 | Apache Airflow | Orchestration | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| 3 | Snowflake/Redshift | Data warehousing | 2-3 weeks | [📄 Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/) \| [📄 Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/) |
+| 4 | Docker/Kubernetes | Containerization | 2-3 weeks | [📄 Docker](./Supporting-Tools/DevOps-Automation/Docker/) \| [📄 Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/) |
+
+### 🎓 **Advanced (3+ years)**
+| Order | Technology | Focus Area | Time Investment | Resources |
+|-------|------------|------------|-----------------|-----------|
+| 1 | System Design | Architecture patterns | 4-6 weeks | [📄 System Design](./Supporting-Tools/Systems/System-Design/) |
+| 2 | Multi-Cloud | Azure/GCP expertise | 3-4 weeks | [📄 Azure](./Core-Data-Engineering/Cloud/Azure/) \| [📄 GCP](./Core-Data-Engineering/Cloud/GCP/) |
+| 3 | MLOps | ML in production | 3-4 weeks | [📄 MLOps](./Supporting-Tools/AI/MLOps/) \| [📄 ML](./Supporting-Tools/AI/Machine-Learning/) |
+| 4 | Data Architecture | Advanced patterns | 4-6 weeks | [📄 Data Vault](./Core-Data-Engineering/Data-Architecture/Data-Vault-2.0/) \| [📄 Data Mesh](./Core-Data-Engineering/Data-Architecture/Data-Mesh/) |
+
+---
+
+## 🎯 **Complete Interview Preparation Guide**
+
+### 🏢 **Company-Specific Preparation**
+
+#### **FAANG Companies**
+
+**Meta (Facebook)**
+- **Focus**: Large-scale data processing, real-time analytics, A/B testing
+- **Key Technologies**: Presto, Spark, Hive, Scribe
+- **Common Questions**: News feed data processing, fake account detection
+- **Resources**: [Meta Engineering Blog](https://engineering.fb.com/)
+
+**Amazon**
+- **Focus**: AWS services, distributed systems, cost optimization
+- **Key Technologies**: AWS ecosystem, DynamoDB, Redshift, Kinesis
+- **Common Questions**: Recommendation engine, traffic surge handling
+- **Resources**: [AWS Architecture Center](https://aws.amazon.com/architecture/)
+
+**Netflix**
+- **Focus**: Microservices, real-time processing, content recommendations
+- **Key Technologies**: Kafka, Cassandra, Spark, Flink
+- **Common Questions**: Content recommendation system, global CDN
+- **Resources**: [Netflix Tech Blog](https://netflixtechblog.com/)
+
+**Google**
+- **Focus**: BigQuery, GCP services, ML at scale
+- **Key Technologies**: BigQuery, Dataflow, Pub/Sub, Bigtable
+- **Common Questions**: Search indexing, YouTube metadata processing
+- **Resources**: [Google Cloud Blog](https://cloud.google.com/blog/)
+
+**Apple**
+- **Focus**: Privacy-focused processing, mobile analytics
+- **Key Technologies**: Core Data, CloudKit, Hadoop, Spark
+- **Common Questions**: Privacy-compliant analytics, supply chain tracking
+- **Resources**: [Apple ML Journal](https://machinelearning.apple.com/)
+
+#### **Data-Focused Companies**
+
+**Databricks**
+- **Focus**: Spark expertise, Lakehouse architecture, MLOps
+- **Key Technologies**: Apache Spark, Delta Lake, MLflow
+- **Resources**: [Databricks Academy](https://academy.databricks.com/)
+
+**Snowflake**
+- **Focus**: Cloud data warehouse, data sharing, performance optimization
+- **Key Technologies**: Snowflake, SQL, semi-structured data
+- **Resources**: [Snowflake University](https://university.snowflake.com/)
+
+**Confluent**
+- **Focus**: Kafka expertise, event streaming, schema governance
+- **Key Technologies**: Apache Kafka, Schema Registry, ksqlDB
+- **Resources**: [Confluent Developer](https://developer.confluent.io/)
+
+### 📚 **Free Interview Resources**
+
+#### **Programming Practice**
+- **LeetCode**: [Database Problems](https://leetcode.com/problemset/database/)
+- **HackerRank**: [SQL Domain](https://www.hackerrank.com/domains/sql)
+- **StrataScratch**: [Data Science Questions](https://www.stratascratch.com/)
+- **DataLemur**: [SQL Interview Questions](https://datalemur.com/)
+
+#### **System Design**
+- **High Scalability**: [System Design Articles](http://highscalability.com/)
+- **System Design Primer**: [GitHub Repository](https://github.com/donnemartin/system-design-primer)
+- **Grokking System Design**: [Free Articles](https://www.educative.io/blog)
+
+#### **Cloud Platforms**
+- **AWS**: [Skill Builder](https://skillbuilder.aws/) (Free tier)
+- **Azure**: [Microsoft Learn](https://docs.microsoft.com/en-us/learn/)
+- **GCP**: [Cloud Skills Boost](https://www.cloudskillsboost.google/) (Free labs)
+
+### 🎯 **Interview Preparation by Type**
+
+#### **Technical Coding (30-40%)**
+- **SQL Queries**: Complex joins, window functions, CTEs
+- **Python/Scala**: Data manipulation, algorithms, OOP
+- **Data Structures**: Arrays, hashmaps, trees, graphs
+- **Time Complexity**: Big O analysis, optimization
+
+#### **System Design (25-35%)**
+- **Data Pipeline Design**: ETL/ELT architectures
+- **Database Selection**: SQL vs NoSQL trade-offs
+- **Scalability**: Horizontal vs vertical scaling
+- **Monitoring**: Observability and alerting
+
+#### **Behavioral (20-25%)**
+- **Leadership**: Team collaboration, mentoring
+- **Problem Solving**: Debugging, root cause analysis
+- **Communication**: Explaining technical concepts
+- **Learning**: Adapting to new technologies
+
+#### **Domain Knowledge (10-15%)**
+- **Data Modeling**: Dimensional modeling, normalization
+- **Data Quality**: Validation, monitoring, lineage
+- **Compliance**: GDPR, HIPAA, data governance
+- **Performance**: Query optimization, indexing
+
+### ⏰ **Study Timeline & Strategy**
+
+#### **4-Week Intensive Prep**
+**Week 1**: Python/SQL fundamentals, data structures
+**Week 2**: Cloud platforms, big data tools
+**Week 3**: System design, advanced topics
+**Week 4**: Mock interviews, company-specific prep
+
+#### **8-Week Comprehensive Prep**
+**Weeks 1-2**: Foundation building
+**Weeks 3-4**: Core data engineering
+**Weeks 5-6**: Advanced concepts
+**Weeks 7-8**: Interview simulation
+
+### 📊 **Success Metrics**
+- **Coding**: Solve 80% of medium problems in 45 minutes
+- **System Design**: Design scalable systems with trade-off analysis
+- **Behavioral**: Have 5-7 STAR stories ready
+- **Domain**: Explain data engineering concepts clearly
 | 4 | AWS Basics | Cloud fundamentals | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Cloud/AWS/) \| [📋 Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) |
 | 5 | Apache Spark | Big data processing | 4-5 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Apache-Spark/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) |
 
