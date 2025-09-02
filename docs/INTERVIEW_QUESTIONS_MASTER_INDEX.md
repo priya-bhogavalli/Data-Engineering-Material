@@ -36,8 +36,7 @@ Before diving into interview questions, explore our comprehensive tool reference
 | Technology | Interview Questions | Status | Question Count |
 |------------|-------------------|---------|----------------|
 | **Python** | [📋 PYTHON_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | ✅ Complete | 21 Questions |
-| **Python Data Structures** | [📋 PYTHON_DATA_STRUCTURES_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_DATA_STRUCTURES_INTERVIEW_QUESTIONS.md) | ✅ Complete | 8 Questions |
-| **Python Big4 Companies** | [📋 PYTHON_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 25+ Questions |
+
 | **SQL** | [📋 SQL_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | ✅ Complete | 15+ Questions |
 | **SQL Big4 Companies** | [📋 SQL_BIG4_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) | ✅ Complete | 20+ Questions |
 | **PySpark** | [📋 PYSPARK_INTERVIEW_QUESTIONS.md](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | ✅ Complete | 12+ Questions |
