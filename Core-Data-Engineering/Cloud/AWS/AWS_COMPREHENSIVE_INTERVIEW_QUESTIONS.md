@@ -15,58 +15,27 @@
 
 ## Basic Level Questions (1-20)
 
-### 1. What are the core AWS services for data engineering and their use cases?
+### 1. What are the core AWS services for data engineering and how do you choose between them?
 **Answer**: 
-AWS provides a comprehensive suite of services for building modern data engineering solutions. Understanding these services and their optimal use cases is crucial for designing scalable, cost-effective data architectures.
+AWS provides a comprehensive suite of services for data engineering. The key is understanding when to use each service based on your specific requirements.
 
-**Essential AWS services for data engineering:
+**Storage Services Decision Matrix**:
+- **S3**: Choose for scalable object storage, data lakes, and archival. Best for unstructured data and when you need virtually unlimited storage.
+- **EBS**: Choose for high-performance block storage attached to EC2. Best for databases requiring consistent IOPS.
+- **EFS**: Choose when multiple EC2 instances need shared file access. Best for distributed applications.
+- **Redshift**: Choose for structured data warehousing with complex analytical queries.
 
-**Storage Services**:
-- **S3**: Object storage for data lakes, backups, static websites
-- **EBS**: Block storage for EC2 instances
-- **EFS**: Managed file system for multiple EC2 instances
-- **Glacier**: Long-term archival storage
+**Compute Services Decision Factors**:
+- **Lambda**: Choose for event-driven, short-duration tasks (< 15 minutes). Best for serverless ETL and real-time processing.
+- **EC2**: Choose when you need full control over the computing environment. Best for custom applications and long-running processes.
+- **EMR**: Choose for big data processing with Hadoop/Spark. Best for large-scale data transformations.
+- **Glue**: Choose for managed ETL with minimal infrastructure management. Best for standard data transformations.
 
-**Compute Services**:
-- **EC2**: Virtual servers for custom applications
-- **Lambda**: Serverless compute for event-driven processing
-- **EMR**: Managed Hadoop/Spark clusters
-- **Batch**: Managed batch computing
-
-**Database Services**:
-- **RDS**: Managed relational databases
-- **DynamoDB**: NoSQL database
-- **Redshift**: Data warehouse
-- **DocumentDB**: MongoDB-compatible database
-
-**Analytics Services**:
-- **Athena**: Serverless SQL queries on S3
-- **Glue**: ETL service and data catalog
-- **Kinesis**: Real-time data streaming
-- **QuickSight**: Business intelligence
-
-```python
-# Example: Basic AWS SDK usage
-import boto3
-
-# Initialize clients
-s3 = boto3.client('s3')
-glue = boto3.client('glue')
-athena = boto3.client('athena')
-
-# S3 operations
-s3.upload_file('local_file.csv', 'my-bucket', 'data/file.csv')
-response = s3.list_objects_v2(Bucket='my-bucket', Prefix='data/')
-
-# Glue job trigger
-glue.start_job_run(JobName='etl-job')
-
-# Athena query
-athena.start_query_execution(
-    QueryString='SELECT * FROM my_table LIMIT 10',
-    ResultConfiguration={'OutputLocation': 's3://results-bucket/'}
-)
-```
+**Key Decision Criteria**:
+- **Data Volume**: Small (GB) → Lambda/RDS, Medium (TB) → EMR/Redshift, Large (PB) → S3/EMR
+- **Processing Pattern**: Batch → EMR/Glue, Real-time → Kinesis/Lambda, Interactive → Athena
+- **Management Overhead**: Minimal → Serverless services, Full control → EC2-based services
+- **Cost Sensitivity**: Pay-per-use → Serverless, Predictable → Reserved instances
 
 ### 2. How do you design a data lake architecture on AWS?
 **Answer**: Data lake architecture components:

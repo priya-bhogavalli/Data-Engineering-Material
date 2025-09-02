@@ -276,7 +276,185 @@ SELECT department, AVG(salary)
 FROM employees
 GROUP BY department;
 
--- Window function - keeps all rows
+-- Window function - keeps all rows, adds calculated column
+SELECT 
+    name,
+    department,
+    salary,
+    AVG(salary) OVER (PARTITION BY department) as dept_avg_salary,
+    salary - AVG(salary) OVER (PARTITION BY department) as salary_diff_from_avg,
+    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank
+FROM employees;
+
+-- Running totals and moving averages
+SELECT 
+    order_date,
+    order_amount,
+    SUM(order_amount) OVER (ORDER BY order_date ROWS UNBOUNDED PRECEDING) as running_total,
+    AVG(order_amount) OVER (ORDER BY order_date ROWS 2 PRECEDING) as moving_avg_3_days
+FROM orders
+ORDER BY order_date;
+
+### 17. Explain different types of JOINs with examples
+**Answer:**
+```sql
+-- Sample tables
+CREATE TABLE customers (id INT, name VARCHAR(50));
+CREATE TABLE orders (id INT, customer_id INT, amount DECIMAL(10,2));
+
+-- INNER JOIN - only matching records
+SELECT c.name, o.amount
+FROM customers c
+INNER JOIN orders o ON c.id = o.customer_id;
+
+-- LEFT JOIN - all customers, matched orders
+SELECT c.name, COALESCE(o.amount, 0) as order_amount
+FROM customers c
+LEFT JOIN orders o ON c.id = o.customer_id;
+
+-- RIGHT JOIN - all orders, matched customers
+SELECT COALESCE(c.name, 'Unknown') as customer_name, o.amount
+FROM customers c
+RIGHT JOIN orders o ON c.id = o.customer_id;
+
+-- FULL OUTER JOIN - all records from both tables
+SELECT c.name, o.amount
+FROM customers c
+FULL OUTER JOIN orders o ON c.id = o.customer_id;
+
+-- CROSS JOIN - Cartesian product
+SELECT c.name, p.product_name
+FROM customers c
+CROS JOIN products p;
+
+-- SELF JOIN - join table to itself
+SELECT e1.name as employee, e2.name as manager
+FROM employees e1
+JOIN employees e2 ON e1.manager_id = e2.employee_id;
+```
+
+### 18. What are CTEs (Common Table Expressions) and when to use them?
+**Answer:**
+CTEs provide temporary named result sets that exist only during query execution.
+
+```sql
+-- Basic CTE
+WITH high_earners AS (
+    SELECT department, name, salary
+    FROM employees
+    WHERE salary > 80000
+)
+SELECT department, COUNT(*) as high_earner_count
+FROM high_earners
+GROUP BY department;
+
+-- Recursive CTE - organizational hierarchy
+WITH RECURSIVE employee_hierarchy AS (
+    -- Base case: top-level managers
+    SELECT employee_id, name, manager_id, 1 as level
+    FROM employees
+    WHERE manager_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive case: employees with managers
+    SELECT e.employee_id, e.name, e.manager_id, eh.level + 1
+    FROM employees e
+    JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id
+)
+SELECT * FROM employee_hierarchy ORDER BY level, name;
+
+-- Multiple CTEs
+WITH 
+sales_summary AS (
+    SELECT customer_id, SUM(amount) as total_sales
+    FROM orders
+    WHERE order_date >= '2023-01-01'
+    GROUP BY customer_id
+),
+top_customers AS (
+    SELECT customer_id, total_sales
+    FROM sales_summary
+    WHERE total_sales > 10000
+)
+SELECT c.name, tc.total_sales
+FROM customers c
+JOIN top_customers tc ON c.id = tc.customer_id;
+```
+
+### 19. Explain UNION vs UNION ALL
+**Answer:**
+```sql
+-- UNION - removes duplicates, slower
+SELECT name FROM customers
+UNION
+SELECT name FROM suppliers;
+
+-- UNION ALL - keeps duplicates, faster
+SELECT name FROM customers
+UNION ALL
+SELECT name FROM suppliers;
+
+-- Practical example: combining current and historical data
+SELECT customer_id, order_date, amount, 'current' as source
+FROM current_orders
+UNION ALL
+SELECT customer_id, order_date, amount, 'historical' as source
+FROM historical_orders
+ORDER BY order_date DESC;
+```
+
+### 20. What are subqueries and their types?
+**Answer:**
+```sql
+-- Scalar subquery - returns single value
+SELECT name, salary,
+       salary - (SELECT AVG(salary) FROM employees) as salary_diff
+FROM employees;
+
+-- Correlated subquery - references outer query
+SELECT name, salary
+FROM employees e1
+WHERE salary > (SELECT AVG(salary) 
+                FROM employees e2 
+                WHERE e2.department = e1.department);
+
+-- EXISTS subquery - checks for existence
+SELECT name
+FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
+
+-- IN subquery - membership test
+SELECT name
+FROM employees
+WHERE department_id IN (SELECT id FROM departments WHERE location = 'New York');
+
+-- ANY/ALL subqueries
+SELECT name, salary
+FROM employees
+WHERE salary > ANY (SELECT salary FROM employees WHERE department = 'Sales');
+
+SELECT name, salary
+FROM employees
+WHERE salary > ALL (SELECT salary FROM employees WHERE department = 'Sales');
+``` - keeps all rows, adds calculated column
+SELECT 
+    name,
+    department,
+    salary,
+    AVG(salary) OVER (PARTITION BY department) as dept_avg_salary,
+    salary - AVG(salary) OVER (PARTITION BY department) as salary_diff_from_avg,
+    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank
+FROM employees;
+
+-- Running totals and moving averages
+SELECT 
+    order_date,
+    order_amount,
+    SUM(order_amount) OVER (ORDER BY order_date ROWS UNBOUNDED PRECEDING) as running_total,
+    AVG(order_amount) OVER (ORDER BY order_date ROWS 2 PRECEDING) as moving_avg_3_days
+FROM orders
+ORDER BY order_date; - keeps all rows
 SELECT 
     name,
     department,
@@ -2603,4 +2781,5243 @@ SELECT * FROM execute_data_quality_checks();
 13. **Data Engineering**: ETL processes, data pipelines, and batch processing
 14. **Analytics**: Complex aggregations, time-series analysis, and business metrics
 15. **Modern SQL**: JSON handling, array operations, and NoSQL integration
+```
+### 21. How do you handle duplicate records?
+**Answer:**
+```sql
+-- Find duplicates
+SELECT email, COUNT(*)
+FROM customers
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+-- Remove duplicates using ROW_NUMBER()
+WITH duplicates AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY email ORDER BY created_date DESC) as rn
+    FROM customers
+)
+DELETE FROM customers
+WHERE id IN (SELECT id FROM duplicates WHERE rn > 1);
+
+-- Remove duplicates using DISTINCT
+SELECT DISTINCT customer_id, product_id, order_date
+FROM orders;
+
+-- Keep latest record per group
+SELECT *
+FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC) as rn
+    FROM orders
+) ranked
+WHERE rn = 1;
+```
+
+### 22. Explain database normalization and its forms
+**Answer:**
+Normalization reduces data redundancy and improves data integrity.
+
+**1NF (First Normal Form):**
+- Atomic values (no repeating groups)
+- Each column contains single value
+
+**2NF (Second Normal Form):**
+- Must be in 1NF
+- No partial dependencies on composite primary key
+
+**3NF (Third Normal Form):**
+- Must be in 2NF
+- No transitive dependencies
+
+```sql
+-- Unnormalized table
+CREATE TABLE orders_bad (
+    order_id INT,
+    customer_name VARCHAR(100),
+    customer_address VARCHAR(200),
+    product1 VARCHAR(50),
+    product2 VARCHAR(50),
+    product3 VARCHAR(50)
+);
+
+-- Normalized tables (3NF)
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    address VARCHAR(200)
+);
+
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    name VARCHAR(50),
+    price DECIMAL(10,2)
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE
+);
+
+CREATE TABLE order_items (
+    order_id INT REFERENCES orders(order_id),
+    product_id INT REFERENCES products(product_id),
+    quantity INT,
+    PRIMARY KEY (order_id, product_id)
+);
+```
+
+### 23. What are stored procedures and functions?
+**Answer:**
+```sql
+-- Stored Procedure
+CREATE OR REPLACE PROCEDURE update_employee_salary(
+    emp_id INT,
+    new_salary DECIMAL(10,2)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE employees 
+    SET salary = new_salary,
+        updated_date = CURRENT_TIMESTAMP
+    WHERE employee_id = emp_id;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Employee % not found', emp_id;
+    END IF;
+END;
+$$;
+
+-- Call procedure
+CALL update_employee_salary(123, 75000.00);
+
+-- Function
+CREATE OR REPLACE FUNCTION calculate_bonus(
+    emp_salary DECIMAL(10,2),
+    performance_rating INT
+)
+RETURNS DECIMAL(10,2)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN CASE 
+        WHEN performance_rating >= 4 THEN emp_salary * 0.15
+        WHEN performance_rating >= 3 THEN emp_salary * 0.10
+        WHEN performance_rating >= 2 THEN emp_salary * 0.05
+        ELSE 0
+    END;
+END;
+$$;
+
+-- Use function
+SELECT name, salary, 
+       calculate_bonus(salary, performance_rating) as bonus
+FROM employees;
+```
+
+### 24. Explain triggers and their types
+**Answer:**
+```sql
+-- BEFORE INSERT trigger
+CREATE OR REPLACE FUNCTION audit_employee_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO employee_audit (employee_id, action, timestamp)
+        VALUES (NEW.employee_id, 'INSERT', NOW());
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO employee_audit (employee_id, action, old_salary, new_salary, timestamp)
+        VALUES (NEW.employee_id, 'UPDATE', OLD.salary, NEW.salary, NOW());
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO employee_audit (employee_id, action, timestamp)
+        VALUES (OLD.employee_id, 'DELETE', NOW());
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers
+CREATE TRIGGER employee_audit_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON employees
+    FOR EACH ROW EXECUTE FUNCTION audit_employee_changes();
+
+-- BEFORE UPDATE trigger for validation
+CREATE OR REPLACE FUNCTION validate_salary_increase()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.salary > OLD.salary * 1.5 THEN
+        RAISE EXCEPTION 'Salary increase cannot exceed 50%';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER salary_validation_trigger
+    BEFORE UPDATE ON employees
+    FOR EACH ROW EXECUTE FUNCTION validate_salary_increase();
+```
+
+### 25. How do you optimize SQL queries?
+**Answer:**
+```sql
+-- 1. Use appropriate indexes
+CREATE INDEX idx_orders_customer_date ON orders(customer_id, order_date);
+
+-- 2. Avoid SELECT *
+SELECT customer_id, order_date, amount FROM orders;  -- Good
+SELECT * FROM orders;  -- Avoid
+
+-- 3. Use WHERE clause effectively
+SELECT * FROM orders WHERE order_date >= '2023-01-01';  -- Good
+SELECT * FROM orders WHERE YEAR(order_date) = 2023;    -- Avoid (not sargable)
+
+-- 4. Use EXISTS instead of IN for large datasets
+SELECT * FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
+
+-- 5. Use LIMIT for large result sets
+SELECT * FROM orders ORDER BY order_date DESC LIMIT 100;
+
+-- 6. Optimize JOINs
+-- Use smaller table as driving table
+SELECT c.name, o.amount
+FROM small_customers c
+JOIN large_orders o ON c.id = o.customer_id;
+
+-- 7. Use UNION ALL instead of UNION when duplicates are acceptable
+SELECT name FROM customers
+UNION ALL
+SELECT name FROM suppliers;
+```
+
+### 26. What is the difference between clustered and non-clustered indexes?
+**Answer:**
+**Clustered Index:**
+- Physically reorders table data
+- One per table (usually primary key)
+- Faster for range queries
+- Slower for inserts/updates
+
+**Non-clustered Index:**
+- Separate structure pointing to data rows
+- Multiple per table allowed
+- Faster for exact matches
+- Additional storage overhead
+
+```sql
+-- Clustered index (implicit with PRIMARY KEY)
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,  -- Clustered index
+    customer_id INT,
+    order_date DATE
+);
+
+-- Non-clustered indexes
+CREATE INDEX idx_customer ON orders(customer_id);
+CREATE INDEX idx_date ON orders(order_date);
+CREATE INDEX idx_customer_date ON orders(customer_id, order_date);
+
+-- Query execution plans will show index usage
+EXPLAIN SELECT * FROM orders WHERE customer_id = 123;
+```
+
+### 27. Explain CASE statements and their usage
+**Answer:**
+```sql
+-- Simple CASE
+SELECT name, salary,
+    CASE department
+        WHEN 'Sales' THEN salary * 1.1
+        WHEN 'Engineering' THEN salary * 1.15
+        WHEN 'Marketing' THEN salary * 1.05
+        ELSE salary
+    END as adjusted_salary
+FROM employees;
+
+-- Searched CASE
+SELECT name, salary,
+    CASE 
+        WHEN salary >= 100000 THEN 'Senior'
+        WHEN salary >= 70000 THEN 'Mid-level'
+        WHEN salary >= 40000 THEN 'Junior'
+        ELSE 'Entry-level'
+    END as level,
+    CASE 
+        WHEN performance_rating >= 4 THEN 'Excellent'
+        WHEN performance_rating >= 3 THEN 'Good'
+        WHEN performance_rating >= 2 THEN 'Satisfactory'
+        ELSE 'Needs Improvement'
+    END as performance
+FROM employees;
+
+-- CASE in WHERE clause
+SELECT * FROM orders
+WHERE 
+    CASE 
+        WHEN EXTRACT(MONTH FROM order_date) IN (11, 12) THEN amount > 1000
+        ELSE amount > 500
+    END;
+
+-- CASE for conditional aggregation
+SELECT 
+    department,
+    COUNT(*) as total_employees,
+    COUNT(CASE WHEN salary > 80000 THEN 1 END) as high_earners,
+    COUNT(CASE WHEN performance_rating >= 4 THEN 1 END) as top_performers
+FROM employees
+GROUP BY department;
+```
+
+### 28. What are views and materialized views?
+**Answer:**
+```sql
+-- Regular View - virtual table
+CREATE VIEW high_value_customers AS
+SELECT c.customer_id, c.name, SUM(o.amount) as total_spent
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name
+HAVING SUM(o.amount) > 10000;
+
+-- Use view
+SELECT * FROM high_value_customers WHERE name LIKE 'A%';
+
+-- Materialized View - physically stored
+CREATE MATERIALIZED VIEW monthly_sales_summary AS
+SELECT 
+    DATE_TRUNC('month', order_date) as month,
+    COUNT(*) as order_count,
+    SUM(amount) as total_sales,
+    AVG(amount) as avg_order_value
+FROM orders
+GROUP BY DATE_TRUNC('month', order_date);
+
+-- Refresh materialized view
+REFRESH MATERIALIZED VIEW monthly_sales_summary;
+
+-- Updatable view
+CREATE VIEW active_employees AS
+SELECT employee_id, name, salary, department
+FROM employees
+WHERE status = 'ACTIVE'
+WITH CHECK OPTION;
+
+-- Updates through view
+UPDATE active_employees SET salary = 85000 WHERE employee_id = 123;
+```
+
+### 29. How do you handle date and time operations?
+**Answer:**
+```sql
+-- Date arithmetic
+SELECT 
+    order_date,
+    order_date + INTERVAL '30 days' as due_date,
+    order_date - INTERVAL '1 week' as week_ago,
+    AGE(CURRENT_DATE, order_date) as order_age
+FROM orders;
+
+-- Date functions
+SELECT 
+    EXTRACT(YEAR FROM order_date) as year,
+    EXTRACT(MONTH FROM order_date) as month,
+    EXTRACT(DAY FROM order_date) as day,
+    EXTRACT(DOW FROM order_date) as day_of_week,
+    DATE_TRUNC('month', order_date) as month_start,
+    DATE_PART('quarter', order_date) as quarter
+FROM orders;
+
+-- Date formatting
+SELECT 
+    TO_CHAR(order_date, 'YYYY-MM-DD') as formatted_date,
+    TO_CHAR(order_date, 'Month DD, YYYY') as readable_date,
+    TO_CHAR(created_timestamp, 'YYYY-MM-DD HH24:MI:SS') as timestamp_str
+FROM orders;
+
+-- Time zone handling
+SELECT 
+    created_timestamp AT TIME ZONE 'UTC' as utc_time,
+    created_timestamp AT TIME ZONE 'America/New_York' as ny_time,
+    CURRENT_TIMESTAMP as local_time,
+    NOW() AT TIME ZONE 'UTC' as current_utc
+FROM orders;
+
+-- Date ranges and filtering
+SELECT * FROM orders
+WHERE order_date BETWEEN '2023-01-01' AND '2023-12-31'
+  AND EXTRACT(DOW FROM order_date) NOT IN (0, 6);  -- Exclude weekends
+```
+
+### 30. Explain string functions and operations
+**Answer:**
+```sql
+-- String manipulation
+SELECT 
+    UPPER(name) as uppercase_name,
+    LOWER(email) as lowercase_email,
+    INITCAP(address) as proper_case_address,
+    LENGTH(description) as desc_length,
+    TRIM(BOTH ' ' FROM name) as trimmed_name
+FROM customers;
+
+-- String extraction and modification
+SELECT 
+    SUBSTRING(phone FROM 1 FOR 3) as area_code,
+    LEFT(name, 10) as short_name,
+    RIGHT(email, 10) as email_suffix,
+    REPLACE(phone, '-', '') as clean_phone,
+    CONCAT(first_name, ' ', last_name) as full_name
+FROM customers;
+
+-- Pattern matching
+SELECT * FROM customers
+WHERE name LIKE 'John%'           -- Starts with 'John'
+   OR email LIKE '%@gmail.com'    -- Ends with '@gmail.com'
+   OR phone ~ '^[0-9]{3}-[0-9]{3}-[0-9]{4}$';  -- Regex pattern
+
+-- String aggregation
+SELECT 
+    department,
+    STRING_AGG(name, ', ' ORDER BY name) as employee_list,
+    ARRAY_AGG(salary ORDER BY salary DESC) as salary_array
+FROM employees
+GROUP BY department;
+
+-- JSON string operations
+SELECT 
+    data->>'name' as extracted_name,
+    data->'address'->>'city' as city,
+    JSON_EXTRACT_PATH_TEXT(data, 'contact', 'email') as email
+FROM user_profiles
+WHERE data ? 'active';  -- Check if JSON key exists
+```
+
+### 31. What are table partitioning strategies?
+**Answer:**
+```sql
+-- Range partitioning by date
+CREATE TABLE orders (
+    order_id SERIAL,
+    customer_id INT,
+    order_date DATE,
+    amount DECIMAL(10,2)
+) PARTITION BY RANGE (order_date);
+
+-- Create partitions
+CREATE TABLE orders_2023_q1 PARTITION OF orders
+    FOR VALUES FROM ('2023-01-01') TO ('2023-04-01');
+
+CREATE TABLE orders_2023_q2 PARTITION OF orders
+    FOR VALUES FROM ('2023-04-01') TO ('2023-07-01');
+
+-- Hash partitioning
+CREATE TABLE customers (
+    customer_id SERIAL,
+    name VARCHAR(100),
+    email VARCHAR(100)
+) PARTITION BY HASH (customer_id);
+
+CREATE TABLE customers_p1 PARTITION OF customers
+    FOR VALUES WITH (MODULUS 4, REMAINDER 0);
+
+CREATE TABLE customers_p2 PARTITION OF customers
+    FOR VALUES WITH (MODULUS 4, REMAINDER 1);
+
+-- List partitioning
+CREATE TABLE sales (
+    sale_id SERIAL,
+    region VARCHAR(20),
+    amount DECIMAL(10,2)
+) PARTITION BY LIST (region);
+
+CREATE TABLE sales_north PARTITION OF sales
+    FOR VALUES IN ('North', 'Northeast', 'Northwest');
+
+CREATE TABLE sales_south PARTITION OF sales
+    FOR VALUES IN ('South', 'Southeast', 'Southwest');
+```
+
+### 32. How do you implement data validation in SQL?
+**Answer:**
+```sql
+-- Check constraints
+CREATE TABLE employees (
+    employee_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    salary DECIMAL(10,2) CHECK (salary > 0 AND salary <= 1000000),
+    hire_date DATE CHECK (hire_date <= CURRENT_DATE),
+    department VARCHAR(50) CHECK (department IN ('Sales', 'Engineering', 'Marketing', 'HR')),
+    age INT CHECK (age BETWEEN 18 AND 65)
+);
+
+-- Domain constraints
+CREATE DOMAIN email_type AS VARCHAR(100)
+CHECK (VALUE ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+
+CREATE DOMAIN phone_type AS VARCHAR(15)
+CHECK (VALUE ~ '^\+?[1-9]\d{1,14}$');
+
+CREATE TABLE contacts (
+    id SERIAL PRIMARY KEY,
+    email email_type,
+    phone phone_type
+);
+
+-- Validation functions
+CREATE OR REPLACE FUNCTION validate_credit_card(card_number TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- Luhn algorithm implementation
+    RETURN LENGTH(card_number) BETWEEN 13 AND 19 
+           AND card_number ~ '^[0-9]+$';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Use in check constraint
+ALTER TABLE payments 
+ADD CONSTRAINT valid_card_number 
+CHECK (validate_credit_card(card_number));
+```
+
+### 33. Explain transaction isolation levels
+**Answer:**
+Transaction isolation levels control how transactions interact with each other:
+
+**READ UNCOMMITTED:**
+- Lowest isolation level
+- Allows dirty reads, non-repeatable reads, phantom reads
+
+**READ COMMITTED:**
+- Default in most databases
+- Prevents dirty reads
+- Allows non-repeatable reads and phantom reads
+
+**REPEATABLE READ:**
+- Prevents dirty reads and non-repeatable reads
+- Allows phantom reads
+
+**SERIALIZABLE:**
+- Highest isolation level
+- Prevents all phenomena
+- May cause more deadlocks
+
+```sql
+-- Set isolation level
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Example of isolation level effects
+-- Session 1
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT balance FROM accounts WHERE account_id = 1;  -- Returns 1000
+
+-- Session 2 (concurrent)
+BEGIN TRANSACTION;
+UPDATE accounts SET balance = 1500 WHERE account_id = 1;
+COMMIT;
+
+-- Session 1 continues
+SELECT balance FROM accounts WHERE account_id = 1;  -- Returns 1500 (non-repeatable read)
+COMMIT;
+
+-- Serializable example
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT COUNT(*) FROM orders WHERE order_date = CURRENT_DATE;
+-- If another transaction inserts orders with today's date,
+-- this transaction may fail with serialization error
+COMMIT;
+```
+
+### 34. What are database locks and their types?
+**Answer:**
+```sql
+-- Explicit locking
+BEGIN TRANSACTION;
+
+-- Shared lock (read lock)
+SELECT * FROM accounts WHERE account_id = 1 FOR SHARE;
+
+-- Exclusive lock (write lock)
+SELECT * FROM accounts WHERE account_id = 1 FOR UPDATE;
+
+-- Lock specific rows
+UPDATE accounts 
+SET balance = balance - 100 
+WHERE account_id = 1;  -- Implicit exclusive lock
+
+COMMIT;
+
+-- Lock timeout handling
+SET lock_timeout = '5s';
+
+-- Deadlock example and prevention
+-- Session 1
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;
+COMMIT;
+
+-- Session 2 (potential deadlock)
+BEGIN;
+UPDATE accounts SET balance = balance - 50 WHERE account_id = 2;
+UPDATE accounts SET balance = balance + 50 WHERE account_id = 1;
+COMMIT;
+
+-- Prevent deadlock by consistent ordering
+-- Both sessions should lock accounts in same order (by account_id)
+```
+
+### 35. How do you handle hierarchical data in SQL?
+**Answer:**
+```sql
+-- Adjacency List Model
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    parent_id INT REFERENCES categories(id)
+);
+
+-- Find all subcategories using recursive CTE
+WITH RECURSIVE category_tree AS (
+    -- Base case: root categories
+    SELECT id, name, parent_id, 0 as level, ARRAY[id] as path
+    FROM categories
+    WHERE parent_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive case: child categories
+    SELECT c.id, c.name, c.parent_id, ct.level + 1, ct.path || c.id
+    FROM categories c
+    JOIN category_tree ct ON c.parent_id = ct.id
+    WHERE NOT c.id = ANY(ct.path)  -- Prevent cycles
+)
+SELECT 
+    REPEAT('  ', level) || name as indented_name,
+    level,
+    path
+FROM category_tree
+ORDER BY path;
+
+-- Nested Set Model (alternative approach)
+CREATE TABLE categories_nested (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    lft INT,
+    rgt INT
+);
+
+-- Find all descendants
+SELECT child.*
+FROM categories_nested parent, categories_nested child
+WHERE child.lft BETWEEN parent.lft AND parent.rgt
+  AND parent.id = 1;  -- Parent category ID
+
+-- Find path to root
+SELECT parent.*
+FROM categories_nested parent, categories_nested child
+WHERE child.lft BETWEEN parent.lft AND parent.rgt
+  AND child.id = 5  -- Child category ID
+ORDER BY parent.lft;
+
+-- Materialized Path Model
+CREATE TABLE categories_path (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    path VARCHAR(500)  -- e.g., '/1/3/7/'
+);
+
+-- Find all descendants
+SELECT * FROM categories_path
+WHERE path LIKE '/1/3/%';
+
+-- Find ancestors
+SELECT * FROM categories_path c1
+WHERE '/1/3/7/' LIKE c1.path || '%';
+```
+
+## Advanced Level Questions (36-50)
+
+### 36. Explain query execution plans and how to read them
+**Answer:**
+Query execution plans show how the database engine executes a query, crucial for performance optimization.
+
+```sql
+-- PostgreSQL execution plan
+EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) 
+SELECT c.name, COUNT(o.order_id) as order_count
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.created_date >= '2023-01-01'
+GROUP BY c.customer_id, c.name
+HAVING COUNT(o.order_id) > 5
+ORDER BY order_count DESC;
+
+-- Key elements to analyze:
+-- 1. Node types: Seq Scan, Index Scan, Hash Join, etc.
+-- 2. Cost estimates: startup cost..total cost
+-- 3. Actual time: actual time=start..end
+-- 4. Rows: rows=estimated vs actual
+-- 5. Buffers: shared hit/read/written
+
+-- SQL Server execution plan
+SET STATISTICS IO ON;
+SET STATISTICS TIME ON;
+
+SELECT c.name, COUNT(o.order_id)
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.created_date >= '2023-01-01'
+GROUP BY c.customer_id, c.name;
+
+-- Common plan operators:
+-- - Table Scan: reads entire table
+-- - Index Seek: uses index efficiently
+-- - Index Scan: reads entire index
+-- - Hash Match: hash join operation
+-- - Nested Loops: nested loop join
+-- - Sort: sorting operation
+```
+
+### 37. What are database statistics and how do they affect performance?
+**Answer:**
+Database statistics help the query optimizer make informed decisions about execution plans.
+
+```sql
+-- Update statistics (PostgreSQL)
+ANALYZE customers;
+ANALYZE orders;
+
+-- Detailed statistics
+ANALYZE VERBOSE customers;
+
+-- Auto-vacuum and statistics
+-- PostgreSQL automatically updates statistics, but manual updates may be needed
+-- after large data changes
+
+-- View statistics information
+SELECT 
+    schemaname,
+    tablename,
+    n_tup_ins,
+    n_tup_upd,
+    n_tup_del,
+    last_analyze,
+    last_autoanalyze
+FROM pg_stat_user_tables;
+
+-- SQL Server statistics
+UPDATE STATISTICS customers WITH FULLSCAN;
+
+-- View statistics information
+SELECT 
+    s.name AS statistics_name,
+    c.name AS column_name,
+    s.stats_date AS last_updated
+FROM sys.stats s
+JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
+JOIN sys.columns c ON sc.object_id = c.object_id AND sc.column_id = c.column_id
+WHERE s.object_id = OBJECT_ID('customers');
+
+-- Histogram and density information
+DBCC SHOW_STATISTICS('customers', 'IX_customers_created_date');
+```
+
+### 38. How do you implement slowly changing dimensions (SCD)?
+**Answer:**
+SCDs handle changes to dimension data in data warehouses.
+
+```sql
+-- SCD Type 1: Overwrite (no history)
+UPDATE customer_dim 
+SET address = 'New Address',
+    phone = 'New Phone',
+    updated_date = CURRENT_TIMESTAMP
+WHERE customer_id = 123;
+
+-- SCD Type 2: Add new record (full history)
+CREATE TABLE customer_dim_scd2 (
+    surrogate_key SERIAL PRIMARY KEY,
+    customer_id INT,
+    name VARCHAR(100),
+    address VARCHAR(200),
+    phone VARCHAR(20),
+    effective_date DATE,
+    expiry_date DATE,
+    is_current BOOLEAN,
+    version_number INT
+);
+
+-- Insert new version
+INSERT INTO customer_dim_scd2 (
+    customer_id, name, address, phone, 
+    effective_date, expiry_date, is_current, version_number
+)
+SELECT 
+    customer_id, name, 'New Address', 'New Phone',
+    CURRENT_DATE, '9999-12-31', TRUE, 
+    COALESCE(MAX(version_number), 0) + 1
+FROM customer_dim_scd2
+WHERE customer_id = 123;
+
+-- Update previous version
+UPDATE customer_dim_scd2 
+SET expiry_date = CURRENT_DATE - 1,
+    is_current = FALSE
+WHERE customer_id = 123 
+  AND is_current = TRUE 
+  AND surrogate_key != (SELECT MAX(surrogate_key) 
+                        FROM customer_dim_scd2 
+                        WHERE customer_id = 123);
+
+-- SCD Type 3: Add new column (limited history)
+ALTER TABLE customer_dim 
+ADD COLUMN previous_address VARCHAR(200),
+ADD COLUMN address_change_date DATE;
+
+UPDATE customer_dim 
+SET previous_address = address,
+    address = 'New Address',
+    address_change_date = CURRENT_DATE
+WHERE customer_id = 123;
+
+-- SCD Type 4: History table
+CREATE TABLE customer_dim_history (
+    customer_id INT,
+    name VARCHAR(100),
+    address VARCHAR(200),
+    phone VARCHAR(20),
+    change_date DATE,
+    change_type VARCHAR(10)
+);
+
+-- Trigger for history tracking
+CREATE OR REPLACE FUNCTION track_customer_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'UPDATE' THEN
+        INSERT INTO customer_dim_history
+        SELECT OLD.*, CURRENT_DATE, 'UPDATE';
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO customer_dim_history
+        SELECT OLD.*, CURRENT_DATE, 'DELETE';
+    END IF;
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 39. Explain data warehousing concepts: Facts, Dimensions, Star Schema
+**Answer:**
+```sql
+-- Dimension Tables (descriptive attributes)
+CREATE TABLE dim_customer (
+    customer_key SERIAL PRIMARY KEY,  -- Surrogate key
+    customer_id INT,                  -- Natural key
+    name VARCHAR(100),
+    address VARCHAR(200),
+    city VARCHAR(50),
+    state VARCHAR(50),
+    country VARCHAR(50),
+    customer_segment VARCHAR(20),
+    effective_date DATE,
+    expiry_date DATE,
+    is_current BOOLEAN
+);
+
+CREATE TABLE dim_product (
+    product_key SERIAL PRIMARY KEY,
+    product_id INT,
+    product_name VARCHAR(100),
+    category VARCHAR(50),
+    subcategory VARCHAR(50),
+    brand VARCHAR(50),
+    unit_price DECIMAL(10,2)
+);
+
+CREATE TABLE dim_date (
+    date_key INT PRIMARY KEY,  -- YYYYMMDD format
+    full_date DATE,
+    year INT,
+    quarter INT,
+    month INT,
+    month_name VARCHAR(20),
+    day_of_month INT,
+    day_of_week INT,
+    day_name VARCHAR(20),
+    is_weekend BOOLEAN,
+    is_holiday BOOLEAN
+);
+
+-- Fact Table (measurable events)
+CREATE TABLE fact_sales (
+    sales_key SERIAL PRIMARY KEY,
+    customer_key INT REFERENCES dim_customer(customer_key),
+    product_key INT REFERENCES dim_product(product_key),
+    date_key INT REFERENCES dim_date(date_key),
+    -- Measures
+    quantity INT,
+    unit_price DECIMAL(10,2),
+    discount_amount DECIMAL(10,2),
+    sales_amount DECIMAL(10,2),
+    cost_amount DECIMAL(10,2),
+    profit_amount DECIMAL(10,2)
+);
+
+-- Star Schema Query Example
+SELECT 
+    dc.country,
+    dp.category,
+    dd.year,
+    dd.quarter,
+    SUM(fs.sales_amount) as total_sales,
+    SUM(fs.profit_amount) as total_profit,
+    COUNT(*) as transaction_count
+FROM fact_sales fs
+JOIN dim_customer dc ON fs.customer_key = dc.customer_key
+JOIN dim_product dp ON fs.product_key = dp.product_key
+JOIN dim_date dd ON fs.date_key = dd.date_key
+WHERE dd.year = 2023
+  AND dc.country = 'USA'
+GROUP BY dc.country, dp.category, dd.year, dd.quarter
+ORDER BY total_sales DESC;
+
+-- Snowflake Schema (normalized dimensions)
+CREATE TABLE dim_product_category (
+    category_key SERIAL PRIMARY KEY,
+    category_name VARCHAR(50),
+    category_description TEXT
+);
+
+CREATE TABLE dim_product_snowflake (
+    product_key SERIAL PRIMARY KEY,
+    product_id INT,
+    product_name VARCHAR(100),
+    category_key INT REFERENCES dim_product_category(category_key),
+    brand VARCHAR(50),
+    unit_price DECIMAL(10,2)
+);
+```
+
+### 40. How do you handle large dataset operations efficiently?
+**Answer:**
+```sql
+-- Batch processing for large updates
+DO $$
+DECLARE
+    batch_size INT := 10000;
+    total_updated INT := 0;
+    rows_updated INT;
+BEGIN
+    LOOP
+        UPDATE large_table 
+        SET status = 'PROCESSED'
+        WHERE id IN (
+            SELECT id FROM large_table 
+            WHERE status = 'PENDING'
+            LIMIT batch_size
+        );
+        
+        GET DIAGNOSTICS rows_updated = ROW_COUNT;
+        total_updated := total_updated + rows_updated;
+        
+        RAISE NOTICE 'Updated % rows, total: %', rows_updated, total_updated;
+        
+        EXIT WHEN rows_updated = 0;
+        
+        -- Optional: commit and start new transaction
+        COMMIT;
+        BEGIN;
+    END LOOP;
+END $$;
+
+-- Bulk insert with COPY
+COPY large_table (col1, col2, col3)
+FROM '/path/to/data.csv'
+WITH (FORMAT csv, HEADER true, DELIMITER ',');
+
+-- Parallel processing
+-- Create partitioned table for parallel operations
+CREATE TABLE sales_partitioned (
+    id SERIAL,
+    sale_date DATE,
+    amount DECIMAL(10,2)
+) PARTITION BY RANGE (sale_date);
+
+-- Parallel index creation
+CREATE INDEX CONCURRENTLY idx_large_table_date ON large_table(created_date);
+
+-- Use CTEs for complex operations
+WITH batch_data AS (
+    SELECT id, ROW_NUMBER() OVER (ORDER BY id) as rn
+    FROM large_table
+    WHERE status = 'PENDING'
+),
+batched AS (
+    SELECT id, CEIL(rn::FLOAT / 10000) as batch_num
+    FROM batch_data
+)
+UPDATE large_table 
+SET batch_id = batched.batch_num
+FROM batched
+WHERE large_table.id = batched.id;
+
+-- Memory-efficient aggregation
+SELECT 
+    date_trunc('month', order_date) as month,
+    SUM(amount) as monthly_total
+FROM orders
+WHERE order_date >= '2023-01-01'
+GROUP BY date_trunc('month', order_date)
+ORDER BY month;
+
+-- Streaming aggregation for very large datasets
+CREATE MATERIALIZED VIEW monthly_sales AS
+SELECT 
+    date_trunc('month', order_date) as month,
+    COUNT(*) as order_count,
+    SUM(amount) as total_amount
+FROM orders
+GROUP BY date_trunc('month', order_date);
+
+-- Refresh incrementally
+REFRESH MATERIALIZED VIEW CONCURRENTLY monthly_sales;
+```
+### 41. What are database sharding strategies?
+**Answer:**
+```sql
+-- Horizontal sharding by customer ID
+-- Shard 1: customers 1-1000
+CREATE TABLE customers_shard1 (
+    customer_id INT CHECK (customer_id BETWEEN 1 AND 1000),
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+-- Shard 2: customers 1001-2000
+CREATE TABLE customers_shard2 (
+    customer_id INT CHECK (customer_id BETWEEN 1001 AND 2000),
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+-- Hash-based sharding
+CREATE OR REPLACE FUNCTION get_shard_id(customer_id INT)
+RETURNS INT AS $$
+BEGIN
+    RETURN (customer_id % 4) + 1;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Range-based sharding by date
+CREATE TABLE orders_2023_q1 (
+    order_id SERIAL,
+    order_date DATE CHECK (order_date >= '2023-01-01' AND order_date < '2023-04-01'),
+    customer_id INT,
+    amount DECIMAL(10,2)
+);
+
+-- Directory-based sharding lookup
+CREATE TABLE shard_directory (
+    customer_id_range_start INT,
+    customer_id_range_end INT,
+    shard_name VARCHAR(50),
+    connection_string VARCHAR(200)
+);
+
+-- Cross-shard query example
+SELECT 'shard1' as shard, COUNT(*) as customer_count FROM customers_shard1
+UNION ALL
+SELECT 'shard2' as shard, COUNT(*) as customer_count FROM customers_shard2;
+```
+
+### 42. Explain database replication types and strategies
+**Answer:**
+```sql
+-- Master-Slave Replication Setup (PostgreSQL)
+-- On Master server
+ALTER SYSTEM SET wal_level = 'replica';
+ALTER SYSTEM SET max_wal_senders = 3;
+ALTER SYSTEM SET wal_keep_segments = 64;
+
+-- Create replication user
+CREATE USER replicator REPLICATION LOGIN CONNECTION LIMIT 1 ENCRYPTED PASSWORD 'password';
+
+-- On Slave server - streaming replication
+-- pg_basebackup -h master_host -D /var/lib/postgresql/data -U replicator -v -P -W
+
+-- Master-Master (Multi-Master) considerations
+-- Conflict resolution strategies:
+-- 1. Last-write-wins
+-- 2. Application-level conflict resolution
+-- 3. Timestamp-based resolution
+
+-- Read replica query routing
+-- Application logic to route reads to replicas
+SELECT customer_id, name FROM customers_replica WHERE status = 'ACTIVE';
+
+-- Write to master only
+INSERT INTO customers (name, email) VALUES ('John Doe', 'john@example.com');
+
+-- Monitoring replication lag
+SELECT 
+    client_addr,
+    state,
+    pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn) as send_lag,
+    pg_wal_lsn_diff(sent_lsn, flush_lsn) as flush_lag
+FROM pg_stat_replication;
+```
+
+### 43. How do you implement database backup and recovery strategies?
+**Answer:**
+```sql
+-- Full backup (PostgreSQL)
+-- pg_dump -h localhost -U postgres -d mydb > backup_full.sql
+
+-- Incremental backup using WAL archiving
+ALTER SYSTEM SET archive_mode = 'on';
+ALTER SYSTEM SET archive_command = 'cp %p /backup/archive/%f';
+
+-- Point-in-time recovery
+-- pg_restore -h localhost -U postgres -d mydb_restored backup_full.sql
+-- Recovery up to specific time:
+-- recovery_target_time = '2023-12-01 14:30:00'
+
+-- Logical backup with specific tables
+-- pg_dump -h localhost -U postgres -t customers -t orders mydb > partial_backup.sql
+
+-- SQL Server backup strategies
+-- Full backup
+BACKUP DATABASE MyDatabase 
+TO DISK = 'C:\Backup\MyDatabase_Full.bak'
+WITH FORMAT, COMPRESSION;
+
+-- Differential backup
+BACKUP DATABASE MyDatabase 
+TO DISK = 'C:\Backup\MyDatabase_Diff.bak'
+WITH DIFFERENTIAL, COMPRESSION;
+
+-- Transaction log backup
+BACKUP LOG MyDatabase 
+TO DISK = 'C:\Backup\MyDatabase_Log.trn';
+
+-- Restore sequence
+RESTORE DATABASE MyDatabase 
+FROM DISK = 'C:\Backup\MyDatabase_Full.bak'
+WITH NORECOVERY;
+
+RESTORE DATABASE MyDatabase 
+FROM DISK = 'C:\Backup\MyDatabase_Diff.bak'
+WITH NORECOVERY;
+
+RESTORE LOG MyDatabase 
+FROM DISK = 'C:\Backup\MyDatabase_Log.trn'
+WITH RECOVERY;
+
+-- Backup verification
+RESTORE VERIFYONLY 
+FROM DISK = 'C:\Backup\MyDatabase_Full.bak';
+
+-- Automated backup script
+CREATE OR REPLACE FUNCTION automated_backup()
+RETURNS void AS $$
+DECLARE
+    backup_file TEXT;
+BEGIN
+    backup_file := '/backup/db_' || to_char(now(), 'YYYY_MM_DD_HH24_MI_SS') || '.sql';
+    
+    PERFORM pg_dump('mydb', backup_file);
+    
+    -- Clean old backups (keep last 7 days)
+    PERFORM pg_delete_old_backups('/backup/', 7);
+    
+    -- Log backup completion
+    INSERT INTO backup_log (backup_date, backup_file, status)
+    VALUES (now(), backup_file, 'SUCCESS');
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 44. What are database connection pooling and its benefits?
+**Answer:**
+```sql
+-- Connection pooling configuration (pgbouncer example)
+-- /etc/pgbouncer/pgbouncer.ini
+/*
+[databases]
+mydb = host=localhost port=5432 dbname=mydb
+
+[pgbouncer]
+pool_mode = transaction
+max_client_conn = 1000
+default_pool_size = 25
+max_db_connections = 100
+*/
+
+-- Application connection with pooling (Python example)
+/*
+import psycopg2.pool
+
+# Create connection pool
+connection_pool = psycopg2.pool.ThreadedConnectionPool(
+    minconn=5,
+    maxconn=20,
+    host='localhost',
+    database='mydb',
+    user='username',
+    password='password'
+)
+
+# Get connection from pool
+conn = connection_pool.getconn()
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM customers LIMIT 10")
+results = cursor.fetchall()
+
+# Return connection to pool
+connection_pool.putconn(conn)
+*/
+
+-- Monitor connection usage
+SELECT 
+    datname,
+    numbackends,
+    xact_commit,
+    xact_rollback,
+    blks_read,
+    blks_hit,
+    tup_returned,
+    tup_fetched
+FROM pg_stat_database
+WHERE datname = 'mydb';
+
+-- Active connections
+SELECT 
+    pid,
+    usename,
+    application_name,
+    client_addr,
+    state,
+    query_start,
+    query
+FROM pg_stat_activity
+WHERE state = 'active';
+
+-- Connection limits and settings
+SHOW max_connections;
+SHOW shared_buffers;
+SHOW work_mem;
+
+-- Kill long-running connections
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE state = 'idle in transaction'
+  AND query_start < now() - interval '1 hour';
+```
+
+### 45. How do you handle database migrations and schema changes?
+**Answer:**
+```sql
+-- Version-controlled migrations
+-- Migration 001: Create initial tables
+-- File: 001_create_customers.sql
+CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE migration_history (
+    version VARCHAR(20) PRIMARY KEY,
+    description TEXT,
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO migration_history (version, description)
+VALUES ('001', 'Create customers table');
+
+-- Migration 002: Add new column
+-- File: 002_add_customer_phone.sql
+ALTER TABLE customers 
+ADD COLUMN phone VARCHAR(20);
+
+UPDATE migration_history 
+SET applied_at = CURRENT_TIMESTAMP 
+WHERE version = '002';
+
+-- Migration 003: Data migration
+-- File: 003_normalize_phone_numbers.sql
+UPDATE customers 
+SET phone = REGEXP_REPLACE(phone, '[^0-9]', '', 'g')
+WHERE phone IS NOT NULL;
+
+-- Rollback migration
+-- File: 003_rollback.sql
+-- Store original data before migration for rollback
+CREATE TABLE customers_phone_backup AS
+SELECT id, phone FROM customers WHERE phone IS NOT NULL;
+
+-- Safe schema changes with minimal downtime
+-- 1. Add new column (nullable)
+ALTER TABLE orders ADD COLUMN new_status VARCHAR(20);
+
+-- 2. Populate new column
+UPDATE orders SET new_status = 
+    CASE 
+        WHEN status = 1 THEN 'PENDING'
+        WHEN status = 2 THEN 'COMPLETED'
+        WHEN status = 3 THEN 'CANCELLED'
+    END;
+
+-- 3. Make column NOT NULL after population
+ALTER TABLE orders ALTER COLUMN new_status SET NOT NULL;
+
+-- 4. Drop old column
+ALTER TABLE orders DROP COLUMN status;
+
+-- 5. Rename new column
+ALTER TABLE orders RENAME COLUMN new_status TO status;
+
+-- Blue-green deployment migration
+-- Create new table structure
+CREATE TABLE customers_v2 (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20),
+    address JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Migrate data
+INSERT INTO customers_v2 (id, name, email, phone, created_at)
+SELECT id, name, email, phone, created_at FROM customers;
+
+-- Switch tables atomically
+BEGIN;
+ALTER TABLE customers RENAME TO customers_old;
+ALTER TABLE customers_v2 RENAME TO customers;
+COMMIT;
+
+-- Migration validation
+CREATE OR REPLACE FUNCTION validate_migration()
+RETURNS BOOLEAN AS $$
+DECLARE
+    old_count INT;
+    new_count INT;
+BEGIN
+    SELECT COUNT(*) INTO old_count FROM customers_old;
+    SELECT COUNT(*) INTO new_count FROM customers;
+    
+    IF old_count != new_count THEN
+        RAISE EXCEPTION 'Migration validation failed: row count mismatch';
+    END IF;
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 46. Explain database security best practices
+**Answer:**
+```sql
+-- User and role management
+CREATE ROLE data_reader;
+CREATE ROLE data_writer;
+CREATE ROLE data_admin;
+
+-- Grant permissions to roles
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO data_reader;
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO data_writer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO data_admin;
+
+-- Create users and assign roles
+CREATE USER analyst WITH PASSWORD 'secure_password';
+CREATE USER app_user WITH PASSWORD 'app_password';
+CREATE USER dba WITH PASSWORD 'admin_password';
+
+GRANT data_reader TO analyst;
+GRANT data_writer TO app_user;
+GRANT data_admin TO dba;
+
+-- Row-level security (RLS)
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+
+-- Policy for users to see only their own data
+CREATE POLICY customer_isolation ON customers
+    FOR ALL TO app_user
+    USING (customer_id = current_setting('app.current_customer_id')::INT);
+
+-- Column-level security
+GRANT SELECT (id, name, email) ON customers TO data_reader;
+-- Exclude sensitive columns like SSN, credit_card
+
+-- Data masking for non-production environments
+CREATE OR REPLACE FUNCTION mask_email(email TEXT)
+RETURNS TEXT AS $$
+BEGIN
+    RETURN CASE 
+        WHEN email IS NULL THEN NULL
+        ELSE SUBSTRING(email FROM 1 FOR 2) || '***@' || 
+             SUBSTRING(email FROM POSITION('@' IN email) + 1)
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create masked view for development
+CREATE VIEW customers_masked AS
+SELECT 
+    id,
+    name,
+    mask_email(email) as email,
+    'XXX-XXX-' || RIGHT(phone, 4) as phone
+FROM customers;
+
+-- Audit logging
+CREATE TABLE audit_log (
+    id SERIAL PRIMARY KEY,
+    table_name VARCHAR(50),
+    operation VARCHAR(10),
+    user_name VARCHAR(50),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    old_values JSONB,
+    new_values JSONB
+);
+
+-- Audit trigger
+CREATE OR REPLACE FUNCTION audit_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO audit_log (table_name, operation, user_name, old_values, new_values)
+    VALUES (
+        TG_TABLE_NAME,
+        TG_OP,
+        current_user,
+        CASE WHEN TG_OP = 'DELETE' THEN row_to_json(OLD) ELSE NULL END,
+        CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END
+    );
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply audit trigger
+CREATE TRIGGER customers_audit_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON customers
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger();
+
+-- Encryption at rest and in transit
+-- SSL/TLS configuration
+ALTER SYSTEM SET ssl = 'on';
+ALTER SYSTEM SET ssl_cert_file = 'server.crt';
+ALTER SYSTEM SET ssl_key_file = 'server.key';
+
+-- Column-level encryption
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Encrypt sensitive data
+INSERT INTO customers (name, email, ssn_encrypted)
+VALUES ('John Doe', 'john@example.com', 
+        pgp_sym_encrypt('123-45-6789', 'encryption_key'));
+
+-- Decrypt data
+SELECT name, email, 
+       pgp_sym_decrypt(ssn_encrypted, 'encryption_key') as ssn
+FROM customers;
+```
+
+### 47. What are database design patterns and anti-patterns?
+**Answer:**
+```sql
+-- GOOD PATTERNS
+
+-- 1. Proper normalization
+-- Normalized design (3NF)
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE addresses (
+    address_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    street VARCHAR(200),
+    city VARCHAR(50),
+    state VARCHAR(50),
+    zip_code VARCHAR(10),
+    address_type VARCHAR(20) -- 'billing', 'shipping'
+);
+
+-- 2. Surrogate keys
+CREATE TABLE products (
+    product_key SERIAL PRIMARY KEY,  -- Surrogate key
+    product_code VARCHAR(20) UNIQUE, -- Natural key
+    name VARCHAR(100),
+    price DECIMAL(10,2)
+);
+
+-- 3. Audit columns
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(50) DEFAULT current_user,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(50) DEFAULT current_user
+);
+
+-- 4. Soft deletes
+ALTER TABLE customers ADD COLUMN deleted_at TIMESTAMP;
+ALTER TABLE customers ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+-- Instead of DELETE
+UPDATE customers SET deleted_at = CURRENT_TIMESTAMP, is_active = FALSE
+WHERE customer_id = 123;
+
+-- ANTI-PATTERNS TO AVOID
+
+-- 1. EAV (Entity-Attribute-Value) - avoid when possible
+-- BAD: Generic attribute table
+CREATE TABLE entity_attributes (
+    entity_id INT,
+    attribute_name VARCHAR(50),
+    attribute_value TEXT
+);
+
+-- GOOD: Proper columns
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    price DECIMAL(10,2),
+    weight DECIMAL(8,2),
+    color VARCHAR(20)
+);
+
+-- 2. Polymorphic associations - avoid
+-- BAD: Generic foreign key
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    commentable_id INT,
+    commentable_type VARCHAR(50), -- 'Product', 'Order', etc.
+    content TEXT
+);
+
+-- GOOD: Separate tables or specific foreign keys
+CREATE TABLE product_comments (
+    id SERIAL PRIMARY KEY,
+    product_id INT REFERENCES products(product_id),
+    content TEXT
+);
+
+-- 3. Storing delimited values in single column
+-- BAD: Comma-separated values
+CREATE TABLE orders_bad (
+    order_id SERIAL PRIMARY KEY,
+    product_ids TEXT  -- '1,2,3,4'
+);
+
+-- GOOD: Junction table
+CREATE TABLE order_items (
+    order_id INT REFERENCES orders(order_id),
+    product_id INT REFERENCES products(product_id),
+    quantity INT,
+    PRIMARY KEY (order_id, product_id)
+);
+
+-- 4. Using FLOAT for money
+-- BAD: Precision issues
+CREATE TABLE products_bad (
+    price FLOAT  -- Can cause rounding errors
+);
+
+-- GOOD: Use DECIMAL
+CREATE TABLE products_good (
+    price DECIMAL(10,2)  -- Exact precision
+);
+
+-- 5. Not using constraints
+-- BAD: No validation
+CREATE TABLE employees_bad (
+    salary INT,
+    email VARCHAR(100)
+);
+
+-- GOOD: Proper constraints
+CREATE TABLE employees_good (
+    salary DECIMAL(10,2) CHECK (salary > 0),
+    email VARCHAR(100) UNIQUE NOT NULL 
+        CHECK (email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+);
+```
+
+### 48. How do you implement database monitoring and alerting?
+**Answer:**
+```sql
+-- Performance monitoring queries
+-- Long-running queries
+SELECT 
+    pid,
+    now() - pg_stat_activity.query_start AS duration,
+    query,
+    state
+FROM pg_stat_activity
+WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes'
+  AND state = 'active';
+
+-- Database size monitoring
+SELECT 
+    datname,
+    pg_size_pretty(pg_database_size(datname)) as size
+FROM pg_database
+ORDER BY pg_database_size(datname) DESC;
+
+-- Table size monitoring
+SELECT 
+    schemaname,
+    tablename,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
+    pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) as table_size,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename) - 
+                   pg_relation_size(schemaname||'.'||tablename)) as index_size
+FROM pg_tables
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+LIMIT 10;
+
+-- Index usage monitoring
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_tup_read,
+    idx_tup_fetch,
+    idx_scan
+FROM pg_stat_user_indexes
+ORDER BY idx_scan DESC;
+
+-- Unused indexes
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan,
+    pg_size_pretty(pg_relation_size(indexrelid)) as size
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+  AND schemaname = 'public';
+
+-- Connection monitoring
+SELECT 
+    state,
+    COUNT(*) as connection_count
+FROM pg_stat_activity
+GROUP BY state;
+
+-- Blocking queries
+SELECT 
+    blocked_locks.pid AS blocked_pid,
+    blocked_activity.usename AS blocked_user,
+    blocking_locks.pid AS blocking_pid,
+    blocking_activity.usename AS blocking_user,
+    blocked_activity.query AS blocked_statement,
+    blocking_activity.query AS blocking_statement
+FROM pg_catalog.pg_locks blocked_locks
+JOIN pg_catalog.pg_stat_activity blocked_activity ON blocked_activity.pid = blocked_locks.pid
+JOIN pg_catalog.pg_locks blocking_locks ON blocking_locks.locktype = blocked_locks.locktype
+    AND blocking_locks.DATABASE IS NOT DISTINCT FROM blocked_locks.DATABASE
+    AND blocking_locks.relation IS NOT DISTINCT FROM blocked_locks.relation
+    AND blocking_locks.page IS NOT DISTINCT FROM blocked_locks.page
+    AND blocking_locks.tuple IS NOT DISTINCT FROM blocked_locks.tuple
+    AND blocking_locks.virtualxid IS NOT DISTINCT FROM blocked_locks.virtualxid
+    AND blocking_locks.transactionid IS NOT DISTINCT FROM blocked_locks.transactionid
+    AND blocking_locks.classid IS NOT DISTINCT FROM blocked_locks.classid
+    AND blocking_locks.objid IS NOT DISTINCT FROM blocked_locks.objid
+    AND blocking_locks.objsubid IS NOT DISTINCT FROM blocked_locks.objsubid
+    AND blocking_locks.pid != blocked_locks.pid
+JOIN pg_catalog.pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid
+WHERE NOT blocked_locks.GRANTED;
+
+-- Create monitoring views
+CREATE VIEW db_health_check AS
+SELECT 
+    'Database Size' as metric,
+    pg_size_pretty(pg_database_size(current_database())) as value,
+    CASE 
+        WHEN pg_database_size(current_database()) > 100 * 1024^3 THEN 'WARNING'
+        ELSE 'OK'
+    END as status
+UNION ALL
+SELECT 
+    'Active Connections' as metric,
+    COUNT(*)::TEXT as value,
+    CASE 
+        WHEN COUNT(*) > 80 THEN 'CRITICAL'
+        WHEN COUNT(*) > 60 THEN 'WARNING'
+        ELSE 'OK'
+    END as status
+FROM pg_stat_activity
+WHERE state = 'active'
+UNION ALL
+SELECT 
+    'Long Running Queries' as metric,
+    COUNT(*)::TEXT as value,
+    CASE 
+        WHEN COUNT(*) > 5 THEN 'CRITICAL'
+        WHEN COUNT(*) > 2 THEN 'WARNING'
+        ELSE 'OK'
+    END as status
+FROM pg_stat_activity
+WHERE state = 'active'
+  AND (now() - query_start) > interval '10 minutes';
+
+-- Alerting function
+CREATE OR REPLACE FUNCTION check_db_alerts()
+RETURNS TABLE(alert_type TEXT, message TEXT, severity TEXT) AS $$
+BEGIN
+    -- Check for long-running queries
+    RETURN QUERY
+    SELECT 
+        'Long Running Query'::TEXT,
+        'Query running for ' || (now() - query_start)::TEXT || ': ' || 
+        LEFT(query, 100)::TEXT,
+        'WARNING'::TEXT
+    FROM pg_stat_activity
+    WHERE state = 'active'
+      AND (now() - query_start) > interval '30 minutes';
+    
+    -- Check for high connection count
+    IF (SELECT COUNT(*) FROM pg_stat_activity) > 90 THEN
+        RETURN QUERY SELECT 
+            'High Connection Count'::TEXT,
+            'Current connections: ' || (SELECT COUNT(*) FROM pg_stat_activity)::TEXT,
+            'CRITICAL'::TEXT;
+    END IF;
+    
+    -- Check for blocking queries
+    RETURN QUERY
+    SELECT 
+        'Blocking Query'::TEXT,
+        'PID ' || blocking_locks.pid::TEXT || ' blocking PID ' || blocked_locks.pid::TEXT,
+        'CRITICAL'::TEXT
+    FROM pg_catalog.pg_locks blocked_locks
+    JOIN pg_catalog.pg_locks blocking_locks ON (
+        blocking_locks.locktype = blocked_locks.locktype AND
+        blocking_locks.pid != blocked_locks.pid
+    )
+    WHERE NOT blocked_locks.granted
+    LIMIT 5;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Automated monitoring job
+CREATE OR REPLACE FUNCTION run_monitoring_job()
+RETURNS void AS $$
+DECLARE
+    alert_record RECORD;
+BEGIN
+    FOR alert_record IN SELECT * FROM check_db_alerts() LOOP
+        -- Log alert
+        INSERT INTO monitoring_alerts (alert_type, message, severity, created_at)
+        VALUES (alert_record.alert_type, alert_record.message, 
+                alert_record.severity, CURRENT_TIMESTAMP);
+        
+        -- Send notification (implement based on your system)
+        -- PERFORM send_notification(alert_record.message);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 49. Explain database testing strategies
+**Answer:**
+```sql
+-- Unit testing for database functions
+-- Test function
+CREATE OR REPLACE FUNCTION calculate_order_total(order_id INT)
+RETURNS DECIMAL(10,2) AS $$
+DECLARE
+    total DECIMAL(10,2);
+BEGIN
+    SELECT SUM(quantity * unit_price) INTO total
+    FROM order_items
+    WHERE order_items.order_id = calculate_order_total.order_id;
+    
+    RETURN COALESCE(total, 0);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Test cases
+DO $$
+DECLARE
+    test_order_id INT;
+    expected_total DECIMAL(10,2) := 150.00;
+    actual_total DECIMAL(10,2);
+BEGIN
+    -- Setup test data
+    INSERT INTO orders (customer_id, order_date) 
+    VALUES (1, CURRENT_DATE) RETURNING order_id INTO test_order_id;
+    
+    INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+    VALUES 
+        (test_order_id, 1, 2, 50.00),
+        (test_order_id, 2, 1, 50.00);
+    
+    -- Execute test
+    SELECT calculate_order_total(test_order_id) INTO actual_total;
+    
+    -- Assert
+    IF actual_total != expected_total THEN
+        RAISE EXCEPTION 'Test failed: expected %, got %', expected_total, actual_total;
+    ELSE
+        RAISE NOTICE 'Test passed: calculate_order_total';
+    END IF;
+    
+    -- Cleanup
+    DELETE FROM order_items WHERE order_id = test_order_id;
+    DELETE FROM orders WHERE order_id = test_order_id;
+END $$;
+
+-- Integration testing
+-- Test complete order workflow
+CREATE OR REPLACE FUNCTION test_order_workflow()
+RETURNS void AS $$
+DECLARE
+    customer_id INT;
+    order_id INT;
+    product_id INT;
+    initial_stock INT;
+    final_stock INT;
+BEGIN
+    -- Setup
+    INSERT INTO customers (name, email) 
+    VALUES ('Test Customer', 'test@example.com') 
+    RETURNING customer_id INTO customer_id;
+    
+    INSERT INTO products (name, price, stock_quantity)
+    VALUES ('Test Product', 25.00, 100)
+    RETURNING product_id INTO product_id;
+    
+    SELECT stock_quantity INTO initial_stock 
+    FROM products WHERE products.product_id = test_order_workflow.product_id;
+    
+    -- Test order creation
+    INSERT INTO orders (customer_id, order_date)
+    VALUES (customer_id, CURRENT_DATE)
+    RETURNING order_id INTO order_id;
+    
+    INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+    VALUES (order_id, product_id, 5, 25.00);
+    
+    -- Test stock update trigger (assuming it exists)
+    SELECT stock_quantity INTO final_stock 
+    FROM products WHERE products.product_id = test_order_workflow.product_id;
+    
+    -- Assertions
+    IF final_stock != initial_stock - 5 THEN
+        RAISE EXCEPTION 'Stock update failed: expected %, got %', 
+                       initial_stock - 5, final_stock;
+    END IF;
+    
+    -- Cleanup
+    DELETE FROM order_items WHERE order_id = test_order_workflow.order_id;
+    DELETE FROM orders WHERE orders.order_id = test_order_workflow.order_id;
+    DELETE FROM products WHERE products.product_id = test_order_workflow.product_id;
+    DELETE FROM customers WHERE customers.customer_id = test_order_workflow.customer_id;
+    
+    RAISE NOTICE 'Order workflow test passed';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Performance testing
+-- Load test function
+CREATE OR REPLACE FUNCTION performance_test_insert(num_records INT)
+RETURNS TABLE(operation TEXT, duration INTERVAL, records_per_second NUMERIC) AS $$
+DECLARE
+    start_time TIMESTAMP;
+    end_time TIMESTAMP;
+    i INT;
+BEGIN
+    start_time := clock_timestamp();
+    
+    FOR i IN 1..num_records LOOP
+        INSERT INTO test_table (name, value)
+        VALUES ('Test Record ' || i, random() * 1000);
+    END LOOP;
+    
+    end_time := clock_timestamp();
+    
+    RETURN QUERY SELECT 
+        'INSERT'::TEXT,
+        end_time - start_time,
+        num_records / EXTRACT(EPOCH FROM (end_time - start_time));
+END;
+$$ LANGUAGE plpgsql;
+
+-- Data quality tests
+CREATE OR REPLACE FUNCTION test_data_quality()
+RETURNS TABLE(test_name TEXT, status TEXT, details TEXT) AS $$
+BEGIN
+    -- Test for NULL values in required fields
+    RETURN QUERY
+    SELECT 
+        'Required Fields Check'::TEXT,
+        CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'FAIL' END,
+        'Found ' || COUNT(*) || ' records with NULL required fields'
+    FROM customers
+    WHERE name IS NULL OR email IS NULL;
+    
+    -- Test for duplicate emails
+    RETURN QUERY
+    SELECT 
+        'Duplicate Email Check'::TEXT,
+        CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'FAIL' END,
+        'Found ' || COUNT(*) || ' duplicate emails'
+    FROM (
+        SELECT email, COUNT(*)
+        FROM customers
+        GROUP BY email
+        HAVING COUNT(*) > 1
+    ) duplicates;
+    
+    -- Test for referential integrity
+    RETURN QUERY
+    SELECT 
+        'Referential Integrity Check'::TEXT,
+        CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'FAIL' END,
+        'Found ' || COUNT(*) || ' orphaned order records'
+    FROM orders o
+    LEFT JOIN customers c ON o.customer_id = c.customer_id
+    WHERE c.customer_id IS NULL;
+    
+    -- Test for data ranges
+    RETURN QUERY
+    SELECT 
+        'Data Range Check'::TEXT,
+        CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'FAIL' END,
+        'Found ' || COUNT(*) || ' records with invalid salary ranges'
+    FROM employees
+    WHERE salary < 0 OR salary > 1000000;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Test framework setup
+CREATE TABLE test_results (
+    test_id SERIAL PRIMARY KEY,
+    test_name VARCHAR(100),
+    test_type VARCHAR(50),
+    status VARCHAR(20),
+    details TEXT,
+    execution_time INTERVAL,
+    run_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Test runner
+CREATE OR REPLACE FUNCTION run_all_tests()
+RETURNS void AS $$
+DECLARE
+    test_record RECORD;
+    start_time TIMESTAMP;
+    end_time TIMESTAMP;
+BEGIN
+    start_time := clock_timestamp();
+    
+    -- Run data quality tests
+    FOR test_record IN SELECT * FROM test_data_quality() LOOP
+        INSERT INTO test_results (test_name, test_type, status, details, execution_time)
+        VALUES (test_record.test_name, 'Data Quality', test_record.status, 
+                test_record.details, clock_timestamp() - start_time);
+    END LOOP;
+    
+    -- Run unit tests
+    PERFORM test_order_workflow();
+    
+    end_time := clock_timestamp();
+    
+    RAISE NOTICE 'All tests completed in %', end_time - start_time;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 50. How do you implement database disaster recovery?
+**Answer:**
+```sql
+-- Disaster Recovery Planning
+
+-- 1. Hot Standby Setup (PostgreSQL Streaming Replication)
+-- Primary server configuration
+ALTER SYSTEM SET wal_level = 'replica';
+ALTER SYSTEM SET max_wal_senders = 10;
+ALTER SYSTEM SET wal_keep_segments = 100;
+ALTER SYSTEM SET synchronous_standby_names = 'standby1,standby2';
+
+-- Create replication slots for guaranteed WAL retention
+SELECT pg_create_physical_replication_slot('standby1_slot');
+SELECT pg_create_physical_replication_slot('standby2_slot');
+
+-- Standby server recovery configuration
+-- recovery.conf (or postgresql.conf in newer versions)
+/*
+standby_mode = 'on'
+primary_conninfo = 'host=primary_server port=5432 user=replicator'
+primary_slot_name = 'standby1_slot'
+restore_command = 'cp /archive/%f %p'
+*/
+
+-- 2. Point-in-Time Recovery (PITR) Setup
+-- Enable WAL archiving
+ALTER SYSTEM SET archive_mode = 'on';
+ALTER SYSTEM SET archive_command = 'rsync %p backup_server:/archive/%f';
+
+-- Create base backup
+-- pg_basebackup -h primary_server -D /backup/base -U replicator -v -P -W
+
+-- Recovery procedure
+-- 1. Stop database service
+-- 2. Restore base backup
+-- 3. Create recovery.conf with target time
+/*
+restore_command = 'cp /archive/%f %p'
+recovery_target_time = '2023-12-01 14:30:00'
+recovery_target_action = 'promote'
+*/
+
+-- 3. Cross-Region Disaster Recovery
+-- Automated backup to remote location
+CREATE OR REPLACE FUNCTION disaster_recovery_backup()
+RETURNS void AS $$
+DECLARE
+    backup_file TEXT;
+    remote_location TEXT := 's3://disaster-recovery-bucket/';
+BEGIN
+    -- Create timestamped backup
+    backup_file := 'dr_backup_' || to_char(now(), 'YYYY_MM_DD_HH24_MI_SS') || '.sql';
+    
+    -- Perform backup (pseudo-code)
+    PERFORM pg_dump_to_file('/tmp/' || backup_file);
+    
+    -- Upload to remote storage
+    PERFORM upload_to_s3('/tmp/' || backup_file, remote_location || backup_file);
+    
+    -- Verify backup integrity
+    PERFORM verify_backup_integrity(remote_location || backup_file);
+    
+    -- Log backup completion
+    INSERT INTO dr_backup_log (backup_file, backup_date, status, location)
+    VALUES (backup_file, now(), 'SUCCESS', remote_location || backup_file);
+    
+    -- Cleanup local file
+    PERFORM delete_local_file('/tmp/' || backup_file);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Failover Procedures
+-- Automated failover script
+CREATE OR REPLACE FUNCTION initiate_failover()
+RETURNS void AS $$
+DECLARE
+    primary_status BOOLEAN;
+    standby_lag INTERVAL;
+BEGIN
+    -- Check primary server status
+    SELECT check_primary_server_health() INTO primary_status;
+    
+    IF NOT primary_status THEN
+        -- Check standby lag
+        SELECT pg_last_wal_receive_lsn() - pg_last_wal_replay_lsn() INTO standby_lag;
+        
+        IF standby_lag < interval '1 minute' THEN
+            -- Promote standby to primary
+            PERFORM pg_promote();
+            
+            -- Update DNS/load balancer
+            PERFORM update_dns_to_new_primary();
+            
+            -- Notify administrators
+            PERFORM send_failover_notification('Automatic failover completed');
+            
+            -- Log failover event
+            INSERT INTO failover_log (event_type, timestamp, details)
+            VALUES ('AUTOMATIC_FAILOVER', now(), 'Standby promoted to primary');
+        ELSE
+            -- Manual intervention required
+            PERFORM send_alert('Manual failover required - standby lag too high');
+        END IF;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5. Recovery Testing
+-- Regular DR drill procedure
+CREATE OR REPLACE FUNCTION disaster_recovery_drill()
+RETURNS TABLE(test_step TEXT, status TEXT, duration INTERVAL, notes TEXT) AS $$
+DECLARE
+    start_time TIMESTAMP;
+    step_start TIMESTAMP;
+    test_db_name TEXT := 'dr_test_' || extract(epoch from now())::TEXT;
+BEGIN
+    start_time := clock_timestamp();
+    
+    -- Step 1: Restore from backup
+    step_start := clock_timestamp();
+    PERFORM restore_database_from_backup(test_db_name);
+    RETURN QUERY SELECT 
+        'Database Restore'::TEXT,
+        'SUCCESS'::TEXT,
+        clock_timestamp() - step_start,
+        'Restored to database: ' || test_db_name;
+    
+    -- Step 2: Verify data integrity
+    step_start := clock_timestamp();
+    PERFORM verify_data_integrity(test_db_name);
+    RETURN QUERY SELECT 
+        'Data Integrity Check'::TEXT,
+        'SUCCESS'::TEXT,
+        clock_timestamp() - step_start,
+        'All integrity checks passed';
+    
+    -- Step 3: Test application connectivity
+    step_start := clock_timestamp();
+    PERFORM test_application_connectivity(test_db_name);
+    RETURN QUERY SELECT 
+        'Application Connectivity'::TEXT,
+        'SUCCESS'::TEXT,
+        clock_timestamp() - step_start,
+        'Application successfully connected';
+    
+    -- Step 4: Performance validation
+    step_start := clock_timestamp();
+    PERFORM run_performance_tests(test_db_name);
+    RETURN QUERY SELECT 
+        'Performance Validation'::TEXT,
+        'SUCCESS'::TEXT,
+        clock_timestamp() - step_start,
+        'Performance within acceptable limits';
+    
+    -- Cleanup test database
+    PERFORM drop_database(test_db_name);
+    
+    -- Overall summary
+    RETURN QUERY SELECT 
+        'DR Drill Complete'::TEXT,
+        'SUCCESS'::TEXT,
+        clock_timestamp() - start_time,
+        'All tests passed successfully';
+END;
+$$ LANGUAGE plpgsql;
+
+-- 6. Recovery Time Objective (RTO) and Recovery Point Objective (RPO) Monitoring
+CREATE TABLE dr_metrics (
+    metric_date DATE PRIMARY KEY,
+    rpo_minutes INT,  -- How much data loss is acceptable
+    rto_minutes INT,  -- How long recovery should take
+    actual_backup_frequency_minutes INT,
+    last_successful_backup TIMESTAMP,
+    last_dr_test_date DATE,
+    dr_test_success BOOLEAN
+);
+
+-- Monitor and alert on DR metrics
+CREATE OR REPLACE FUNCTION check_dr_compliance()
+RETURNS TABLE(metric TEXT, status TEXT, details TEXT) AS $$
+BEGIN
+    -- Check backup frequency vs RPO
+    RETURN QUERY
+    SELECT 
+        'RPO Compliance'::TEXT,
+        CASE 
+            WHEN EXTRACT(EPOCH FROM (now() - last_successful_backup))/60 <= rpo_minutes 
+            THEN 'COMPLIANT' 
+            ELSE 'NON_COMPLIANT' 
+        END,
+        'Last backup: ' || last_successful_backup::TEXT || 
+        ', RPO: ' || rpo_minutes || ' minutes'
+    FROM dr_metrics 
+    WHERE metric_date = CURRENT_DATE;
+    
+    -- Check DR test recency
+    RETURN QUERY
+    SELECT 
+        'DR Test Recency'::TEXT,
+        CASE 
+            WHEN last_dr_test_date >= CURRENT_DATE - INTERVAL '90 days' 
+            THEN 'COMPLIANT' 
+            ELSE 'NON_COMPLIANT' 
+        END,
+        'Last DR test: ' || last_dr_test_date::TEXT
+    FROM dr_metrics 
+    WHERE metric_date = CURRENT_DATE;
+END;
+$$ LANGUAGE plpgsql;
+```
+## Database Design & Architecture (51-65)
+
+### 51. How do you design a scalable database schema?
+**Answer:**
+```sql
+-- Horizontal partitioning strategy
+CREATE TABLE orders_2023 (
+    order_id BIGSERIAL,
+    customer_id BIGINT,
+    order_date DATE,
+    amount DECIMAL(12,2),
+    status VARCHAR(20)
+) PARTITION BY RANGE (order_date);
+
+CREATE TABLE orders_2023_q1 PARTITION OF orders_2023
+    FOR VALUES FROM ('2023-01-01') TO ('2023-04-01');
+
+-- Vertical partitioning for large tables
+CREATE TABLE customer_core (
+    customer_id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE customer_profile (
+    customer_id BIGINT PRIMARY KEY REFERENCES customer_core(customer_id),
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    phone VARCHAR(20),
+    address TEXT,
+    preferences JSONB
+);
+
+-- Read replicas for scaling reads
+-- Master for writes, replicas for reads
+-- Application routing logic needed
+```
+
+### 52. What is database denormalization and when to use it?
+**Answer:**
+```sql
+-- Normalized design (3NF)
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+);
+
+-- Denormalized for performance (reporting table)
+CREATE TABLE order_summary_denorm (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    customer_name VARCHAR(100),  -- Denormalized
+    customer_email VARCHAR(100), -- Denormalized
+    order_date DATE,
+    total_amount DECIMAL(10,2),
+    order_count_ytd INT,         -- Denormalized aggregate
+    customer_lifetime_value DECIMAL(12,2) -- Denormalized aggregate
+);
+
+-- Materialized view for denormalization
+CREATE MATERIALIZED VIEW customer_order_summary AS
+SELECT 
+    c.customer_id,
+    c.name,
+    c.email,
+    COUNT(o.order_id) as total_orders,
+    SUM(o.total_amount) as lifetime_value,
+    MAX(o.order_date) as last_order_date,
+    AVG(o.total_amount) as avg_order_value
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name, c.email;
+
+-- Refresh strategy
+REFRESH MATERIALIZED VIEW CONCURRENTLY customer_order_summary;
+```
+
+### 53. How do you implement database versioning and migrations?
+**Answer:**
+```sql
+-- Migration tracking table
+CREATE TABLE schema_migrations (
+    version VARCHAR(20) PRIMARY KEY,
+    description TEXT,
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    applied_by VARCHAR(50) DEFAULT current_user,
+    checksum VARCHAR(64)
+);
+
+-- Migration script template
+-- V001__create_initial_schema.sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO schema_migrations (version, description, checksum)
+VALUES ('001', 'Create initial schema', 'abc123def456');
+
+-- V002__add_user_profile.sql
+ALTER TABLE users ADD COLUMN first_name VARCHAR(50);
+ALTER TABLE users ADD COLUMN last_name VARCHAR(50);
+ALTER TABLE users ADD COLUMN phone VARCHAR(20);
+
+INSERT INTO schema_migrations (version, description, checksum)
+VALUES ('002', 'Add user profile fields', 'def456ghi789');
+
+-- Rollback script
+-- V002__rollback.sql
+ALTER TABLE users DROP COLUMN IF EXISTS phone;
+ALTER TABLE users DROP COLUMN IF EXISTS last_name;
+ALTER TABLE users DROP COLUMN IF EXISTS first_name;
+
+DELETE FROM schema_migrations WHERE version = '002';
+
+-- Migration validation
+CREATE OR REPLACE FUNCTION validate_migration(target_version VARCHAR(20))
+RETURNS BOOLEAN AS $$
+DECLARE
+    current_version VARCHAR(20);
+    migration_exists BOOLEAN;
+BEGIN
+    -- Get current version
+    SELECT version INTO current_version 
+    FROM schema_migrations 
+    ORDER BY applied_at DESC 
+    LIMIT 1;
+    
+    -- Check if target migration exists
+    SELECT EXISTS(
+        SELECT 1 FROM schema_migrations 
+        WHERE version = target_version
+    ) INTO migration_exists;
+    
+    RETURN migration_exists AND target_version > current_version;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 54. What are database design patterns for multi-tenancy?
+**Answer:**
+```sql
+-- Pattern 1: Shared Database, Shared Schema (Row-level isolation)
+CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Row Level Security for tenant isolation
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON customers
+    FOR ALL TO application_role
+    USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+
+-- Pattern 2: Shared Database, Separate Schemas
+CREATE SCHEMA tenant_abc123;
+CREATE SCHEMA tenant_def456;
+
+-- Create tables in tenant schemas
+CREATE TABLE tenant_abc123.customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE tenant_def456.customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+-- Pattern 3: Separate Databases
+-- Database per tenant approach
+-- tenant_abc123_db, tenant_def456_db, etc.
+
+-- Connection routing logic needed in application
+CREATE OR REPLACE FUNCTION get_tenant_database(tenant_id UUID)
+RETURNS TEXT AS $$
+BEGIN
+    RETURN 'tenant_' || replace(tenant_id::TEXT, '-', '') || '_db';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Tenant management table (in master database)
+CREATE TABLE tenants (
+    tenant_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_name VARCHAR(100) NOT NULL,
+    database_name VARCHAR(100),
+    schema_name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'ACTIVE'
+);
+```
+
+### 55. How do you design for high availability and fault tolerance?
+**Answer:**
+```sql
+-- Master-Slave replication setup
+-- Master configuration
+ALTER SYSTEM SET wal_level = 'replica';
+ALTER SYSTEM SET max_wal_senders = 5;
+ALTER SYSTEM SET wal_keep_segments = 32;
+
+-- Create replication user
+CREATE USER replicator REPLICATION LOGIN ENCRYPTED PASSWORD 'secure_password';
+
+-- Slave configuration (recovery.conf)
+/*
+standby_mode = 'on'
+primary_conninfo = 'host=master_ip port=5432 user=replicator password=secure_password'
+restore_command = 'cp /archive/%f %p'
+*/
+
+-- Health check function
+CREATE OR REPLACE FUNCTION database_health_check()
+RETURNS TABLE(
+    component TEXT,
+    status TEXT,
+    details TEXT,
+    last_check TIMESTAMP
+) AS $$
+BEGIN
+    -- Check replication lag
+    RETURN QUERY
+    SELECT 
+        'Replication Lag'::TEXT,
+        CASE 
+            WHEN pg_is_in_recovery() THEN 'SLAVE'
+            ELSE 'MASTER'
+        END,
+        CASE 
+            WHEN pg_is_in_recovery() THEN
+                'Lag: ' || (
+                    EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp()))
+                )::TEXT || ' seconds'
+            ELSE 'N/A (Master)'
+        END,
+        now();
+    
+    -- Check disk space
+    RETURN QUERY
+    SELECT 
+        'Disk Space'::TEXT,
+        CASE 
+            WHEN pg_size_pretty(pg_database_size(current_database()))::TEXT ~ 'GB$' 
+            THEN 'WARNING'
+            ELSE 'OK'
+        END,
+        'Database size: ' || pg_size_pretty(pg_database_size(current_database())),
+        now();
+    
+    -- Check connection count
+    RETURN QUERY
+    SELECT 
+        'Connections'::TEXT,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity) > 80 THEN 'WARNING'
+            ELSE 'OK'
+        END,
+        'Active connections: ' || (SELECT count(*) FROM pg_stat_activity)::TEXT,
+        now();
+END;
+$$ LANGUAGE plpgsql;
+
+-- Automatic failover script
+CREATE OR REPLACE FUNCTION initiate_failover()
+RETURNS BOOLEAN AS $$
+DECLARE
+    is_master BOOLEAN;
+    replication_lag INTERVAL;
+BEGIN
+    -- Check if this is currently a slave
+    SELECT NOT pg_is_in_recovery() INTO is_master;
+    
+    IF is_master THEN
+        RAISE NOTICE 'Already running as master';
+        RETURN FALSE;
+    END IF;
+    
+    -- Check replication lag
+    SELECT now() - pg_last_xact_replay_timestamp() INTO replication_lag;
+    
+    IF replication_lag > INTERVAL '5 minutes' THEN
+        RAISE WARNING 'Replication lag too high: %', replication_lag;
+    END IF;
+    
+    -- Promote to master
+    PERFORM pg_promote();
+    
+    RAISE NOTICE 'Failover initiated - promoted to master';
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 56. What is database connection pooling and how to implement it?
+**Answer:**
+```sql
+-- Connection pool monitoring
+CREATE VIEW connection_pool_stats AS
+SELECT 
+    datname,
+    usename,
+    application_name,
+    state,
+    COUNT(*) as connection_count,
+    MAX(backend_start) as oldest_connection,
+    MIN(backend_start) as newest_connection
+FROM pg_stat_activity
+WHERE pid <> pg_backend_pid()
+GROUP BY datname, usename, application_name, state;
+
+-- Connection pool configuration (pgbouncer example)
+/*
+[databases]
+production_db = host=localhost port=5432 dbname=production
+
+[pgbouncer]
+pool_mode = transaction
+max_client_conn = 1000
+default_pool_size = 25
+max_db_connections = 100
+reserve_pool_size = 5
+reserve_pool_timeout = 3
+server_reset_query = DISCARD ALL
+server_check_query = SELECT 1
+server_check_delay = 30
+*/
+
+-- Application-level connection pooling (Python example)
+/*
+import psycopg2.pool
+
+class DatabasePool:
+    def __init__(self):
+        self.pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=5,
+            maxconn=20,
+            host='localhost',
+            database='production',
+            user='app_user',
+            password='password'
+        )
+    
+    def get_connection(self):
+        return self.pool.getconn()
+    
+    def return_connection(self, conn):
+        self.pool.putconn(conn)
+    
+    def close_all_connections(self):
+        self.pool.closeall()
+*/
+
+-- Monitor connection usage
+CREATE OR REPLACE FUNCTION monitor_connections()
+RETURNS TABLE(
+    metric TEXT,
+    current_value INT,
+    threshold INT,
+    status TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        'Total Connections'::TEXT,
+        (SELECT count(*)::INT FROM pg_stat_activity),
+        100,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity) > 80 THEN 'WARNING'
+            WHEN (SELECT count(*) FROM pg_stat_activity) > 90 THEN 'CRITICAL'
+            ELSE 'OK'
+        END;
+    
+    RETURN QUERY
+    SELECT 
+        'Idle Connections'::TEXT,
+        (SELECT count(*)::INT FROM pg_stat_activity WHERE state = 'idle'),
+        50,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity WHERE state = 'idle') > 40 THEN 'WARNING'
+            ELSE 'OK'
+        END;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 57. How do you implement database caching strategies?
+**Answer:**
+```sql
+-- Query result caching with Redis
+-- Application-level caching logic
+
+-- Database-level caching with materialized views
+CREATE MATERIALIZED VIEW popular_products_cache AS
+SELECT 
+    p.product_id,
+    p.name,
+    p.price,
+    COUNT(oi.order_id) as order_count,
+    SUM(oi.quantity) as total_sold,
+    AVG(r.rating) as avg_rating
+FROM products p
+LEFT JOIN order_items oi ON p.product_id = oi.product_id
+LEFT JOIN reviews r ON p.product_id = r.product_id
+WHERE p.status = 'ACTIVE'
+GROUP BY p.product_id, p.name, p.price
+HAVING COUNT(oi.order_id) > 100
+ORDER BY order_count DESC;
+
+-- Refresh strategy
+CREATE OR REPLACE FUNCTION refresh_product_cache()
+RETURNS void AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY popular_products_cache;
+    
+    -- Log refresh
+    INSERT INTO cache_refresh_log (view_name, refresh_time, status)
+    VALUES ('popular_products_cache', now(), 'SUCCESS');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Scheduled refresh
+-- Use pg_cron or external scheduler
+-- SELECT cron.schedule('refresh-cache', '0 */6 * * *', 'SELECT refresh_product_cache();');
+
+-- Cache invalidation triggers
+CREATE OR REPLACE FUNCTION invalidate_product_cache()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Mark cache as stale
+    UPDATE cache_status 
+    SET is_stale = TRUE, 
+        last_invalidated = now()
+    WHERE cache_name = 'popular_products_cache';
+    
+    -- Optionally refresh immediately for critical updates
+    IF TG_OP = 'UPDATE' AND OLD.status != NEW.status THEN
+        PERFORM refresh_product_cache();
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER product_cache_invalidation
+    AFTER INSERT OR UPDATE OR DELETE ON products
+    FOR EACH ROW EXECUTE FUNCTION invalidate_product_cache();
+
+-- Cache hit ratio monitoring
+CREATE VIEW cache_performance AS
+SELECT 
+    'Buffer Cache Hit Ratio' as metric,
+    ROUND(
+        (sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read))) * 100, 2
+    ) as hit_ratio_percent
+FROM pg_statio_user_tables
+WHERE heap_blks_read > 0;
+```
+
+### 58. What are database design considerations for GDPR compliance?
+**Answer:**
+```sql
+-- Data classification and tagging
+CREATE TABLE data_classification (
+    table_name VARCHAR(100),
+    column_name VARCHAR(100),
+    data_type VARCHAR(50),
+    classification VARCHAR(20), -- 'PII', 'SENSITIVE', 'PUBLIC'
+    retention_period INTERVAL,
+    anonymization_required BOOLEAN,
+    PRIMARY KEY (table_name, column_name)
+);
+
+-- Insert classification data
+INSERT INTO data_classification VALUES
+('customers', 'email', 'VARCHAR', 'PII', INTERVAL '7 years', TRUE),
+('customers', 'phone', 'VARCHAR', 'PII', INTERVAL '7 years', TRUE),
+('customers', 'name', 'VARCHAR', 'PII', INTERVAL '7 years', TRUE),
+('orders', 'order_date', 'DATE', 'PUBLIC', INTERVAL '10 years', FALSE);
+
+-- Right to be forgotten implementation
+CREATE OR REPLACE FUNCTION anonymize_customer_data(customer_email VARCHAR)
+RETURNS BOOLEAN AS $$
+DECLARE
+    customer_record RECORD;
+    anonymized_id TEXT;
+BEGIN
+    -- Find customer
+    SELECT * INTO customer_record 
+    FROM customers 
+    WHERE email = customer_email;
+    
+    IF NOT FOUND THEN
+        RAISE NOTICE 'Customer not found: %', customer_email;
+        RETURN FALSE;
+    END IF;
+    
+    -- Generate anonymized ID
+    anonymized_id := 'ANON_' || extract(epoch from now())::TEXT;
+    
+    -- Anonymize customer data
+    UPDATE customers 
+    SET 
+        email = anonymized_id || '@anonymized.com',
+        name = 'Anonymized User',
+        phone = NULL,
+        address = NULL,
+        anonymized_at = now(),
+        anonymized_reason = 'GDPR_REQUEST'
+    WHERE customer_id = customer_record.customer_id;
+    
+    -- Keep order history but anonymize personal references
+    UPDATE orders 
+    SET customer_notes = 'ANONYMIZED'
+    WHERE customer_id = customer_record.customer_id
+      AND customer_notes IS NOT NULL;
+    
+    -- Log the anonymization
+    INSERT INTO gdpr_requests (
+        request_type, 
+        customer_id, 
+        original_email, 
+        processed_at, 
+        status
+    ) VALUES (
+        'RIGHT_TO_BE_FORGOTTEN',
+        customer_record.customer_id,
+        customer_email,
+        now(),
+        'COMPLETED'
+    );
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Data export for data portability
+CREATE OR REPLACE FUNCTION export_customer_data(customer_email VARCHAR)
+RETURNS JSON AS $$
+DECLARE
+    customer_data JSON;
+BEGIN
+    SELECT json_build_object(
+        'personal_info', json_build_object(
+            'name', c.name,
+            'email', c.email,
+            'phone', c.phone,
+            'address', c.address,
+            'created_at', c.created_at
+        ),
+        'orders', (
+            SELECT json_agg(json_build_object(
+                'order_id', o.order_id,
+                'order_date', o.order_date,
+                'total_amount', o.total_amount,
+                'status', o.status
+            ))
+            FROM orders o
+            WHERE o.customer_id = c.customer_id
+        ),
+        'preferences', c.preferences
+    ) INTO customer_data
+    FROM customers c
+    WHERE c.email = customer_email;
+    
+    -- Log the export request
+    INSERT INTO gdpr_requests (
+        request_type,
+        customer_email,
+        processed_at,
+        status
+    ) VALUES (
+        'DATA_EXPORT',
+        customer_email,
+        now(),
+        'COMPLETED'
+    );
+    
+    RETURN customer_data;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Automated data retention
+CREATE OR REPLACE FUNCTION apply_data_retention()
+RETURNS void AS $$
+DECLARE
+    classification_record RECORD;
+    delete_count INT;
+BEGIN
+    FOR classification_record IN 
+        SELECT DISTINCT table_name, retention_period 
+        FROM data_classification 
+        WHERE retention_period IS NOT NULL
+    LOOP
+        -- Delete old records based on retention policy
+        EXECUTE format(
+            'DELETE FROM %I WHERE created_at < now() - %L',
+            classification_record.table_name,
+            classification_record.retention_period
+        );
+        
+        GET DIAGNOSTICS delete_count = ROW_COUNT;
+        
+        -- Log retention action
+        INSERT INTO retention_log (
+            table_name,
+            retention_period,
+            records_deleted,
+            executed_at
+        ) VALUES (
+            classification_record.table_name,
+            classification_record.retention_period,
+            delete_count,
+            now()
+        );
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Consent management
+CREATE TABLE consent_records (
+    consent_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    consent_type VARCHAR(50), -- 'MARKETING', 'ANALYTICS', 'FUNCTIONAL'
+    consent_given BOOLEAN,
+    consent_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    consent_method VARCHAR(50), -- 'WEB_FORM', 'EMAIL', 'PHONE'
+    ip_address INET,
+    user_agent TEXT
+);
+
+-- Audit trail for GDPR compliance
+CREATE TABLE gdpr_audit_log (
+    audit_id SERIAL PRIMARY KEY,
+    table_name VARCHAR(100),
+    record_id INT,
+    action VARCHAR(50), -- 'ACCESS', 'MODIFY', 'DELETE', 'EXPORT'
+    user_id VARCHAR(100),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address INET,
+    details JSONB
+);
+```
+
+### 59. How do you design for database scalability patterns?
+**Answer:**
+```sql
+-- Horizontal sharding implementation
+CREATE TABLE shard_map (
+    shard_id INT PRIMARY KEY,
+    shard_name VARCHAR(50),
+    connection_string TEXT,
+    min_hash_value BIGINT,
+    max_hash_value BIGINT,
+    status VARCHAR(20) DEFAULT 'ACTIVE'
+);
+
+-- Sharding function
+CREATE OR REPLACE FUNCTION get_shard_id(entity_id BIGINT)
+RETURNS INT AS $$
+DECLARE
+    hash_value BIGINT;
+    shard_record RECORD;
+BEGIN
+    -- Calculate hash
+    hash_value := abs(hashtext(entity_id::TEXT));
+    
+    -- Find appropriate shard
+    SELECT shard_id INTO shard_record
+    FROM shard_map
+    WHERE hash_value BETWEEN min_hash_value AND max_hash_value
+      AND status = 'ACTIVE'
+    LIMIT 1;
+    
+    RETURN shard_record.shard_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Vertical partitioning for large tables
+-- Hot data (frequently accessed)
+CREATE TABLE user_sessions_hot (
+    session_id UUID PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+) PARTITION BY RANGE (created_at);
+
+-- Cold data (archived)
+CREATE TABLE user_sessions_cold (
+    session_id UUID PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    created_at TIMESTAMP,
+    ended_at TIMESTAMP,
+    session_duration INTERVAL,
+    total_page_views INT
+);
+
+-- Read replica routing
+CREATE OR REPLACE FUNCTION route_query(query_type VARCHAR)
+RETURNS TEXT AS $$
+BEGIN
+    CASE query_type
+        WHEN 'READ' THEN
+            RETURN 'replica_connection_string';
+        WHEN 'write' THEN
+            RETURN 'master_connection_string';
+        WHEN 'analytics' THEN
+            RETURN 'analytics_replica_connection_string';
+        ELSE
+            RETURN 'master_connection_string';
+    END CASE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Database connection load balancing
+CREATE TABLE connection_pools (
+    pool_name VARCHAR(50) PRIMARY KEY,
+    connection_string TEXT,
+    max_connections INT,
+    current_connections INT DEFAULT 0,
+    pool_type VARCHAR(20), -- 'MASTER', 'REPLICA', 'ANALYTICS'
+    weight INT DEFAULT 1,
+    status VARCHAR(20) DEFAULT 'ACTIVE'
+);
+
+-- Auto-scaling trigger
+CREATE OR REPLACE FUNCTION check_scaling_needs()
+RETURNS void AS $$
+DECLARE
+    cpu_usage FLOAT;
+    connection_count INT;
+    avg_query_time FLOAT;
+BEGIN
+    -- Get current metrics
+    SELECT COUNT(*) INTO connection_count FROM pg_stat_activity;
+    
+    -- Check if scaling is needed
+    IF connection_count > 80 THEN
+        -- Trigger scale-out notification
+        INSERT INTO scaling_events (event_type, metric_value, threshold, timestamp)
+        VALUES ('SCALE_OUT_NEEDED', connection_count, 80, now());
+    END IF;
+    
+    -- Check query performance
+    SELECT AVG(mean_time) INTO avg_query_time
+    FROM pg_stat_statements
+    WHERE calls > 100;
+    
+    IF avg_query_time > 1000 THEN -- 1 second
+        INSERT INTO scaling_events (event_type, metric_value, threshold, timestamp)
+        VALUES ('PERFORMANCE_DEGRADATION', avg_query_time, 1000, now());
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 60. What are microservices database patterns?
+**Answer:**
+```sql
+-- Database per Service pattern
+-- Service 1: User Service Database
+CREATE DATABASE user_service_db;
+
+-- Service 2: Order Service Database  
+CREATE DATABASE order_service_db;
+
+-- Service 3: Inventory Service Database
+CREATE DATABASE inventory_service_db;
+
+-- Saga pattern for distributed transactions
+-- Order saga implementation
+CREATE TABLE saga_transactions (
+    saga_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    saga_type VARCHAR(50),
+    status VARCHAR(20), -- 'STARTED', 'COMPLETED', 'FAILED', 'COMPENSATING'
+    current_step INT DEFAULT 1,
+    total_steps INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payload JSONB
+);
+
+CREATE TABLE saga_steps (
+    step_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    saga_id UUID REFERENCES saga_transactions(saga_id),
+    step_number INT,
+    service_name VARCHAR(50),
+    action VARCHAR(50),
+    compensation_action VARCHAR(50),
+    status VARCHAR(20), -- 'PENDING', 'COMPLETED', 'FAILED', 'COMPENSATED'
+    request_payload JSONB,
+    response_payload JSONB,
+    executed_at TIMESTAMP,
+    compensated_at TIMESTAMP
+);
+
+-- Saga orchestrator function
+CREATE OR REPLACE FUNCTION execute_order_saga(order_data JSONB)
+RETURNS UUID AS $$
+DECLARE
+    saga_id UUID;
+    step_record RECORD;
+BEGIN
+    -- Create saga transaction
+    INSERT INTO saga_transactions (saga_type, total_steps, payload)
+    VALUES ('CREATE_ORDER', 4, order_data)
+    RETURNING saga_transactions.saga_id INTO saga_id;
+    
+    -- Define saga steps
+    INSERT INTO saga_steps (saga_id, step_number, service_name, action, compensation_action)
+    VALUES 
+        (saga_id, 1, 'inventory_service', 'reserve_items', 'release_items'),
+        (saga_id, 2, 'payment_service', 'charge_payment', 'refund_payment'),
+        (saga_id, 3, 'shipping_service', 'create_shipment', 'cancel_shipment'),
+        (saga_id, 4, 'order_service', 'create_order', 'cancel_order');
+    
+    -- Execute first step
+    PERFORM execute_saga_step(saga_id, 1);
+    
+    RETURN saga_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Event sourcing pattern
+CREATE TABLE event_store (
+    event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    aggregate_id UUID NOT NULL,
+    aggregate_type VARCHAR(50) NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    event_version INT NOT NULL,
+    event_data JSONB NOT NULL,
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(aggregate_id, event_version)
+);
+
+-- Event projection for read models
+CREATE MATERIALIZED VIEW order_projection AS
+SELECT 
+    aggregate_id as order_id,
+    (event_data->>'customer_id')::UUID as customer_id,
+    (event_data->>'total_amount')::DECIMAL as total_amount,
+    CASE 
+        WHEN event_type = 'OrderCreated' THEN 'CREATED'
+        WHEN event_type = 'OrderPaid' THEN 'PAID'
+        WHEN event_type = 'OrderShipped' THEN 'SHIPPED'
+        WHEN event_type = 'OrderCancelled' THEN 'CANCELLED'
+    END as status,
+    created_at
+FROM event_store
+WHERE aggregate_type = 'Order'
+  AND event_type IN ('OrderCreated', 'OrderPaid', 'OrderShipped', 'OrderCancelled');
+
+-- CQRS pattern implementation
+-- Command side (write model)
+CREATE TABLE order_commands (
+    command_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    command_type VARCHAR(50),
+    aggregate_id UUID,
+    command_data JSONB,
+    processed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Query side (read model)
+CREATE TABLE order_read_model (
+    order_id UUID PRIMARY KEY,
+    customer_id UUID,
+    order_number VARCHAR(50),
+    status VARCHAR(20),
+    total_amount DECIMAL(12,2),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- Outbox pattern for reliable messaging
+CREATE TABLE outbox_events (
+    event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    aggregate_id UUID NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    event_data JSONB NOT NULL,
+    published BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    published_at TIMESTAMP
+);
+
+-- Publish events function
+CREATE OR REPLACE FUNCTION publish_outbox_events()
+RETURNS void AS $$
+DECLARE
+    event_record RECORD;
+BEGIN
+    FOR event_record IN 
+        SELECT * FROM outbox_events 
+        WHERE published = FALSE 
+        ORDER BY created_at 
+        LIMIT 100
+    LOOP
+        -- Publish to message broker (implementation specific)
+        -- PERFORM publish_to_kafka(event_record.event_type, event_record.event_data);
+        
+        -- Mark as published
+        UPDATE outbox_events 
+        SET published = TRUE, published_at = now()
+        WHERE event_id = event_record.event_id;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+```
+### 61. How do you implement database change data capture (CDC)?
+**Answer:**
+```sql
+-- Trigger-based CDC
+CREATE TABLE customer_changes (
+    change_id SERIAL PRIMARY KEY,
+    customer_id INT,
+    operation VARCHAR(10), -- 'INSERT', 'UPDATE', 'DELETE'
+    old_values JSONB,
+    new_values JSONB,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    changed_by VARCHAR(50) DEFAULT current_user
+);
+
+CREATE OR REPLACE FUNCTION capture_customer_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO customer_changes (customer_id, operation, new_values)
+        VALUES (NEW.customer_id, 'INSERT', row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO customer_changes (customer_id, operation, old_values, new_values)
+        VALUES (NEW.customer_id, 'UPDATE', row_to_json(OLD), row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO customer_changes (customer_id, operation, old_values)
+        VALUES (OLD.customer_id, 'DELETE', row_to_json(OLD));
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER customer_cdc_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON customers
+    FOR EACH ROW EXECUTE FUNCTION capture_customer_changes();
+
+-- Log-based CDC using WAL
+-- Enable logical replication
+ALTER SYSTEM SET wal_level = 'logical';
+ALTER SYSTEM SET max_replication_slots = 4;
+ALTER SYSTEM SET max_wal_senders = 4;
+
+-- Create publication for CDC
+CREATE PUBLICATION cdc_publication FOR TABLE customers, orders, products;
+
+-- Create replication slot
+SELECT pg_create_logical_replication_slot('cdc_slot', 'pgoutput');
+
+-- CDC consumer function
+CREATE OR REPLACE FUNCTION process_cdc_changes()
+RETURNS void AS $$
+DECLARE
+    change_record RECORD;
+BEGIN
+    -- Get changes from replication slot
+    FOR change_record IN 
+        SELECT * FROM pg_logical_slot_get_changes('cdc_slot', NULL, NULL)
+    LOOP
+        -- Process change based on operation
+        CASE 
+            WHEN change_record.data LIKE '%INSERT%' THEN
+                PERFORM handle_insert_change(change_record.data);
+            WHEN change_record.data LIKE '%UPDATE%' THEN
+                PERFORM handle_update_change(change_record.data);
+            WHEN change_record.data LIKE '%DELETE%' THEN
+                PERFORM handle_delete_change(change_record.data);
+        END CASE;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Timestamp-based CDC
+CREATE OR REPLACE FUNCTION get_changes_since(since_timestamp TIMESTAMP)
+RETURNS TABLE(
+    table_name TEXT,
+    operation TEXT,
+    record_data JSONB,
+    change_timestamp TIMESTAMP
+) AS $$
+BEGIN
+    -- Get customer changes
+    RETURN QUERY
+    SELECT 
+        'customers'::TEXT,
+        cc.operation::TEXT,
+        cc.new_values,
+        cc.changed_at
+    FROM customer_changes cc
+    WHERE cc.changed_at > since_timestamp;
+    
+    -- Add other tables as needed
+    -- RETURN QUERY SELECT ...
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 62. What are database anti-patterns to avoid?
+**Answer:**
+```sql
+-- ANTI-PATTERN 1: God Object/Wide Table
+-- BAD: Single table with too many columns
+CREATE TABLE user_everything (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50),
+    email VARCHAR(100),
+    -- Profile info
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE,
+    -- Address info
+    street VARCHAR(200),
+    city VARCHAR(50),
+    state VARCHAR(50),
+    -- Preferences (50+ columns)
+    pref_color VARCHAR(20),
+    pref_theme VARCHAR(20)
+    -- ... many more columns
+);
+
+-- GOOD: Normalized design
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE user_profiles (
+    user_id INT PRIMARY KEY REFERENCES users(user_id),
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE
+);
+
+-- ANTI-PATTERN 2: Polymorphic Associations
+-- BAD: Generic foreign key
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    commentable_id INT,
+    commentable_type VARCHAR(50), -- 'Post', 'Photo', 'Video'
+    content TEXT
+);
+
+-- GOOD: Specific associations
+CREATE TABLE post_comments (
+    id SERIAL PRIMARY KEY,
+    post_id INT REFERENCES posts(id),
+    content TEXT
+);
+
+CREATE TABLE photo_comments (
+    id SERIAL PRIMARY KEY,
+    photo_id INT REFERENCES photos(id),
+    content TEXT
+);
+
+-- ANTI-PATTERN 3: Entity-Attribute-Value (EAV)
+-- BAD: Generic attribute storage
+CREATE TABLE object_attributes (
+    object_id INT,
+    attribute_name VARCHAR(50),
+    attribute_value TEXT
+);
+
+-- GOOD: Proper columns or JSON for flexibility
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    price DECIMAL(10,2),
+    attributes JSONB -- For flexible attributes
+);
+
+-- ANTI-PATTERN 4: Implicit Columns
+-- BAD: Storing multiple values in one column
+CREATE TABLE orders_bad (
+    order_id SERIAL PRIMARY KEY,
+    product_ids TEXT -- '1,2,3,4'
+);
+
+-- GOOD: Proper junction table
+CREATE TABLE order_items (
+    order_id INT REFERENCES orders(order_id),
+    product_id INT REFERENCES products(product_id),
+    quantity INT,
+    PRIMARY KEY (order_id, product_id)
+);
+
+-- ANTI-PATTERN 5: Fear of Unknown (NULL phobia)
+-- BAD: Using magic values instead of NULL
+UPDATE customers SET phone = 'N/A' WHERE phone IS NULL;
+UPDATE customers SET birth_date = '1900-01-01' WHERE birth_date IS NULL;
+
+-- GOOD: Embrace NULL for unknown values
+SELECT name, COALESCE(phone, 'Not provided') as phone_display
+FROM customers;
+
+-- ANTI-PATTERN 6: Keyless Entry
+-- BAD: No primary key
+CREATE TABLE log_entries (
+    timestamp TIMESTAMP,
+    message TEXT,
+    level VARCHAR(10)
+);
+
+-- GOOD: Always have a primary key
+CREATE TABLE log_entries (
+    log_id BIGSERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    message TEXT,
+    level VARCHAR(10)
+);
+```
+
+### 63. How do you design for database observability and monitoring?
+**Answer:**
+```sql
+-- Performance metrics collection
+CREATE TABLE performance_metrics (
+    metric_id SERIAL PRIMARY KEY,
+    metric_name VARCHAR(100),
+    metric_value DECIMAL(15,4),
+    metric_unit VARCHAR(20),
+    collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tags JSONB
+);
+
+-- Collect database metrics
+CREATE OR REPLACE FUNCTION collect_db_metrics()
+RETURNS void AS $$
+BEGIN
+    -- Connection metrics
+    INSERT INTO performance_metrics (metric_name, metric_value, metric_unit, tags)
+    SELECT 
+        'active_connections',
+        COUNT(*),
+        'count',
+        json_build_object('state', state)
+    FROM pg_stat_activity
+    GROUP BY state;
+    
+    -- Query performance metrics
+    INSERT INTO performance_metrics (metric_name, metric_value, metric_unit, tags)
+    SELECT 
+        'avg_query_time',
+        mean_time,
+        'milliseconds',
+        json_build_object('query_hash', queryid::TEXT)
+    FROM pg_stat_statements
+    WHERE calls > 10
+    ORDER BY mean_time DESC
+    LIMIT 10;
+    
+    -- Database size metrics
+    INSERT INTO performance_metrics (metric_name, metric_value, metric_unit, tags)
+    SELECT 
+        'database_size',
+        pg_database_size(datname),
+        'bytes',
+        json_build_object('database', datname)
+    FROM pg_database
+    WHERE datname NOT IN ('template0', 'template1', 'postgres');
+    
+    -- Cache hit ratio
+    INSERT INTO performance_metrics (metric_name, metric_value, metric_unit)
+    SELECT 
+        'cache_hit_ratio',
+        ROUND(
+            (sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read))) * 100, 2
+        ),
+        'percentage'
+    FROM pg_statio_user_tables
+    WHERE heap_blks_read > 0;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Query performance monitoring
+CREATE VIEW slow_queries AS
+SELECT 
+    queryid,
+    query,
+    calls,
+    total_time,
+    mean_time,
+    max_time,
+    stddev_time,
+    rows,
+    100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
+FROM pg_stat_statements
+WHERE mean_time > 100 -- Queries taking more than 100ms on average
+ORDER BY mean_time DESC;
+
+-- Lock monitoring
+CREATE VIEW current_locks AS
+SELECT 
+    pl.pid,
+    pa.usename,
+    pa.application_name,
+    pl.locktype,
+    pl.mode,
+    pl.granted,
+    pa.query_start,
+    pa.query
+FROM pg_locks pl
+JOIN pg_stat_activity pa ON pl.pid = pa.pid
+WHERE NOT pl.granted
+ORDER BY pa.query_start;
+
+-- Blocking queries detection
+CREATE OR REPLACE FUNCTION detect_blocking_queries()
+RETURNS TABLE(
+    blocked_pid INT,
+    blocked_user TEXT,
+    blocking_pid INT,
+    blocking_user TEXT,
+    blocked_query TEXT,
+    blocking_query TEXT,
+    block_duration INTERVAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        blocked_locks.pid::INT,
+        blocked_activity.usename::TEXT,
+        blocking_locks.pid::INT,
+        blocking_activity.usename::TEXT,
+        blocked_activity.query::TEXT,
+        blocking_activity.query::TEXT,
+        (now() - blocked_activity.query_start)::INTERVAL
+    FROM pg_catalog.pg_locks blocked_locks
+    JOIN pg_catalog.pg_stat_activity blocked_activity ON blocked_activity.pid = blocked_locks.pid
+    JOIN pg_catalog.pg_locks blocking_locks ON (
+        blocking_locks.locktype = blocked_locks.locktype AND
+        blocking_locks.database IS NOT DISTINCT FROM blocked_locks.database AND
+        blocking_locks.relation IS NOT DISTINCT FROM blocked_locks.relation AND
+        blocking_locks.page IS NOT DISTINCT FROM blocked_locks.page AND
+        blocking_locks.tuple IS NOT DISTINCT FROM blocked_locks.tuple AND
+        blocking_locks.virtualxid IS NOT DISTINCT FROM blocked_locks.virtualxid AND
+        blocking_locks.transactionid IS NOT DISTINCT FROM blocked_locks.transactionid AND
+        blocking_locks.classid IS NOT DISTINCT FROM blocked_locks.classid AND
+        blocking_locks.objid IS NOT DISTINCT FROM blocked_locks.objid AND
+        blocking_locks.objsubid IS NOT DISTINCT FROM blocked_locks.objsubid AND
+        blocking_locks.pid != blocked_locks.pid
+    )
+    JOIN pg_catalog.pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid
+    WHERE NOT blocked_locks.granted;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Alerting system
+CREATE TABLE alert_rules (
+    rule_id SERIAL PRIMARY KEY,
+    rule_name VARCHAR(100),
+    metric_name VARCHAR(100),
+    threshold_value DECIMAL(15,4),
+    comparison_operator VARCHAR(10), -- '>', '<', '>=', '<=', '='
+    severity VARCHAR(20), -- 'INFO', 'WARNING', 'CRITICAL'
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE alerts (
+    alert_id SERIAL PRIMARY KEY,
+    rule_id INT REFERENCES alert_rules(rule_id),
+    metric_value DECIMAL(15,4),
+    threshold_value DECIMAL(15,4),
+    severity VARCHAR(20),
+    message TEXT,
+    triggered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'ACTIVE' -- 'ACTIVE', 'RESOLVED', 'ACKNOWLEDGED'
+);
+
+-- Alert evaluation function
+CREATE OR REPLACE FUNCTION evaluate_alerts()
+RETURNS void AS $$
+DECLARE
+    rule_record RECORD;
+    current_value DECIMAL(15,4);
+    alert_triggered BOOLEAN;
+BEGIN
+    FOR rule_record IN SELECT * FROM alert_rules WHERE is_active = TRUE LOOP
+        -- Get current metric value
+        SELECT metric_value INTO current_value
+        FROM performance_metrics
+        WHERE metric_name = rule_record.metric_name
+        ORDER BY collected_at DESC
+        LIMIT 1;
+        
+        -- Evaluate threshold
+        alert_triggered := CASE rule_record.comparison_operator
+            WHEN '>' THEN current_value > rule_record.threshold_value
+            WHEN '<' THEN current_value < rule_record.threshold_value
+            WHEN '>=' THEN current_value >= rule_record.threshold_value
+            WHEN '<=' THEN current_value <= rule_record.threshold_value
+            WHEN '=' THEN current_value = rule_record.threshold_value
+            ELSE FALSE
+        END;
+        
+        -- Create alert if triggered
+        IF alert_triggered THEN
+            INSERT INTO alerts (rule_id, metric_value, threshold_value, severity, message)
+            VALUES (
+                rule_record.rule_id,
+                current_value,
+                rule_record.threshold_value,
+                rule_record.severity,
+                format('%s: %s %s %s (current: %s)',
+                    rule_record.rule_name,
+                    rule_record.metric_name,
+                    rule_record.comparison_operator,
+                    rule_record.threshold_value,
+                    current_value
+                )
+            );
+        END IF;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Health check endpoint
+CREATE OR REPLACE FUNCTION database_health_check()
+RETURNS JSON AS $$
+DECLARE
+    health_status JSON;
+BEGIN
+    SELECT json_build_object(
+        'status', 'healthy',
+        'timestamp', now(),
+        'metrics', json_build_object(
+            'active_connections', (SELECT count(*) FROM pg_stat_activity),
+            'database_size_mb', (SELECT pg_size_pretty(pg_database_size(current_database()))),
+            'cache_hit_ratio', (
+                SELECT ROUND(
+                    (sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read))) * 100, 2
+                )
+                FROM pg_statio_user_tables
+                WHERE heap_blks_read > 0
+            ),
+            'slow_queries_count', (SELECT count(*) FROM slow_queries),
+            'blocking_queries_count', (SELECT count(*) FROM detect_blocking_queries())
+        )
+    ) INTO health_status;
+    
+    RETURN health_status;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 64. How do you implement database disaster recovery testing?
+**Answer:**
+```sql
+-- DR test framework
+CREATE TABLE dr_test_scenarios (
+    scenario_id SERIAL PRIMARY KEY,
+    scenario_name VARCHAR(100),
+    description TEXT,
+    test_type VARCHAR(50), -- 'BACKUP_RESTORE', 'FAILOVER', 'SPLIT_BRAIN'
+    expected_rto_minutes INT, -- Recovery Time Objective
+    expected_rpo_minutes INT, -- Recovery Point Objective
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE dr_test_executions (
+    execution_id SERIAL PRIMARY KEY,
+    scenario_id INT REFERENCES dr_test_scenarios(scenario_id),
+    test_start_time TIMESTAMP,
+    test_end_time TIMESTAMP,
+    actual_rto_minutes INT,
+    actual_rpo_minutes INT,
+    status VARCHAR(20), -- 'RUNNING', 'PASSED', 'FAILED'
+    test_results JSONB,
+    notes TEXT
+);
+
+-- Backup restore test
+CREATE OR REPLACE FUNCTION test_backup_restore(backup_file TEXT)
+RETURNS JSON AS $$
+DECLARE
+    test_db_name TEXT;
+    start_time TIMESTAMP;
+    end_time TIMESTAMP;
+    test_result JSON;
+    record_count_original INT;
+    record_count_restored INT;
+BEGIN
+    start_time := clock_timestamp();
+    test_db_name := 'dr_test_' || extract(epoch from now())::TEXT;
+    
+    -- Create test database
+    EXECUTE format('CREATE DATABASE %I', test_db_name);
+    
+    -- Restore backup
+    EXECUTE format('pg_restore -d %I %L', test_db_name, backup_file);
+    
+    -- Verify data integrity
+    EXECUTE format('SELECT count(*) FROM %I.customers', test_db_name) INTO record_count_restored;
+    SELECT count(*) INTO record_count_original FROM customers;
+    
+    end_time := clock_timestamp();
+    
+    -- Build test result
+    SELECT json_build_object(
+        'test_type', 'BACKUP_RESTORE',
+        'duration_minutes', EXTRACT(EPOCH FROM (end_time - start_time)) / 60,
+        'original_record_count', record_count_original,
+        'restored_record_count', record_count_restored,
+        'data_integrity_check', record_count_original = record_count_restored,
+        'backup_file', backup_file,
+        'test_database', test_db_name
+    ) INTO test_result;
+    
+    -- Cleanup test database
+    EXECUTE format('DROP DATABASE %I', test_db_name);
+    
+    RETURN test_result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Failover test
+CREATE OR REPLACE FUNCTION test_failover_scenario()
+RETURNS JSON AS $$
+DECLARE
+    start_time TIMESTAMP;
+    end_time TIMESTAMP;
+    failover_successful BOOLEAN;
+    test_result JSON;
+BEGIN
+    start_time := clock_timestamp();
+    
+    -- Simulate primary failure
+    -- In real scenario, this would involve stopping primary server
+    
+    -- Check if standby can be promoted
+    BEGIN
+        -- Attempt to promote standby (pseudo-code)
+        -- PERFORM pg_promote();
+        failover_successful := TRUE;
+    EXCEPTION WHEN OTHERS THEN
+        failover_successful := FALSE;
+    END;
+    
+    end_time := clock_timestamp();
+    
+    SELECT json_build_object(
+        'test_type', 'FAILOVER',
+        'duration_minutes', EXTRACT(EPOCH FROM (end_time - start_time)) / 60,
+        'failover_successful', failover_successful,
+        'new_primary_status', 'ACTIVE', -- Check actual status
+        'replication_lag_seconds', 0 -- Check actual lag
+    ) INTO test_result;
+    
+    RETURN test_result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Comprehensive DR test suite
+CREATE OR REPLACE FUNCTION run_dr_test_suite()
+RETURNS TABLE(
+    test_name TEXT,
+    status TEXT,
+    duration_minutes NUMERIC,
+    rto_met BOOLEAN,
+    rpo_met BOOLEAN,
+    details JSON
+) AS $$
+DECLARE
+    scenario_record RECORD;
+    execution_id INT;
+    test_start TIMESTAMP;
+    test_end TIMESTAMP;
+    test_results JSON;
+BEGIN
+    FOR scenario_record IN 
+        SELECT * FROM dr_test_scenarios WHERE is_active = TRUE
+    LOOP
+        test_start := clock_timestamp();
+        
+        -- Insert test execution record
+        INSERT INTO dr_test_executions (scenario_id, test_start_time, status)
+        VALUES (scenario_record.scenario_id, test_start, 'RUNNING')
+        RETURNING execution_id INTO execution_id;
+        
+        -- Execute test based on type
+        CASE scenario_record.test_type
+            WHEN 'BACKUP_RESTORE' THEN
+                test_results := test_backup_restore('/backup/latest.sql');
+            WHEN 'FAILOVER' THEN
+                test_results := test_failover_scenario();
+            ELSE
+                test_results := json_build_object('error', 'Unknown test type');
+        END CASE;
+        
+        test_end := clock_timestamp();
+        
+        -- Update execution record
+        UPDATE dr_test_executions
+        SET 
+            test_end_time = test_end,
+            actual_rto_minutes = EXTRACT(EPOCH FROM (test_end - test_start)) / 60,
+            status = CASE WHEN test_results->>'error' IS NULL THEN 'PASSED' ELSE 'FAILED' END,
+            test_results = test_results
+        WHERE dr_test_executions.execution_id = run_dr_test_suite.execution_id;
+        
+        -- Return test result
+        RETURN QUERY SELECT 
+            scenario_record.scenario_name::TEXT,
+            CASE WHEN test_results->>'error' IS NULL THEN 'PASSED' ELSE 'FAILED' END::TEXT,
+            EXTRACT(EPOCH FROM (test_end - test_start)) / 60,
+            (EXTRACT(EPOCH FROM (test_end - test_start)) / 60) <= scenario_record.expected_rto_minutes,
+            TRUE, -- RPO check would be more complex
+            test_results;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Automated DR testing schedule
+CREATE OR REPLACE FUNCTION schedule_dr_tests()
+RETURNS void AS $$
+BEGIN
+    -- Weekly backup restore test
+    IF EXTRACT(DOW FROM now()) = 1 THEN -- Monday
+        PERFORM run_dr_test_suite();
+    END IF;
+    
+    -- Monthly failover test
+    IF EXTRACT(DAY FROM now()) = 1 THEN -- First day of month
+        PERFORM test_failover_scenario();
+    END IF;
+    
+    -- Log scheduled execution
+    INSERT INTO dr_test_log (test_date, test_type, status)
+    VALUES (now(), 'SCHEDULED', 'COMPLETED');
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 65. What are database capacity planning strategies?
+**Answer:**
+```sql
+-- Capacity metrics collection
+CREATE TABLE capacity_metrics (
+    metric_id SERIAL PRIMARY KEY,
+    metric_date DATE,
+    database_size_bytes BIGINT,
+    table_count INT,
+    index_count INT,
+    connection_count_max INT,
+    connection_count_avg DECIMAL(8,2),
+    query_count_daily BIGINT,
+    cpu_usage_avg DECIMAL(5,2),
+    memory_usage_avg DECIMAL(5,2),
+    disk_io_read_mb DECIMAL(12,2),
+    disk_io_write_mb DECIMAL(12,2)
+);
+
+-- Collect daily capacity metrics
+CREATE OR REPLACE FUNCTION collect_capacity_metrics()
+RETURNS void AS $$
+DECLARE
+    today_date DATE := CURRENT_DATE;
+BEGIN
+    INSERT INTO capacity_metrics (
+        metric_date,
+        database_size_bytes,
+        table_count,
+        index_count,
+        connection_count_max,
+        connection_count_avg,
+        query_count_daily
+    )
+    SELECT 
+        today_date,
+        pg_database_size(current_database()),
+        (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'),
+        (SELECT count(*) FROM pg_indexes WHERE schemaname = 'public'),
+        (SELECT max(numbackends) FROM pg_stat_database WHERE datname = current_database()),
+        (SELECT avg(numbackends) FROM pg_stat_database WHERE datname = current_database()),
+        (SELECT sum(calls) FROM pg_stat_statements)
+    ON CONFLICT (metric_date) DO UPDATE SET
+        database_size_bytes = EXCLUDED.database_size_bytes,
+        table_count = EXCLUDED.table_count,
+        index_count = EXCLUDED.index_count,
+        connection_count_max = EXCLUDED.connection_count_max,
+        connection_count_avg = EXCLUDED.connection_count_avg,
+        query_count_daily = EXCLUDED.query_count_daily;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Growth trend analysis
+CREATE OR REPLACE FUNCTION analyze_growth_trends(days_back INT DEFAULT 90)
+RETURNS TABLE(
+    metric_name TEXT,
+    current_value DECIMAL,
+    growth_rate_daily DECIMAL,
+    projected_30_days DECIMAL,
+    projected_90_days DECIMAL,
+    projected_365_days DECIMAL
+) AS $$
+BEGIN
+    -- Database size growth
+    RETURN QUERY
+    WITH growth_calc AS (
+        SELECT 
+            database_size_bytes::DECIMAL / (1024*1024*1024) as size_gb,
+            metric_date,
+            LAG(database_size_bytes::DECIMAL / (1024*1024*1024)) OVER (ORDER BY metric_date) as prev_size_gb
+        FROM capacity_metrics
+        WHERE metric_date >= CURRENT_DATE - days_back
+        ORDER BY metric_date
+    )
+    SELECT 
+        'Database Size (GB)'::TEXT,
+        (SELECT size_gb FROM growth_calc ORDER BY metric_date DESC LIMIT 1),
+        AVG(size_gb - prev_size_gb) as daily_growth,
+        (SELECT size_gb FROM growth_calc ORDER BY metric_date DESC LIMIT 1) + (AVG(size_gb - prev_size_gb) * 30),
+        (SELECT size_gb FROM growth_calc ORDER BY metric_date DESC LIMIT 1) + (AVG(size_gb - prev_size_gb) * 90),
+        (SELECT size_gb FROM growth_calc ORDER BY metric_date DESC LIMIT 1) + (AVG(size_gb - prev_size_gb) * 365)
+    FROM growth_calc
+    WHERE prev_size_gb IS NOT NULL;
+    
+    -- Connection count growth
+    RETURN QUERY
+    WITH conn_growth AS (
+        SELECT 
+            connection_count_avg,
+            metric_date,
+            LAG(connection_count_avg) OVER (ORDER BY metric_date) as prev_conn_avg
+        FROM capacity_metrics
+        WHERE metric_date >= CURRENT_DATE - days_back
+        ORDER BY metric_date
+    )
+    SELECT 
+        'Average Connections'::TEXT,
+        (SELECT connection_count_avg FROM conn_growth ORDER BY metric_date DESC LIMIT 1),
+        AVG(connection_count_avg - prev_conn_avg),
+        (SELECT connection_count_avg FROM conn_growth ORDER BY metric_date DESC LIMIT 1) + (AVG(connection_count_avg - prev_conn_avg) * 30),
+        (SELECT connection_count_avg FROM conn_growth ORDER BY metric_date DESC LIMIT 1) + (AVG(connection_count_avg - prev_conn_avg) * 90),
+        (SELECT connection_count_avg FROM conn_growth ORDER BY metric_date DESC LIMIT 1) + (AVG(connection_count_avg - prev_conn_avg) * 365)
+    FROM conn_growth
+    WHERE prev_conn_avg IS NOT NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Capacity threshold alerts
+CREATE TABLE capacity_thresholds (
+    threshold_id SERIAL PRIMARY KEY,
+    metric_name VARCHAR(100),
+    warning_threshold DECIMAL(15,4),
+    critical_threshold DECIMAL(15,4),
+    threshold_unit VARCHAR(20),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Insert default thresholds
+INSERT INTO capacity_thresholds (metric_name, warning_threshold, critical_threshold, threshold_unit) VALUES
+('database_size_gb', 800, 900, 'GB'),
+('connection_count_max', 80, 95, 'count'),
+('cpu_usage_avg', 70, 85, 'percentage'),
+('memory_usage_avg', 75, 90, 'percentage'),
+('disk_usage_percentage', 80, 90, 'percentage');
+
+-- Check capacity thresholds
+CREATE OR REPLACE FUNCTION check_capacity_thresholds()
+RETURNS TABLE(
+    metric_name TEXT,
+    current_value DECIMAL,
+    threshold_type TEXT,
+    threshold_value DECIMAL,
+    severity TEXT
+) AS $$
+DECLARE
+    threshold_record RECORD;
+    current_metric_value DECIMAL;
+BEGIN
+    FOR threshold_record IN SELECT * FROM capacity_thresholds WHERE is_active = TRUE LOOP
+        -- Get current metric value
+        CASE threshold_record.metric_name
+            WHEN 'database_size_gb' THEN
+                SELECT database_size_bytes::DECIMAL / (1024*1024*1024) INTO current_metric_value
+                FROM capacity_metrics ORDER BY metric_date DESC LIMIT 1;
+            WHEN 'connection_count_max' THEN
+                SELECT connection_count_max INTO current_metric_value
+                FROM capacity_metrics ORDER BY metric_date DESC LIMIT 1;
+            -- Add other metrics as needed
+        END CASE;
+        
+        -- Check thresholds
+        IF current_metric_value >= threshold_record.critical_threshold THEN
+            RETURN QUERY SELECT 
+                threshold_record.metric_name::TEXT,
+                current_metric_value,
+                'CRITICAL'::TEXT,
+                threshold_record.critical_threshold,
+                'CRITICAL'::TEXT;
+        ELSIF current_metric_value >= threshold_record.warning_threshold THEN
+            RETURN QUERY SELECT 
+                threshold_record.metric_name::TEXT,
+                current_metric_value,
+                'WARNING'::TEXT,
+                threshold_record.warning_threshold,
+                'WARNING'::TEXT;
+        END IF;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Capacity planning recommendations
+CREATE OR REPLACE FUNCTION generate_capacity_recommendations()
+RETURNS TABLE(
+    recommendation_type TEXT,
+    priority TEXT,
+    description TEXT,
+    estimated_timeline TEXT,
+    estimated_cost_impact TEXT
+) AS $$
+DECLARE
+    db_size_gb DECIMAL;
+    growth_rate DECIMAL;
+    connection_usage DECIMAL;
+BEGIN
+    -- Get current metrics
+    SELECT database_size_bytes::DECIMAL / (1024*1024*1024) INTO db_size_gb
+    FROM capacity_metrics ORDER BY metric_date DESC LIMIT 1;
+    
+    SELECT growth_rate_daily INTO growth_rate
+    FROM analyze_growth_trends(30) 
+    WHERE metric_name = 'Database Size (GB)';
+    
+    -- Storage recommendations
+    IF db_size_gb > 500 AND growth_rate > 1 THEN
+        RETURN QUERY SELECT 
+            'Storage Upgrade'::TEXT,
+            'HIGH'::TEXT,
+            'Database size is ' || db_size_gb::TEXT || 'GB with ' || growth_rate::TEXT || 'GB daily growth. Consider storage expansion.'::TEXT,
+            '30-60 days'::TEXT,
+            'Medium'::TEXT;
+    END IF;
+    
+    -- Performance recommendations
+    IF (SELECT connection_count_max FROM capacity_metrics ORDER BY metric_date DESC LIMIT 1) > 80 THEN
+        RETURN QUERY SELECT 
+            'Connection Pool Optimization'::TEXT,
+            'MEDIUM'::TEXT,
+            'High connection count detected. Consider connection pooling or read replicas.'::TEXT,
+            '2-4 weeks'::TEXT,
+            'Low'::TEXT;
+    END IF;
+    
+    -- Archival recommendations
+    IF db_size_gb > 1000 THEN
+        RETURN QUERY SELECT 
+            'Data Archival Strategy'::TEXT,
+            'MEDIUM'::TEXT,
+            'Large database size. Implement data archival for historical data.'::TEXT,
+            '4-8 weeks'::TEXT,
+            'Low'::TEXT;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Automated capacity reporting
+CREATE OR REPLACE FUNCTION generate_capacity_report()
+RETURNS JSON AS $$
+DECLARE
+    report JSON;
+BEGIN
+    SELECT json_build_object(
+        'report_date', CURRENT_DATE,
+        'current_metrics', (
+            SELECT json_build_object(
+                'database_size_gb', database_size_bytes::DECIMAL / (1024*1024*1024),
+                'table_count', table_count,
+                'connection_count_max', connection_count_max,
+                'query_count_daily', query_count_daily
+            )
+            FROM capacity_metrics 
+            ORDER BY metric_date DESC 
+            LIMIT 1
+        ),
+        'growth_trends', (
+            SELECT json_agg(
+                json_build_object(
+                    'metric', metric_name,
+                    'current_value', current_value,
+                    'daily_growth_rate', growth_rate_daily,
+                    'projected_30_days', projected_30_days
+                )
+            )
+            FROM analyze_growth_trends(30)
+        ),
+        'threshold_alerts', (
+            SELECT json_agg(
+                json_build_object(
+                    'metric', metric_name,
+                    'current_value', current_value,
+                    'severity', severity,
+                    'threshold_value', threshold_value
+                )
+            )
+            FROM check_capacity_thresholds()
+        ),
+        'recommendations', (
+            SELECT json_agg(
+                json_build_object(
+                    'type', recommendation_type,
+                    'priority', priority,
+                    'description', description,
+                    'timeline', estimated_timeline
+                )
+            )
+            FROM generate_capacity_recommendations()
+        )
+    ) INTO report;
+    
+    RETURN report;
+END;
+$$ LANGUAGE plpgsql;
+```
+## Performance & Optimization (66-80)
+
+### 66. How do you identify and fix slow queries?
+**Answer:**
+```sql
+-- Enable query statistics
+-- PostgreSQL
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';
+ALTER SYSTEM SET pg_stat_statements.track = 'all';
+
+-- Find slow queries
+SELECT 
+    queryid,
+    LEFT(query, 100) as query_preview,
+    calls,
+    total_time,
+    mean_time,
+    max_time,
+    stddev_time,
+    rows,
+    100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
+FROM pg_stat_statements
+WHERE mean_time > 1000 -- Queries taking more than 1 second
+ORDER BY mean_time DESC
+LIMIT 20;
+
+-- Query optimization example
+-- BEFORE: Inefficient query
+SELECT c.name, COUNT(o.order_id) as order_count
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.created_date >= '2023-01-01'
+GROUP BY c.customer_id, c.name
+ORDER BY order_count DESC;
+
+-- Check execution plan
+EXPLAIN (ANALYZE, BUFFERS) 
+SELECT c.name, COUNT(o.order_id) as order_count
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.created_date >= '2023-01-01'
+GROUP BY c.customer_id, c.name
+ORDER BY order_count DESC;
+
+-- AFTER: Optimized with proper indexes
+CREATE INDEX CONCURRENTLY idx_customers_created_date ON customers(created_date);
+CREATE INDEX CONCURRENTLY idx_orders_customer_id ON orders(customer_id);
+
+-- Further optimization with covering index
+CREATE INDEX CONCURRENTLY idx_customers_created_name 
+ON customers(created_date, customer_id) INCLUDE (name)
+WHERE created_date >= '2023-01-01';
+
+-- Query rewrite for better performance
+WITH customer_orders AS (
+    SELECT 
+        c.customer_id,
+        c.name,
+        COUNT(o.order_id) as order_count
+    FROM customers c
+    LEFT JOIN orders o ON c.customer_id = o.customer_id
+    WHERE c.created_date >= '2023-01-01'
+    GROUP BY c.customer_id, c.name
+)
+SELECT name, order_count
+FROM customer_orders
+ORDER BY order_count DESC;
+
+-- Monitoring query performance over time
+CREATE TABLE query_performance_history (
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    queryid BIGINT,
+    query_text TEXT,
+    calls BIGINT,
+    total_time DOUBLE PRECISION,
+    mean_time DOUBLE PRECISION,
+    hit_percent DOUBLE PRECISION
+);
+
+-- Function to capture query stats
+CREATE OR REPLACE FUNCTION capture_query_stats()
+RETURNS void AS $$
+BEGIN
+    INSERT INTO query_performance_history (queryid, query_text, calls, total_time, mean_time, hit_percent)
+    SELECT 
+        queryid,
+        LEFT(query, 500),
+        calls,
+        total_time,
+        mean_time,
+        100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0)
+    FROM pg_stat_statements
+    WHERE calls > 100 AND mean_time > 100;
+    
+    -- Reset stats after capture
+    SELECT pg_stat_statements_reset();
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 67. What are database indexing strategies and best practices?
+**Answer:**
+```sql
+-- B-Tree indexes (default)
+CREATE INDEX idx_customers_email ON customers(email);
+CREATE INDEX idx_orders_date ON orders(order_date);
+
+-- Composite indexes (order matters)
+CREATE INDEX idx_orders_customer_date ON orders(customer_id, order_date);
+CREATE INDEX idx_orders_date_customer ON orders(order_date, customer_id);
+
+-- Covering indexes (include additional columns)
+CREATE INDEX idx_orders_customer_covering 
+ON orders(customer_id) INCLUDE (order_date, total_amount);
+
+-- Partial indexes (with WHERE clause)
+CREATE INDEX idx_active_orders ON orders(order_date) 
+WHERE status = 'ACTIVE';
+
+CREATE INDEX idx_recent_orders ON orders(customer_id, order_date)
+WHERE order_date >= CURRENT_DATE - INTERVAL '30 days';
+
+-- Functional indexes
+CREATE INDEX idx_customers_email_lower ON customers(LOWER(email));
+CREATE INDEX idx_orders_year ON orders(EXTRACT(YEAR FROM order_date));
+
+-- Hash indexes (for equality only)
+CREATE INDEX idx_customers_status_hash ON customers USING HASH(status);
+
+-- GIN indexes (for arrays, JSON, full-text search)
+CREATE INDEX idx_products_tags ON products USING GIN(tags);
+CREATE INDEX idx_customers_preferences ON customers USING GIN(preferences);
+
+-- Full-text search indexes
+ALTER TABLE products ADD COLUMN search_vector tsvector;
+UPDATE products SET search_vector = to_tsvector('english', name || ' ' || description);
+CREATE INDEX idx_products_search ON products USING GIN(search_vector);
+
+-- Index usage monitoring
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_tup_read,
+    idx_tup_fetch,
+    idx_scan,
+    pg_size_pretty(pg_relation_size(indexrelid)) as index_size
+FROM pg_stat_user_indexes
+ORDER BY idx_scan DESC;
+
+-- Unused indexes detection
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan,
+    pg_size_pretty(pg_relation_size(indexrelid)) as size
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+  AND indexrelname NOT LIKE '%_pkey'
+ORDER BY pg_relation_size(indexrelid) DESC;
+
+-- Index maintenance
+-- Rebuild fragmented indexes
+REINDEX INDEX CONCURRENTLY idx_customers_email;
+
+-- Update statistics
+ANALYZE customers;
+
+-- Check index bloat
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    pg_size_pretty(pg_relation_size(indexrelid)) as index_size,
+    CASE 
+        WHEN pg_relation_size(indexrelid) > 100 * 1024 * 1024 THEN 'Consider REINDEX'
+        ELSE 'OK'
+    END as recommendation
+FROM pg_stat_user_indexes
+WHERE pg_relation_size(indexrelid) > 10 * 1024 * 1024
+ORDER BY pg_relation_size(indexrelid) DESC;
+
+-- Index creation strategy
+CREATE OR REPLACE FUNCTION create_optimal_indexes()
+RETURNS void AS $$
+BEGIN
+    -- Analyze query patterns first
+    -- Create indexes based on WHERE clauses
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_status 
+    ON orders(status) WHERE status IN ('PENDING', 'PROCESSING');
+    
+    -- Create indexes for JOIN conditions
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_order_items_order_id 
+    ON order_items(order_id);
+    
+    -- Create indexes for ORDER BY clauses
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_created_desc 
+    ON orders(created_at DESC);
+    
+    -- Create composite indexes for common query patterns
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_customer_status_date 
+    ON orders(customer_id, status, order_date);
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 68. How do you optimize database queries for large datasets?
+**Answer:**
+```sql
+-- Pagination optimization
+-- INEFFICIENT: OFFSET with large values
+SELECT * FROM orders 
+ORDER BY order_date DESC 
+OFFSET 100000 LIMIT 20;
+
+-- EFFICIENT: Cursor-based pagination
+SELECT * FROM orders 
+WHERE order_date < '2023-06-01 10:30:00'
+ORDER BY order_date DESC 
+LIMIT 20;
+
+-- Keyset pagination
+SELECT * FROM orders 
+WHERE (order_date, order_id) < ('2023-06-01 10:30:00', 12345)
+ORDER BY order_date DESC, order_id DESC
+LIMIT 20;
+
+-- Batch processing for large updates
+DO $$
+DECLARE
+    batch_size INT := 10000;
+    processed INT := 0;
+    total_rows INT;
+BEGIN
+    SELECT COUNT(*) INTO total_rows FROM large_table WHERE status = 'PENDING';
+    
+    WHILE processed < total_rows LOOP
+        UPDATE large_table 
+        SET status = 'PROCESSED', updated_at = NOW()
+        WHERE ctid IN (
+            SELECT ctid FROM large_table 
+            WHERE status = 'PENDING'
+            LIMIT batch_size
+        );
+        
+        processed := processed + batch_size;
+        
+        -- Commit batch and provide progress
+        COMMIT;
+        RAISE NOTICE 'Processed % of % rows', processed, total_rows;
+        
+        -- Optional: pause between batches
+        PERFORM pg_sleep(0.1);
+    END LOOP;
+END $$;
+
+-- Partitioning for large tables
+CREATE TABLE orders_partitioned (
+    order_id BIGSERIAL,
+    customer_id BIGINT,
+    order_date DATE,
+    amount DECIMAL(12,2),
+    status VARCHAR(20)
+) PARTITION BY RANGE (order_date);
+
+-- Create monthly partitions
+CREATE TABLE orders_2023_01 PARTITION OF orders_partitioned
+    FOR VALUES FROM ('2023-01-01') TO ('2023-02-01');
+
+CREATE TABLE orders_2023_02 PARTITION OF orders_partitioned
+    FOR VALUES FROM ('2023-02-01') TO ('2023-03-01');
+
+-- Automatic partition creation
+CREATE OR REPLACE FUNCTION create_monthly_partition(table_name TEXT, start_date DATE)
+RETURNS void AS $$
+DECLARE
+    partition_name TEXT;
+    end_date DATE;
+BEGIN
+    partition_name := table_name || '_' || to_char(start_date, 'YYYY_MM');
+    end_date := start_date + INTERVAL '1 month';
+    
+    EXECUTE format(
+        'CREATE TABLE %I PARTITION OF %I FOR VALUES FROM (%L) TO (%L)',
+        partition_name, table_name, start_date, end_date
+    );
+    
+    -- Create indexes on partition
+    EXECUTE format(
+        'CREATE INDEX %I ON %I (customer_id, order_date)',
+        'idx_' || partition_name || '_customer_date',
+        partition_name
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Parallel query execution
+SET max_parallel_workers_per_gather = 4;
+SET parallel_tuple_cost = 0.1;
+SET parallel_setup_cost = 1000;
+
+-- Force parallel execution for large aggregations
+SELECT /*+ PARALLEL(4) */ 
+    customer_id,
+    COUNT(*) as order_count,
+    SUM(amount) as total_amount
+FROM orders_large
+WHERE order_date >= '2023-01-01'
+GROUP BY customer_id;
+
+-- Materialized views for complex aggregations
+CREATE MATERIALIZED VIEW customer_summary AS
+SELECT 
+    c.customer_id,
+    c.name,
+    c.email,
+    COUNT(o.order_id) as total_orders,
+    SUM(o.amount) as lifetime_value,
+    AVG(o.amount) as avg_order_value,
+    MAX(o.order_date) as last_order_date,
+    MIN(o.order_date) as first_order_date
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name, c.email;
+
+-- Incremental refresh strategy
+CREATE OR REPLACE FUNCTION refresh_customer_summary_incremental()
+RETURNS void AS $$
+DECLARE
+    last_refresh TIMESTAMP;
+BEGIN
+    -- Get last refresh time
+    SELECT last_refresh_time INTO last_refresh 
+    FROM materialized_view_refresh_log 
+    WHERE view_name = 'customer_summary';
+    
+    -- Refresh only changed data
+    DELETE FROM customer_summary_temp;
+    
+    INSERT INTO customer_summary_temp
+    SELECT 
+        c.customer_id,
+        c.name,
+        c.email,
+        COUNT(o.order_id) as total_orders,
+        SUM(o.amount) as lifetime_value,
+        AVG(o.amount) as avg_order_value,
+        MAX(o.order_date) as last_order_date,
+        MIN(o.order_date) as first_order_date
+    FROM customers c
+    LEFT JOIN orders o ON c.customer_id = o.customer_id
+    WHERE c.updated_at > last_refresh 
+       OR o.updated_at > last_refresh
+    GROUP BY c.customer_id, c.name, c.email;
+    
+    -- Merge changes
+    MERGE INTO customer_summary cs
+    USING customer_summary_temp cst ON cs.customer_id = cst.customer_id
+    WHEN MATCHED THEN UPDATE SET
+        total_orders = cst.total_orders,
+        lifetime_value = cst.lifetime_value,
+        avg_order_value = cst.avg_order_value,
+        last_order_date = cst.last_order_date
+    WHEN NOT MATCHED THEN INSERT VALUES (
+        cst.customer_id, cst.name, cst.email, cst.total_orders,
+        cst.lifetime_value, cst.avg_order_value, cst.last_order_date, cst.first_order_date
+    );
+    
+    -- Update refresh log
+    UPDATE materialized_view_refresh_log 
+    SET last_refresh_time = NOW()
+    WHERE view_name = 'customer_summary';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Query optimization with hints and statistics
+-- Update table statistics
+ANALYZE orders;
+ANALYZE customers;
+
+-- Set work memory for large sorts
+SET work_mem = '256MB';
+
+-- Optimize join order
+SELECT /*+ LEADING(c o) USE_HASH(o) */
+    c.name,
+    COUNT(o.order_id)
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.created_date >= '2023-01-01'
+GROUP BY c.customer_id, c.name;
+```
+
+### 69. What are database caching and buffer management strategies?
+**Answer:**
+```sql
+-- Buffer pool configuration
+-- PostgreSQL shared_buffers setting
+ALTER SYSTEM SET shared_buffers = '4GB';  -- 25% of RAM typically
+ALTER SYSTEM SET effective_cache_size = '12GB';  -- Total available cache
+ALTER SYSTEM SET work_mem = '256MB';  -- Per-operation memory
+ALTER SYSTEM SET maintenance_work_mem = '1GB';  -- For maintenance operations
+
+-- Monitor buffer cache performance
+SELECT 
+    'Buffer Cache Hit Ratio' as metric,
+    ROUND(
+        (sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read))) * 100, 2
+    ) as hit_ratio_percent
+FROM pg_statio_user_tables
+WHERE heap_blks_read > 0;
+
+-- Detailed buffer usage by table
+SELECT 
+    schemaname,
+    tablename,
+    heap_blks_read,
+    heap_blks_hit,
+    ROUND(
+        (heap_blks_hit::DECIMAL / (heap_blks_hit + heap_blks_read)) * 100, 2
+    ) as hit_ratio,
+    pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) as table_size
+FROM pg_statio_user_tables
+WHERE heap_blks_read > 0
+ORDER BY heap_blks_read DESC;
+
+-- Application-level caching with Redis
+-- Cache frequently accessed data
+CREATE OR REPLACE FUNCTION get_customer_with_cache(customer_id INT)
+RETURNS JSON AS $$
+DECLARE
+    cache_key TEXT;
+    cached_result TEXT;
+    customer_data JSON;
+BEGIN
+    cache_key := 'customer:' || customer_id;
+    
+    -- Try to get from cache first (pseudo-code)
+    -- cached_result := redis_get(cache_key);
+    
+    IF cached_result IS NOT NULL THEN
+        RETURN cached_result::JSON;
+    END IF;
+    
+    -- Get from database
+    SELECT json_build_object(
+        'customer_id', customer_id,
+        'name', name,
+        'email', email,
+        'total_orders', (
+            SELECT COUNT(*) FROM orders WHERE orders.customer_id = customers.customer_id
+        ),
+        'lifetime_value', (
+            SELECT SUM(amount) FROM orders WHERE orders.customer_id = customers.customer_id
+        )
+    ) INTO customer_data
+    FROM customers
+    WHERE customers.customer_id = get_customer_with_cache.customer_id;
+    
+    -- Cache the result (pseudo-code)
+    -- PERFORM redis_set(cache_key, customer_data::TEXT, 3600); -- 1 hour TTL
+    
+    RETURN customer_data;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Query result caching
+CREATE TABLE query_cache (
+    cache_key VARCHAR(255) PRIMARY KEY,
+    query_result TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP,
+    hit_count INT DEFAULT 0
+);
+
+CREATE OR REPLACE FUNCTION get_cached_query_result(
+    query_hash VARCHAR(255),
+    ttl_seconds INT DEFAULT 3600
+)
+RETURNS TEXT AS $$
+DECLARE
+    cached_result TEXT;
+BEGIN
+    SELECT query_result INTO cached_result
+    FROM query_cache
+    WHERE cache_key = query_hash
+      AND expires_at > NOW();
+    
+    IF FOUND THEN
+        -- Update hit count
+        UPDATE query_cache 
+        SET hit_count = hit_count + 1
+        WHERE cache_key = query_hash;
+        
+        RETURN cached_result;
+    END IF;
+    
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION cache_query_result(
+    query_hash VARCHAR(255),
+    result TEXT,
+    ttl_seconds INT DEFAULT 3600
+)
+RETURNS void AS $$
+BEGIN
+    INSERT INTO query_cache (cache_key, query_result, expires_at)
+    VALUES (query_hash, result, NOW() + (ttl_seconds || ' seconds')::INTERVAL)
+    ON CONFLICT (cache_key) DO UPDATE SET
+        query_result = EXCLUDED.query_result,
+        expires_at = EXCLUDED.expires_at,
+        created_at = NOW();
+END;
+$$ LANGUAGE plpgsql;
+
+-- Buffer management for large operations
+-- Optimize for sequential scans
+SET seq_page_cost = 1.0;
+SET random_page_cost = 4.0;
+
+-- For SSD storage
+SET seq_page_cost = 1.0;
+SET random_page_cost = 1.1;
+
+-- Memory settings for different workloads
+-- OLTP workload
+ALTER SYSTEM SET shared_buffers = '2GB';
+ALTER SYSTEM SET work_mem = '64MB';
+ALTER SYSTEM SET maintenance_work_mem = '512MB';
+
+-- Analytics workload
+ALTER SYSTEM SET shared_buffers = '8GB';
+ALTER SYSTEM SET work_mem = '512MB';
+ALTER SYSTEM SET maintenance_work_mem = '2GB';
+
+-- Cache warming strategies
+CREATE OR REPLACE FUNCTION warm_cache()
+RETURNS void AS $$
+BEGIN
+    -- Pre-load frequently accessed tables
+    PERFORM COUNT(*) FROM customers;
+    PERFORM COUNT(*) FROM products;
+    PERFORM COUNT(*) FROM orders WHERE order_date >= CURRENT_DATE - INTERVAL '30 days';
+    
+    -- Pre-load common queries
+    PERFORM customer_id, COUNT(*) 
+    FROM orders 
+    WHERE order_date >= CURRENT_DATE - INTERVAL '7 days'
+    GROUP BY customer_id;
+    
+    RAISE NOTICE 'Cache warming completed';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Cache invalidation strategies
+CREATE OR REPLACE FUNCTION invalidate_customer_cache()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Invalidate application cache (pseudo-code)
+    -- PERFORM redis_delete('customer:' || COALESCE(NEW.customer_id, OLD.customer_id));
+    
+    -- Invalidate query cache
+    DELETE FROM query_cache 
+    WHERE cache_key LIKE '%customer%' || COALESCE(NEW.customer_id, OLD.customer_id) || '%';
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER customer_cache_invalidation
+    AFTER INSERT OR UPDATE OR DELETE ON customers
+    FOR EACH ROW EXECUTE FUNCTION invalidate_customer_cache();
+```
+
+### 70. How do you implement database connection optimization?
+**Answer:**
+```sql
+-- Connection pooling configuration
+-- pgbouncer.ini example
+/*
+[databases]
+production = host=localhost port=5432 dbname=production
+
+[pgbouncer]
+pool_mode = transaction
+max_client_conn = 1000
+default_pool_size = 25
+max_db_connections = 100
+reserve_pool_size = 5
+reserve_pool_timeout = 3
+server_reset_query = DISCARD ALL
+server_check_query = SELECT 1
+server_check_delay = 30
+log_connections = 1
+log_disconnections = 1
+*/
+
+-- Monitor connection usage
+CREATE VIEW connection_stats AS
+SELECT 
+    datname,
+    usename,
+    application_name,
+    state,
+    COUNT(*) as connection_count,
+    MAX(backend_start) as oldest_connection,
+    AVG(EXTRACT(EPOCH FROM (now() - backend_start))) as avg_connection_age_seconds
+FROM pg_stat_activity
+WHERE pid <> pg_backend_pid()
+GROUP BY datname, usename, application_name, state;
+
+-- Connection health monitoring
+CREATE OR REPLACE FUNCTION monitor_connection_health()
+RETURNS TABLE(
+    metric TEXT,
+    current_value INT,
+    threshold INT,
+    status TEXT,
+    recommendation TEXT
+) AS $$
+BEGIN
+    -- Total connections
+    RETURN QUERY
+    SELECT 
+        'Total Connections'::TEXT,
+        (SELECT count(*)::INT FROM pg_stat_activity),
+        100,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity) > 90 THEN 'CRITICAL'
+            WHEN (SELECT count(*) FROM pg_stat_activity) > 80 THEN 'WARNING'
+            ELSE 'OK'
+        END,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity) > 80 THEN 'Implement connection pooling'
+            ELSE 'Connection usage is healthy'
+        END;
+    
+    -- Idle connections
+    RETURN QUERY
+    SELECT 
+        'Idle Connections'::TEXT,
+        (SELECT count(*)::INT FROM pg_stat_activity WHERE state = 'idle'),
+        50,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity WHERE state = 'idle') > 40 THEN 'WARNING'
+            ELSE 'OK'
+        END,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity WHERE state = 'idle') > 40 THEN 'Review connection timeout settings'
+            ELSE 'Idle connection count is acceptable'
+        END;
+    
+    -- Long-running connections
+    RETURN QUERY
+    SELECT 
+        'Long Running Connections'::TEXT,
+        (SELECT count(*)::INT FROM pg_stat_activity 
+         WHERE state = 'active' AND (now() - query_start) > INTERVAL '5 minutes'),
+        5,
+        CASE 
+            WHEN (SELECT count(*) FROM pg_stat_activity 
+                  WHERE state = 'active' AND (now() - query_start) > INTERVAL '5 minutes') > 3 THEN 'WARNING'
+            ELSE 'OK'
+        END,
+        'Monitor for potential blocking queries';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Connection cleanup
+CREATE OR REPLACE FUNCTION cleanup_idle_connections(max_idle_time INTERVAL DEFAULT '1 hour')
+RETURNS INT AS $$
+DECLARE
+    terminated_count INT := 0;
+    conn_record RECORD;
+BEGIN
+    FOR conn_record IN 
+        SELECT pid, usename, application_name, backend_start
+        FROM pg_stat_activity
+        WHERE state = 'idle'
+          AND (now() - backend_start) > max_idle_time
+          AND pid <> pg_backend_pid()
+    LOOP
+        -- Terminate idle connection
+        PERFORM pg_terminate_backend(conn_record.pid);
+        terminated_count := terminated_count + 1;
+        
+        -- Log termination
+        INSERT INTO connection_cleanup_log (pid, username, application_name, idle_duration, terminated_at)
+        VALUES (conn_record.pid, conn_record.usename, conn_record.application_name, 
+                now() - conn_record.backend_start, now());
+    END LOOP;
+    
+    RETURN terminated_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Connection load balancing
+CREATE TABLE connection_pools (
+    pool_id SERIAL PRIMARY KEY,
+    pool_name VARCHAR(50),
+    host VARCHAR(100),
+    port INT,
+    database_name VARCHAR(50),
+    max_connections INT,
+    current_connections INT DEFAULT 0,
+    pool_type VARCHAR(20), -- 'MASTER', 'REPLICA', 'ANALYTICS'
+    weight INT DEFAULT 1,
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    last_health_check TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION get_optimal_connection_pool(query_type VARCHAR DEFAULT 'READ')
+RETURNS TEXT AS $$
+DECLARE
+    selected_pool RECORD;
+BEGIN
+    -- Select pool based on query type and current load
+    SELECT * INTO selected_pool
+    FROM connection_pools
+    WHERE status = 'ACTIVE'
+      AND (
+          (query_type = 'read' AND pool_type IN ('REPLICA', 'MASTER')) OR
+          (query_type = 'write' AND pool_type = 'MASTER') OR
+          (query_type = 'analytics' AND pool_type = 'ANALYTICS')
+      )
+      AND current_connections < max_connections
+    ORDER BY 
+        (current_connections::FLOAT / max_connections) ASC,  -- Least loaded first
+        weight DESC  -- Higher weight preferred
+    LIMIT 1;
+    
+    IF FOUND THEN
+        -- Update connection count
+        UPDATE connection_pools 
+        SET current_connections = current_connections + 1
+        WHERE pool_id = selected_pool.pool_id;
+        
+        RETURN selected_pool.host || ':' || selected_pool.port || '/' || selected_pool.database_name;
+    ELSE
+        RAISE EXCEPTION 'No available connection pool for query type: %', query_type;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Connection retry logic
+CREATE OR REPLACE FUNCTION execute_with_retry(
+    sql_query TEXT,
+    max_retries INT DEFAULT 3,
+    retry_delay INTERVAL DEFAULT '1 second'
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    attempt INT := 1;
+    success BOOLEAN := FALSE;
+BEGIN
+    WHILE attempt <= max_retries AND NOT success LOOP
+        BEGIN
+            EXECUTE sql_query;
+            success := TRUE;
+        EXCEPTION 
+            WHEN connection_exception THEN
+                IF attempt = max_retries THEN
+                    RAISE;
+                END IF;
+                
+                RAISE NOTICE 'Connection failed, attempt % of %, retrying in %', 
+                            attempt, max_retries, retry_delay;
+                
+                PERFORM pg_sleep(EXTRACT(EPOCH FROM retry_delay));
+                attempt := attempt + 1;
+        END;
+    END LOOP;
+    
+    RETURN success;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Connection metrics collection
+CREATE TABLE connection_metrics (
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total_connections INT,
+    active_connections INT,
+    idle_connections INT,
+    waiting_connections INT,
+    max_connections_used INT,
+    avg_connection_duration INTERVAL
+);
+
+CREATE OR REPLACE FUNCTION collect_connection_metrics()
+RETURNS void AS $$
+BEGIN
+    INSERT INTO connection_metrics (
+        total_connections,
+        active_connections,
+        idle_connections,
+        waiting_connections,
+        max_connections_used,
+        avg_connection_duration
+    )
+    SELECT 
+        COUNT(*),
+        COUNT(*) FILTER (WHERE state = 'active'),
+        COUNT(*) FILTER (WHERE state = 'idle'),
+        COUNT(*) FILTER (WHERE wait_event IS NOT NULL),
+        (SELECT setting::INT FROM pg_settings WHERE name = 'max_connections'),
+        AVG(now() - backend_start)
+    FROM pg_stat_activity
+    WHERE pid <> pg_backend_pid();
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 71. What are query execution plan optimization techniques?
+**Answer:**
+```sql
+-- Execution plan analysis
+EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) 
+SELECT c.name, o.order_date, o.amount
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.created_date >= '2023-01-01'
+  AND o.amount > 1000
+ORDER BY o.order_date DESC
+LIMIT 100;
+
+-- Key execution plan elements to analyze:
+-- 1. Node types and their costs
+-- 2. Actual vs estimated rows
+-- 3. Buffer usage (shared hit/read)
+-- 4. Execution time breakdown
+
+-- Plan optimization techniques
+
+-- 1. Index optimization
+-- Before: Sequential scan
+SELECT * FROM orders WHERE customer_id = 123;
+
+-- After: Index scan
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+
+-- 2. Join optimization
+-- Force nested loop for small result sets
+SELECT /*+ USE_NL(c o) */ c.name, o.amount
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.customer_id IN (1, 2, 3);
+
+-- Force hash join for large datasets
+SELECT /*+ USE_HASH(c o) */ c.name, COUNT(o.order_id)
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name;
+
+-- 3. Subquery optimization
+-- Inefficient correlated subquery
+SELECT c.name
+FROM customers c
+WHERE (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.customer_id) > 5;
+
+-- Optimized with JOIN
+SELECT DISTINCT c.name
+FROM customers c
+JOIN (
+    SELECT customer_id
+    FROM orders
+    GROUP BY customer_id
+    HAVING COUNT(*) > 5
+) o ON c.customer_id = o.customer_id;
+
+-- 4. Partition pruning
+-- Query that uses partition pruning
+SELECT * FROM orders_partitioned
+WHERE order_date BETWEEN '2023-06-01' AND '2023-06-30';
+
+-- 5. Statistics optimization
+-- Update statistics for better estimates
+ANALYZE customers;
+ANALYZE orders;
+
+-- Set statistics target for better histograms
+ALTER TABLE orders ALTER COLUMN amount SET STATISTICS 1000;
+ANALYZE orders;
+
+-- 6. Query rewriting for optimization
+-- Original query with multiple OR conditions
+SELECT * FROM products
+WHERE category = 'Electronics' 
+   OR category = 'Computers'
+   OR category = 'Software';
+
+-- Optimized with IN clause
+SELECT * FROM products
+WHERE category IN ('Electronics', 'Computers', 'Software');
+
+-- 7. CTE optimization
+-- Materialized CTE for complex calculations
+WITH RECURSIVE category_hierarchy AS (
+    SELECT category_id, parent_id, name, 1 as level
+    FROM categories
+    WHERE parent_id IS NULL
+    
+    UNION ALL
+    
+    SELECT c.category_id, c.parent_id, c.name, ch.level + 1
+    FROM categories c
+    JOIN category_hierarchy ch ON c.parent_id = ch.category_id
+)
+SELECT * FROM category_hierarchy;
+
+-- 8. Window function optimization
+-- Efficient ranking query
+SELECT 
+    customer_id,
+    order_date,
+    amount,
+    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC) as rn
+FROM orders
+QUALIFY rn <= 3;  -- Get top 3 orders per customer
+
+-- Plan comparison function
+CREATE OR REPLACE FUNCTION compare_query_plans(
+    query1 TEXT,
+    query2 TEXT
+)
+RETURNS TABLE(
+    query_version TEXT,
+    total_cost NUMERIC,
+    execution_time NUMERIC,
+    buffer_hits BIGINT,
+    buffer_reads BIGINT
+) AS $$
+DECLARE
+    plan1 JSON;
+    plan2 JSON;
+BEGIN
+    -- Get execution plans
+    EXECUTE 'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ' || query1 INTO plan1;
+    EXECUTE 'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ' || query2 INTO plan2;
+    
+    -- Extract metrics from plans
+    RETURN QUERY
+    SELECT 
+        'Query 1'::TEXT,
+        (plan1->0->'Plan'->>'Total Cost')::NUMERIC,
+        (plan1->0->'Execution Time')::NUMERIC,
+        (plan1->0->'Plan'->>'Shared Hit Blocks')::BIGINT,
+        (plan1->0->'Plan'->>'Shared Read Blocks')::BIGINT
+    UNION ALL
+    SELECT 
+        'Query 2'::TEXT,
+        (plan2->0->'Plan'->>'Total Cost')::NUMERIC,
+        (plan2->0->'Execution Time')::NUMERIC,
+        (plan2->0->'Plan'->>'Shared Hit Blocks')::BIGINT,
+        (plan2->0->'Plan'->>'Shared Read Blocks')::BIGINT;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Automatic plan analysis
+CREATE OR REPLACE FUNCTION analyze_slow_queries()
+RETURNS TABLE(
+    queryid BIGINT,
+    query_text TEXT,
+    calls BIGINT,
+    mean_time NUMERIC,
+    optimization_suggestions TEXT[]
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        pss.queryid,
+        LEFT(pss.query, 200),
+        pss.calls,
+        pss.mean_time,
+        ARRAY[
+            CASE 
+                WHEN pss.shared_blks_hit::FLOAT / (pss.shared_blks_hit + pss.shared_blks_read) < 0.9 
+                THEN 'Consider adding indexes to improve buffer hit ratio'
+            END,
+            CASE 
+                WHEN pss.mean_time > 1000 
+                THEN 'Query takes over 1 second on average - review execution plan'
+            END,
+            CASE 
+                WHEN pss.calls > 10000 AND pss.mean_time > 100
+                THEN 'High-frequency slow query - prime candidate for optimization'
+            END
+        ]::TEXT[]
+    FROM pg_stat_statements pss
+    WHERE pss.mean_time > 100
+    ORDER BY pss.mean_time DESC;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 72. How do you handle database locks and concurrency?
+**Answer:**
+```sql
+-- Lock monitoring and analysis
+SELECT 
+    pl.locktype,
+    pl.mode,
+    pl.granted,
+    pl.pid,
+    pa.usename,
+    pa.query_start,
+    pa.query
+FROM pg_locks pl
+JOIN pg_stat_activity pa ON pl.pid = pa.pid
+WHERE NOT pl.granted
+ORDER BY pa.query_start;
+
+-- Detect blocking queries
+CREATE VIEW blocking_queries AS
+SELECT 
+    blocked_locks.pid AS blocked_pid,
+    blocked_activity.usename AS blocked_user,
+    blocking_locks.pid AS blocking_pid,
+    blocking_activity.usename AS blocking_user,
+    blocked_activity.query AS blocked_statement,
+    blocking_activity.query AS blocking_statement,
+    blocked_activity.application_name AS blocked_application
+FROM pg_catalog.pg_locks blocked_locks
+JOIN pg_catalog.pg_stat_activity blocked_activity ON blocked_activity.pid = blocked_locks.pid
+JOIN pg_catalog.pg_locks blocking_locks ON (
+    blocking_locks.locktype = blocked_locks.locktype AND
+    blocking_locks.database IS NOT DISTINCT FROM blocked_locks.database AND
+    blocking_locks.relation IS NOT DISTINCT FROM blocked_locks.relation AND
+    blocking_locks.pid != blocked_locks.pid
+)
+JOIN pg_catalog.pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid
+WHERE NOT blocked_locks.granted;
+
+-- Lock timeout configuration
+SET lock_timeout = '30s';
+SET deadlock_timeout = '1s';
+
+-- Explicit locking strategies
+-- 1. Advisory locks for application-level coordination
+SELECT pg_advisory_lock(12345);  -- Exclusive lock
+SELECT pg_advisory_lock_shared(12345);  -- Shared lock
+SELECT pg_advisory_unlock(12345);
+
+-- 2. Row-level locking
+BEGIN;
+SELECT * FROM accounts WHERE account_id = 123 FOR UPDATE;
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 123;
+COMMIT;
+
+-- 3. Table-level locking
+BEGIN;
+LOCK TABLE inventory IN EXCLUSIVE MODE;
+-- Perform complex inventory operations
+COMMIT;
+
+-- Deadlock prevention strategies
+-- 1. Consistent lock ordering
+CREATE OR REPLACE FUNCTION transfer_funds(
+    from_account INT,
+    to_account INT,
+    amount DECIMAL(10,2)
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    first_account INT;
+    second_account INT;
+BEGIN
+    -- Always lock accounts in ascending order to prevent deadlocks
+    IF from_account < to_account THEN
+        first_account := from_account;
+        second_account := to_account;
+    ELSE
+        first_account := to_account;
+        second_account := from_account;
+    END IF;
+    
+    -- Lock accounts in consistent order
+    PERFORM * FROM accounts WHERE account_id = first_account FOR UPDATE;
+    PERFORM * FROM accounts WHERE account_id = second_account FOR UPDATE;
+    
+    -- Perform transfer
+    UPDATE accounts SET balance = balance - amount WHERE account_id = from_account;
+    UPDATE accounts SET balance = balance + amount WHERE account_id = to_account;
+    
+    RETURN TRUE;
+EXCEPTION
+    WHEN deadlock_detected THEN
+        RAISE NOTICE 'Deadlock detected, transaction rolled back';
+        RETURN FALSE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Optimistic locking with version numbers
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    price DECIMAL(10,2),
+    version_number INT DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION update_product_optimistic(
+    p_product_id INT,
+    p_name VARCHAR(100),
+    p_price DECIMAL(10,2),
+    p_expected_version INT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    rows_affected INT;
+BEGIN
+    UPDATE products 
+    SET 
+        name = p_name,
+        price = p_price,
+        version_number = version_number + 1,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE product_id = p_product_id 
+      AND version_number = p_expected_version;
+    
+    GET DIAGNOSTICS rows_affected = ROW_COUNT;
+    
+    IF rows_affected = 0 THEN
+        RAISE EXCEPTION 'Optimistic lock failure: Product % was modified by another transaction', p_product_id;
+    END IF;
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Lock monitoring and alerting
+CREATE TABLE lock_monitoring_log (
+    log_id SERIAL PRIMARY KEY,
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    blocking_pid INT,
+    blocked_pid INT,
+    lock_type VARCHAR(50),
+    lock_mode VARCHAR(50),
+    blocking_query TEXT,
+    blocked_query TEXT,
+    duration INTERVAL
+);
+
+CREATE OR REPLACE FUNCTION monitor_locks()
+RETURNS void AS $$
+DECLARE
+    lock_record RECORD;
+BEGIN
+    FOR lock_record IN SELECT * FROM blocking_queries LOOP
+        INSERT INTO lock_monitoring_log (
+            blocking_pid,
+            blocked_pid,
+            blocking_query,
+            blocked_query,
+            duration
+        ) VALUES (
+            lock_record.blocking_pid,
+            lock_record.blocked_pid,
+            lock_record.blocking_statement,
+            lock_record.blocked_statement,
+            now() - (SELECT query_start FROM pg_stat_activity WHERE pid = lock_record.blocked_pid)
+        );
+        
+        -- Alert if lock duration exceeds threshold
+        IF (now() - (SELECT query_start FROM pg_stat_activity WHERE pid = lock_record.blocked_pid)) > INTERVAL '5 minutes' THEN
+            -- Send alert (implementation specific)
+            RAISE WARNING 'Long-running lock detected: PID % blocking PID % for %', 
+                         lock_record.blocking_pid, 
+                         lock_record.blocked_pid,
+                         now() - (SELECT query_start FROM pg_stat_activity WHERE pid = lock_record.blocked_pid);
+        END IF;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Concurrency control patterns
+-- 1. Read-committed isolation level (default)
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+-- Allows non-repeatable reads but prevents dirty reads
+
+-- 2. Repeatable read isolation level
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+-- Prevents non-repeatable reads and dirty reads
+
+-- 3. Serializable isolation level
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+-- Prevents all phenomena but may cause serialization failures
+
+-- Handle serialization failures
+CREATE OR REPLACE FUNCTION execute_serializable_transaction(
+    transaction_sql TEXT,
+    max_retries INT DEFAULT 3
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    attempt INT := 1;
+    success BOOLEAN := FALSE;
+BEGIN
+    WHILE attempt <= max_retries AND NOT success LOOP
+        BEGIN
+            EXECUTE 'BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE';
+            EXECUTE transaction_sql;
+            EXECUTE 'COMMIT';
+            success := TRUE;
+        EXCEPTION 
+            WHEN serialization_failure THEN
+                EXECUTE 'ROLLBACK';
+                IF attempt = max_retries THEN
+                    RAISE;
+                END IF;
+                
+                -- Exponential backoff
+                PERFORM pg_sleep(0.1 * (2 ^ attempt));
+                attempt := attempt + 1;
+        END;
+    END LOOP;
+    
+    RETURN success;
+END;
+$$ LANGUAGE plpgsql;
 ```

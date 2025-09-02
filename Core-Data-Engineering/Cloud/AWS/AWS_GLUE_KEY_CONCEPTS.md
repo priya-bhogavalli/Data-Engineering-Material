@@ -1,5 +1,31 @@
 # AWS Glue Key Concepts
 
+## 🎯 **Overview**
+AWS Glue is a fully managed extract, transform, and load (ETL) service that makes it easy to prepare and load data for analytics. It serves as the central hub for data cataloging, transformation, and orchestration in modern data architectures.
+
+**What You'll Learn:**
+- Glue Data Catalog for metadata management
+- ETL job development and optimization
+- Crawlers for automatic schema discovery
+- Data quality and monitoring capabilities
+- Integration with other AWS analytics services
+- Cost optimization strategies
+- Best practices for production deployments
+
+**Key Benefits:**
+- **Serverless**: No infrastructure to manage
+- **Automatic Scaling**: Handles varying workloads
+- **Schema Discovery**: Automatically infers data schemas
+- **Code Generation**: Auto-generates ETL code
+- **Integration**: Native connectivity to AWS services
+- **Cost Effective**: Pay only for resources used
+
+**Target Audience:**
+- Data Engineers building ETL pipelines
+- Data Analysts working with data catalogs
+- Solution Architects designing data platforms
+- DevOps Engineers managing data workflows
+
 ## 1. Serverless ETL Service
 **What it is**: Fully managed extract, transform, and load (ETL) service for preparing data for analytics.
 
