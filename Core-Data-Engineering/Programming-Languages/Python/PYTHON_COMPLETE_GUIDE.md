@@ -295,6 +295,616 @@ class CSVDataSource(DataSource):
     
     def connect(self) -> bool:
         """Connect to CSV file."""
+        self.headers = ['id', 'name', 'amount', 'date']
+        self.is_connected = True
+        return True
+    
+    def read_data(self, limit: int = None) -> List[Dict[str, str]]:
+        """Read CSV data."""
+        if not self.is_connected:
+            raise ConnectionError("Not connected to data source")
+        
+        data = [
+            {'id': '1', 'name': 'John', 'amount': '100.50', 'date': '2024-01-01'},
+            {'id': '2', 'name': 'Jane', 'amount': '250.75', 'date': '2024-01-02'}
+        ]
+        
+        if limit:
+            data = data[:limit]
+        
+        self.records_processed += len(data)
+        return data
+```
+
+---
+
+## 4. Error Handling
+
+### Exception Hierarchy
+```python
+# Custom exception hierarchy for data processing
+class DataProcessingError(Exception):
+    """Base exception for data processing errors."""
+    pass
+
+class DataValidationError(DataProcessingError):
+    """Raised when data validation fails."""
+    def __init__(self, message: str, invalid_records: list = None):
+        super().__init__(message)
+        self.invalid_records = invalid_records or []
+
+class DataSourceError(DataProcessingError):
+    """Raised when data source is unavailable or corrupted."""
+    pass
+```
+
+### Comprehensive Error Handling
+```python
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def safe_data_processing(data, processor_func):
+    """Process data with comprehensive error handling."""
+    try:
+        if not data:
+            raise DataValidationError("Input data is empty")
+        
+        result = processor_func(data)
+        
+        if not result:
+            logger.warning("Processing returned empty result")
+        
+        return result
+        
+    except DataValidationError as ve:
+        logger.error(f"Validation error: {ve}")
+        raise
+    except FileNotFoundError as fe:
+        logger.error(f"File not found: {fe}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error during processing: {e}")
+        raise
+    finally:
+        logger.info("Processing attempt completed")
+```
+
+---
+
+## 5. File I/O and Data Formats
+
+### Efficient File Processing
+```python
+import json
+from datetime import datetime
+
+# Safe file reading with encoding handling
+def read_file_safely(file_path: str, encoding: str = 'utf-8'):
+    try:
+        with open(file_path, 'r', encoding=encoding) as file:
+            return file.read()
+    except UnicodeDecodeError:
+        with open(file_path, 'r', encoding='latin-1') as file:
+            return file.read()
+
+# Processing large files line by line
+def process_large_file(file_path: str, processor_func):
+    with open(file_path, 'r') as file:
+        for line_num, line in enumerate(file, 1):
+            try:
+                processed = processor_func(line.strip())
+                yield processed
+            except Exception as e:
+                print(f"Error processing line {line_num}: {e}")
+
+# JSON operations with custom encoder
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+def save_to_json(data, file_path: str):
+    with open(file_path, 'w') as file:
+        json.dump(data, file, cls=DateTimeEncoder, indent=2)
+```
+
+---
+
+## 6. Generators and Iterators
+
+### Memory-Efficient Data Processing
+```python
+def read_csv_chunks(file_path: str, chunk_size: int = 1000):
+    """Read CSV file in chunks to save memory."""
+    import csv
+    
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file)
+        chunk = []
+        
+        for row in reader:
+            chunk.append(row)
+            
+            if len(chunk) >= chunk_size:
+                yield chunk
+                chunk = []
+        
+        if chunk:
+            yield chunk
+
+def fibonacci_generator(n: int):
+    """Generate Fibonacci sequence up to n numbers."""
+    a, b = 0, 1
+    count = 0
+    
+    while count < n:
+        yield a
+        a, b = b, a + b
+        count += 1
+
+# Custom iterator for batch processing
+class DataBatch:
+    """Custom iterator for batch processing."""
+    
+    def __init__(self, data: list, batch_size: int):
+        self.data = data
+        self.batch_size = batch_size
+        self.index = 0
+    
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        if self.index >= len(self.data):
+            raise StopIteration
+        
+        batch = self.data[self.index:self.index + self.batch_size]
+        self.index += self.batch_size
+        return batch
+```
+
+---
+
+## 7. Context Managers
+
+### Resource Management
+```python
+from contextlib import contextmanager
+import time
+
+# Custom context manager class
+class DatabaseTransaction:
+    """Context manager for database transactions."""
+    
+    def __init__(self, connection):
+        self.connection = connection
+        self.transaction = None
+    
+    def __enter__(self):
+        self.transaction = self.connection.begin()
+        return self.transaction
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            self.transaction.commit()
+        else:
+            self.transaction.rollback()
+        return False
+
+# Context manager using decorator
+@contextmanager
+def timing_context(operation_name: str):
+    """Context manager for timing operations."""
+    start_time = time.time()
+    print(f"Starting {operation_name}")
+    
+    try:
+        yield
+    finally:
+        end_time = time.time()
+        print(f"{operation_name} completed in {end_time - start_time:.2f} seconds")
+```
+
+---
+
+## 8. Concurrency and Parallelism
+
+### Threading for I/O-bound Tasks
+```python
+import threading
+import concurrent.futures
+
+def fetch_url(url: str):
+    """Fetch data from URL."""
+    import requests
+    response = requests.get(url)
+    return response.status_code, len(response.content)
+
+def parallel_fetch(urls: list, max_workers: int = 5):
+    """Fetch multiple URLs in parallel."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_url = {executor.submit(fetch_url, url): url for url in urls}
+        
+        results = {}
+        for future in concurrent.futures.as_completed(future_to_url):
+            url = future_to_url[future]
+            try:
+                status_code, content_length = future.result()
+                results[url] = {'status': status_code, 'size': content_length}
+            except Exception as e:
+                results[url] = {'error': str(e)}
+        
+        return results
+```
+
+### Multiprocessing for CPU-bound Tasks
+```python
+import multiprocessing
+from multiprocessing import Pool
+import math
+
+def cpu_intensive_task(n: int):
+    """CPU-intensive calculation."""
+    result = 0
+    for i in range(n):
+        result += math.sqrt(i)
+    return result
+
+def parallel_processing(data: list, num_processes: int = None):
+    """Process data in parallel using multiple processes."""
+    if num_processes is None:
+        num_processes = multiprocessing.cpu_count()
+    
+    with Pool(processes=num_processes) as pool:
+        results = pool.map(cpu_intensive_task, data)
+    
+    return results
+```
+
+---
+
+## 9. Performance Optimization
+
+### Built-in Functions and Optimizations
+```python
+import time
+import numpy as np
+
+# Use built-ins and list comprehensions
+def slow_sum_squares(numbers):
+    """Slow: Manual loop"""
+    result = []
+    for num in numbers:
+        result.append(num ** 2)
+    return sum(result)
+
+def fast_sum_squares(numbers):
+    """Fast: List comprehension + built-in sum"""
+    return sum(num ** 2 for num in numbers)
+
+def fastest_sum_squares(numbers):
+    """Fastest: NumPy vectorization"""
+    arr = np.array(numbers)
+    return np.sum(arr ** 2)
+
+# Choose right data structures
+def find_common_elements_slow(list1, list2):
+    """Slow: O(n*m) complexity"""
+    common = []
+    for item in list1:
+        if item in list2:  # Linear search in list
+            common.append(item)
+    return common
+
+def find_common_elements_fast(list1, list2):
+    """Fast: O(n+m) complexity using sets"""
+    return list(set(list1) & set(list2))
+```
+
+---
+
+## 10. Production Best Practices
+
+### Logging and Monitoring
+```python
+import logging
+import traceback
+from functools import wraps
+
+# Configure comprehensive logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+def handle_errors(func):
+    """Decorator to handle and log errors comprehensively."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            logger.info(f"Starting execution of {func.__name__}")
+            result = func(*args, **kwargs)
+            logger.info(f"Successfully completed {func.__name__}")
+            return result
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}: {str(e)}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            raise
+    return wrapper
+```
+
+### Configuration Management
+```python
+import os
+from dataclasses import dataclass
+
+@dataclass
+class DatabaseConfig:
+    """Database configuration with environment variable support."""
+    host: str = "localhost"
+    port: int = 5432
+    database: str = "mydb"
+    username: str = "user"
+    password: str = "password"
+    
+    @classmethod
+    def from_env(cls):
+        """Create config from environment variables."""
+        return cls(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', '5432')),
+            database=os.getenv('DB_NAME', 'mydb'),
+            username=os.getenv('DB_USER', 'user'),
+            password=os.getenv('DB_PASSWORD', 'password')
+        )
+```
+
+---
+
+## 🔑 **Python Key Concepts by Category**
+
+### **1. Core Language Features**
+
+#### **Data Types & Variables**
+- **Primitive Types**: `int`, `float`, `str`, `bool`, `None`
+- **Type Checking**: `isinstance()`, `type()`, `hasattr()`
+- **Type Conversion**: `int()`, `float()`, `str()`, `bool()`
+- **Variable Assignment**: Multiple assignment, unpacking
+- **Constants**: Naming conventions (UPPER_CASE)
+
+#### **Operators**
+- **Arithmetic**: `+`, `-`, `*`, `/`, `//`, `%`, `**`
+- **Comparison**: `==`, `!=`, `<`, `>`, `<=`, `>=`
+- **Logical**: `and`, `or`, `not`
+- **Membership**: `in`, `not in`
+- **Identity**: `is`, `is not`
+- **Bitwise**: `&`, `|`, `^`, `~`, `<<`, `>>`
+
+#### **Control Flow**
+- **Conditionals**: `if`, `elif`, `else`
+- **Loops**: `for`, `while`, `break`, `continue`, `else`
+- **Exception Handling**: `try`, `except`, `finally`, `raise`, `assert`
+- **Context Management**: `with` statement
+
+### **2. Data Structures**
+
+#### **Built-in Collections**
+- **Lists**: `[]`, mutable, ordered, indexed
+- **Tuples**: `()`, immutable, ordered, indexed
+- **Dictionaries**: `{}`, mutable, key-value pairs, unordered (3.7+ insertion ordered)
+- **Sets**: `set()`, mutable, unique elements, unordered
+- **Frozen Sets**: `frozenset()`, immutable sets
+
+#### **Advanced Collections**
+- **Named Tuples**: `collections.namedtuple()`
+- **Default Dict**: `collections.defaultdict()`
+- **Counter**: `collections.Counter()`
+- **Deque**: `collections.deque()`
+- **Ordered Dict**: `collections.OrderedDict()`
+
+#### **Comprehensions**
+- **List Comprehensions**: `[expr for item in iterable if condition]`
+- **Dict Comprehensions**: `{key: value for item in iterable}`
+- **Set Comprehensions**: `{expr for item in iterable}`
+- **Generator Expressions**: `(expr for item in iterable)`
+
+### **3. Functions & Functional Programming**
+
+#### **Function Basics**
+- **Definition**: `def`, parameters, return values
+- **Arguments**: Positional, keyword, default, `*args`, `**kwargs`
+- **Scope**: Local, global, nonlocal, LEGB rule
+- **Lambda Functions**: Anonymous functions
+- **Closures**: Functions that capture variables from outer scope
+
+#### **Advanced Function Concepts**
+- **Decorators**: Function wrappers, `@decorator` syntax
+- **Generators**: `yield`, lazy evaluation, memory efficiency
+- **Iterators**: `__iter__()`, `__next__()`, `iter()`, `next()`
+- **Higher-Order Functions**: `map()`, `filter()`, `reduce()`, `zip()`
+- **Partial Functions**: `functools.partial()`
+
+### **4. Object-Oriented Programming**
+
+#### **Class Fundamentals**
+- **Class Definition**: `class`, `__init__()`, `self`
+- **Attributes**: Instance variables, class variables
+- **Methods**: Instance methods, class methods, static methods
+- **Properties**: `@property`, getters, setters
+- **String Representation**: `__str__()`, `__repr__()`
+
+#### **Advanced OOP**
+- **Inheritance**: Single, multiple, method resolution order (MRO)
+- **Polymorphism**: Method overriding, duck typing
+- **Encapsulation**: Private attributes (`_`, `__`), access control
+- **Abstract Classes**: `abc.ABC`, `@abstractmethod`
+- **Magic Methods**: `__len__()`, `__getitem__()`, `__call__()`, etc.
+
+### **5. Modules & Packages**
+
+#### **Import System**
+- **Import Statements**: `import`, `from...import`, `as`
+- **Module Search Path**: `sys.path`, `PYTHONPATH`
+- **Package Structure**: `__init__.py`, subpackages
+- **Relative Imports**: `.`, `..`
+- **Dynamic Imports**: `importlib`, `__import__()`
+
+#### **Standard Library Modules**
+- **System**: `os`, `sys`, `platform`, `subprocess`
+- **File/Path**: `pathlib`, `glob`, `shutil`
+- **Date/Time**: `datetime`, `time`, `calendar`
+- **Math**: `math`, `random`, `statistics`
+- **Collections**: `collections`, `itertools`, `functools`
+
+### **6. File I/O & Data Handling**
+
+#### **File Operations**
+- **File Objects**: `open()`, modes (`r`, `w`, `a`, `b`)
+- **Context Managers**: `with` statement for file handling
+- **File Methods**: `read()`, `write()`, `readline()`, `readlines()`
+- **Path Handling**: `os.path`, `pathlib.Path`
+- **Directory Operations**: `os.listdir()`, `os.walk()`, `glob.glob()`
+
+#### **Data Formats**
+- **JSON**: `json.loads()`, `json.dumps()`, custom encoders
+- **CSV**: `csv.reader()`, `csv.writer()`, `csv.DictReader()`
+- **XML**: `xml.etree.ElementTree`, parsing, creation
+- **Binary Data**: `pickle`, `struct`, byte operations
+- **Configuration**: `configparser`, `argparse`
+
+### **7. Error Handling & Debugging**
+
+#### **Exception Handling**
+- **Exception Types**: Built-in exceptions, custom exceptions
+- **Try-Except**: Multiple except blocks, exception hierarchy
+- **Finally**: Cleanup code, resource management
+- **Raise**: Raising exceptions, re-raising
+- **Assert**: Debugging assertions, `AssertionError`
+
+#### **Debugging & Testing**
+- **Debugging**: `pdb`, `breakpoint()`, print debugging
+- **Logging**: `logging` module, levels, handlers, formatters
+- **Testing**: `unittest`, `pytest`, test discovery
+- **Profiling**: `cProfile`, `timeit`, performance analysis
+- **Type Hints**: `typing` module, static analysis
+
+### **8. Concurrency & Parallelism**
+
+#### **Threading**
+- **Thread Basics**: `threading.Thread`, `start()`, `join()`
+- **Synchronization**: `Lock`, `RLock`, `Semaphore`, `Condition`
+- **Thread Pool**: `concurrent.futures.ThreadPoolExecutor`
+- **Thread Safety**: GIL, thread-safe operations
+- **Queue**: `queue.Queue`, producer-consumer patterns
+
+#### **Multiprocessing**
+- **Process Basics**: `multiprocessing.Process`, `Pool`
+- **Inter-Process Communication**: `Queue`, `Pipe`, shared memory
+- **Process Pool**: `multiprocessing.Pool`, `map()`, `apply()`
+- **Synchronization**: Process locks, semaphores
+- **Manager**: Shared objects between processes
+
+#### **Asynchronous Programming**
+- **Async/Await**: `async def`, `await`, coroutines
+- **Event Loop**: `asyncio.run()`, `asyncio.create_task()`
+- **Async Context Managers**: `async with`
+- **Async Iterators**: `async for`, `__aiter__()`, `__anext__()`
+- **Futures**: `asyncio.Future`, `asyncio.gather()`
+
+### **9. Memory Management & Performance**
+
+#### **Memory Management**
+- **Reference Counting**: Automatic memory management
+- **Garbage Collection**: Cyclic reference handling, `gc` module
+- **Memory Profiling**: `memory_profiler`, `tracemalloc`
+- **Weak References**: `weakref`, avoiding circular references
+- **Slots**: `__slots__`, memory optimization for classes
+
+#### **Performance Optimization**
+- **Built-in Functions**: Using optimized C implementations
+- **List Comprehensions**: Faster than explicit loops
+- **Generator Expressions**: Memory-efficient iteration
+- **Caching**: `functools.lru_cache()`, memoization
+- **NumPy**: Vectorized operations for numerical data
+
+### **10. Advanced Features**
+
+#### **Metaprogramming**
+- **Metaclasses**: `type`, custom metaclasses, class creation
+- **Descriptors**: `__get__()`, `__set__()`, `__delete__()`
+- **Dynamic Attributes**: `getattr()`, `setattr()`, `hasattr()`
+- **Reflection**: `inspect` module, introspection
+- **Code Objects**: `compile()`, `exec()`, `eval()`
+
+#### **Context Managers**
+- **Protocol**: `__enter__()`, `__exit__()`
+- **Contextlib**: `@contextmanager`, `contextlib.closing()`
+- **Resource Management**: Automatic cleanup, exception handling
+- **Custom Context Managers**: Database transactions, file handling
+- **Nested Context Managers**: Multiple resources
+
+### **11. Data Engineering Specific**
+
+#### **Data Processing Libraries**
+- **Pandas**: DataFrames, Series, data manipulation
+- **NumPy**: Arrays, mathematical operations, broadcasting
+- **SQLAlchemy**: ORM, database connections, query building
+- **Requests**: HTTP client, API interactions
+- **Beautiful Soup**: HTML/XML parsing, web scraping
+
+#### **Big Data & Distributed Computing**
+- **PySpark**: Spark DataFrames, RDDs, distributed processing
+- **Dask**: Parallel computing, larger-than-memory datasets
+- **Apache Airflow**: Workflow orchestration, DAGs
+- **Celery**: Distributed task queue, background jobs
+- **Kafka-Python**: Message streaming, event processing
+
+#### **Database Connectivity**
+- **Database Drivers**: `psycopg2`, `pymongo`, `redis-py`
+- **Connection Pooling**: Efficient database connections
+- **ORM Patterns**: Object-relational mapping, query optimization
+- **Migration Tools**: Schema versioning, database evolution
+- **Transaction Management**: ACID properties, rollback handling
+
+### **12. Development Tools & Best Practices**
+
+#### **Code Quality**
+- **PEP 8**: Style guide, code formatting
+- **Type Hints**: Static type checking, `mypy`
+- **Linting**: `pylint`, `flake8`, code analysis
+- **Formatting**: `black`, `autopep8`, consistent style
+- **Documentation**: Docstrings, `sphinx`, API documentation
+
+#### **Testing & Quality Assurance**
+- **Unit Testing**: `unittest`, `pytest`, test-driven development
+- **Mocking**: `unittest.mock`, test isolation
+- **Coverage**: `coverage.py`, test coverage analysis
+- **Integration Testing**: End-to-end testing, database testing
+- **Property-Based Testing**: `hypothesis`, generative testing
+
+#### **Deployment & Production**
+- **Virtual Environments**: `venv`, `virtualenv`, dependency isolation
+- **Package Management**: `pip`, `requirements.txt`, `setup.py`
+- **Configuration**: Environment variables, config files
+- **Logging**: Production logging, log aggregation
+- **Monitoring**: Application metrics, error tracking
+
+This comprehensive guide provides the foundation for building robust, scalable, and maintainable Python applications for data engineering workloads. Each concept includes practical examples and real-world patterns commonly used in production data systems. str, file_path: str, delimiter: str = ','):
+        super().__init__(name, file_path)
+        self.delimiter = delimiter
+        self.headers = []
+    
+    def connect(self) -> bool:
+        """Connect to CSV file."""
         print(f"Reading CSV headers from {self.connection_string}")
         self.headers = ['id', 'name', 'amount', 'date']
         self.is_connected = True
@@ -961,4 +1571,3 @@ class DataConfig:
     retry_count: int = 3
 ```
 
-This comprehensive guide provides the foundation for building robust, scalable, and maintainable Python applications for data engineering workloads. Each section includes practical examples and real-world patterns commonly used in production data systems.
