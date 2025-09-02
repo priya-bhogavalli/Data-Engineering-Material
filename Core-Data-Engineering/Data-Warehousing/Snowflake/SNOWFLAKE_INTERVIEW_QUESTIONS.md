@@ -5963,3 +5963,608 @@ $$;
 
 ALTER TASK cost_optimizer RESUME;
 ```
+---
+
+## Scenario-Based Questions
+
+### 86. Design a real-time analytics pipeline using Snowflake
+**Answer**: Implement streaming ingestion with processing and analytics.
+
+```sql
+-- Real-time e-commerce analytics pipeline
+-- 1. Create landing table for raw events
+CREATE TABLE raw_events (
+    event_id STRING,
+    user_id NUMBER,
+    event_type STRING,
+    product_id NUMBER,
+    timestamp TIMESTAMP_NTZ,
+    event_data VARIANT
+);
+
+-- 2. Create stream for change capture
+CREATE STREAM events_stream ON TABLE raw_events;
+
+-- 3. Create processed tables
+CREATE TABLE user_sessions (
+    session_id STRING,
+    user_id NUMBER,
+    start_time TIMESTAMP_NTZ,
+    end_time TIMESTAMP_NTZ,
+    page_views NUMBER,
+    purchases NUMBER
+);
+
+-- 4. Processing task
+CREATE TASK process_events
+    WAREHOUSE = 'streaming_wh'
+    WHEN SYSTEM$STREAM_HAS_DATA('events_stream')
+AS
+    MERGE INTO user_sessions s
+    USING (
+        SELECT 
+            event_data:session_id::STRING as session_id,
+            user_id,
+            MIN(timestamp) as start_time,
+            MAX(timestamp) as end_time,
+            COUNT_IF(event_type = 'page_view') as page_views,
+            COUNT_IF(event_type = 'purchase') as purchases
+        FROM events_stream
+        WHERE METADATA$ACTION = 'INSERT'
+        GROUP BY event_data:session_id::STRING, user_id
+    ) e ON s.session_id = e.session_id
+    WHEN MATCHED THEN UPDATE SET
+        end_time = e.end_time,
+        page_views = s.page_views + e.page_views,
+        purchases = s.purchases + e.purchases
+    WHEN NOT MATCHED THEN INSERT VALUES
+        (e.session_id, e.user_id, e.start_time, e.end_time, e.page_views, e.purchases);
+```
+
+### 87. How would you migrate from on-premises data warehouse to Snowflake?
+**Answer**: Systematic migration approach with minimal downtime.
+
+```sql
+-- Migration strategy
+-- Phase 1: Assessment and planning
+SELECT 
+    table_name,
+    row_count,
+    data_size_gb,
+    complexity_score
+FROM migration_assessment;
+
+-- Phase 2: Schema migration
+CREATE DATABASE migrated_dwh;
+CREATE SCHEMA migrated_dwh.sales;
+CREATE SCHEMA migrated_dwh.finance;
+
+-- Recreate tables with Snowflake optimizations
+CREATE TABLE migrated_dwh.sales.fact_sales (
+    sale_id NUMBER,
+    customer_id NUMBER,
+    product_id NUMBER,
+    sale_date DATE,
+    amount DECIMAL(12,2)
+) CLUSTER BY (sale_date);
+
+-- Phase 3: Data migration with validation
+CREATE OR REPLACE PROCEDURE migrate_table(source_table STRING, target_table STRING)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    source_count NUMBER;
+    target_count NUMBER;
+BEGIN
+    -- Extract and load data
+    EXECUTE IMMEDIATE 'INSERT INTO ' || target_table || ' SELECT * FROM ' || source_table;
+    
+    -- Validate migration
+    EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM ' || source_table INTO source_count;
+    EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM ' || target_table INTO target_count;
+    
+    IF (source_count = target_count) THEN
+        RETURN 'Migration successful: ' || source_count || ' rows migrated';
+    ELSE
+        RETURN 'Migration failed: source=' || source_count || ', target=' || target_count;
+    END IF;
+END;
+$$;
+```
+
+### 88. Design a data quality framework for Snowflake
+**Answer**: Comprehensive data quality monitoring and enforcement.
+
+```sql
+-- Data quality framework
+CREATE TABLE dq_rules (
+    rule_id NUMBER AUTOINCREMENT,
+    table_name STRING,
+    column_name STRING,
+    rule_type STRING,
+    rule_expression STRING,
+    threshold NUMBER,
+    severity STRING
+);
+
+CREATE TABLE dq_results (
+    execution_id NUMBER AUTOINCREMENT,
+    rule_id NUMBER,
+    execution_time TIMESTAMP_NTZ,
+    passed BOOLEAN,
+    failure_count NUMBER,
+    total_count NUMBER
+);
+
+-- Data quality execution procedure
+CREATE OR REPLACE PROCEDURE execute_dq_checks(table_name STRING)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    rule_cursor CURSOR FOR 
+        SELECT rule_id, column_name, rule_type, rule_expression, threshold
+        FROM dq_rules 
+        WHERE table_name = table_name;
+    
+    failure_count NUMBER;
+    total_count NUMBER;
+    passed BOOLEAN;
+BEGIN
+    FOR rule IN rule_cursor DO
+        CASE rule.rule_type
+            WHEN 'COMPLETENESS' THEN
+                EXECUTE IMMEDIATE 
+                    'SELECT COUNT(*), COUNT_IF(' || rule.column_name || ' IS NULL) FROM ' || table_name
+                INTO total_count, failure_count;
+                
+            WHEN 'UNIQUENESS' THEN
+                EXECUTE IMMEDIATE 
+                    'SELECT COUNT(*), COUNT(*) - COUNT(DISTINCT ' || rule.column_name || ') FROM ' || table_name
+                INTO total_count, failure_count;
+                
+            WHEN 'VALIDITY' THEN
+                EXECUTE IMMEDIATE 
+                    'SELECT COUNT(*), COUNT_IF(NOT (' || rule.rule_expression || ')) FROM ' || table_name
+                INTO total_count, failure_count;
+        END CASE;
+        
+        SET passed = (failure_count <= rule.threshold);
+        
+        INSERT INTO dq_results VALUES (DEFAULT, rule.rule_id, CURRENT_TIMESTAMP(), passed, failure_count, total_count);
+    END FOR;
+    
+    RETURN 'Data quality checks completed';
+END;
+$$;
+```
+
+---
+
+## SQL & Functions Questions
+
+### 89. What are Snowflake's advanced SQL functions?
+**Answer**: Comprehensive set of analytical and utility functions.
+
+```sql
+-- Window functions
+SELECT 
+    customer_id,
+    order_date,
+    amount,
+    -- Ranking functions
+    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date) as order_sequence,
+    RANK() OVER (PARTITION BY customer_id ORDER BY amount DESC) as amount_rank,
+    DENSE_RANK() OVER (ORDER BY amount DESC) as dense_rank,
+    
+    -- Analytical functions
+    LAG(amount, 1) OVER (PARTITION BY customer_id ORDER BY order_date) as previous_amount,
+    LEAD(amount, 1) OVER (PARTITION BY customer_id ORDER BY order_date) as next_amount,
+    
+    -- Aggregate window functions
+    SUM(amount) OVER (PARTITION BY customer_id ORDER BY order_date ROWS UNBOUNDED PRECEDING) as running_total,
+    AVG(amount) OVER (PARTITION BY customer_id ORDER BY order_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as moving_avg
+FROM orders;
+
+-- JSON functions
+SELECT 
+    json_data:name::STRING as name,
+    json_data:age::NUMBER as age,
+    GET_PATH(json_data, 'address.city') as city,
+    PARSE_JSON(json_data:preferences) as preferences_obj
+FROM user_profiles;
+
+-- Array functions
+SELECT 
+    ARRAY_CONSTRUCT('a', 'b', 'c') as simple_array,
+    ARRAY_SIZE(tags) as tag_count,
+    ARRAY_CONTAINS('premium', tags) as is_premium,
+    ARRAY_SLICE(tags, 0, 2) as first_two_tags
+FROM customer_data;
+
+-- Date/Time functions
+SELECT 
+    CURRENT_TIMESTAMP() as now,
+    DATEADD('day', 30, CURRENT_DATE()) as future_date,
+    DATEDIFF('day', start_date, end_date) as duration_days,
+    DATE_TRUNC('month', order_date) as order_month,
+    EXTRACT('year' FROM order_date) as order_year
+FROM orders;
+```
+
+### 90. How do you work with semi-structured data functions?
+**Answer**: Specialized functions for JSON, XML, and variant data processing.
+
+```sql
+-- Advanced JSON processing
+WITH json_data AS (
+    SELECT PARSE_JSON('{
+        "customer": {
+            "id": 123,
+            "name": "John Doe",
+            "orders": [
+                {"id": 1, "amount": 100.50, "items": ["laptop", "mouse"]},
+                {"id": 2, "amount": 75.25, "items": ["keyboard"]}
+            ]
+        }
+    }') as data
+)
+SELECT 
+    data:customer.id::NUMBER as customer_id,
+    data:customer.name::STRING as customer_name,
+    
+    -- Flatten nested arrays
+    f.value:id::NUMBER as order_id,
+    f.value:amount::NUMBER as order_amount,
+    
+    -- Flatten items array
+    items.value::STRING as item_name
+FROM json_data,
+LATERAL FLATTEN(input => data:customer.orders) f,
+LATERAL FLATTEN(input => f.value:items) items;
+
+-- Object manipulation functions
+SELECT 
+    OBJECT_CONSTRUCT('name', 'John', 'age', 30) as person_obj,
+    OBJECT_INSERT(person_obj, 'city', 'New York') as updated_obj,
+    OBJECT_DELETE(updated_obj, 'age') as final_obj,
+    OBJECT_KEYS(final_obj) as obj_keys
+FROM dual;
+
+-- Type checking and conversion
+SELECT 
+    json_column,
+    TYPEOF(json_column) as data_type,
+    IS_ARRAY(json_column) as is_array,
+    IS_OBJECT(json_column) as is_object,
+    TRY_PARSE_JSON(text_column) as parsed_json
+FROM mixed_data_table;
+```
+
+---
+
+## Migration & Best Practices Questions
+
+### 91. What are Snowflake migration best practices?
+**Answer**: Systematic approach to successful Snowflake adoption.
+
+```sql
+-- Pre-migration assessment
+CREATE VIEW migration_readiness AS
+SELECT 
+    table_name,
+    row_count,
+    column_count,
+    data_types,
+    indexes,
+    constraints,
+    estimated_migration_time,
+    complexity_score
+FROM source_system_metadata;
+
+-- Migration phases
+-- Phase 1: Infrastructure setup
+CREATE WAREHOUSE migration_wh WITH WAREHOUSE_SIZE = 'X-LARGE';
+CREATE DATABASE staging_db;
+CREATE DATABASE production_db;
+
+-- Phase 2: Schema migration with optimizations
+CREATE OR REPLACE PROCEDURE migrate_schema(source_schema STRING, target_schema STRING)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+BEGIN
+    -- Create optimized table structures
+    -- Add clustering keys for large tables
+    -- Implement appropriate data types
+    -- Set up proper constraints
+    
+    RETURN 'Schema migration completed';
+END;
+$$;
+
+-- Phase 3: Data validation framework
+CREATE TABLE migration_validation (
+    table_name STRING,
+    source_count NUMBER,
+    target_count NUMBER,
+    checksum_match BOOLEAN,
+    validation_status STRING,
+    validation_timestamp TIMESTAMP_NTZ
+);
+
+-- Phase 4: Performance optimization
+ALTER TABLE large_fact_table CLUSTER BY (date_column, region_column);
+CREATE MATERIALIZED VIEW summary_mv AS
+SELECT date_column, SUM(amount) FROM large_fact_table GROUP BY date_column;
+```
+
+### 92. What are Snowflake development best practices?
+**Answer**: Guidelines for efficient and maintainable Snowflake development.
+
+```sql
+-- 1. Naming conventions
+CREATE DATABASE prod_analytics_db;
+CREATE SCHEMA prod_analytics_db.sales_mart;
+CREATE TABLE prod_analytics_db.sales_mart.fact_daily_sales (
+    sale_date DATE,
+    customer_key NUMBER,
+    product_key NUMBER,
+    sales_amount DECIMAL(12,2)
+);
+
+-- 2. Code organization and documentation
+CREATE OR REPLACE VIEW customer_360_view 
+COMMENT = 'Comprehensive customer view combining profile, transactions, and behavior data'
+AS
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    c.registration_date,
+    t.total_orders,
+    t.total_spent,
+    b.last_login_date
+FROM customers c
+LEFT JOIN customer_transactions t ON c.customer_id = t.customer_id
+LEFT JOIN customer_behavior b ON c.customer_id = b.customer_id;
+
+-- 3. Error handling and logging
+CREATE TABLE process_log (
+    log_id NUMBER AUTOINCREMENT,
+    process_name STRING,
+    start_time TIMESTAMP_NTZ,
+    end_time TIMESTAMP_NTZ,
+    status STRING,
+    error_message STRING,
+    rows_processed NUMBER
+);
+
+-- 4. Resource management
+CREATE WAREHOUSE dev_wh WITH 
+    WAREHOUSE_SIZE = 'SMALL'
+    AUTO_SUSPEND = 60
+    AUTO_RESUME = TRUE;
+
+CREATE WAREHOUSE prod_wh WITH 
+    WAREHOUSE_SIZE = 'LARGE'
+    AUTO_SUSPEND = 300
+    AUTO_RESUME = TRUE
+    RESOURCE_MONITOR = 'monthly_limit';
+
+-- 5. Security best practices
+CREATE ROLE data_analyst_role;
+GRANT USAGE ON WAREHOUSE analytics_wh TO ROLE data_analyst_role;
+GRANT USAGE ON DATABASE analytics_db TO ROLE data_analyst_role;
+GRANT SELECT ON ALL VIEWS IN SCHEMA analytics_db.public TO ROLE data_analyst_role;
+```
+
+### 93. How do you implement CI/CD for Snowflake?
+**Answer**: Automated deployment pipeline for Snowflake objects.
+
+```sql
+-- Version control for database objects
+CREATE TABLE deployment_history (
+    deployment_id NUMBER AUTOINCREMENT,
+    version STRING,
+    deployment_date TIMESTAMP_NTZ,
+    deployed_by STRING,
+    objects_deployed ARRAY,
+    rollback_script STRING,
+    status STRING
+);
+
+-- Deployment procedure
+CREATE OR REPLACE PROCEDURE deploy_changes(version STRING, change_scripts ARRAY)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    script STRING;
+    deployment_id NUMBER;
+    success_count NUMBER := 0;
+    error_count NUMBER := 0;
+BEGIN
+    -- Start deployment
+    INSERT INTO deployment_history (version, deployment_date, deployed_by, status)
+    VALUES (version, CURRENT_TIMESTAMP(), CURRENT_USER(), 'IN_PROGRESS');
+    
+    SET deployment_id = LAST_INSERT_ID();
+    
+    -- Execute change scripts
+    FOR i IN 0 TO ARRAY_SIZE(change_scripts) - 1 DO
+        SET script = GET(change_scripts, i);
+        
+        BEGIN
+            EXECUTE IMMEDIATE script;
+            SET success_count = success_count + 1;
+        EXCEPTION
+            WHEN OTHER THEN
+                SET error_count = error_count + 1;
+                INSERT INTO deployment_errors VALUES (deployment_id, script, SQLERRM);
+        END;
+    END FOR;
+    
+    -- Update deployment status
+    UPDATE deployment_history 
+    SET status = CASE WHEN error_count = 0 THEN 'SUCCESS' ELSE 'FAILED' END,
+        objects_deployed = change_scripts
+    WHERE deployment_id = deployment_id;
+    
+    RETURN 'Deployment completed: ' || success_count || ' success, ' || error_count || ' errors';
+END;
+$$;
+```
+
+### 94. What are Snowflake performance tuning best practices?
+**Answer**: Comprehensive performance optimization strategies.
+
+```sql
+-- 1. Query optimization
+-- Use specific columns instead of SELECT *
+SELECT customer_id, order_date, amount 
+FROM orders 
+WHERE order_date >= '2024-01-01';
+
+-- Use appropriate filters for partition pruning
+SELECT * FROM large_table 
+WHERE date_column BETWEEN '2024-01-01' AND '2024-01-31'
+  AND region = 'US';
+
+-- 2. Clustering optimization
+-- Analyze clustering effectiveness
+SELECT SYSTEM$CLUSTERING_INFORMATION('large_table');
+
+-- Implement multi-dimensional clustering
+ALTER TABLE sales_fact CLUSTER BY (date_key, region_key, product_category_key);
+
+-- 3. Warehouse sizing
+-- Monitor warehouse performance
+WITH warehouse_metrics AS (
+    SELECT 
+        warehouse_name,
+        AVG(avg_running) as avg_concurrency,
+        AVG(avg_queued_load) as avg_queue_time,
+        SUM(credits_used) as total_credits
+    FROM snowflake.account_usage.warehouse_load_history
+    WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+    GROUP BY warehouse_name
+)
+SELECT 
+    warehouse_name,
+    avg_concurrency,
+    avg_queue_time,
+    total_credits,
+    CASE 
+        WHEN avg_queue_time > 30 THEN 'Scale up'
+        WHEN avg_concurrency < 0.5 THEN 'Scale down'
+        ELSE 'Optimal'
+    END as recommendation
+FROM warehouse_metrics;
+
+-- 4. Result caching optimization
+-- Structure queries for cache reuse
+SELECT region, SUM(sales) as total_sales
+FROM fact_sales 
+WHERE sale_date >= '2024-01-01'
+GROUP BY region
+ORDER BY region;
+
+-- 5. Materialized views for performance
+CREATE MATERIALIZED VIEW daily_sales_summary AS
+SELECT 
+    DATE_TRUNC('day', sale_date) as sale_day,
+    region,
+    product_category,
+    SUM(amount) as total_sales,
+    COUNT(*) as transaction_count
+FROM fact_sales
+GROUP BY DATE_TRUNC('day', sale_date), region, product_category;
+```
+
+### 95. How do you implement data governance in Snowflake?
+**Answer**: Comprehensive governance framework with policies and monitoring.
+
+```sql
+-- 1. Data classification and tagging
+CREATE TAG data_sensitivity ALLOWED_VALUES ('public', 'internal', 'confidential', 'restricted');
+CREATE TAG data_domain ALLOWED_VALUES ('finance', 'hr', 'marketing', 'operations');
+CREATE TAG retention_policy ALLOWED_VALUES ('30_days', '1_year', '7_years', 'permanent');
+
+-- Apply tags to objects
+ALTER TABLE customer_data SET TAG (
+    data_sensitivity = 'confidential',
+    data_domain = 'marketing',
+    retention_policy = '7_years'
+);
+
+-- 2. Access control policies
+CREATE ROW ACCESS POLICY region_access_policy AS (region STRING) 
+RETURNS BOOLEAN ->
+  CASE 
+    WHEN CURRENT_ROLE() = 'GLOBAL_ADMIN' THEN TRUE
+    WHEN CURRENT_ROLE() = 'US_ANALYST' AND region = 'US' THEN TRUE
+    WHEN CURRENT_ROLE() = 'EU_ANALYST' AND region = 'EU' THEN TRUE
+    ELSE FALSE
+  END;
+
+-- 3. Data masking policies
+CREATE MASKING POLICY email_masking_policy AS (val STRING) 
+RETURNS STRING ->
+  CASE
+    WHEN CURRENT_ROLE() IN ('ADMIN', 'PRIVACY_OFFICER') THEN val
+    ELSE REGEXP_REPLACE(val, '.+@', '*****@')
+  END;
+
+-- 4. Audit and compliance monitoring
+CREATE VIEW governance_dashboard AS
+SELECT 
+    'Data Access' as metric_type,
+    COUNT(*) as metric_value,
+    'Last 24 hours' as time_period
+FROM snowflake.account_usage.access_history
+WHERE start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
+
+UNION ALL
+
+SELECT 
+    'Policy Violations' as metric_type,
+    COUNT(*) as metric_value,
+    'Last 24 hours' as time_period
+FROM policy_violations
+WHERE violation_timestamp >= DATEADD('day', -1, CURRENT_TIMESTAMP());
+
+-- 5. Data lineage tracking
+CREATE TABLE data_lineage (
+    lineage_id NUMBER AUTOINCREMENT,
+    source_object STRING,
+    target_object STRING,
+    transformation_type STRING,
+    created_by STRING,
+    created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+```
+
+---
+
+## Summary
+
+This comprehensive guide covers **100+ Snowflake interview questions** across all experience levels and topics:
+
+- **Basic Level (1-3 years)**: 10 foundational questions
+- **Intermediate Level (3-5 years)**: 15 advanced operational questions  
+- **Advanced Level (5+ years)**: 15 expert-level architecture questions
+- **Specialized Topics**: 65+ questions covering architecture, performance, security, cost optimization, integration, monitoring, and best practices
+
+Each question includes:
+- ✅ **Detailed explanations**
+- ✅ **Practical SQL examples**
+- ✅ **Real-world scenarios**
+- ✅ **Best practices**
+- ✅ **Code implementations**
+
+This guide provides complete preparation for Snowflake data engineering interviews at any level.
