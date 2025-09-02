@@ -9,7 +9,7 @@
 - [🛠️ **Comprehensive Tools Cheat Sheet**](./COMPREHENSIVE_TOOLS_CHEAT_SHEET.md) - **ALL services & tools in one place**
 - [🐍 Python Cheat Sheet](./PYTHON_CHEAT_SHEET.md) - Essential Python for data engineering
 - [🗄️ SQL Cheat Sheet](./SQL_CHEAT_SHEET.md) - Key SQL commands and patterns
-- [☁️ AWS Quick Reference](./AWS_QUICK_REFERENCE.md) - Core AWS services overview
+- [🛠️ Comprehensive Tools Cheat Sheet](./COMPREHENSIVE_TOOLS_CHEAT_SHEET.md) - ALL services & tools in one place
 - [⚡ Spark Quick Reference](./SPARK_QUICK_REFERENCE.md) - PySpark essentials
 
 ### 🎯 **Top Interview Questions**
@@ -38,5 +38,5 @@
 ## 🔗 **Quick Links to Core Topics**
 - [Python Interview Questions](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md)
 - [SQL Interview Questions](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md)
-- [AWS Interview Questions](../Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
-- [Spark Interview Questions](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md)
+- [AWS Interview Questions](../Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md)
+- [Spark Interview Questions](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md)

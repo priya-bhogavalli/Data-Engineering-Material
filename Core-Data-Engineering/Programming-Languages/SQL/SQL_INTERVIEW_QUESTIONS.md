@@ -16,56 +16,73 @@
 
 ### 1. What's the difference between INNER JOIN and LEFT JOIN?
 **Answer:**
-JOINs are fundamental SQL operations for combining data from multiple tables. Understanding the different types is crucial for data engineering.
+JOINs are fundamental SQL operations for combining data from multiple tables, essential for data engineering workflows.
 
-- **INNER JOIN**: Returns only records that have matching values in both tables
+**Conceptual Understanding:**
+- **INNER JOIN**: Returns only records that have matching values in both tables (intersection)
 - **LEFT JOIN**: Returns all records from the left table, plus matching records from the right table (NULL for non-matches)
 - **RIGHT JOIN**: Returns all records from the right table, plus matching records from the left table
-- **FULL OUTER JOIN**: Returns all records when there's a match in either table
+- **FULL OUTER JOIN**: Returns all records when there's a match in either table (union)
+
+**Use Cases:**
+- **INNER JOIN**: When you need only customers who have placed orders
+- **LEFT JOIN**: When you need all customers, regardless of whether they've placed orders
+- **Performance**: INNER JOINs are typically faster as they return fewer rows
 
 ```sql
 -- INNER JOIN - only customers with orders
-SELECT c.name, o.order_date
-FROM customers c
+SELECT c.name, o.order_date FROM customers c
 INNER JOIN orders o ON c.customer_id = o.customer_id;
 
--- LEFT JOIN - all customers, including those without orders
-SELECT c.name, o.order_date
-FROM customers c
+-- LEFT JOIN - all customers, including those without orders  
+SELECT c.name, o.order_date FROM customers c
 LEFT JOIN orders o ON c.customer_id = o.customer_id;
 ```
 
 ### 2. Explain the difference between WHERE and HAVING clauses
 **Answer:**
-These clauses serve different purposes in the SQL execution order and are essential for data filtering in analytics queries.
+These clauses serve different purposes in SQL's logical execution order and are crucial for effective data filtering.
 
-- **WHERE**: Filters individual rows before any grouping occurs (row-level filtering)
-- **HAVING**: Filters grouped results after GROUP BY aggregation (group-level filtering)
-- **Execution Order**: WHERE → GROUP BY → HAVING → SELECT → ORDER BY
-- **Performance**: WHERE is generally faster as it reduces data before grouping
+**Conceptual Differences:**
+- **WHERE**: Filters individual rows before grouping (row-level filtering)
+- **HAVING**: Filters grouped results after aggregation (group-level filtering)
+- **Execution Order**: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT
+- **Performance**: WHERE is faster as it reduces data before expensive grouping operations
+
+**When to Use:**
+- **WHERE**: Filter raw data (e.g., "employees with salary > 50000")
+- **HAVING**: Filter aggregated results (e.g., "departments with more than 5 employees")
+
+**Data Engineering Context:**
+In ETL pipelines, use WHERE for data extraction filtering and HAVING for analytical aggregations.
 
 ```sql
--- WHERE filters individual rows
-SELECT department, COUNT(*)
-FROM employees
-WHERE salary > 50000
-GROUP BY department;
+-- WHERE: Filter before grouping
+SELECT department, COUNT(*) FROM employees 
+WHERE salary > 50000 GROUP BY department;
 
--- HAVING filters grouped results
-SELECT department, COUNT(*)
-FROM employees
-GROUP BY department
-HAVING COUNT(*) > 5;
+-- HAVING: Filter after grouping
+SELECT department, COUNT(*) FROM employees 
+GROUP BY department HAVING COUNT(*) > 5;
 ```
 
 ### 3. What are the different types of SQL constraints?
 **Answer:**
-- **PRIMARY KEY**: Unique identifier for each row
-- **FOREIGN KEY**: Links to primary key in another table
-- **UNIQUE**: Ensures column values are unique
-- **NOT NULL**: Prevents null values
-- **CHECK**: Validates data based on condition
-- **DEFAULT**: Sets default value
+Constraints enforce data integrity rules at the database level, ensuring data quality and consistency.
+
+**Types and Purposes:**
+- **PRIMARY KEY**: Unique identifier for each row (entity integrity)
+- **FOREIGN KEY**: Links to primary key in another table (referential integrity)
+- **UNIQUE**: Ensures column values are unique (domain integrity)
+- **NOT NULL**: Prevents null values (domain integrity)
+- **CHECK**: Validates data based on custom conditions (domain integrity)
+- **DEFAULT**: Sets default value when none provided
+
+**Data Engineering Benefits:**
+- Prevents bad data from entering the system
+- Maintains relationships between tables
+- Reduces need for application-level validation
+- Improves query optimizer performance
 
 ```sql
 CREATE TABLE employees (
@@ -90,318 +107,448 @@ ACID properties ensure database reliability and data integrity, critical for dat
 
 ### 5. What's the difference between DELETE, TRUNCATE, and DROP?
 **Answer:**
+These commands remove data at different levels with varying performance and safety characteristics.
+
+**Conceptual Differences:**
+- **DELETE**: Removes specific rows based on conditions
+- **TRUNCATE**: Removes all rows from a table
+- **DROP**: Removes the entire table structure and data
+
+**Key Characteristics:**
+- **DELETE**: Transactional (can rollback), triggers fire, slower, logs each row
+- **TRUNCATE**: Faster, minimal logging, resets identity counters, no triggers
+- **DROP**: Removes table from database catalog, frees storage immediately
+
+**Data Engineering Usage:**
+- **DELETE**: Data cleanup, removing specific records
+- **TRUNCATE**: Clearing staging tables in ETL processes
+- **DROP**: Removing temporary tables, schema changes
+
 ```sql
--- DELETE: Removes specific rows, can be rolled back, triggers fire
-DELETE FROM employees WHERE department = 'Sales';
-
--- TRUNCATE: Removes all rows, faster, can't be rolled back, no triggers
-TRUNCATE TABLE temp_data;
-
--- DROP: Removes entire table structure and data
-DROP TABLE old_table;
+DELETE FROM employees WHERE department = 'Sales';  -- Conditional removal
+TRUNCATE TABLE temp_data;                          -- Clear all data
+DROP TABLE old_table;                              -- Remove table entirely
 ```
 
 ### 6. Explain different types of indexes
 **Answer:**
+Indexes are database objects that improve query performance by creating shortcuts to data.
+
+**Types and Characteristics:**
+- **Clustered Index**: Physically reorders table data (one per table, usually primary key)
+- **Non-clustered Index**: Separate structure pointing to data rows (multiple allowed)
+- **Composite Index**: Multiple columns (order matters for query optimization)
+- **Unique Index**: Enforces uniqueness while providing fast lookups
+- **Partial Index**: Only indexes rows meeting specific conditions
+- **Covering Index**: Includes additional columns to avoid table lookups
+
+**Performance Impact:**
+- **Benefits**: Faster SELECT queries, efficient sorting and grouping
+- **Costs**: Slower INSERT/UPDATE/DELETE, additional storage space
+- **Strategy**: Index frequently queried columns, avoid over-indexing
+
 ```sql
--- Clustered Index (Primary Key)
-CREATE TABLE orders (
-    order_id INT PRIMARY KEY  -- Clustered index
-);
-
--- Non-clustered Index
-CREATE INDEX idx_customer ON orders(customer_id);
-
--- Composite Index
-CREATE INDEX idx_customer_date ON orders(customer_id, order_date);
-
--- Unique Index
-CREATE UNIQUE INDEX idx_email ON customers(email);
-
--- Partial Index
-CREATE INDEX idx_active_orders ON orders(order_date) 
-WHERE status = 'ACTIVE';
+CREATE INDEX idx_customer ON orders(customer_id);           -- Basic
+CREATE INDEX idx_customer_date ON orders(customer_id, order_date); -- Composite
+CREATE INDEX idx_active_orders ON orders(order_date) WHERE status = 'ACTIVE'; -- Partial
 ```
 
 ### 7. What are aggregate functions? Give examples
 **Answer:**
+Aggregate functions perform calculations on multiple rows and return a single result, essential for data analysis and reporting.
+
+**Common Functions:**
+- **COUNT()**: Number of rows (COUNT(*) includes NULLs, COUNT(column) excludes NULLs)
+- **SUM()**: Total of numeric values
+- **AVG()**: Average of numeric values (excludes NULLs)
+- **MIN()/MAX()**: Minimum/maximum values
+- **STDDEV()**: Standard deviation for statistical analysis
+
+**Data Engineering Applications:**
+- Data quality checks (counting nulls, duplicates)
+- Business metrics calculation (revenue, averages)
+- Statistical analysis for data profiling
+- ETL validation (comparing source vs target counts)
+
+**Important Notes:**
+- Most aggregate functions ignore NULL values
+- Use with GROUP BY for category-wise aggregations
+- Can be used in HAVING clauses for filtering groups
+
 ```sql
-SELECT 
-    COUNT(*) as total_records,
-    COUNT(DISTINCT customer_id) as unique_customers,
-    SUM(order_amount) as total_revenue,
-    AVG(order_amount) as average_order,
-    MIN(order_date) as first_order,
-    MAX(order_date) as last_order,
-    STDDEV(order_amount) as amount_std_dev
+SELECT COUNT(*) as total_records, COUNT(DISTINCT customer_id) as unique_customers,
+       SUM(order_amount) as total_revenue, AVG(order_amount) as average_order
 FROM orders;
 ```
 
 ### 8. What are the different types of SQL commands?
 **Answer:**
+SQL commands are categorized by their purpose and functionality in database operations.
+
+**Command Categories:**
 - **DDL (Data Definition Language)**: CREATE, ALTER, DROP, TRUNCATE
+  - Purpose: Define and modify database structure
+  - Usage: Schema changes, table creation, index management
+
 - **DML (Data Manipulation Language)**: INSERT, UPDATE, DELETE, SELECT
+  - Purpose: Manipulate data within tables
+  - Usage: CRUD operations, data retrieval
+
 - **DCL (Data Control Language)**: GRANT, REVOKE
+  - Purpose: Control access permissions
+  - Usage: User management, security
+
 - **TCL (Transaction Control Language)**: COMMIT, ROLLBACK, SAVEPOINT
+  - Purpose: Manage database transactions
+  - Usage: Ensure data consistency, handle errors
+
+**Data Engineering Context:**
+DDL for pipeline setup, DML for data processing, DCL for security, TCL for data integrity.
 
 ### 9. Explain the SQL execution order
 **Answer:**
-Logical execution order:
-1. **FROM** - Identify tables
-2. **WHERE** - Filter rows
-3. **GROUP BY** - Group rows
-4. **HAVING** - Filter groups
-5. **SELECT** - Choose columns
-6. **ORDER BY** - Sort results
-7. **LIMIT** - Limit results
+Understanding SQL's logical execution order is crucial for writing efficient queries and debugging performance issues.
+
+**Logical Execution Order:**
+1. **FROM** - Identify and join tables
+2. **WHERE** - Filter individual rows
+3. **GROUP BY** - Group rows for aggregation
+4. **HAVING** - Filter grouped results
+5. **SELECT** - Choose and compute columns
+6. **ORDER BY** - Sort the result set
+7. **LIMIT/OFFSET** - Limit number of results
+
+**Why This Matters:**
+- **Performance**: WHERE filters before expensive operations like GROUP BY
+- **Aliases**: Can't use SELECT aliases in WHERE (not executed yet)
+- **Optimization**: Query optimizer uses this order for execution planning
+- **Debugging**: Understanding order helps identify why queries fail
+
+**Data Engineering Impact:**
+Optimize ETL queries by filtering early (WHERE) before aggregating (GROUP BY).
 
 ### 10. What is the difference between CHAR and VARCHAR?
 **Answer:**
-- **CHAR(n)**: Fixed-length, pads with spaces, faster for fixed-size data
-- **VARCHAR(n)**: Variable-length, no padding, more storage efficient
+CHAR and VARCHAR are string data types with different storage and performance characteristics.
+
+**Key Differences:**
+- **CHAR(n)**: Fixed-length, always uses n bytes, pads with spaces
+- **VARCHAR(n)**: Variable-length, uses only needed space plus length overhead
+
+**Performance Considerations:**
+- **CHAR**: Faster for fixed-size data (codes, flags), predictable storage
+- **VARCHAR**: More storage efficient, better for variable-length text
+
+**Use Cases:**
+- **CHAR**: Country codes (US, UK), status flags (Y/N), fixed IDs
+- **VARCHAR**: Names, descriptions, email addresses, variable text
+
+**Data Engineering Best Practices:**
+- Use CHAR for lookup tables with fixed codes
+- Use VARCHAR for user-generated content
+- Consider TEXT for very long strings
 
 ```sql
--- CHAR always uses full length
-CREATE TABLE test_char (code CHAR(5));
-INSERT INTO test_char VALUES ('ABC');  -- Stored as 'ABC  '
-
--- VARCHAR uses only needed space
-CREATE TABLE test_varchar (name VARCHAR(50));
-INSERT INTO test_varchar VALUES ('John');  -- Stored as 'John'
+CREATE TABLE codes (country_code CHAR(2));     -- Always 2 characters
+CREATE TABLE users (name VARCHAR(100));        -- Variable length names
 ```
 
 ### 11. Explain NULL values and how to handle them
 **Answer:**
+NULL represents missing, unknown, or inapplicable data in databases, requiring special handling in queries.
+
+**NULL Characteristics:**
+- **Not equal to anything**: NULL ≠ NULL (use IS NULL, not = NULL)
+- **Three-valued logic**: TRUE, FALSE, UNKNOWN
+- **Aggregate behavior**: Most functions ignore NULLs (except COUNT(*))
+- **Arithmetic**: Any operation with NULL returns NULL
+
+**Handling Strategies:**
+- **COALESCE()**: Return first non-NULL value
+- **NULLIF()**: Return NULL if values are equal
+- **CASE WHEN**: Conditional logic for NULL handling
+- **IS NULL/IS NOT NULL**: Proper NULL comparison
+
+**Data Engineering Considerations:**
+- Data quality: High NULL percentages indicate data issues
+- ETL processing: Handle NULLs during transformation
+- Analytics: Decide whether to exclude or substitute NULLs
+
 ```sql
--- NULL comparisons
-SELECT * FROM employees WHERE salary IS NULL;
-SELECT * FROM employees WHERE salary IS NOT NULL;
-
--- NULL in calculations
-SELECT 
-    name,
-    salary,
-    bonus,
-    salary + COALESCE(bonus, 0) as total_compensation,
-    CASE WHEN bonus IS NULL THEN 'No bonus' ELSE 'Has bonus' END as bonus_status
-FROM employees;
-
--- NULL with aggregate functions
-SELECT 
-    COUNT(*) as total_rows,
-    COUNT(bonus) as non_null_bonus,
-    AVG(bonus) as avg_bonus  -- Ignores NULLs
-FROM employees;
+SELECT name, COALESCE(bonus, 0) as bonus_amount,
+       CASE WHEN bonus IS NULL THEN 'No bonus' ELSE 'Has bonus' END as status
+FROM employees WHERE salary IS NOT NULL;
 ```
 
 ### 12. What are SQL data types and their categories?
 **Answer:**
+SQL data types define the kind of data that can be stored in columns, affecting storage, performance, and operations.
+
 **Numeric Types:**
-- INTEGER, BIGINT, DECIMAL, FLOAT, DOUBLE
+- **INTEGER/BIGINT**: Whole numbers (use BIGINT for large values)
+- **DECIMAL/NUMERIC**: Exact precision (financial data)
+- **FLOAT/DOUBLE**: Approximate precision (scientific calculations)
 
 **String Types:**
-- CHAR, VARCHAR, TEXT, CLOB
+- **CHAR**: Fixed-length strings
+- **VARCHAR**: Variable-length strings
+- **TEXT/CLOB**: Large text objects
 
 **Date/Time Types:**
-- DATE, TIME, TIMESTAMP, DATETIME
+- **DATE**: Date only (YYYY-MM-DD)
+- **TIME**: Time only (HH:MM:SS)
+- **TIMESTAMP**: Date and time with timezone support
 
-**Boolean:**
-- BOOLEAN (TRUE/FALSE/NULL)
+**Other Types:**
+- **BOOLEAN**: TRUE/FALSE/NULL
+- **BINARY/BLOB**: Binary data (images, files)
+- **JSON**: Structured data (PostgreSQL, MySQL)
+- **ARRAY**: Array data (PostgreSQL)
 
-**Binary:**
-- BINARY, VARBINARY, BLOB
+**Selection Criteria:**
+Choose based on data nature, storage requirements, and query patterns.
 
 ### 13. Explain the concept of database transactions
 **Answer:**
-```sql
--- Transaction example
-BEGIN TRANSACTION;
+Transactions are logical units of work that ensure data consistency and integrity through ACID properties.
 
+**ACID Properties:**
+- **Atomicity**: All operations succeed or fail together ("all or nothing")
+- **Consistency**: Database moves from one valid state to another
+- **Isolation**: Concurrent transactions don't interfere with each other
+- **Durability**: Committed changes persist permanently
+
+**Transaction States:**
+- **BEGIN**: Start transaction
+- **COMMIT**: Make changes permanent
+- **ROLLBACK**: Undo all changes
+- **SAVEPOINT**: Create rollback points within transactions
+
+**Data Engineering Applications:**
+- ETL processes: Ensure data consistency during loads
+- Batch processing: Group related operations
+- Error handling: Rollback on failures
+- Data migration: Maintain integrity during transfers
+
+**Best Practices:**
+- Keep transactions short to avoid locks
+- Handle errors with proper rollback logic
+- Use appropriate isolation levels
+
+```sql
+BEGIN TRANSACTION;
     UPDATE accounts SET balance = balance - 1000 WHERE account_id = 1;
     UPDATE accounts SET balance = balance + 1000 WHERE account_id = 2;
-    
-    -- Check if both updates were successful
-    IF @@ERROR = 0
-        COMMIT TRANSACTION;
-    ELSE
-        ROLLBACK TRANSACTION;
+COMMIT; -- or ROLLBACK on error
 ```
 
 ### 14. What is the difference between RANK() and DENSE_RANK()?
 **Answer:**
+These window functions assign rankings to rows, but handle ties differently.
+
+**Key Differences:**
+- **RANK()**: Leaves gaps after ties (1, 1, 3, 4)
+- **DENSE_RANK()**: No gaps after ties (1, 1, 2, 3)
+- **ROW_NUMBER()**: Always unique, arbitrary order for ties (1, 2, 3, 4)
+
+**Use Cases:**
+- **RANK()**: Traditional ranking (Olympic medals, competition standings)
+- **DENSE_RANK()**: Category rankings where gaps don't matter
+- **ROW_NUMBER()**: Pagination, unique identifiers
+
+**Data Engineering Applications:**
+- Top-N analysis per group
+- Data deduplication (ROW_NUMBER() = 1)
+- Performance rankings and percentiles
+- Quality scoring systems
+
 ```sql
-SELECT 
-    name,
-    salary,
+SELECT name, salary,
     RANK() OVER (ORDER BY salary DESC) as rank_with_gaps,
     DENSE_RANK() OVER (ORDER BY salary DESC) as dense_rank,
     ROW_NUMBER() OVER (ORDER BY salary DESC) as row_num
 FROM employees;
-
--- Example output:
--- Name    Salary  Rank  Dense_Rank  Row_Num
--- Alice   100000    1       1         1
--- Bob     100000    1       1         2  
--- Carol    90000    3       2         3
--- Dave     80000    4       3         4
+-- Result: Alice(100k):1,1,1  Bob(100k):1,1,2  Carol(90k):3,2,3
 ```
 
 ### 15. How do you handle case-sensitive searches?
 **Answer:**
+Case sensitivity in SQL depends on database collation settings and requires specific techniques for consistent behavior.
+
+**Database Behavior:**
+- **MySQL**: Case-insensitive by default (depends on collation)
+- **PostgreSQL**: Case-sensitive by default
+- **SQL Server**: Depends on collation settings
+- **Oracle**: Case-sensitive by default
+
+**Techniques:**
+- **UPPER()/LOWER()**: Convert to same case for comparison
+- **ILIKE**: Case-insensitive LIKE (PostgreSQL)
+- **BINARY**: Force case-sensitive comparison (MySQL)
+- **Collation**: Specify comparison rules explicitly
+
+**Performance Considerations:**
+- Functions on columns prevent index usage
+- Create functional indexes: `CREATE INDEX idx_name_lower ON customers(LOWER(name))`
+- Use full-text search for complex text matching
+
+**Data Engineering Best Practices:**
+- Standardize case during ETL processes
+- Use consistent collation across environments
+- Document case sensitivity requirements
+
 ```sql
--- Case-sensitive search (depends on collation)
-SELECT * FROM customers WHERE name = 'John';  -- May or may not match 'john'
-
--- Force case-sensitive
-SELECT * FROM customers WHERE BINARY name = 'John';
-
--- Case-insensitive search
+-- Case-insensitive search (portable)
 SELECT * FROM customers WHERE UPPER(name) = UPPER('john');
-SELECT * FROM customers WHERE LOWER(name) = 'john';
-
--- Using LIKE with case handling
-SELECT * FROM customers WHERE name ILIKE '%john%';  -- PostgreSQL
-SELECT * FROM customers WHERE UPPER(name) LIKE '%JOHN%';  -- Universal
+-- PostgreSQL specific
+SELECT * FROM customers WHERE name ILIKE '%john%';
 ```
 
 ## Intermediate Level Questions (16-35)
 
 ### 16. What are window functions and how do they differ from aggregate functions?
 **Answer:**
-Window functions perform calculations across related rows without collapsing the result set.
+Window functions perform calculations across related rows while preserving individual row details, making them powerful for analytical queries.
+
+**Conceptual Differences:**
+- **Aggregate Functions**: Collapse multiple rows into single result per group
+- **Window Functions**: Maintain all original rows while adding calculated columns
+- **Grouping**: Aggregates use GROUP BY, windows use OVER clause
+- **Result Set**: Aggregates reduce rows, windows preserve row count
+
+**Common Window Functions:**
+- **Ranking**: ROW_NUMBER(), RANK(), DENSE_RANK()
+- **Analytical**: LAG(), LEAD(), FIRST_VALUE(), LAST_VALUE()
+- **Aggregate**: SUM(), AVG(), COUNT() with OVER clause
+- **Statistical**: NTILE(), PERCENT_RANK(), CUME_DIST()
+
+**Data Engineering Applications:**
+- Running totals and moving averages
+- Ranking and percentile calculations
+- Time-series analysis (lag/lead comparisons)
+- Deduplication (ROW_NUMBER() = 1)
+
+**Performance**: Often more efficient than self-joins for analytical queries
 
 ```sql
--- Aggregate function - collapses to one row per group
-SELECT department, AVG(salary)
-FROM employees
-GROUP BY department;
-
--- Window function - keeps all rows, adds calculated column
-SELECT 
-    name,
-    department,
-    salary,
-    AVG(salary) OVER (PARTITION BY department) as dept_avg_salary,
-    salary - AVG(salary) OVER (PARTITION BY department) as salary_diff_from_avg,
-    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank
+-- Window function - keeps all rows
+SELECT name, salary, 
+       AVG(salary) OVER (PARTITION BY department) as dept_avg,
+       RANK() OVER (ORDER BY salary DESC) as salary_rank
 FROM employees;
-
--- Running totals and moving averages
-SELECT 
-    order_date,
-    order_amount,
-    SUM(order_amount) OVER (ORDER BY order_date ROWS UNBOUNDED PRECEDING) as running_total,
-    AVG(order_amount) OVER (ORDER BY order_date ROWS 2 PRECEDING) as moving_avg_3_days
-FROM orders
-ORDER BY order_date;
-
-### 17. Explain different types of JOINs with examples
+``` ### 17. Explain different types of JOINs with examples
 **Answer:**
+JOINs combine data from multiple tables based on relationships, each type serving different analytical needs.
+
+**JOIN Types and Use Cases:**
+- **INNER JOIN**: Only matching records (customers with orders)
+- **LEFT JOIN**: All left table records + matches (all customers, with/without orders)
+- **RIGHT JOIN**: All right table records + matches (all orders, with/without customer info)
+- **FULL OUTER JOIN**: All records from both tables (complete dataset)
+- **CROSS JOIN**: Cartesian product (every combination)
+- **SELF JOIN**: Table joined to itself (hierarchical data)
+
+**Performance Considerations:**
+- **INNER JOIN**: Fastest, smallest result set
+- **OUTER JOINs**: Slower, larger result sets
+- **Index Strategy**: Index join columns for better performance
+- **Join Order**: Query optimizer determines optimal sequence
+
+**Data Engineering Applications:**
+- Data integration from multiple sources
+- Fact-dimension table relationships
+- Hierarchical data processing
+- Data quality checks (finding orphaned records)
+
 ```sql
--- Sample tables
-CREATE TABLE customers (id INT, name VARCHAR(50));
-CREATE TABLE orders (id INT, customer_id INT, amount DECIMAL(10,2));
+-- Most common patterns
+SELECT c.name, o.amount FROM customers c
+INNER JOIN orders o ON c.id = o.customer_id;  -- Only customers with orders
 
--- INNER JOIN - only matching records
-SELECT c.name, o.amount
-FROM customers c
-INNER JOIN orders o ON c.id = o.customer_id;
-
--- LEFT JOIN - all customers, matched orders
-SELECT c.name, COALESCE(o.amount, 0) as order_amount
-FROM customers c
-LEFT JOIN orders o ON c.id = o.customer_id;
-
--- RIGHT JOIN - all orders, matched customers
-SELECT COALESCE(c.name, 'Unknown') as customer_name, o.amount
-FROM customers c
-RIGHT JOIN orders o ON c.id = o.customer_id;
-
--- FULL OUTER JOIN - all records from both tables
-SELECT c.name, o.amount
-FROM customers c
-FULL OUTER JOIN orders o ON c.id = o.customer_id;
-
--- CROSS JOIN - Cartesian product
-SELECT c.name, p.product_name
-FROM customers c
-CROS JOIN products p;
-
--- SELF JOIN - join table to itself
-SELECT e1.name as employee, e2.name as manager
-FROM employees e1
-JOIN employees e2 ON e1.manager_id = e2.employee_id;
+SELECT c.name, COALESCE(o.amount, 0) FROM customers c  
+LEFT JOIN orders o ON c.id = o.customer_id;   -- All customers
 ```
 
 ### 18. What are CTEs (Common Table Expressions) and when to use them?
 **Answer:**
-CTEs provide temporary named result sets that exist only during query execution.
+CTEs create temporary named result sets that improve query readability and enable recursive operations.
+
+**Types and Benefits:**
+- **Simple CTE**: Named subquery for better readability
+- **Recursive CTE**: Handle hierarchical data (org charts, categories)
+- **Multiple CTEs**: Break complex logic into manageable steps
+- **Reusability**: Reference same CTE multiple times in query
+
+**Advantages over Subqueries:**
+- **Readability**: Named, logical query structure
+- **Maintainability**: Easier to debug and modify
+- **Performance**: Can be more efficient than repeated subqueries
+- **Recursion**: Only way to handle recursive queries in standard SQL
+
+**Data Engineering Use Cases:**
+- Data transformation pipelines
+- Hierarchical data processing (bill of materials, org structures)
+- Complex analytical queries
+- Data quality checks with multiple steps
+
+**Best Practices:**
+- Use descriptive CTE names
+- Keep CTEs focused on single purpose
+- Consider materialized views for frequently used CTEs
 
 ```sql
--- Basic CTE
+-- Simple CTE for readability
 WITH high_earners AS (
-    SELECT department, name, salary
-    FROM employees
-    WHERE salary > 80000
+    SELECT department, name, salary FROM employees WHERE salary > 80000
 )
-SELECT department, COUNT(*) as high_earner_count
-FROM high_earners
-GROUP BY department;
+SELECT department, COUNT(*) FROM high_earners GROUP BY department;
 
--- Recursive CTE - organizational hierarchy
-WITH RECURSIVE employee_hierarchy AS (
-    -- Base case: top-level managers
-    SELECT employee_id, name, manager_id, 1 as level
-    FROM employees
-    WHERE manager_id IS NULL
-    
+-- Recursive CTE for hierarchy
+WITH RECURSIVE org_chart AS (
+    SELECT employee_id, name, manager_id, 1 as level FROM employees WHERE manager_id IS NULL
     UNION ALL
-    
-    -- Recursive case: employees with managers
-    SELECT e.employee_id, e.name, e.manager_id, eh.level + 1
-    FROM employees e
-    JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id
+    SELECT e.employee_id, e.name, e.manager_id, oc.level + 1
+    FROM employees e JOIN org_chart oc ON e.manager_id = oc.employee_id
 )
-SELECT * FROM employee_hierarchy ORDER BY level, name;
-
--- Multiple CTEs
-WITH 
-sales_summary AS (
-    SELECT customer_id, SUM(amount) as total_sales
-    FROM orders
-    WHERE order_date >= '2023-01-01'
-    GROUP BY customer_id
-),
-top_customers AS (
-    SELECT customer_id, total_sales
-    FROM sales_summary
-    WHERE total_sales > 10000
-)
-SELECT c.name, tc.total_sales
-FROM customers c
-JOIN top_customers tc ON c.id = tc.customer_id;
+SELECT * FROM org_chart ORDER BY level;
 ```
 
 ### 19. Explain UNION vs UNION ALL
 **Answer:**
+UNION operations combine result sets from multiple queries, with different handling of duplicate rows.
+
+**Key Differences:**
+- **UNION**: Removes duplicate rows, performs implicit DISTINCT
+- **UNION ALL**: Keeps all rows including duplicates
+- **Performance**: UNION ALL is faster (no deduplication overhead)
+- **Use Cases**: UNION for unique results, UNION ALL for complete datasets
+
+**Requirements:**
+- Same number of columns in all queries
+- Compatible data types in corresponding positions
+- Column names from first query used in result
+
+**Data Engineering Applications:**
+- Combining data from multiple sources/tables
+- Historical vs current data integration
+- Partitioned table queries
+- Data migration and consolidation
+
+**Performance Considerations:**
+- UNION requires sorting for deduplication
+- UNION ALL is preferred when duplicates are acceptable
+- Consider using DISTINCT separately if needed
+
+**Best Practice**: Use UNION ALL unless you specifically need to remove duplicates
+
 ```sql
--- UNION - removes duplicates, slower
-SELECT name FROM customers
-UNION
-SELECT name FROM suppliers;
+-- UNION - removes duplicates (slower)
+SELECT name FROM customers UNION SELECT name FROM suppliers;
 
--- UNION ALL - keeps duplicates, faster
-SELECT name FROM customers
-UNION ALL
-SELECT name FROM suppliers;
-
--- Practical example: combining current and historical data
-SELECT customer_id, order_date, amount, 'current' as source
-FROM current_orders
-UNION ALL
-SELECT customer_id, order_date, amount, 'historical' as source
-FROM historical_orders
-ORDER BY order_date DESC;
+-- UNION ALL - keeps duplicates (faster)
+SELECT customer_id, 'current' as source FROM current_orders
+UNION ALL  
+SELECT customer_id, 'historical' as source FROM historical_orders;
 ```
 
 ### 20. What are subqueries and their types?
@@ -8020,4 +8167,1408 @@ BEGIN
     RETURN success;
 END;
 $$ LANGUAGE plpgsql;
+```
+
+### 17. Explain different types of subqueries
+**Answer:**
+Subqueries are nested queries that provide powerful data filtering and analysis capabilities. Understanding their types and performance implications is crucial for complex data engineering tasks.
+
+**Types:**
+- **Scalar Subquery**: Returns single value
+- **Row Subquery**: Returns single row with multiple columns
+- **Column Subquery**: Returns single column with multiple rows
+- **Table Subquery**: Returns multiple rows and columns
+- **Correlated vs Non-correlated**: Whether inner query depends on outer query
+
+```sql
+-- Scalar subquery
+SELECT name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+
+-- Column subquery with IN
+SELECT name FROM employees
+WHERE department_id IN (SELECT id FROM departments WHERE location = 'NYC');
+
+-- Correlated subquery
+SELECT name, salary
+FROM employees e1
+WHERE salary > (SELECT AVG(salary) FROM employees e2 WHERE e2.department_id = e1.department_id);
+
+-- EXISTS subquery
+SELECT c.name
+FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id);
+```
+
+### 18. What is the difference between UNION and UNION ALL?
+**Answer:**
+UNION operations combine result sets from multiple queries, essential for data consolidation in ETL processes.
+
+**Key Differences:**
+- **UNION**: Removes duplicate rows, slower due to sorting/deduplication
+- **UNION ALL**: Keeps all rows including duplicates, faster performance
+- **Column Requirements**: Same number of columns with compatible data types
+- **Use Cases**: UNION for data deduplication, UNION ALL for performance when duplicates don't matter
+
+```sql
+-- UNION - removes duplicates
+SELECT customer_id FROM orders_2023
+UNION
+SELECT customer_id FROM orders_2024;
+
+-- UNION ALL - keeps duplicates, faster
+SELECT customer_id FROM orders_2023
+UNION ALL
+SELECT customer_id FROM orders_2024;
+
+-- Multiple table union
+SELECT 'Q1' as quarter, SUM(amount) as total FROM q1_sales
+UNION ALL
+SELECT 'Q2', SUM(amount) FROM q2_sales
+UNION ALL
+SELECT 'Q3', SUM(amount) FROM q3_sales;
+```
+
+### 19. Explain the concept of database normalization
+**Answer:**
+Normalization is the process of organizing database structure to reduce redundancy and improve data integrity. Critical for designing efficient data warehouses and operational systems.
+
+**Normal Forms:**
+- **1NF**: Atomic values, no repeating groups
+- **2NF**: 1NF + no partial dependencies on composite keys
+- **3NF**: 2NF + no transitive dependencies
+- **BCNF**: 3NF + every determinant is a candidate key
+
+**Benefits**: Reduced storage, improved consistency, easier maintenance
+**Trade-offs**: More complex queries, potential performance impact
+
+```sql
+-- Unnormalized table (violates 1NF)
+CREATE TABLE bad_orders (
+    order_id INT,
+    customer_name VARCHAR(100),
+    products VARCHAR(500)  -- Multiple products in one field
+);
+
+-- Normalized structure
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100)
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE
+);
+
+CREATE TABLE order_items (
+    order_id INT REFERENCES orders(order_id),
+    product_id INT,
+    quantity INT,
+    PRIMARY KEY (order_id, product_id)
+);
+```
+
+### 20. What are CTEs (Common Table Expressions) and when would you use them?
+**Answer:**
+CTEs provide a way to create temporary named result sets that improve query readability and enable recursive operations. Essential for complex analytical queries in data engineering.
+
+**Benefits:**
+- **Readability**: Break complex queries into logical steps
+- **Reusability**: Reference the same subquery multiple times
+- **Recursion**: Enable hierarchical data processing
+- **Maintainability**: Easier to debug and modify
+
+```sql
+-- Basic CTE
+WITH high_value_customers AS (
+    SELECT customer_id, SUM(order_amount) as total_spent
+    FROM orders
+    GROUP BY customer_id
+    HAVING SUM(order_amount) > 10000
+)
+SELECT c.name, hvc.total_spent
+FROM customers c
+JOIN high_value_customers hvc ON c.customer_id = hvc.customer_id;
+
+-- Multiple CTEs
+WITH 
+monthly_sales AS (
+    SELECT 
+        DATE_TRUNC('month', order_date) as month,
+        SUM(amount) as monthly_total
+    FROM orders
+    GROUP BY DATE_TRUNC('month', order_date)
+),
+avg_monthly AS (
+    SELECT AVG(monthly_total) as avg_monthly_sales
+    FROM monthly_sales
+)
+SELECT 
+    ms.month,
+    ms.monthly_total,
+    ms.monthly_total - am.avg_monthly_sales as variance
+FROM monthly_sales ms
+CROSS JOIN avg_monthly am;
+
+-- Recursive CTE for hierarchical data
+WITH RECURSIVE employee_hierarchy AS (
+    -- Base case
+    SELECT employee_id, name, manager_id, 1 as level
+    FROM employees
+    WHERE manager_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive case
+    SELECT e.employee_id, e.name, e.manager_id, eh.level + 1
+    FROM employees e
+    JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id
+)
+SELECT * FROM employee_hierarchy ORDER BY level, name;
+```
+
+### 21. What is the difference between clustered and non-clustered indexes?
+**Answer:**
+Understanding index types is crucial for database performance optimization in data engineering systems.
+
+**Clustered Index:**
+- **Physical Storage**: Data rows stored in order of index key
+- **Limitation**: Only one per table (usually primary key)
+- **Performance**: Faster for range queries and sorting
+- **Storage**: Index and data stored together
+
+**Non-clustered Index:**
+- **Logical Structure**: Separate structure pointing to data rows
+- **Multiple Allowed**: Can have many per table
+- **Performance**: Faster for specific lookups
+- **Storage**: Index stored separately from data
+
+```sql
+-- Clustered index (automatically created with PRIMARY KEY)
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,  -- Clustered index
+    customer_id INT,
+    order_date DATE
+);
+
+-- Non-clustered indexes
+CREATE INDEX idx_customer ON orders(customer_id);
+CREATE INDEX idx_date ON orders(order_date);
+CREATE INDEX idx_customer_date ON orders(customer_id, order_date);
+
+-- Check index usage
+EXPLAIN (ANALYZE, BUFFERS) 
+SELECT * FROM orders WHERE customer_id = 123;
+```
+
+### 22. Explain the CASE statement and its variations
+**Answer:**
+CASE statements provide conditional logic in SQL, essential for data transformation and business rule implementation in ETL processes.
+
+**Types:**
+- **Simple CASE**: Compares expression to specific values
+- **Searched CASE**: Uses boolean conditions for more complex logic
+- **Use Cases**: Data categorization, conditional aggregation, pivot operations
+
+```sql
+-- Simple CASE
+SELECT 
+    name,
+    salary,
+    CASE department
+        WHEN 'IT' THEN 'Technology'
+        WHEN 'HR' THEN 'Human Resources'
+        WHEN 'FIN' THEN 'Finance'
+        ELSE 'Other'
+    END as department_full_name
+FROM employees;
+
+-- Searched CASE with conditions
+SELECT 
+    name,
+    salary,
+    CASE 
+        WHEN salary >= 100000 THEN 'Senior'
+        WHEN salary >= 70000 THEN 'Mid-level'
+        WHEN salary >= 40000 THEN 'Junior'
+        ELSE 'Entry-level'
+    END as salary_band,
+    CASE 
+        WHEN EXTRACT(YEAR FROM hire_date) >= 2020 THEN 'New Hire'
+        WHEN EXTRACT(YEAR FROM hire_date) >= 2015 THEN 'Experienced'
+        ELSE 'Veteran'
+    END as tenure_category
+FROM employees;
+
+-- CASE in aggregation (pivot-like operation)
+SELECT 
+    department,
+    COUNT(*) as total_employees,
+    SUM(CASE WHEN salary >= 80000 THEN 1 ELSE 0 END) as high_earners,
+    SUM(CASE WHEN gender = 'F' THEN 1 ELSE 0 END) as female_count,
+    AVG(CASE WHEN department = 'IT' THEN salary END) as avg_it_salary
+FROM employees
+GROUP BY department;
+```
+
+### 23. What are stored procedures and their advantages/disadvantages?
+**Answer:**
+Stored procedures are precompiled SQL code blocks stored in the database, important for data engineering workflows and business logic encapsulation.
+
+**Advantages:**
+- **Performance**: Precompiled and cached execution plans
+- **Security**: Controlled data access, SQL injection prevention
+- **Reusability**: Centralized business logic
+- **Network Traffic**: Reduced data transfer
+
+**Disadvantages:**
+- **Portability**: Database-specific syntax
+- **Version Control**: Harder to manage in source control
+- **Debugging**: Limited debugging capabilities
+- **Scalability**: Can become bottleneck
+
+```sql
+-- PostgreSQL stored procedure
+CREATE OR REPLACE FUNCTION calculate_employee_bonus(
+    emp_id INTEGER,
+    bonus_percentage DECIMAL
+) RETURNS DECIMAL AS $$
+DECLARE
+    current_salary DECIMAL;
+    bonus_amount DECIMAL;
+BEGIN
+    -- Get current salary
+    SELECT salary INTO current_salary
+    FROM employees
+    WHERE employee_id = emp_id;
+    
+    -- Calculate bonus
+    bonus_amount := current_salary * (bonus_percentage / 100);
+    
+    -- Update employee record
+    UPDATE employees
+    SET bonus = bonus_amount
+    WHERE employee_id = emp_id;
+    
+    RETURN bonus_amount;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the procedure
+SELECT calculate_employee_bonus(123, 10.5);
+
+-- SQL Server stored procedure with error handling
+CREATE PROCEDURE ProcessMonthlyOrders
+    @month INT,
+    @year INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Process orders
+        UPDATE orders 
+        SET status = 'PROCESSED'
+        WHERE MONTH(order_date) = @month 
+        AND YEAR(order_date) = @year
+        AND status = 'PENDING';
+        
+        -- Log processing
+        INSERT INTO processing_log (process_date, records_processed)
+        VALUES (GETDATE(), @@ROWCOUNT);
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+
+### 24. Explain database triggers and their types
+**Answer:**
+Triggers are special stored procedures that automatically execute in response to database events, crucial for maintaining data integrity and audit trails in data systems.
+
+**Types by Timing:**
+- **BEFORE**: Execute before the triggering event
+- **AFTER**: Execute after the triggering event
+- **INSTEAD OF**: Replace the triggering event (views only)
+
+**Types by Event:**
+- **INSERT**: New row creation
+- **UPDATE**: Row modification
+- **DELETE**: Row removal
+
+```sql
+-- Audit trigger - tracks changes
+CREATE TABLE employee_audit (
+    audit_id SERIAL PRIMARY KEY,
+    employee_id INT,
+    old_salary DECIMAL,
+    new_salary DECIMAL,
+    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    changed_by VARCHAR(100)
+);
+
+CREATE OR REPLACE FUNCTION audit_salary_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'UPDATE' AND OLD.salary != NEW.salary THEN
+        INSERT INTO employee_audit (employee_id, old_salary, new_salary, changed_by)
+        VALUES (NEW.employee_id, OLD.salary, NEW.salary, USER);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER salary_audit_trigger
+    AFTER UPDATE ON employees
+    FOR EACH ROW
+    EXECUTE FUNCTION audit_salary_changes();
+
+-- Validation trigger - enforce business rules
+CREATE OR REPLACE FUNCTION validate_salary_increase()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'UPDATE' AND NEW.salary > OLD.salary * 1.5 THEN
+        RAISE EXCEPTION 'Salary increase cannot exceed 50%';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER salary_validation_trigger
+    BEFORE UPDATE ON employees
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_salary_increase();
+
+-- Auto-update trigger - maintain derived data
+CREATE OR REPLACE FUNCTION update_order_total()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE orders 
+    SET total_amount = (
+        SELECT SUM(quantity * unit_price)
+        FROM order_items
+        WHERE order_id = NEW.order_id
+    )
+    WHERE order_id = NEW.order_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER order_total_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON order_items
+    FOR EACH ROW
+    EXECUTE FUNCTION update_order_total();
+```
+
+### 25. What is the difference between correlated and non-correlated subqueries?
+**Answer:**
+Understanding subquery types is essential for writing efficient analytical queries and avoiding performance bottlenecks in data processing.
+
+**Non-correlated Subquery:**
+- **Independence**: Inner query executes once, independent of outer query
+- **Performance**: Generally faster, can be cached
+- **Use Cases**: Static filtering, lookup values
+
+**Correlated Subquery:**
+- **Dependency**: Inner query references outer query columns
+- **Performance**: Executes once per outer row, potentially slower
+- **Use Cases**: Row-by-row comparisons, complex filtering
+
+```sql
+-- Non-correlated subquery - executes once
+SELECT name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+
+-- Correlated subquery - executes for each row
+SELECT name, salary, department
+FROM employees e1
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM employees e2
+    WHERE e2.department = e1.department
+);
+
+-- EXISTS with correlated subquery
+SELECT c.customer_name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+    AND o.order_date >= '2024-01-01'
+);
+
+-- Performance comparison - correlated vs window function
+-- Slower correlated approach
+SELECT 
+    name,
+    salary,
+    (SELECT AVG(salary) FROM employees e2 WHERE e2.department = e1.department) as dept_avg
+FROM employees e1;
+
+-- Faster window function approach
+SELECT 
+    name,
+    salary,
+    AVG(salary) OVER (PARTITION BY department) as dept_avg
+FROM employees;
+```
+
+### 26. Explain the concept of database views and their types
+**Answer:**
+Views are virtual tables that provide abstraction layers over complex queries, essential for data security, simplification, and maintaining consistent business logic across applications.
+
+**Types:**
+- **Simple Views**: Based on single table
+- **Complex Views**: Multiple tables, aggregations, functions
+- **Materialized Views**: Physically stored, refreshed periodically
+- **Updatable Views**: Allow INSERT/UPDATE/DELETE operations
+
+**Benefits:**
+- **Security**: Hide sensitive columns/rows
+- **Simplification**: Abstract complex joins
+- **Consistency**: Centralized business logic
+- **Performance**: Materialized views cache results
+
+```sql
+-- Simple view - hide sensitive data
+CREATE VIEW employee_public AS
+SELECT 
+    employee_id,
+    name,
+    department,
+    hire_date
+FROM employees;
+
+-- Complex view - business logic abstraction
+CREATE VIEW sales_summary AS
+SELECT 
+    c.customer_name,
+    c.region,
+    COUNT(o.order_id) as total_orders,
+    SUM(o.order_amount) as total_spent,
+    AVG(o.order_amount) as avg_order_value,
+    MAX(o.order_date) as last_order_date,
+    CASE 
+        WHEN SUM(o.order_amount) >= 10000 THEN 'VIP'
+        WHEN SUM(o.order_amount) >= 5000 THEN 'Premium'
+        ELSE 'Standard'
+    END as customer_tier
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name, c.region;
+
+-- Materialized view (PostgreSQL)
+CREATE MATERIALIZED VIEW monthly_sales_mv AS
+SELECT 
+    DATE_TRUNC('month', order_date) as month,
+    COUNT(*) as order_count,
+    SUM(order_amount) as total_revenue,
+    AVG(order_amount) as avg_order_value
+FROM orders
+GROUP BY DATE_TRUNC('month', order_date);
+
+-- Refresh materialized view
+REFRESH MATERIALIZED VIEW monthly_sales_mv;
+
+-- Updatable view with check option
+CREATE VIEW high_salary_employees AS
+SELECT employee_id, name, salary, department
+FROM employees
+WHERE salary >= 80000
+WITH CHECK OPTION;
+
+-- This will work
+UPDATE high_salary_employees SET salary = 85000 WHERE employee_id = 123;
+
+-- This will fail due to CHECK OPTION
+UPDATE high_salary_employees SET salary = 70000 WHERE employee_id = 123;
+```
+
+### 27. What are database functions and their types?
+**Answer:**
+Database functions are reusable code blocks that return values, essential for data transformation, calculations, and maintaining consistent business logic across queries.
+
+**Types:**
+- **Scalar Functions**: Return single value
+- **Table-Valued Functions**: Return table/result set
+- **Aggregate Functions**: Operate on multiple rows
+- **Window Functions**: Analytical functions with OVER clause
+
+**Built-in vs User-Defined:**
+- **Built-in**: Provided by database system
+- **User-Defined**: Custom functions for specific business logic
+
+```sql
+-- Scalar function - returns single value
+CREATE OR REPLACE FUNCTION calculate_age(birth_date DATE)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN EXTRACT(YEAR FROM AGE(birth_date));
+END;
+$$ LANGUAGE plpgsql;
+
+-- Usage
+SELECT name, birth_date, calculate_age(birth_date) as age
+FROM employees;
+
+-- Table-valued function - returns result set
+CREATE OR REPLACE FUNCTION get_employees_by_department(dept_name VARCHAR)
+RETURNS TABLE(
+    employee_id INT,
+    name VARCHAR,
+    salary DECIMAL,
+    hire_date DATE
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT e.employee_id, e.name, e.salary, e.hire_date
+    FROM employees e
+    JOIN departments d ON e.department_id = d.department_id
+    WHERE d.department_name = dept_name;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Usage
+SELECT * FROM get_employees_by_department('IT');
+
+-- Aggregate function (custom)
+CREATE OR REPLACE FUNCTION median_salary(department_id INT)
+RETURNS DECIMAL AS $$
+DECLARE
+    result DECIMAL;
+BEGIN
+    SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary)
+    INTO result
+    FROM employees
+    WHERE department_id = department_id;
+    
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- String manipulation functions
+SELECT 
+    name,
+    UPPER(name) as name_upper,
+    LENGTH(name) as name_length,
+    SUBSTRING(name, 1, 3) as name_prefix,
+    CONCAT(name, ' - ', department) as full_info,
+    REPLACE(email, '@company.com', '@newcompany.com') as new_email
+FROM employees;
+
+-- Date functions
+SELECT 
+    order_date,
+    EXTRACT(YEAR FROM order_date) as order_year,
+    EXTRACT(MONTH FROM order_date) as order_month,
+    DATE_TRUNC('month', order_date) as month_start,
+    AGE(CURRENT_DATE, order_date) as order_age,
+    order_date + INTERVAL '30 days' as due_date
+FROM orders;
+```
+
+### 28. Explain transaction isolation levels
+**Answer:**
+Isolation levels control how transactions interact with each other, crucial for maintaining data consistency in concurrent data processing systems.
+
+**Isolation Levels (from least to most restrictive):**
+- **READ UNCOMMITTED**: Can read uncommitted changes (dirty reads)
+- **READ COMMITTED**: Only reads committed data (default in most systems)
+- **REPEATABLE READ**: Same data returned in multiple reads within transaction
+- **SERIALIZABLE**: Highest isolation, transactions appear to run sequentially
+
+**Concurrency Problems:**
+- **Dirty Read**: Reading uncommitted changes
+- **Non-repeatable Read**: Different results in same transaction
+- **Phantom Read**: New rows appear between reads
+
+```sql
+-- Set isolation level
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- Example of isolation level effects
+-- Session 1
+BEGIN;
+UPDATE accounts SET balance = balance - 1000 WHERE account_id = 1;
+-- Don't commit yet
+
+-- Session 2 with READ UNCOMMITTED (can see uncommitted changes)
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT balance FROM accounts WHERE account_id = 1; -- Shows reduced balance
+
+-- Session 2 with READ COMMITTED (waits for commit)
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT balance FROM accounts WHERE account_id = 1; -- Waits or shows original balance
+
+-- Demonstrating phantom reads
+-- Session 1
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
+SELECT COUNT(*) FROM orders WHERE customer_id = 123; -- Returns 5
+
+-- Session 2
+INSERT INTO orders (customer_id, order_date, amount) 
+VALUES (123, CURRENT_DATE, 100);
+COMMIT;
+
+-- Session 1 (still in transaction)
+SELECT COUNT(*) FROM orders WHERE customer_id = 123; -- Still returns 5 (REPEATABLE READ)
+
+-- With SERIALIZABLE
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
+SELECT SUM(balance) FROM accounts; -- Takes shared lock
+-- Any concurrent transaction trying to modify accounts will wait
+COMMIT;
+```
+
+### 29. What is the difference between HAVING and WHERE with GROUP BY?
+**Answer:**
+Understanding when to use WHERE vs HAVING is fundamental for correct data aggregation and filtering in analytical queries.
+
+**Key Differences:**
+- **WHERE**: Filters individual rows before grouping
+- **HAVING**: Filters grouped results after aggregation
+- **Performance**: WHERE is faster as it reduces data before grouping
+- **Usage**: WHERE for row-level conditions, HAVING for group-level conditions
+
+```sql
+-- WHERE filters before grouping (more efficient)
+SELECT 
+    department,
+    COUNT(*) as employee_count,
+    AVG(salary) as avg_salary
+FROM employees
+WHERE hire_date >= '2020-01-01'  -- Filter rows first
+GROUP BY department
+HAVING COUNT(*) > 5;  -- Then filter groups
+
+-- Incorrect usage - this won't work
+SELECT department, COUNT(*)
+FROM employees
+GROUP BY department
+WHERE COUNT(*) > 5;  -- ERROR: WHERE cannot use aggregate functions
+
+-- Complex example showing both
+SELECT 
+    department,
+    COUNT(*) as total_employees,
+    COUNT(CASE WHEN salary >= 80000 THEN 1 END) as high_earners,
+    AVG(salary) as avg_salary,
+    MAX(salary) as max_salary
+FROM employees
+WHERE status = 'ACTIVE'  -- Filter active employees only
+  AND hire_date >= '2015-01-01'  -- Filter by hire date
+GROUP BY department
+HAVING COUNT(*) >= 10  -- Department must have at least 10 employees
+  AND AVG(salary) > 60000  -- Average salary must be above 60k
+  AND COUNT(CASE WHEN salary >= 80000 THEN 1 END) > 2;  -- At least 3 high earners
+
+-- Performance comparison
+-- Efficient - WHERE reduces data first
+SELECT region, COUNT(*)
+FROM sales
+WHERE sale_date >= '2024-01-01'
+GROUP BY region
+HAVING COUNT(*) > 100;
+
+-- Less efficient - processes all data then filters
+SELECT region, COUNT(*)
+FROM sales
+GROUP BY region
+HAVING COUNT(*) > 100
+  AND MIN(sale_date) >= '2024-01-01';
+```
+
+### 30. Explain the concept of database partitioning
+**Answer:**
+Partitioning divides large tables into smaller, manageable pieces while maintaining logical unity. Essential for handling big data and improving query performance in data warehouses.
+
+**Types:**
+- **Horizontal Partitioning**: Split rows (range, hash, list)
+- **Vertical Partitioning**: Split columns
+- **Functional Partitioning**: Split by feature/module
+
+**Benefits:**
+- **Performance**: Parallel processing, partition elimination
+- **Maintenance**: Easier backup, archiving, indexing
+- **Scalability**: Handle larger datasets
+
+```sql
+-- Range partitioning by date (PostgreSQL)
+CREATE TABLE sales (
+    sale_id SERIAL,
+    sale_date DATE,
+    customer_id INT,
+    amount DECIMAL(10,2)
+) PARTITION BY RANGE (sale_date);
+
+-- Create partitions
+CREATE TABLE sales_2023 PARTITION OF sales
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE sales_2024 PARTITION OF sales
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+
+-- Hash partitioning
+CREATE TABLE customers (
+    customer_id SERIAL,
+    name VARCHAR(100),
+    email VARCHAR(100)
+) PARTITION BY HASH (customer_id);
+
+CREATE TABLE customers_p1 PARTITION OF customers
+    FOR VALUES WITH (MODULUS 4, REMAINDER 0);
+
+CREATE TABLE customers_p2 PARTITION OF customers
+    FOR VALUES WITH (MODULUS 4, REMAINDER 1);
+
+-- List partitioning
+CREATE TABLE orders (
+    order_id SERIAL,
+    region VARCHAR(20),
+    order_date DATE,
+    amount DECIMAL(10,2)
+) PARTITION BY LIST (region);
+
+CREATE TABLE orders_north PARTITION OF orders
+    FOR VALUES IN ('North', 'Northeast', 'Northwest');
+
+CREATE TABLE orders_south PARTITION OF orders
+    FOR VALUES IN ('South', 'Southeast', 'Southwest');
+
+-- Query showing partition elimination
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM sales 
+WHERE sale_date BETWEEN '2024-01-01' AND '2024-03-31';
+-- Only scans sales_2024 partition
+
+-- Partition maintenance
+-- Add new partition
+CREATE TABLE sales_2025 PARTITION OF sales
+    FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+
+-- Drop old partition
+DROP TABLE sales_2022;
+
+-- Manual partitioning (for databases without native support)
+CREATE TABLE sales_2024_q1 AS
+SELECT * FROM sales 
+WHERE sale_date >= '2024-01-01' AND sale_date < '2024-04-01';
+
+CREATE INDEX idx_sales_2024_q1_date ON sales_2024_q1(sale_date);
+
+-- Union view for querying
+CREATE VIEW sales_current AS
+SELECT * FROM sales_2024_q1
+UNION ALL
+SELECT * FROM sales_2024_q2
+UNION ALL
+SELECT * FROM sales_2024_q3
+UNION ALL
+SELECT * FROM sales_2024_q4;
+```
+
+### 31. What are the different types of database relationships?
+**Answer:**
+Database relationships define how tables connect to each other, fundamental for proper database design and data integrity in relational systems.
+
+**Relationship Types:**
+- **One-to-One (1:1)**: Each record in table A relates to exactly one record in table B
+- **One-to-Many (1:M)**: One record in table A relates to multiple records in table B
+- **Many-to-Many (M:M)**: Multiple records in both tables can relate to each other
+- **Self-Referencing**: Table relates to itself (hierarchical data)
+
+```sql
+-- One-to-One: Employee to Employee_Details
+CREATE TABLE employees (
+    employee_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE employee_details (
+    employee_id INT PRIMARY KEY REFERENCES employees(employee_id),
+    ssn VARCHAR(11),
+    emergency_contact VARCHAR(100),
+    medical_info TEXT
+);
+
+-- One-to-Many: Customer to Orders
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+);
+
+-- Many-to-Many: Students to Courses (with junction table)
+CREATE TABLE students (
+    student_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE courses (
+    course_id SERIAL PRIMARY KEY,
+    course_name VARCHAR(100),
+    credits INT
+);
+
+CREATE TABLE student_courses (
+    student_id INT REFERENCES students(student_id),
+    course_id INT REFERENCES courses(course_id),
+    enrollment_date DATE,
+    grade CHAR(2),
+    PRIMARY KEY (student_id, course_id)
+);
+
+-- Self-Referencing: Employee hierarchy
+CREATE TABLE employees_hierarchy (
+    employee_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    manager_id INT REFERENCES employees_hierarchy(employee_id),
+    department VARCHAR(50)
+);
+
+-- Queries demonstrating relationships
+-- One-to-Many: Customer with their orders
+SELECT 
+    c.name,
+    c.email,
+    COUNT(o.order_id) as total_orders,
+    SUM(o.total_amount) as total_spent
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name, c.email;
+
+-- Many-to-Many: Students with their courses
+SELECT 
+    s.name as student_name,
+    c.course_name,
+    sc.grade,
+    sc.enrollment_date
+FROM students s
+JOIN student_courses sc ON s.student_id = sc.student_id
+JOIN courses c ON sc.course_id = c.course_id
+ORDER BY s.name, c.course_name;
+
+-- Self-Referencing: Employee hierarchy
+WITH RECURSIVE org_chart AS (
+    -- Base case: top-level managers
+    SELECT employee_id, name, manager_id, 1 as level, name as path
+    FROM employees_hierarchy
+    WHERE manager_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive case: employees with managers
+    SELECT 
+        e.employee_id, 
+        e.name, 
+        e.manager_id, 
+        oc.level + 1,
+        oc.path || ' -> ' || e.name
+    FROM employees_hierarchy e
+    JOIN org_chart oc ON e.manager_id = oc.employee_id
+)
+SELECT * FROM org_chart ORDER BY level, name;
+```
+
+### 32. Explain the concept of database cursors
+**Answer:**
+Cursors provide row-by-row processing of query results, useful for complex data transformations that can't be handled with set-based operations.
+
+**Types:**
+- **Forward-Only**: Can only move forward through results
+- **Scrollable**: Can move in any direction
+- **Static**: Snapshot of data at cursor creation
+- **Dynamic**: Reflects real-time changes
+
+**Use Cases:**
+- Complex row-by-row processing
+- Iterative calculations
+- Data migration with transformation
+
+```sql
+-- PostgreSQL cursor example
+CREATE OR REPLACE FUNCTION process_large_dataset()
+RETURNS VOID AS $$
+DECLARE
+    emp_cursor CURSOR FOR 
+        SELECT employee_id, name, salary, department_id
+        FROM employees
+        WHERE status = 'ACTIVE'
+        ORDER BY employee_id;
+    
+    emp_record RECORD;
+    bonus_amount DECIMAL;
+    processed_count INT := 0;
+BEGIN
+    -- Open cursor
+    OPEN emp_cursor;
+    
+    -- Loop through results
+    LOOP
+        -- Fetch next row
+        FETCH emp_cursor INTO emp_record;
+        
+        -- Exit when no more rows
+        EXIT WHEN NOT FOUND;
+        
+        -- Complex processing logic
+        IF emp_record.department_id = 1 THEN
+            bonus_amount := emp_record.salary * 0.15;
+        ELSIF emp_record.department_id = 2 THEN
+            bonus_amount := emp_record.salary * 0.12;
+        ELSE
+            bonus_amount := emp_record.salary * 0.10;
+        END IF;
+        
+        -- Update employee record
+        UPDATE employees
+        SET bonus = bonus_amount,
+            last_processed = CURRENT_TIMESTAMP
+        WHERE employee_id = emp_record.employee_id;
+        
+        processed_count := processed_count + 1;
+        
+        -- Commit every 1000 records
+        IF processed_count % 1000 = 0 THEN
+            COMMIT;
+            RAISE NOTICE 'Processed % employees', processed_count;
+        END IF;
+    END LOOP;
+    
+    -- Close cursor
+    CLOSE emp_cursor;
+    
+    RAISE NOTICE 'Total processed: % employees', processed_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- SQL Server cursor example
+DECLARE @employee_id INT, @salary DECIMAL(10,2), @bonus DECIMAL(10,2);
+
+DECLARE salary_cursor CURSOR FOR
+    SELECT employee_id, salary
+    FROM employees
+    WHERE department = 'Sales';
+
+OPEN salary_cursor;
+
+FETCH NEXT FROM salary_cursor INTO @employee_id, @salary;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Calculate bonus based on salary
+    SET @bonus = @salary * 0.10;
+    
+    -- Update employee
+    UPDATE employees
+    SET bonus = @bonus
+    WHERE employee_id = @employee_id;
+    
+    -- Fetch next row
+    FETCH NEXT FROM salary_cursor INTO @employee_id, @salary;
+END;
+
+CLOSE salary_cursor;
+DEALLOCATE salary_cursor;
+
+-- Alternative: Set-based approach (usually preferred)
+UPDATE employees
+SET bonus = salary * 
+    CASE 
+        WHEN department_id = 1 THEN 0.15
+        WHEN department_id = 2 THEN 0.12
+        ELSE 0.10
+    END,
+    last_processed = CURRENT_TIMESTAMP
+WHERE status = 'ACTIVE';
+```
+
+### 33. What is the difference between OLTP and OLAP systems?
+**Answer:**
+Understanding OLTP vs OLAP is crucial for designing appropriate database architectures for different business needs in data engineering.
+
+**OLTP (Online Transaction Processing):**
+- **Purpose**: Handle day-to-day business operations
+- **Characteristics**: High concurrency, fast response, normalized data
+- **Operations**: INSERT, UPDATE, DELETE focused
+- **Examples**: Order processing, inventory management, CRM
+
+**OLAP (Online Analytical Processing):**
+- **Purpose**: Support business intelligence and analytics
+- **Characteristics**: Complex queries, historical data, denormalized
+- **Operations**: SELECT focused with aggregations
+- **Examples**: Data warehouses, reporting systems, BI tools
+
+```sql
+-- OLTP Example: Order processing system
+-- Normalized structure for fast transactions
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20),
+    total_amount DECIMAL(10,2)
+);
+
+CREATE TABLE order_items (
+    order_item_id SERIAL PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id),
+    product_id INT,
+    quantity INT,
+    unit_price DECIMAL(10,2)
+);
+
+-- OLTP queries - simple, fast
+INSERT INTO orders (customer_id, status, total_amount)
+VALUES (123, 'PENDING', 299.99);
+
+UPDATE orders SET status = 'SHIPPED' WHERE order_id = 456;
+
+SELECT * FROM orders WHERE customer_id = 123 AND status = 'PENDING';
+
+-- OLAP Example: Sales data warehouse
+-- Denormalized structure for fast analytics
+CREATE TABLE sales_fact (
+    sale_id BIGINT PRIMARY KEY,
+    date_key INT,
+    customer_key INT,
+    product_key INT,
+    store_key INT,
+    quantity INT,
+    unit_price DECIMAL(10,2),
+    total_amount DECIMAL(10,2),
+    cost_amount DECIMAL(10,2),
+    profit_amount DECIMAL(10,2)
+);
+
+CREATE TABLE date_dimension (
+    date_key INT PRIMARY KEY,
+    full_date DATE,
+    year INT,
+    quarter INT,
+    month INT,
+    month_name VARCHAR(20),
+    day_of_week INT,
+    day_name VARCHAR(20),
+    is_weekend BOOLEAN,
+    is_holiday BOOLEAN
+);
+
+-- OLAP queries - complex analytics
+SELECT 
+    d.year,
+    d.quarter,
+    SUM(sf.total_amount) as total_revenue,
+    SUM(sf.profit_amount) as total_profit,
+    COUNT(DISTINCT sf.customer_key) as unique_customers,
+    AVG(sf.total_amount) as avg_order_value
+FROM sales_fact sf
+JOIN date_dimension d ON sf.date_key = d.date_key
+WHERE d.year IN (2023, 2024)
+GROUP BY d.year, d.quarter
+ORDER BY d.year, d.quarter;
+
+-- Complex OLAP query with window functions
+SELECT 
+    d.month_name,
+    d.year,
+    SUM(sf.total_amount) as monthly_revenue,
+    LAG(SUM(sf.total_amount)) OVER (ORDER BY d.year, d.month) as prev_month_revenue,
+    (SUM(sf.total_amount) - LAG(SUM(sf.total_amount)) OVER (ORDER BY d.year, d.month)) / 
+    LAG(SUM(sf.total_amount)) OVER (ORDER BY d.year, d.month) * 100 as growth_rate
+FROM sales_fact sf
+JOIN date_dimension d ON sf.date_key = d.date_key
+GROUP BY d.year, d.month, d.month_name
+ORDER BY d.year, d.month;
+```
+
+### 34. Explain the concept of database sharding
+**Answer:**
+Sharding is a horizontal partitioning strategy that distributes data across multiple database instances, essential for scaling large applications beyond single-server limitations.
+
+**Sharding Strategies:**
+- **Range-based**: Partition by value ranges
+- **Hash-based**: Use hash function to distribute data
+- **Directory-based**: Lookup service maps keys to shards
+- **Geographic**: Partition by location
+
+**Benefits & Challenges:**
+- **Benefits**: Horizontal scalability, improved performance, fault isolation
+- **Challenges**: Complex queries, rebalancing, consistency issues
+
+```sql
+-- Example: E-commerce platform sharding by customer_id
+
+-- Shard 1: Customers 1-1000000
+CREATE DATABASE ecommerce_shard1;
+USE ecommerce_shard1;
+
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY CHECK (customer_id BETWEEN 1 AND 1000000),
+    name VARCHAR(100),
+    email VARCHAR(100),
+    region VARCHAR(50)
+);
+
+CREATE TABLE orders (
+    order_id BIGINT PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+);
+
+-- Shard 2: Customers 1000001-2000000
+CREATE DATABASE ecommerce_shard2;
+USE ecommerce_shard2;
+
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY CHECK (customer_id BETWEEN 1000001 AND 2000000),
+    name VARCHAR(100),
+    email VARCHAR(100),
+    region VARCHAR(50)
+);
+
+CREATE TABLE orders (
+    order_id BIGINT PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+);
+
+-- Application-level sharding logic (pseudocode)
+/*
+function getShardForCustomer(customer_id) {
+    if (customer_id <= 1000000) return 'shard1';
+    else if (customer_id <= 2000000) return 'shard2';
+    else if (customer_id <= 3000000) return 'shard3';
+    // ... more shards
+}
+
+function getCustomerOrders(customer_id) {
+    shard = getShardForCustomer(customer_id);
+    connection = getConnectionToShard(shard);
+    return connection.query("SELECT * FROM orders WHERE customer_id = ?", customer_id);
+}
+*/
+
+-- Hash-based sharding example
+-- Shard determination: customer_id % 4
+-- Shard 0: customer_id % 4 = 0
+-- Shard 1: customer_id % 4 = 1
+-- Shard 2: customer_id % 4 = 2
+-- Shard 3: customer_id % 4 = 3
+
+-- Cross-shard query challenges
+-- This query would need to run on all shards and aggregate results
+/*
+SELECT 
+    DATE_TRUNC('month', order_date) as month,
+    COUNT(*) as total_orders,
+    SUM(total_amount) as total_revenue
+FROM orders
+WHERE order_date >= '2024-01-01'
+GROUP BY DATE_TRUNC('month', order_date);
+*/
+
+-- Shard rebalancing example
+-- Moving data from overloaded shard to new shard
+/*
+-- Step 1: Create new shard
+CREATE DATABASE ecommerce_shard5;
+
+-- Step 2: Move subset of data
+INSERT INTO ecommerce_shard5.customers
+SELECT * FROM ecommerce_shard1.customers
+WHERE customer_id BETWEEN 500001 AND 750000;
+
+INSERT INTO ecommerce_shard5.orders
+SELECT * FROM ecommerce_shard1.orders
+WHERE customer_id BETWEEN 500001 AND 750000;
+
+-- Step 3: Update application routing logic
+-- Step 4: Remove moved data from original shard
+DELETE FROM ecommerce_shard1.orders
+WHERE customer_id BETWEEN 500001 AND 750000;
+
+DELETE FROM ecommerce_shard1.customers
+WHERE customer_id BETWEEN 500001 AND 750000;
+*/
+
+-- Federated query example (if supported)
+CREATE SERVER shard1_server
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (host 'shard1.example.com', port '5432', dbname 'ecommerce_shard1');
+
+CREATE SERVER shard2_server
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (host 'shard2.example.com', port '5432', dbname 'ecommerce_shard2');
+
+-- Create foreign tables
+CREATE FOREIGN TABLE shard1_orders (
+    order_id BIGINT,
+    customer_id INT,
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+) SERVER shard1_server OPTIONS (table_name 'orders');
+
+CREATE FOREIGN TABLE shard2_orders (
+    order_id BIGINT,
+    customer_id INT,
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+) SERVER shard2_server OPTIONS (table_name 'orders');
+
+-- Cross-shard query
+SELECT 
+    'Shard1' as shard,
+    COUNT(*) as order_count,
+    SUM(total_amount) as total_revenue
+FROM shard1_orders
+WHERE order_date >= '2024-01-01'
+UNION ALL
+SELECT 
+    'Shard2' as shard,
+    COUNT(*) as order_count,
+    SUM(total_amount) as total_revenue
+FROM shard2_orders
+WHERE order_date >= '2024-01-01';
+```
+
+### 35. What are the different types of database locks?
+**Answer:**
+Database locks control concurrent access to data, preventing conflicts and maintaining consistency in multi-user environments. Understanding lock types is crucial for performance tuning and deadlock prevention.
+
+**Lock Granularity:**
+- **Row-level**: Locks individual rows
+- **Page-level**: Locks database pages
+- **Table-level**: Locks entire tables
+- **Database-level**: Locks entire database
+
+**Lock Types:**
+- **Shared (S)**: Multiple readers allowed
+- **Exclusive (X)**: Single writer, no readers
+- **Intent**: Indicates intention to acquire finer-grained locks
+- **Update (U)**: Prevents deadlocks during read-then-write operations
+
+```sql
+-- Explicit locking examples
+
+-- Shared lock - multiple readers allowed
+BEGIN;
+SELECT * FROM accounts WHERE account_id = 123 FOR SHARE;
+-- Other sessions can read but not modify
+COMMIT;
+
+-- Exclusive lock - single writer
+BEGIN;
+SELECT * FROM accounts WHERE account_id = 123 FOR UPDATE;
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 123;
+COMMIT;
+
+-- Lock timeout handling
+SET lock_timeout = '5s';
+BEGIN;
+SELECT * FROM accounts WHERE account_id = 123 FOR UPDATE NOWAIT;
+-- Fails immediately if lock not available
+COMMIT;
+
+-- Deadlock example and prevention
+-- Session 1
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+-- Now tries to update account 2
+UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;
+COMMIT;
+
+-- Session 2 (running concurrently)
+BEGIN;
+UPDATE accounts SET balance = balance - 50 WHERE account_id = 2;
+-- Now tries to update account 1 - DEADLOCK!
+UPDATE accounts SET balance = balance + 50 WHERE account_id = 1;
+COMMIT;
+
+-- Deadlock prevention - consistent ordering
+-- Both sessions should acquire locks in same order
+BEGIN;
+UPDATE accounts SET balance = balance - 100 
+WHERE account_id = LEAST(1, 2);  -- Always lock lower ID first
+UPDATE accounts SET balance = balance + 100 
+WHERE account_id = GREATEST(1, 2);  -- Then higher ID
+COMMIT;
+
+-- Lock monitoring queries
+-- PostgreSQL
+SELECT 
+    l.locktype,
+    l.database,
+    l.relation::regclass,
+    l.page,
+    l.tuple,
+    l.virtualxid,
+    l.transactionid,
+    l.mode,
+    l.granted,
+    a.query
+FROM pg_locks l
+LEFT JOIN pg_stat_activity a ON l.pid = a.pid
+WHERE NOT l.granted;
+
+-- SQL Server
+SELECT 
+    request_session_id,
+    resource_type,
+    resource_database_id,
+    resource_description,
+    request_mode,
+    request_status
+FROM sys.dm_tran_locks
+WHERE request_status = 'WAIT';
+
+-- Lock escalation example
+-- SQL Server - prevent lock escalation
+ALTER TABLE large_table SET (LOCK_ESCALATION = DISABLE);
+
+-- Bulk operations with reduced locking
+-- Use appropriate isolation levels
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT COUNT(*) FROM large_table;  -- Dirty read, minimal locking
+
+-- Advisory locks for application-level coordination
+-- PostgreSQL advisory locks
+SELECT pg_advisory_lock(12345);  -- Application-specific lock
+-- Perform critical section work
+SELECT pg_advisory_unlock(12345);
+
+-- Try lock without waiting
+SELECT pg_try_advisory_lock(12345);  -- Returns true if acquired
+
+-- Session-level advisory lock (auto-released on disconnect)
+SELECT pg_advisory_lock(12345);
 ```

@@ -1,10 +1,10 @@
 # 🔥 Emergency Interview Prep (2-4 hours)
 
 ## ⚡ **Immediate Actions (30 mins)**
-1. Review [Python basics](./python-cheat-sheet.md)
-2. Refresh [SQL commands](./sql-cheat-sheet.md)
-3. Scan [AWS services overview](./aws-quick-reference.md)
-4. Quick read [Data Engineering Fundamentals](./fundamentals-review.md)
+1. Review [Python basics](./PYTHON_CHEAT_SHEET.md)
+2. Refresh [SQL commands](./SQL_CHEAT_SHEET.md)
+3. Scan [AWS services overview](./COMPREHENSIVE_TOOLS_CHEAT_SHEET.md)
+4. Quick read [Data Engineering Fundamentals](./FUNDAMENTALS_REVIEW.md)
 
 ## 🎯 **Top 10 Must-Know Questions with Answers (90 mins)**
 

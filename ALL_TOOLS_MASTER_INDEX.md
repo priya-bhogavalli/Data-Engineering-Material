@@ -123,7 +123,7 @@ Enterprise (500+) → Add Systems + Visualization + AI/ML
 
 ### Find Tools by Technology Stack
 - **MEAN/MERN Stack** → [Programming Tools](./Supporting-Tools/Programming/ALL_PROGRAMMING_TOOLS_REFERENCE.md) + [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md)
-- **Data Science Stack** → [AI/ML Tools](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md) + [Data Processing](./Core-Data-Engineering/Data-Processing/ALL_DATA_PROCESSING_TOOLS_REFERENCE.md)
+- **Data Science Stack** → [AI/ML Tools](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md) + [Data Processing](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md)
 - **Modern Data Stack** → [Data Processing](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/)
 - **Cloud-Native Stack** → [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/)
 

@@ -79,10 +79,10 @@
 
 | Category | Technology | Type | Priority | Interview Questions | Key Concepts | Best Practices | Status |
 |----------|------------|------|----------|-------------------|--------------|----------------|---------|
-| **Programming** | Python | Language | 🥇 Essential | [📋](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Programming-Languages/Python/) | [📄](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_BEST_PRACTICES.md) | ✅ 35+ Q |
-| **Programming** | SQL | Language | 🥇 Essential | [📋](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Programming-Languages/SQL/) | [📄](../Core-Data-Engineering/Programming-Languages/SQL/SQL_BEST_PRACTICES.md) | ✅ 35+ Q |
+| **Programming** | Python | Language | 🥇 Essential | [📋](../Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Programming-Languages/Python/) | [📄](../Core-Data-Engineering/Programming-Languages/Python/) | ✅ 35+ Q |
+| **Programming** | SQL | Language | 🥇 Essential | [📋](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Programming-Languages/SQL/) | [📄](../Core-Data-Engineering/Programming-Languages/SQL/) | ✅ 35+ Q |
 | **Programming** | PySpark | Framework | 🥇 Essential | [📋](../Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Programming-Languages/PySpark/) | [📄](../Core-Data-Engineering/Programming-Languages/PySpark/) | ✅ 27+ Q |
-| **Cloud** | AWS | Platform | 🥇 Essential | [📋](../Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Cloud/AWS/) | [🎯 320+ Services](../Core-Data-Engineering/Cloud/AWS/AWS_ALL_SERVICES_REFERENCE.md) | ✅ 35+ Q |
+| **Cloud** | AWS | Platform | 🥇 Essential | [📋](../Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | [📄](../Core-Data-Engineering/Cloud/AWS/) | [🎯 320+ Services](../Core-Data-Engineering/Cloud/AWS/AWS_ALL_SERVICES_REFERENCE.md) | ✅ 35+ Q |
 | **Cloud** | Azure | Platform | 🥈 Advanced | [📋](../Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Cloud/Azure/) | [🎯 300+ Services](../Core-Data-Engineering/Cloud/Azure/AZURE_ALL_SERVICES_REFERENCE.md) | ⚠️ 20+ Q |
 | **Cloud** | GCP | Platform | 🥈 Advanced | [📋](../Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Cloud/GCP/) | [🎯 300+ Services](../Core-Data-Engineering/Cloud/GCP/GCP_ALL_SERVICES_REFERENCE.md) | ⚠️ 18+ Q |
 | **Database** | PostgreSQL | RDBMS | 🥇 Essential | [📋](../Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [📄](../Core-Data-Engineering/Databases/PostgreSQL/) | [📄](../Core-Data-Engineering/Databases/PostgreSQL/) | ⚠️ 15+ Q |
@@ -138,7 +138,7 @@
 | 2 | SQL | Database querying | 3-4 weeks | [📄 Concepts](../Core-Data-Engineering/Programming-Languages/SQL/) \| [📋 Questions](../Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) |
 | 3 | PostgreSQL | Relational databases | 2-3 weeks | [📄 Concepts](../Core-Data-Engineering/Databases/PostgreSQL/) \| [📋 Questions](../Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) |
 | 4 | AWS Basics | Cloud fundamentals | 3-4 weeks | [📄 Concepts](../Core-Data-Engineering/Cloud/AWS/) \| [📋 Questions](../Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
-| 5 | Apache Spark | Big data processing | 4-5 weeks | [📄 Concepts](../Core-Data-Engineering/Data-Processing/Apache-Spark/) \| [📋 Questions](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) |
+| 5 | Apache Spark | Big data processing | 4-5 weeks | [📄 Concepts](../Core-Data-Engineering/Data-Processing/Apache-Spark/) \| [📋 Questions](../Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) |
 
 ### 🧑💼 **Intermediate (1-3 years)**
 | Order | Technology | Focus Area | Time Investment | Resources |
@@ -176,7 +176,7 @@
 - [📄 Data Warehousing Concepts](../Core-Data-Engineering/Data-Warehousing/)
 
 ### **Cloud-Specific Interview**
-- **AWS**: [📋 AWS Questions](../Core-Data-Engineering/Cloud/AWS/AWS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **AWS**: [📋 AWS Questions](../Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md)
 - **Azure**: [📋 Azure Questions](../Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
 - **GCP**: [📋 GCP Questions](../Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
 
@@ -201,7 +201,7 @@
 ### **By Use Case**
 
 #### **Data Pipeline Development**
-- [📄 Apache Airflow](../Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_KEY_CONCEPTS.md)
+- [📄 Apache Airflow](../Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/)
 - [📄 DBT](../Core-Data-Engineering/Data-Processing/Orchestration/DBT/)
 - [📄 Apache Spark](../Core-Data-Engineering/Data-Processing/Apache-Spark/)
 - [📄 Python](../Core-Data-Engineering/Programming-Languages/Python/)
