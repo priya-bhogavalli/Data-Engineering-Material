@@ -1,102 +1,104 @@
-# 🔧 Jenkins Interview Questions for Data Engineering (Enhanced)
+# Jenkins Interview Questions & Answers
 
 ## 📋 Table of Contents
-
-1. [CI/CD Fundamentals (1-25)](#cicd-fundamentals-1-25)
-2. [Data Pipeline Automation (26-50)](#data-pipeline-automation-26-50)
-3. [Advanced Features (51-75)](#advanced-features-51-75)
-4. [Production & Scaling (76-100)](#production--scaling-76-100)
+1. [Core Concepts](#core-concepts)
+2. [Pipeline Development](#pipeline-development)
+3. [Integration & Plugins](#integration--plugins)
+4. [Security & Administration](#security--administration)
+5. [Troubleshooting & Optimization](#troubleshooting--optimization)
 
 ---
 
-## CI/CD Fundamentals (1-25)
+## Core Concepts
 
-### 1. What is Jenkins and why is it important for data engineering?
-**Answer**: Jenkins is an open-source automation server for building CI/CD pipelines.
+### 1. What is Jenkins and how does it support CI/CD for data engineering?
 
-**Benefits for Data Engineering:**
-- **Automated Testing**: Test data pipelines and transformations
-- **Deployment Automation**: Deploy data applications consistently
-- **Scheduled Jobs**: Run ETL processes on schedule
-- **Integration**: Connect with data tools and platforms
+**Answer:**
+Jenkins is an open-source automation server that enables Continuous Integration and Continuous Deployment (CI/CD) for software development and data engineering workflows.
 
+**Key Features:**
+- **Build Automation**: Automated compilation, testing, and deployment
+- **Pipeline as Code**: Define workflows in version-controlled scripts
+- **Plugin Ecosystem**: 1800+ plugins for integration
+- **Distributed Builds**: Scale across multiple agents
+- **Extensibility**: Custom plugins and integrations
+
+**Data Engineering Use Cases:**
+```yaml
+data_pipeline_automation:
+  - ETL job scheduling and monitoring
+  - Data quality validation
+  - Model training and deployment
+  - Infrastructure provisioning
+  - Data warehouse updates
+
+benefits:
+  - Automated testing of data pipelines
+  - Consistent deployment processes
+  - Integration with data tools (Spark, Airflow, DBT)
+  - Version control for data workflows
+  - Monitoring and alerting
+```
+
+### 2. Explain Jenkins architecture and key components.
+
+**Answer:**
+Jenkins follows a master-agent architecture for distributed build execution.
+
+**Architecture Components:**
+```
+Jenkins Master (Controller):
+├── Web Interface (UI)
+├── Job Scheduler
+├── Build Queue Management
+├── Plugin Management
+└── Configuration Storage
+
+Jenkins Agents (Workers):
+├── Build Executors
+├── Workspace Management
+├── Tool Installations
+└── Environment Setup
+
+External Integrations:
+├── Version Control (Git, SVN)
+├── Build Tools (Maven, Gradle)
+├── Testing Frameworks
+├── Deployment Targets
+└── Notification Systems
+```
+
+**Master Responsibilities:**
+- Schedule and dispatch builds
+- Monitor agent health
+- Serve web interface
+- Store build results and logs
+- Manage plugins and configurations
+
+**Agent Responsibilities:**
+- Execute build jobs
+- Manage workspace and artifacts
+- Report status back to master
+- Handle tool-specific environments
+
+---
+
+## Pipeline Development
+
+### 3. How do you create Jenkins pipelines for data engineering workflows?
+
+**Answer:**
+Jenkins pipelines can be created using Declarative or Scripted syntax to automate data engineering processes.
+
+**Declarative Pipeline Example:**
 ```groovy
-// Basic Jenkins pipeline for data processing
 pipeline {
     agent any
     
     environment {
+        SPARK_HOME = '/opt/spark'
         PYTHON_PATH = '/usr/bin/python3'
-        DATA_ENV = 'production'
-    }
-    
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/company/data-pipeline.git'
-            }
-        }
-        
-        stage('Setup Environment') {
-            steps {
-                sh '''
-                    python3 -m venv venv
-                    source venv/bin/activate
-                    pip install -r requirements.txt
-                '''
-            }
-        }
-        
-        stage('Data Quality Tests') {
-            steps {
-                sh '''
-                    source venv/bin/activate
-                    python -m pytest tests/data_quality/ -v --junitxml=test-results.xml
-                '''
-            }
-            post {
-                always {
-                    junit 'test-results.xml'
-                }
-            }
-        }
-        
-        stage('Deploy Pipeline') {
-            when {
-                branch 'main'
-            }
-            steps {
-                sh '''
-                    source venv/bin/activate
-                    python deploy_pipeline.py --env production
-                '''
-            }
-        }
-    }
-    
-    post {
-        failure {
-            emailext (
-                subject: "Pipeline Failed: ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
-                body: "Build failed. Check console output at ${env.BUILD_URL}",
-                to: "${env.CHANGE_AUTHOR_EMAIL}"
-            )
-        }
-    }
-}
-```
-
-### 2. How do you create Jenkins pipelines for data workflows?
-**Answer**: Use declarative or scripted pipelines with data-specific stages.
-
-```groovy
-// Data ETL pipeline
-pipeline {
-    agent {
-        docker {
-            image 'python:3.9'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
+        AWS_REGION = 'us-west-2'
     }
     
     parameters {
@@ -107,546 +109,177 @@ pipeline {
         )
         string(
             name: 'DATA_DATE',
-            defaultValue: '',
-            description: 'Processing date (YYYY-MM-DD), leave empty for today'
+            defaultValue: '2023-12-01',
+            description: 'Processing date (YYYY-MM-DD)'
         )
     }
     
     stages {
-        stage('Data Extraction') {
+        stage('Checkout') {
             steps {
-                script {
-                    def dataDate = params.DATA_DATE ?: new Date().format('yyyy-MM-dd')
-                    sh """
-                        python scripts/extract_data.py \\
-                            --date ${dataDate} \\
-                            --env ${params.ENVIRONMENT} \\
-                            --output /tmp/raw_data/
-                    """
-                }
+                git branch: 'main', url: 'https://github.com/company/data-pipeline.git'
             }
         }
         
-        stage('Data Transformation') {
-            parallel {
-                stage('Customer Data') {
-                    steps {
-                        sh 'python scripts/transform_customers.py --input /tmp/raw_data/ --output /tmp/processed/'
-                    }
-                }
-                stage('Order Data') {
-                    steps {
-                        sh 'python scripts/transform_orders.py --input /tmp/raw_data/ --output /tmp/processed/'
-                    }
-                }
-                stage('Product Data') {
-                    steps {
-                        sh 'python scripts/transform_products.py --input /tmp/raw_data/ --output /tmp/processed/'
-                    }
-                }
+        stage('Environment Setup') {
+            steps {
+                sh '''
+                    python3 -m venv venv
+                    source venv/bin/activate
+                    pip install -r requirements.txt
+                '''
             }
         }
         
         stage('Data Validation') {
             steps {
-                sh '''
-                    python scripts/validate_data.py \\
-                        --input /tmp/processed/ \\
-                        --rules config/validation_rules.yaml \\
-                        --report /tmp/validation_report.json
-                '''
-                
                 script {
-                    def report = readJSON file: '/tmp/validation_report.json'
-                    if (report.failed_checks > 0) {
-                        error("Data validation failed: ${report.failed_checks} checks failed")
+                    def validation_result = sh(
+                        script: "python3 scripts/validate_input_data.py --date ${params.DATA_DATE}",
+                        returnStatus: true
+                    )
+                    if (validation_result != 0) {
+                        error("Data validation failed")
                     }
                 }
             }
         }
         
-        stage('Data Loading') {
-            steps {
-                withCredentials([
-                    usernamePassword(credentialsId: 'warehouse-db', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')
-                ]) {
-                    sh '''
-                        python scripts/load_data.py \\
-                            --input /tmp/processed/ \\
-                            --db-host warehouse.company.com \\
-                            --db-user $DB_USER \\
-                            --db-pass $DB_PASS \\
-                            --env ${ENVIRONMENT}
-                    '''
+        stage('ETL Processing') {
+            parallel {
+                stage('Customer Data') {
+                    steps {
+                        sh """
+                            spark-submit \
+                                --master yarn \
+                                --deploy-mode cluster \
+                                --conf spark.sql.adaptive.enabled=true \
+                                etl/customer_pipeline.py \
+                                --date ${params.DATA_DATE} \
+                                --env ${params.ENVIRONMENT}
+                        """
+                    }
                 }
+                stage('Transaction Data') {
+                    steps {
+                        sh """
+                            spark-submit \
+                                --master yarn \
+                                --deploy-mode cluster \
+                                etl/transaction_pipeline.py \
+                                --date ${params.DATA_DATE} \
+                                --env ${params.ENVIRONMENT}
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Data Quality Checks') {
+            steps {
+                sh 'python3 scripts/data_quality_checks.py --date ${params.DATA_DATE}'
+                
+                // Publish test results
+                publishTestResults testResultsPattern: 'test-results/*.xml'
+                
+                // Archive quality reports
+                archiveArtifacts artifacts: 'reports/data_quality_*.html'
+            }
+        }
+        
+        stage('Deploy to Data Warehouse') {
+            when {
+                expression { params.ENVIRONMENT == 'prod' }
+            }
+            steps {
+                sh '''
+                    dbt run --profiles-dir profiles --target prod
+                    dbt test --profiles-dir profiles --target prod
+                '''
             }
         }
     }
     
     post {
         always {
-            archiveArtifacts artifacts: 'logs/*.log', allowEmptyArchive: true
-            publishHTML([
-                allowMissing: false,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'reports',
-                reportFiles: 'data_quality_report.html',
-                reportName: 'Data Quality Report'
-            ])
+            // Clean up workspace
+            cleanWs()
         }
         success {
-            slackSend(
-                channel: '#data-engineering',
-                color: 'good',
-                message: "✅ Data pipeline completed successfully for ${params.DATA_DATE}"
+            emailext (
+                subject: "Data Pipeline Success: ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
+                body: "Data processing completed successfully for ${params.DATA_DATE}",
+                to: "${env.CHANGE_AUTHOR_EMAIL}"
             )
         }
         failure {
-            slackSend(
-                channel: '#data-engineering',
-                color: 'danger',
-                message: "❌ Data pipeline failed for ${params.DATA_DATE}. Check ${env.BUILD_URL}"
+            emailext (
+                subject: "Data Pipeline Failed: ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
+                body: "Data processing failed for ${params.DATA_DATE}. Check logs: ${env.BUILD_URL}",
+                to: "${env.CHANGE_AUTHOR_EMAIL}"
             )
         }
     }
 }
 ```
 
-## Data Pipeline Automation (26-50)
+### 4. How do you implement error handling and retry logic in Jenkins pipelines?
 
-### 26. How do you implement automated testing for data pipelines?
-**Answer**: Create comprehensive test suites for data quality, schema validation, and business logic.
+**Answer:**
+Robust error handling ensures pipeline reliability and provides meaningful feedback.
 
+**Error Handling Strategies:**
 ```groovy
-// Data testing pipeline
 pipeline {
     agent any
     
     stages {
-        stage('Unit Tests') {
-            steps {
-                sh '''
-                    # Test individual transformation functions
-                    python -m pytest tests/unit/ -v \\
-                        --cov=src \\
-                        --cov-report=xml \\
-                        --cov-report=html
-                '''
-            }
-        }
-        
-        stage('Integration Tests') {
-            steps {
-                sh '''
-                    # Test end-to-end data flow with sample data
-                    python -m pytest tests/integration/ -v \\
-                        --tb=short
-                '''
-            }
-        }
-        
-        stage('Data Quality Tests') {
+        stage('Data Processing with Retry') {
             steps {
                 script {
-                    // Run Great Expectations data quality tests
-                    sh '''
-                        great_expectations checkpoint run daily_data_quality \\
-                            --config config/great_expectations.yml
-                    '''
-                    
-                    // Parse results
-                    def results = readJSON file: 'great_expectations/uncommitted/validations/results.json'
-                    if (!results.success) {
-                        error("Data quality tests failed")
-                    }
-                }
-            }
-        }
-        
-        stage('Schema Validation') {
-            steps {
-                sh '''
-                    # Validate schema compatibility
-                    python scripts/validate_schema.py \\
-                        --source-schema schemas/source.json \\
-                        --target-schema schemas/target.json \\
-                        --compatibility-check backward
-                '''
-            }
-        }
-        
-        stage('Performance Tests') {
-            steps {
-                sh '''
-                    # Test pipeline performance with larger datasets
-                    python scripts/performance_test.py \\
-                        --dataset-size 1000000 \\
-                        --max-duration 300 \\
-                        --memory-limit 2GB
-                '''
-            }
-        }
-    }
-    
-    post {
-        always {
-            publishCoverage adapters: [
-                coberturaAdapter('coverage.xml')
-            ], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
-            
-            publishHTML([
-                allowMissing: false,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'htmlcov',
-                reportFiles: 'index.html',
-                reportName: 'Coverage Report'
-            ])
-        }
-    }
-}
-```
-
-### 27. How do you handle different environments in Jenkins?
-**Answer**: Use environment-specific configurations and deployment strategies.
-
-```groovy
-// Multi-environment deployment pipeline
-pipeline {
-    agent any
-    
-    stages {
-        stage('Build') {
-            steps {
-                sh 'docker build -t data-pipeline:${BUILD_NUMBER} .'
-            }
-        }
-        
-        stage('Deploy to Dev') {
-            steps {
-                deployToEnvironment('dev')
-            }
-        }
-        
-        stage('Integration Tests') {
-            steps {
-                runIntegrationTests('dev')
-            }
-        }
-        
-        stage('Deploy to Staging') {
-            when {
-                branch 'main'
-            }
-            steps {
-                deployToEnvironment('staging')
-            }
-        }
-        
-        stage('Staging Validation') {
-            when {
-                branch 'main'
-            }
-            steps {
-                runStagingValidation()
-            }
-        }
-        
-        stage('Deploy to Production') {
-            when {
-                allOf {
-                    branch 'main'
-                    expression { return currentBuild.result != 'FAILURE' }
-                }
-            }
-            steps {
-                script {
-                    def userInput = input(
-                        id: 'Proceed',
-                        message: 'Deploy to production?',
-                        parameters: [
-                            choice(
-                                choices: ['Deploy', 'Abort'],
-                                description: 'Proceed with production deployment?',
-                                name: 'DEPLOY_CHOICE'
-                            )
-                        ]
-                    )
-                    
-                    if (userInput == 'Deploy') {
-                        deployToEnvironment('prod')
-                    } else {
-                        error('Deployment aborted by user')
-                    }
-                }
-            }
-        }
-    }
-}
-
-def deployToEnvironment(env) {
-    withCredentials([
-        kubeconfigFile(credentialsId: "${env}-kubeconfig", variable: 'KUBECONFIG')
-    ]) {
-        sh """
-            # Update Kubernetes deployment
-            kubectl set image deployment/data-pipeline \\
-                data-pipeline=data-pipeline:${BUILD_NUMBER} \\
-                --namespace=${env}
-            
-            # Wait for rollout
-            kubectl rollout status deployment/data-pipeline \\
-                --namespace=${env} \\
-                --timeout=300s
-            
-            # Update configuration
-            kubectl apply -f k8s/${env}/configmap.yaml
-        """
-    }
-}
-```
-
-## Advanced Features (51-75)
-
-### 51. How do you implement Jenkins shared libraries for data pipelines?
-**Answer**: Create reusable pipeline components for common data engineering tasks.
-
-```groovy
-// vars/dataETLPipeline.groovy (Shared Library)
-def call(Map config) {
-    pipeline {
-        agent any
-        
-        environment {
-            DATA_ENV = "${config.environment}"
-            SOURCE_SYSTEM = "${config.sourceSystem}"
-        }
-        
-        stages {
-            stage('Validate Config') {
-                steps {
-                    script {
-                        validateETLConfig(config)
-                    }
-                }
-            }
-            
-            stage('Extract Data') {
-                steps {
-                    script {
-                        extractData(config.sources)
-                    }
-                }
-            }
-            
-            stage('Transform Data') {
-                steps {
-                    script {
-                        transformData(config.transformations)
-                    }
-                }
-            }
-            
-            stage('Load Data') {
-                steps {
-                    script {
-                        loadData(config.targets)
-                    }
-                }
-            }
-            
-            stage('Data Quality Checks') {
-                steps {
-                    script {
-                        runDataQualityChecks(config.qualityRules)
-                    }
-                }
-            }
-        }
-        
-        post {
-            always {
-                script {
-                    sendETLNotification(config.notifications, currentBuild.result)
-                }
-            }
-        }
-    }
-}
-
-// vars/extractData.groovy
-def call(sources) {
-    sources.each { source ->
-        sh """
-            python scripts/extractors/${source.type}_extractor.py \\
-                --config ${source.config} \\
-                --output /tmp/raw/${source.name}/
-        """
-    }
-}
-
-// vars/runDataQualityChecks.groovy
-def call(qualityRules) {
-    sh """
-        python scripts/data_quality_checker.py \\
-            --rules ${qualityRules} \\
-            --data-path /tmp/processed/ \\
-            --report-path /tmp/quality_report.json
-    """
-    
-    def report = readJSON file: '/tmp/quality_report.json'
-    if (report.failed_checks > 0) {
-        error("Data quality checks failed: ${report.failed_checks} failures")
-    }
-}
-
-// Usage in Jenkinsfile
-@Library('data-engineering-shared-lib') _
-
-dataETLPipeline([
-    environment: 'production',
-    sourceSystem: 'crm',
-    sources: [
-        [type: 'database', name: 'customers', config: 'config/db_customers.yaml'],
-        [type: 'api', name: 'orders', config: 'config/api_orders.yaml']
-    ],
-    transformations: [
-        'customer_cleansing',
-        'order_enrichment',
-        'data_aggregation'
-    ],
-    targets: [
-        [type: 'warehouse', config: 'config/warehouse.yaml'],
-        [type: 's3', config: 'config/s3_backup.yaml']
-    ],
-    qualityRules: 'config/quality_rules.yaml',
-    notifications: [
-        slack: '#data-engineering',
-        email: 'data-team@company.com'
-    ]
-])
-```
-
-### 52. How do you implement blue-green deployments for data services?
-**Answer**: Use Jenkins to orchestrate blue-green deployments with traffic switching.
-
-```groovy
-// Blue-Green deployment pipeline
-pipeline {
-    agent any
-    
-    environment {
-        BLUE_ENV = 'data-service-blue'
-        GREEN_ENV = 'data-service-green'
-        CURRENT_ENV = sh(
-            script: "kubectl get service data-service-active -o jsonpath='{.spec.selector.version}'",
-            returnStdout: true
-        ).trim()
-    }
-    
-    stages {
-        stage('Determine Target Environment') {
-            steps {
-                script {
-                    env.TARGET_ENV = (env.CURRENT_ENV == 'blue') ? 'green' : 'blue'
-                    env.TARGET_DEPLOYMENT = (env.TARGET_ENV == 'blue') ? env.BLUE_ENV : env.GREEN_ENV
-                    
-                    echo "Current environment: ${env.CURRENT_ENV}"
-                    echo "Target environment: ${env.TARGET_ENV}"
-                }
-            }
-        }
-        
-        stage('Deploy to Target Environment') {
-            steps {
-                sh """
-                    # Update target environment
-                    kubectl set image deployment/${TARGET_DEPLOYMENT} \\
-                        data-service=data-service:${BUILD_NUMBER} \\
-                        --namespace=production
-                    
-                    # Wait for deployment
-                    kubectl rollout status deployment/${TARGET_DEPLOYMENT} \\
-                        --namespace=production \\
-                        --timeout=300s
-                """
-            }
-        }
-        
-        stage('Health Check') {
-            steps {
-                script {
-                    def healthCheckPassed = false
-                    def maxRetries = 10
-                    def retryCount = 0
-                    
-                    while (!healthCheckPassed && retryCount < maxRetries) {
+                    retry(3) {
                         try {
-                            sh """
-                                # Get target service endpoint
-                                TARGET_IP=\$(kubectl get service ${TARGET_DEPLOYMENT} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-                                
-                                # Health check
-                                curl -f http://\$TARGET_IP:8080/health
-                                
-                                # Data consistency check
-                                python scripts/data_consistency_check.py --endpoint http://\$TARGET_IP:8080
-                            """
-                            healthCheckPassed = true
+                            sh 'python3 etl_script.py'
                         } catch (Exception e) {
-                            retryCount++
-                            sleep(30)
+                            echo "Attempt failed: ${e.getMessage()}"
+                            sleep(time: 30, unit: 'SECONDS')
+                            throw e
                         }
                     }
-                    
-                    if (!healthCheckPassed) {
-                        error("Health check failed after ${maxRetries} attempts")
-                    }
                 }
             }
         }
         
-        stage('Switch Traffic') {
+        stage('Conditional Processing') {
             steps {
                 script {
-                    def userInput = input(
-                        id: 'SwitchTraffic',
-                        message: 'Switch traffic to new environment?',
-                        parameters: [
-                            choice(
-                                choices: ['Switch', 'Rollback'],
-                                description: 'Action to take',
-                                name: 'ACTION'
-                            )
-                        ]
-                    )
-                    
-                    if (userInput == 'Switch') {
-                        sh """
-                            # Update active service selector
-                            kubectl patch service data-service-active \\
-                                -p '{"spec":{"selector":{"version":"${TARGET_ENV}"}}}' \\
-                                --namespace=production
-                        """
+                    try {
+                        def result = sh(
+                            script: 'python3 data_validation.py',
+                            returnStatus: true
+                        )
                         
-                        echo "Traffic switched to ${env.TARGET_ENV} environment"
-                    } else {
-                        error("Deployment rolled back by user")
+                        if (result == 0) {
+                            echo "Validation passed, proceeding with processing"
+                            sh 'python3 main_processing.py'
+                        } else if (result == 1) {
+                            echo "Minor validation issues, proceeding with warnings"
+                            sh 'python3 main_processing.py --ignore-warnings'
+                        } else {
+                            error("Critical validation failure, stopping pipeline")
+                        }
+                    } catch (Exception e) {
+                        currentBuild.result = 'UNSTABLE'
+                        echo "Non-critical error: ${e.getMessage()}"
                     }
                 }
             }
         }
         
-        stage('Cleanup Old Environment') {
+        stage('Timeout Handling') {
             steps {
-                script {
-                    def oldDeployment = (env.TARGET_ENV == 'blue') ? env.GREEN_ENV : env.BLUE_ENV
-                    
-                    // Scale down old environment after successful switch
-                    sh """
-                        kubectl scale deployment ${oldDeployment} --replicas=0 --namespace=production
-                    """
+                timeout(time: 30, unit: 'MINUTES') {
+                    sh 'python3 long_running_job.py'
                 }
             }
         }
@@ -655,92 +288,534 @@ pipeline {
     post {
         failure {
             script {
-                // Automatic rollback on failure
-                sh """
-                    kubectl patch service data-service-active \\
-                        -p '{"spec":{"selector":{"version":"${CURRENT_ENV}"}}}' \\
-                        --namespace=production
-                """
+                // Capture failure details
+                def failureReason = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
                 
+                // Send detailed notification
                 slackSend(
                     channel: '#data-engineering',
                     color: 'danger',
-                    message: "🚨 Blue-Green deployment failed and rolled back to ${env.CURRENT_ENV}"
+                    message: """
+                        🚨 Pipeline Failed: ${env.JOB_NAME}
+                        Build: ${env.BUILD_NUMBER}
+                        Branch: ${env.BRANCH_NAME}
+                        Failure Stage: ${env.STAGE_NAME}
+                        Logs: ${env.BUILD_URL}console
+                    """
                 )
+                
+                // Create incident ticket
+                sh '''
+                    curl -X POST "https://api.pagerduty.com/incidents" \
+                        -H "Authorization: Token token=${PAGERDUTY_TOKEN}" \
+                        -H "Content-Type: application/json" \
+                        -d '{
+                            "incident": {
+                                "type": "incident",
+                                "title": "Data Pipeline Failure: ${JOB_NAME}",
+                                "service": {"id": "${PAGERDUTY_SERVICE_ID}", "type": "service_reference"}
+                            }
+                        }'
+                '''
             }
         }
     }
 }
 ```
 
-## Production & Scaling (76-100)
+---
 
-### 76. How do you scale Jenkins for large data engineering teams?
-**Answer**: Implement Jenkins clustering, agent management, and resource optimization.
+## Integration & Plugins
 
+### 5. How do you integrate Jenkins with data engineering tools and platforms?
+
+**Answer:**
+Jenkins integrates with various data engineering tools through plugins and API calls.
+
+**Spark Integration:**
 ```groovy
-// Jenkins agent configuration for data workloads
-pipeline {
-    agent {
-        label 'data-processing-large'
-    }
-    
-    options {
-        // Limit concurrent builds
-        disableConcurrentBuilds()
-        
-        // Build timeout
-        timeout(time: 2, unit: 'HOURS')
-        
-        // Keep builds
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-    
-    stages {
-        stage('Resource Allocation') {
-            steps {
-                script {
-                    // Dynamic agent allocation based on workload
-                    def requiredMemory = calculateMemoryRequirement()
-                    def requiredCPU = calculateCPURequirement()
-                    
-                    if (requiredMemory > 16) {
-                        // Use high-memory agents
-                        env.AGENT_LABEL = 'data-processing-highmem'
-                    } else if (requiredCPU > 8) {
-                        // Use high-CPU agents
-                        env.AGENT_LABEL = 'data-processing-highcpu'
-                    }
-                }
-            }
-        }
-        
-        stage('Parallel Processing') {
-            parallel {
-                stage('Dataset 1') {
-                    agent { label 'data-worker' }
-                    steps {
-                        processDataset('dataset1')
-                    }
-                }
-                stage('Dataset 2') {
-                    agent { label 'data-worker' }
-                    steps {
-                        processDataset('dataset2')
-                    }
-                }
-                stage('Dataset 3') {
-                    agent { label 'data-worker' }
-                    steps {
-                        processDataset('dataset3')
+stage('Spark Job Execution') {
+    steps {
+        script {
+            // Submit Spark job and monitor
+            def sparkJobId = sh(
+                script: """
+                    spark-submit \
+                        --master yarn \
+                        --deploy-mode cluster \
+                        --conf spark.sql.adaptive.enabled=true \
+                        --conf spark.serializer=org.apache.spark.serializer.KryoSerializer \
+                        data_processing.py \
+                        --input-path s3://data-lake/raw/${params.DATA_DATE}/ \
+                        --output-path s3://data-lake/processed/${params.DATA_DATE}/
+                """,
+                returnStdout: true
+            ).trim()
+            
+            // Monitor job status
+            timeout(time: 60, unit: 'MINUTES') {
+                waitUntil {
+                    script {
+                        def status = sh(
+                            script: "yarn application -status ${sparkJobId}",
+                            returnStdout: true
+                        )
+                        return status.contains('FINISHED')
                     }
                 }
             }
         }
     }
 }
+```
 
-// Jenkins Configuration as Code (JCasC)
+**Airflow Integration:**
+```groovy
+stage('Trigger Airflow DAG') {
+    steps {
+        script {
+            // Trigger Airflow DAG via API
+            def response = httpRequest(
+                httpMode: 'POST',
+                url: "${AIRFLOW_URL}/api/v1/dags/data_processing_dag/dagRuns",
+                authentication: 'airflow-auth',
+                contentType: 'APPLICATION_JSON',
+                requestBody: """
+                {
+                    "dag_run_id": "jenkins_${env.BUILD_NUMBER}_${params.DATA_DATE}",
+                    "conf": {
+                        "data_date": "${params.DATA_DATE}",
+                        "triggered_by": "jenkins",
+                        "build_number": "${env.BUILD_NUMBER}"
+                    }
+                }
+                """
+            )
+            
+            def dagRunId = readJSON text: response.content
+            echo "Triggered DAG run: ${dagRunId.dag_run_id}"
+            
+            // Monitor DAG execution
+            timeout(time: 120, unit: 'MINUTES') {
+                waitUntil {
+                    script {
+                        def statusResponse = httpRequest(
+                            url: "${AIRFLOW_URL}/api/v1/dags/data_processing_dag/dagRuns/${dagRunId.dag_run_id}",
+                            authentication: 'airflow-auth'
+                        )
+                        def status = readJSON text: statusResponse.content
+                        return status.state in ['success', 'failed']
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+**DBT Integration:**
+```groovy
+stage('DBT Transformations') {
+    steps {
+        script {
+            // Set up DBT environment
+            sh '''
+                export DBT_PROFILES_DIR=./profiles
+                export DBT_PROJECT_DIR=./dbt_project
+            '''
+            
+            // Run DBT models
+            def dbtResult = sh(
+                script: '''
+                    dbt run \
+                        --profiles-dir ./profiles \
+                        --target ${ENVIRONMENT} \
+                        --vars '{"data_date": "${DATA_DATE}"}'
+                ''',
+                returnStatus: true
+            )
+            
+            if (dbtResult != 0) {
+                error("DBT run failed")
+            }
+            
+            // Run DBT tests
+            sh '''
+                dbt test \
+                    --profiles-dir ./profiles \
+                    --target ${ENVIRONMENT}
+            '''
+            
+            // Generate documentation
+            sh '''
+                dbt docs generate \
+                    --profiles-dir ./profiles \
+                    --target ${ENVIRONMENT}
+            '''
+            
+            // Archive documentation
+            archiveArtifacts artifacts: 'target/**/*'
+        }
+    }
+}
+```
+
+### 6. How do you implement Jenkins pipeline for ML model deployment?
+
+**Answer:**
+ML model deployment pipelines require specific stages for model validation, testing, and deployment.
+
+**ML Pipeline Example:**
+```groovy
+pipeline {
+    agent any
+    
+    environment {
+        MODEL_REGISTRY = 'mlflow-server:5000'
+        DOCKER_REGISTRY = 'company-registry.com'
+    }
+    
+    stages {
+        stage('Model Validation') {
+            steps {
+                script {
+                    // Download model from registry
+                    sh """
+                        mlflow models download \
+                            --model-uri models:/${params.MODEL_NAME}/${params.MODEL_VERSION} \
+                            --dst ./model
+                    """
+                    
+                    // Validate model performance
+                    def validationResult = sh(
+                        script: 'python3 scripts/validate_model.py --model-path ./model',
+                        returnStdout: true
+                    )
+                    
+                    def metrics = readJSON text: validationResult
+                    
+                    if (metrics.accuracy < 0.85) {
+                        error("Model accuracy ${metrics.accuracy} below threshold 0.85")
+                    }
+                    
+                    echo "Model validation passed: Accuracy ${metrics.accuracy}"
+                }
+            }
+        }
+        
+        stage('Model Testing') {
+            parallel {
+                stage('Unit Tests') {
+                    steps {
+                        sh 'python3 -m pytest tests/unit/ -v --junitxml=test-results/unit-tests.xml'
+                    }
+                }
+                stage('Integration Tests') {
+                    steps {
+                        sh 'python3 -m pytest tests/integration/ -v --junitxml=test-results/integration-tests.xml'
+                    }
+                }
+                stage('Performance Tests') {
+                    steps {
+                        sh 'python3 scripts/performance_test.py --model-path ./model'
+                    }
+                }
+            }
+        }
+        
+        stage('Build Model Container') {
+            steps {
+                script {
+                    // Build Docker image for model serving
+                    def imageTag = "${DOCKER_REGISTRY}/ml-models/${params.MODEL_NAME}:${params.MODEL_VERSION}"
+                    
+                    sh """
+                        docker build \
+                            --build-arg MODEL_NAME=${params.MODEL_NAME} \
+                            --build-arg MODEL_VERSION=${params.MODEL_VERSION} \
+                            -t ${imageTag} \
+                            -f Dockerfile.model .
+                    """
+                    
+                    // Push to registry
+                    sh "docker push ${imageTag}"
+                    
+                    env.MODEL_IMAGE = imageTag
+                }
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            steps {
+                script {
+                    // Deploy to Kubernetes staging
+                    sh """
+                        kubectl set image deployment/ml-model-staging \
+                            ml-model=${env.MODEL_IMAGE} \
+                            --namespace=staging
+                        
+                        kubectl rollout status deployment/ml-model-staging \
+                            --namespace=staging \
+                            --timeout=300s
+                    """
+                    
+                    // Wait for deployment to be ready
+                    sleep(time: 30, unit: 'SECONDS')
+                    
+                    // Run smoke tests
+                    sh 'python3 scripts/smoke_test.py --endpoint http://staging-ml-service/predict'
+                }
+            }
+        }
+        
+        stage('Production Deployment') {
+            when {
+                expression { params.DEPLOY_TO_PROD == 'true' }
+            }
+            steps {
+                script {
+                    // Blue-green deployment
+                    sh """
+                        # Deploy to green environment
+                        kubectl set image deployment/ml-model-green \
+                            ml-model=${env.MODEL_IMAGE} \
+                            --namespace=production
+                        
+                        kubectl rollout status deployment/ml-model-green \
+                            --namespace=production \
+                            --timeout=300s
+                    """
+                    
+                    // Run production tests
+                    sh 'python3 scripts/production_test.py --endpoint http://green-ml-service/predict'
+                    
+                    // Switch traffic to green
+                    sh """
+                        kubectl patch service ml-model-service \
+                            --namespace=production \
+                            -p '{"spec":{"selector":{"version":"green"}}}'
+                    """
+                    
+                    echo "Model deployed to production successfully"
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            publishTestResults testResultsPattern: 'test-results/*.xml'
+            archiveArtifacts artifacts: 'model/**/*'
+        }
+        success {
+            script {
+                // Update model registry with deployment info
+                sh """
+                    mlflow models set-tag \
+                        --name ${params.MODEL_NAME} \
+                        --version ${params.MODEL_VERSION} \
+                        --key "deployment_status" \
+                        --value "deployed"
+                """
+            }
+        }
+    }
+}
+```
+
+---
+
+## Security & Administration
+
+### 7. How do you implement security best practices in Jenkins?
+
+**Answer:**
+Jenkins security involves multiple layers including authentication, authorization, and secure configuration.
+
+**Authentication & Authorization:**
+```groovy
+// Security configuration in Jenkins
+// Configure in Manage Jenkins > Configure Global Security
+
+// Matrix-based security
+def securityRealm = new HudsonPrivateSecurityRealm(false)
+securityRealm.createAccount("admin", "admin_password")
+securityRealm.createAccount("developer", "dev_password")
+securityRealm.createAccount("viewer", "view_password")
+
+Jenkins.instance.setSecurityRealm(securityRealm)
+
+// Authorization strategy
+def strategy = new GlobalMatrixAuthorizationStrategy()
+strategy.add(Jenkins.ADMINISTER, "admin")
+strategy.add(Jenkins.READ, "developer")
+strategy.add(Item.BUILD, "developer")
+strategy.add(Item.READ, "viewer")
+
+Jenkins.instance.setAuthorizationStrategy(strategy)
+```
+
+**Credential Management:**
+```groovy
+// Store credentials securely
+pipeline {
+    agent any
+    
+    environment {
+        // Use Jenkins credentials
+        AWS_CREDENTIALS = credentials('aws-credentials')
+        DB_PASSWORD = credentials('database-password')
+        API_TOKEN = credentials('api-token')
+    }
+    
+    stages {
+        stage('Secure Data Access') {
+            steps {
+                script {
+                    // Use credentials in scripts
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'database-credentials',
+                            usernameVariable: 'DB_USER',
+                            passwordVariable: 'DB_PASS'
+                        ),
+                        string(
+                            credentialsId: 'encryption-key',
+                            variable: 'ENCRYPTION_KEY'
+                        )
+                    ]) {
+                        sh '''
+                            python3 secure_data_processor.py \
+                                --db-user $DB_USER \
+                                --db-password $DB_PASS \
+                                --encryption-key $ENCRYPTION_KEY
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+**Pipeline Security:**
+```groovy
+// Secure pipeline practices
+pipeline {
+    agent {
+        label 'secure-agent'  // Use dedicated secure agents
+    }
+    
+    options {
+        // Limit build retention
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        
+        // Timeout builds
+        timeout(time: 2, unit: 'HOURS')
+        
+        // Skip default checkout for security
+        skipDefaultCheckout()
+    }
+    
+    stages {
+        stage('Secure Checkout') {
+            steps {
+                script {
+                    // Verify Git signature
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/main']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/company/secure-repo.git',
+                            credentialsId: 'git-credentials'
+                        ]],
+                        extensions: [
+                            [$class: 'GitLFSPull'],
+                            [$class: 'CleanCheckout']
+                        ]
+                    ])
+                    
+                    // Verify commit signatures
+                    sh 'git verify-commit HEAD'
+                }
+            }
+        }
+        
+        stage('Security Scanning') {
+            steps {
+                // Scan for secrets
+                sh 'truffleHog --regex --entropy=False .'
+                
+                // Dependency vulnerability scanning
+                sh 'safety check -r requirements.txt'
+                
+                // Code security analysis
+                sh 'bandit -r . -f json -o security-report.json'
+                
+                // Archive security reports
+                archiveArtifacts artifacts: 'security-report.json'
+            }
+        }
+    }
+}
+```
+
+### 8. How do you manage Jenkins at scale across multiple teams?
+
+**Answer:**
+Scaling Jenkins requires proper organization, resource management, and governance.
+
+**Multi-tenancy Setup:**
+```groovy
+// Folder-based organization
+folder('data-engineering') {
+    description('Data Engineering Team Projects')
+    authorization {
+        permission('hudson.model.Item.Build', 'data-eng-team')
+        permission('hudson.model.Item.Read', 'data-eng-team')
+        permission('hudson.model.Item.Configure', 'data-eng-leads')
+    }
+}
+
+folder('machine-learning') {
+    description('ML Team Projects')
+    authorization {
+        permission('hudson.model.Item.Build', 'ml-team')
+        permission('hudson.model.Item.Read', 'ml-team')
+        permission('hudson.model.Item.Configure', 'ml-leads')
+    }
+}
+
+// Shared libraries for common functionality
+@Library('shared-pipeline-library') _
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Use Shared Library') {
+            steps {
+                script {
+                    // Use shared functions
+                    def utils = new com.company.PipelineUtils()
+                    utils.sendSlackNotification("Build started")
+                    
+                    // Use shared pipeline templates
+                    dataEngineeringPipeline {
+                        sparkJob = 'customer-analytics'
+                        environment = 'production'
+                        dataDate = params.DATA_DATE
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+**Resource Management:**
+```yaml
+# Jenkins Configuration as Code (JCasC)
 jenkins:
   systemMessage: "Data Engineering Jenkins Controller"
   numExecutors: 0  # Use agents only
@@ -748,43 +823,361 @@ jenkins:
   clouds:
     - kubernetes:
         name: "kubernetes"
-        serverUrl: "https://kubernetes.default"
+        serverUrl: "https://k8s-cluster:6443"
         namespace: "jenkins"
         templates:
-          - name: "data-processing-large"
-            label: "data-processing-large"
-            containers:
-              - name: "python"
-                image: "python:3.9"
-                resourceRequestMemory: "8Gi"
-                resourceRequestCpu: "4000m"
-                resourceLimitMemory: "16Gi"
-                resourceLimitCpu: "8000m"
-          - name: "spark-executor"
-            label: "spark-executor"
+          - name: "data-processing-agent"
+            label: "data-processing"
             containers:
               - name: "spark"
-                image: "bitnami/spark:3.3"
+                image: "spark:3.4.0"
+                resourceRequestCpu: "2"
                 resourceRequestMemory: "4Gi"
-                resourceRequestCpu: "2000m"
+                resourceLimitCpu: "4"
                 resourceLimitMemory: "8Gi"
-                resourceLimitCpu: "4000m"
+          - name: "ml-agent"
+            label: "machine-learning"
+            containers:
+              - name: "python-ml"
+                image: "python:3.9-ml"
+                resourceRequestCpu: "1"
+                resourceRequestMemory: "2Gi"
 
-credentials:
-  system:
-    domainCredentials:
-      - credentials:
-          - usernamePassword:
-              scope: GLOBAL
-              id: "warehouse-db"
-              username: "${WAREHOUSE_DB_USER}"
-              password: "${WAREHOUSE_DB_PASS}"
-          - string:
-              scope: GLOBAL
-              id: "slack-token"
-              secret: "${SLACK_TOKEN}"
+  nodes:
+    - permanent:
+        name: "dedicated-data-agent"
+        remoteFS: "/home/jenkins"
+        launcher:
+          ssh:
+            host: "data-agent.company.com"
+            credentialsId: "ssh-key"
 ```
 
 ---
 
-**Total Questions: 100** | **Coverage: Complete Jenkins for Data Engineering**
+## Troubleshooting & Optimization
+
+### 9. How do you troubleshoot common Jenkins issues in data pipelines?
+
+**Answer:**
+Systematic troubleshooting approach for Jenkins data pipeline issues.
+
+**Common Issues and Solutions:**
+
+**Build Failures:**
+```groovy
+pipeline {
+    agent any
+    
+    stages {
+        stage('Debug Information') {
+            steps {
+                script {
+                    // Capture environment information
+                    sh '''
+                        echo "=== Environment Information ==="
+                        env | sort
+                        echo "=== Disk Space ==="
+                        df -h
+                        echo "=== Memory Usage ==="
+                        free -h
+                        echo "=== Java Version ==="
+                        java -version
+                        echo "=== Python Version ==="
+                        python3 --version
+                    '''
+                    
+                    // Check tool availability
+                    def tools = ['spark-submit', 'dbt', 'aws', 'kubectl']
+                    tools.each { tool ->
+                        def result = sh(script: "which ${tool}", returnStatus: true)
+                        if (result != 0) {
+                            echo "WARNING: ${tool} not found in PATH"
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Resource Monitoring') {
+            steps {
+                script {
+                    // Monitor resource usage during build
+                    sh '''
+                        # Start resource monitoring in background
+                        (while true; do
+                            echo "$(date): CPU: $(top -bn1 | grep "Cpu(s)" | awk '{print $2}'), Memory: $(free | grep Mem | awk '{printf "%.2f%%", $3/$2 * 100.0}')"
+                            sleep 30
+                        done) > resource_usage.log &
+                        MONITOR_PID=$!
+                        
+                        # Your actual build commands here
+                        python3 data_processing.py
+                        
+                        # Stop monitoring
+                        kill $MONITOR_PID
+                    '''
+                    
+                    // Archive resource usage logs
+                    archiveArtifacts artifacts: 'resource_usage.log'
+                }
+            }
+        }
+    }
+    
+    post {
+        failure {
+            script {
+                // Collect failure diagnostics
+                sh '''
+                    echo "=== Last 100 lines of system log ==="
+                    tail -100 /var/log/syslog || echo "System log not accessible"
+                    
+                    echo "=== Jenkins agent log ==="
+                    tail -100 $JENKINS_HOME/logs/slaves/*/slave.log || echo "Agent log not found"
+                    
+                    echo "=== Process list ==="
+                    ps aux | head -20
+                '''
+                
+                // Send detailed failure notification
+                emailext (
+                    subject: "Pipeline Failure Analysis: ${env.JOB_NAME}",
+                    body: """
+                        Build failed with the following information:
+                        
+                        Job: ${env.JOB_NAME}
+                        Build: ${env.BUILD_NUMBER}
+                        Node: ${env.NODE_NAME}
+                        Workspace: ${env.WORKSPACE}
+                        
+                        Console Output: ${env.BUILD_URL}console
+                        
+                        Please check the attached logs for detailed analysis.
+                    """,
+                    attachLog: true,
+                    to: "${env.CHANGE_AUTHOR_EMAIL}"
+                )
+            }
+        }
+    }
+}
+```
+
+**Performance Optimization:**
+```groovy
+// Optimized pipeline configuration
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+                apiVersion: v1
+                kind: Pod
+                spec:
+                  containers:
+                  - name: data-processing
+                    image: spark:3.4.0
+                    resources:
+                      requests:
+                        memory: "4Gi"
+                        cpu: "2"
+                      limits:
+                        memory: "8Gi"
+                        cpu: "4"
+                    volumeMounts:
+                    - name: workspace-volume
+                      mountPath: /workspace
+                  volumes:
+                  - name: workspace-volume
+                    emptyDir:
+                      sizeLimit: 10Gi
+            """
+        }
+    }
+    
+    options {
+        // Optimize build retention
+        buildDiscarder(logRotator(
+            numToKeepStr: '50',
+            daysToKeepStr: '30',
+            artifactNumToKeepStr: '10'
+        ))
+        
+        // Parallel execution
+        parallelsAlwaysFailFast()
+        
+        // Skip unnecessary checkouts
+        skipDefaultCheckout()
+    }
+    
+    stages {
+        stage('Parallel Processing') {
+            parallel {
+                stage('Data Validation') {
+                    steps {
+                        sh 'python3 validate_data.py --parallel --workers 4'
+                    }
+                }
+                stage('Schema Validation') {
+                    steps {
+                        sh 'python3 validate_schema.py --cache-enabled'
+                    }
+                }
+                stage('Quality Checks') {
+                    steps {
+                        sh 'python3 quality_checks.py --fast-mode'
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### 10. How do you implement monitoring and alerting for Jenkins pipelines?
+
+**Answer:**
+Comprehensive monitoring ensures pipeline reliability and quick issue resolution.
+
+**Pipeline Monitoring:**
+```groovy
+pipeline {
+    agent any
+    
+    stages {
+        stage('Processing with Monitoring') {
+            steps {
+                script {
+                    // Start time tracking
+                    def startTime = System.currentTimeMillis()
+                    
+                    try {
+                        // Your processing logic
+                        sh 'python3 data_processing.py'
+                        
+                        // Calculate processing time
+                        def processingTime = System.currentTimeMillis() - startTime
+                        
+                        // Send metrics to monitoring system
+                        sh """
+                            curl -X POST http://metrics-collector:8080/metrics \
+                                -H 'Content-Type: application/json' \
+                                -d '{
+                                    "job_name": "${env.JOB_NAME}",
+                                    "build_number": "${env.BUILD_NUMBER}",
+                                    "processing_time_ms": ${processingTime},
+                                    "status": "success",
+                                    "timestamp": "${System.currentTimeMillis()}"
+                                }'
+                        """
+                        
+                        // Check SLA compliance
+                        if (processingTime > 3600000) { // 1 hour
+                            echo "WARNING: Processing time ${processingTime}ms exceeds SLA"
+                            slackSend(
+                                channel: '#data-engineering',
+                                color: 'warning',
+                                message: "⚠️ Pipeline ${env.JOB_NAME} exceeded SLA: ${processingTime/1000}s"
+                            )
+                        }
+                        
+                    } catch (Exception e) {
+                        // Send failure metrics
+                        sh """
+                            curl -X POST http://metrics-collector:8080/metrics \
+                                -H 'Content-Type: application/json' \
+                                -d '{
+                                    "job_name": "${env.JOB_NAME}",
+                                    "build_number": "${env.BUILD_NUMBER}",
+                                    "status": "failed",
+                                    "error_message": "${e.getMessage()}",
+                                    "timestamp": "${System.currentTimeMillis()}"
+                                }'
+                        """
+                        throw e
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                // Collect build metrics
+                def buildResult = currentBuild.result ?: 'SUCCESS'
+                def buildDuration = currentBuild.duration
+                
+                // Send to Prometheus/Grafana
+                sh """
+                    echo "jenkins_build_duration_seconds{job=\"${env.JOB_NAME}\"} ${buildDuration/1000}" | \
+                    curl -X POST http://pushgateway:9091/metrics/job/jenkins_builds \
+                        --data-binary @-
+                """
+                
+                // Update dashboard
+                httpRequest(
+                    httpMode: 'POST',
+                    url: 'http://dashboard-api:8080/builds',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: """
+                    {
+                        "job_name": "${env.JOB_NAME}",
+                        "build_number": "${env.BUILD_NUMBER}",
+                        "result": "${buildResult}",
+                        "duration": ${buildDuration},
+                        "timestamp": "${System.currentTimeMillis()}"
+                    }
+                    """
+                )
+            }
+        }
+    }
+}
+```
+
+**Alerting Configuration:**
+```yaml
+# Prometheus alerting rules
+groups:
+  - name: jenkins_alerts
+    rules:
+      - alert: JenkinsBuildFailure
+        expr: jenkins_builds_last_build_result_ordinal{job=~"data-.*"} == 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Jenkins build failed for {{ $labels.job }}"
+          description: "Build {{ $labels.job }} has failed"
+      
+      - alert: JenkinsLongRunningBuild
+        expr: jenkins_builds_last_build_duration_milliseconds > 7200000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Jenkins build running too long"
+          description: "Build {{ $labels.job }} has been running for over 2 hours"
+      
+      - alert: JenkinsHighFailureRate
+        expr: rate(jenkins_builds_failed_build_count[1h]) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Jenkins build failure rate"
+          description: "Build failure rate is {{ $value }} failures per hour"
+```
+
+---
+
+## Summary
+
+Jenkins provides comprehensive CI/CD automation for data engineering with:
+
+1. **Pipeline as Code**: Version-controlled, reproducible workflows
+2. **Integration Ecosystem**: 1800+ plugins for tool connectivity
+3. **Scalability**: Distributed builds across multiple agents
+4. **Security**: Role-based access control and credential management
+5. **Monitoring**: Built-in metrics and alerting capabilities
