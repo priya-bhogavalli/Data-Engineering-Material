@@ -132,6 +132,458 @@ Enterprise (500+) → Add Systems + Visualization + AI/ML
 - **Software Engineer** → [Programming Tools](./Supporting-Tools/Programming/ALL_PROGRAMMING_TOOLS_REFERENCE.md) + [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) + [Systems Tools](./Supporting-Tools/Systems/ALL_SYSTEMS_INFRASTRUCTURE_TOOLS_REFERENCE.md)
 - **Data Scientist** → [AI/ML Tools](./Supporting-Tools/AI/ALL_AI_ML_TOOLS_REFERENCE.md) + [Data Processing](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) + [Visualization Tools](./Supporting-Tools/Visualization-Reporting/ALL_VISUALIZATION_TOOLS_REFERENCE.md)
 - **DevOps Engineer** → [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) + [Systems Tools](./Supporting-Tools/Systems/ALL_SYSTEMS_INFRASTRUCTURE_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/CLOUD_ALL_PROVIDERS_REFERENCE.md)
+
+## 📋 **Complete Interview Questions Index**
+
+> **120+ interview question files covering all major data engineering and supporting technologies**
+
+### 🎯 **Quick Interview Access**
+- **[📚 All Interview Questions Master List](#-core-data-engineering-interview-questions)** - Complete organized index below
+- **Most Popular**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [AWS](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md)
+- **Big4 Focused**: [SQL Big4](./Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) | [PySpark Big4](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md) | [DSA Big4](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_BIG4_INTERVIEW_QUESTIONS.md)
+
+### 🔧 **Core Data Engineering Interview Questions**
+
+#### **Programming Languages**
+| Technology | Basic | Comprehensive | Big4/Advanced |
+|------------|-------|---------------|---------------|
+| **Python** | [Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | - | - |
+| **SQL** | [Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | - | [Big4](./Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) |
+| **PySpark** | [Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | - | [Big4](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md) |
+
+#### **Cloud Platforms**
+| Platform | Basic | Comprehensive | Advanced |
+|----------|-------|---------------|----------|
+| **AWS** | - | [Complete](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | - |
+| **Azure** | - | [Comprehensive](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **GCP** | - | [Comprehensive](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+
+#### **Data Processing & Big Data**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Apache Spark** | - | [Complete](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | - |
+| **Databricks** | [Questions](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [Big4](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_BIG4_INTERVIEW_QUESTIONS.md) |
+| **Hadoop** | [Questions](./Core-Data-Engineering/Data-Processing/Apache-Hadoop/HADOOP_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Hadoop/HADOOP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [Extended](./Core-Data-Engineering/Data-Processing/Apache-Hadoop/HADOOP_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) |
+| **Hive** | [Questions](./Core-Data-Engineering/Data-Processing/Apache-Hive/HIVE_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Hive/HIVE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [Extended](./Core-Data-Engineering/Data-Processing/Apache-Hive/HIVE_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) |
+| **Apache Pig** | [Questions](./Core-Data-Engineering/Data-Processing/Apache-Pig/APACHE_PIG_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Pig/PIG_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Apache Sqoop** | [Questions](./Core-Data-Engineering/Data-Processing/Apache-Sqoop/APACHE_SQOOP_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Sqoop/SQOOP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **ZooKeeper** | - | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-ZooKeeper/ZOOKEEPER_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+
+#### **Streaming Technologies**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Apache Kafka** | [Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Apache Flink** | [Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [Advanced](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_ADVANCED_INTERVIEW_QUESTIONS.md) |
+| **Apache Pulsar** | [Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Pulsar/APACHE_PULSAR_INTERVIEW_QUESTIONS.md) | - | - |
+| **Confluent Kafka** | [Questions](./Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/CONFLUENT_KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+
+#### **ETL & Orchestration**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Apache Airflow** | [Questions](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **DBT** | [Questions](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Informatica** | [Questions](./Core-Data-Engineering/Data-Processing/ETL/Informatica/INFORMATICA_INTERVIEW_QUESTIONS.md) | - | - |
+| **Snaplogic** | [Questions](./Core-Data-Engineering/Data-Processing/ETL/Snaplogic/SNAPLOGIC_INTERVIEW_QUESTIONS.md) | - | - |
+| **SSIS** | [Questions](./Core-Data-Engineering/Data-Processing/ETL/SSIS_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **Data Warehousing**
+| Technology | Basic | Comprehensive | Big4/Advanced |
+|------------|-------|---------------|---------------|
+| **Snowflake** | [Questions](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | - | [Big4](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md) |
+| **Redshift** | [Questions](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+
+#### **Databases**
+
+**Relational Databases**
+| Database | Basic | Comprehensive | Advanced |
+|----------|-------|---------------|----------|
+| **PostgreSQL** | [Questions](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **MySQL** | [Questions](./Core-Data-Engineering/Databases/MySQL/MYSQL_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/MySQL/MYSQL_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Oracle** | [Questions](./Core-Data-Engineering/Databases/Oracle/ORACLE_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/Oracle/ORACLE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **MS SQL Server** | [Questions](./Core-Data-Engineering/Databases/MS-SQL-Server/MSSQL_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/MS-SQL-Server/MSSQL_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Athena** | [Questions](./Core-Data-Engineering/Databases/Athena/ATHENA_INTERVIEW_QUESTIONS.md) | - | - |
+
+**NoSQL Databases**
+| Database | Basic | Comprehensive | Advanced |
+|----------|-------|---------------|----------|
+| **MongoDB** | [Questions](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Cassandra** | [Questions](./Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **CouchDB** | [Questions](./Core-Data-Engineering/Databases/NoSQL/CouchDB/COUCHDB_INTERVIEW_QUESTIONS.md) | - | - |
+| **DynamoDB** | [Questions](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/DYNAMODB_INTERVIEW_QUESTIONS.md) | - | - |
+| **HBase** | [Questions](./Core-Data-Engineering/Databases/NoSQL/HBase/HBASE_INTERVIEW_QUESTIONS.md) | - | - |
+
+**Specialized Databases**
+| Database | Basic | Comprehensive | Advanced |
+|----------|-------|---------------|----------|
+| **Elasticsearch** | [Questions](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Solr** | [Questions](./Core-Data-Engineering/Databases/Search-Engines/Solr/SOLR_INTERVIEW_QUESTIONS.md) | - | - |
+| **Neo4j** | [Questions](./Core-Data-Engineering/Databases/Graph-Databases/Neo4j/NEO4J_INTERVIEW_QUESTIONS.md) | - | - |
+| **Amazon Neptune** | [Questions](./Core-Data-Engineering/Databases/Graph-Databases/Amazon-Neptune/AMAZON_NEPTUNE_INTERVIEW_QUESTIONS.md) | - | - |
+| **Redis** | [Questions](./Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Memcached** | [Questions](./Core-Data-Engineering/Databases/In-Memory/Memcached/MEMCACHED_INTERVIEW_QUESTIONS.md) | - | - |
+| **CockroachDB** | [Questions](./Core-Data-Engineering/Databases/NewSQL/CockroachDB/COCKROACHDB_INTERVIEW_QUESTIONS.md) | - | - |
+| **TiDB** | [Questions](./Core-Data-Engineering/Databases/NewSQL/TiDB/TIDB_INTERVIEW_QUESTIONS.md) | - | - |
+| **InfluxDB** | [Questions](./Core-Data-Engineering/Databases/Time-Series/InfluxDB/INFLUXDB_INTERVIEW_QUESTIONS.md) | - | - |
+| **TimescaleDB** | [Questions](./Core-Data-Engineering/Databases/Time-Series/TimescaleDB/TIMESCALEDB_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **Data Architecture**
+| Topic | Interview Questions |
+|-------|--------------------|
+| **Data Vault 2.0** | [Questions](./Core-Data-Engineering/Data-Architecture/Data-Vault-2.0/DATA_VAULT_INTERVIEW_QUESTIONS.md) |
+| **Data Mesh** | [Questions](./Core-Data-Engineering/Data-Architecture/Data-Mesh/DATA_MESH_INTERVIEW_QUESTIONS.md) |
+| **DataOps** | [Questions](./Core-Data-Engineering/Data-Architecture/DataOps/DATAOPS_INTERVIEW_QUESTIONS.md) |
+| **Dimensional Data Modeling** | [Questions](./Core-Data-Engineering/Data-Architecture/Dimensional-Data-Modeling/DIMENSIONAL_DATA_MODELING_INTERVIEW_QUESTIONS.md) |
+| **Fact Data Modeling** | [Questions](./Core-Data-Engineering/Data-Architecture/Fact-Data-Modeling/FACT_DATA_MODELING_INTERVIEW_QUESTIONS.md) |
+| **Analytical Patterns** | [Questions](./Core-Data-Engineering/Data-Architecture/Applying-Analytical-Patterns/APPLYING_ANALYTICAL_PATTERNS_INTERVIEW_QUESTIONS.md) |
+| **KPIs & Experimentation** | [Questions](./Core-Data-Engineering/Data-Architecture/KPIs-and-Experimentation/KPIS_EXPERIMENTATION_INTERVIEW_QUESTIONS.md) |
+
+### 🛠️ **Supporting Tools Interview Questions**
+
+#### **DevOps & Automation**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Docker** | [Questions](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Kubernetes** | [Questions](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Terraform** | [Questions](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Jenkins** | [Questions](./Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [Extended](./Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) |
+| **Ansible** | [Questions](./Supporting-Tools/DevOps-Automation/Ansible/ANSIBLE_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Ansible/ANSIBLE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **CI/CD** | [Questions](./Supporting-Tools/DevOps-Automation/CI-CD/CICD_INTERVIEW_QUESTIONS.md) | - | - |
+| **CircleCI** | [Questions](./Supporting-Tools/DevOps-Automation/CircleCI/CIRCLECI_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **Version Control**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Git** | [Questions](./Supporting-Tools/Version-Control/Git/GIT_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/Version-Control/Git/GIT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [Advanced](./Supporting-Tools/Version-Control/Git/GIT_ADVANCED_INTERVIEW_QUESTIONS.md) |
+| **GitLab** | [Questions](./Supporting-Tools/Version-Control/GitLab/GITLAB_INTERVIEW_QUESTIONS.md) | [CI/CD](./Supporting-Tools/Version-Control/GitLab/GITLAB_CICD_INTERVIEW_QUESTIONS.md) | - |
+| **Bitbucket** | [Questions](./Supporting-Tools/Version-Control/Bitbucket/BITBUCKET_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **AI & Machine Learning**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Machine Learning** | [Questions](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | - | - |
+| **MLOps** | - | [Comprehensive](./Supporting-Tools/AI/MLOps/MLOPS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **OpenAI API** | [Questions](./Supporting-Tools/AI/GenAI/OpenAI-API/OPENAI_API_INTERVIEW_QUESTIONS.md) | - | - |
+| **Azure OpenAI** | [Questions](./Supporting-Tools/AI/GenAI/Azure-OpenAI-API/AZURE_OPENAI_API_INTERVIEW_QUESTIONS.md) | - | - |
+| **RAGs** | [Questions](./Supporting-Tools/AI/GenAI/RAGs/RAGS_INTERVIEW_QUESTIONS.md) | - | - |
+| **Embeddings** | [Questions](./Supporting-Tools/AI/GenAI/Embeddings/EMBEDDINGS_INTERVIEW_QUESTIONS.md) | - | - |
+| **Vector Databases** | [Questions](./Supporting-Tools/AI/GenAI/Vector-DB/VECTOR_DB_INTERVIEW_QUESTIONS.md) | - | - |
+| **LangChain** | [Questions](./Supporting-Tools/AI/GenAI/LangChain/LANGCHAIN_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **Programming & Development**
+| Technology | Basic | Comprehensive | Big4/Advanced |
+|------------|-------|---------------|---------------|
+| **Data Structures & Algorithms** | [Questions](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_INTERVIEW_QUESTIONS.md) | - | [Big4](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_BIG4_INTERVIEW_QUESTIONS.md) |
+| **Design Patterns** | [Questions](./Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_INTERVIEW_QUESTIONS.md) | - | [Big4](./Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_BIG4_INTERVIEW_QUESTIONS.md) |
+| **JavaScript** | [Questions](./Supporting-Tools/Programming/JavaScript/JAVASCRIPT_INTERVIEW_QUESTIONS.md) | - | - |
+| **C** | [Questions](./Supporting-Tools/Programming/C/C_INTERVIEW_QUESTIONS.md) | - | - |
+| **C++** | [Questions](./Supporting-Tools/Programming/CPP/CPP_INTERVIEW_QUESTIONS.md) | - | - |
+| **C#** | [Questions](./Supporting-Tools/Programming/CSharp/CSHARP_INTERVIEW_QUESTIONS.md) | - | - |
+| **MATLAB** | [Questions](./Supporting-Tools/Programming/MATLAB/MATLAB_INTERVIEW_QUESTIONS.md) | - | - |
+| **HTML** | [Questions](./Supporting-Tools/Programming/HTML/HTML_INTERVIEW_QUESTIONS.md) | - | - |
+| **CSS** | [Questions](./Supporting-Tools/Programming/CSS/CSS_INTERVIEW_QUESTIONS.md) | - | - |
+| **API Development** | [Questions](./Supporting-Tools/Programming/API-Development/API_DEVELOPMENT_INTERVIEW_QUESTIONS.md) | - | - |
+| **GraphQL** | [Questions](./Supporting-Tools/Programming/Web/GraphQL/GRAPHQL_INTERVIEW_QUESTIONS.md) | - | - |
+| **jQuery** | [Questions](./Supporting-Tools/Programming/Web/jQuery/JQUERY_INTERVIEW_QUESTIONS.md) | - | - |
+| **Node.js** | [Questions](./Supporting-Tools/Programming/Web/Node-js/NODEJS_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **Visualization & Reporting**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Tableau** | [Questions](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Power BI** | [Questions](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md) | - | - |
+| **Kibana** | [Questions](./Supporting-Tools/Visualization-Reporting/Kibana/KIBANA_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **Systems & Infrastructure**
+| Technology | Basic | Comprehensive | Advanced |
+|------------|-------|---------------|----------|
+| **Linux** | [Questions](./Supporting-Tools/Systems/Linux/LINUX_INTERVIEW_QUESTIONS.md) | - | [Advanced](./Supporting-Tools/Systems/Linux/LINUX_ADVANCED_INTERVIEW_QUESTIONS.md) |
+| **Windows** | [Questions](./Supporting-Tools/Systems/Windows/WINDOWS_INTERVIEW_QUESTIONS.md) | - | - |
+| **Shell Scripting** | [Questions](./Supporting-Tools/Systems/Shell-Scripting/SHELL_SCRIPTING_INTERVIEW_QUESTIONS.md) | - | - |
+| **System Design** | [Questions](./Supporting-Tools/Systems/System-Design/SYSTEM_DESIGN_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/Systems/System-Design/SYSTEM_DESIGN_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | - |
+| **Networking** | [Questions](./Supporting-Tools/Systems/Networking/NETWORKING_INTERVIEW_QUESTIONS.md) | - | - |
+| **Security** | [Questions](./Supporting-Tools/Systems/Security/SECURITY_INTERVIEW_QUESTIONS.md) | - | - |
+
+#### **Monitoring & Management**
+| Technology | Interview Questions |
+|------------|--------------------|
+| **Datadog** | [Questions](./Supporting-Tools/Monitoring/Datadog/DATADOG_INTERVIEW_QUESTIONS.md) |
+| **Grafana** | [Questions](./Supporting-Tools/Monitoring/Grafana/GRAFANA_INTERVIEW_QUESTIONS.md) |
+
+#### **Project Management**
+| Technology | Interview Questions |
+|------------|--------------------|
+| **Agile Methodologies** | [Questions](./Supporting-Tools/Project-Management/Agile-Methodologies/AGILE_METHODOLOGIES_INTERVIEW_QUESTIONS.md) |
+| **Scrum** | [Questions](./Supporting-Tools/Project-Management/Scrum/SCRUM_INTERVIEW_QUESTIONS.md) |
+| **Kanban** | [Questions](./Supporting-Tools/Project-Management/Kanban/KANBAN_INTERVIEW_QUESTIONS.md) |
+| **Jira** | [Questions](./Supporting-Tools/Project-Management/Jira/JIRA_INTERVIEW_QUESTIONS.md) |
+| **Confluence** | [Questions](./Supporting-Tools/Project-Management/Confluence/CONFLUENCE_INTERVIEW_QUESTIONS.md) |
+| **ServiceNow** | [Questions](./Supporting-Tools/Project-Management/ServiceNow/SERVICENOW_INTERVIEW_QUESTIONS.md) |
+
+### 📊 **Interview Questions Statistics**
+
+| Category | Total Files | Basic | Comprehensive | Big4/Advanced |
+|----------|-------------|-------|---------------|---------------|
+| **Core Data Engineering** | 70+ | 45+ | 20+ | 6+ |
+| **Supporting Tools** | 50+ | 35+ | 10+ | 3+ |
+| **Total Interview Files** | **120+** | **80+** | **30+** | **9+** |
+
+### 🎯 **Interview Preparation Paths**
+
+#### **By Experience Level**
+- **Entry Level**: Focus on Python, SQL, basic cloud concepts
+- **Mid Level**: Add Spark, Kafka, Docker, system design
+- **Senior Level**: Include architecture patterns, advanced streaming, MLOps
+- **Principal/Staff**: Master all categories, focus on Big4 questions
+
+#### **By Interview Type**
+- **Technical Coding**: Python, SQL, DSA, Design Patterns
+- **System Design**: Architecture, Spark, Kafka, cloud platforms
+- **Domain Knowledge**: Data modeling, warehousing, streaming
+- **Big4 Companies**: Use Big4-specific question setsOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) + [Systems Tools](./Supporting-Tools/Systems/ALL_SYSTEMS_INFRASTRUCTURE_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/CLOUD_ALL_PROVIDERS_REFERENCE.md)
+
+## 🎯 **Complete Interview Questions Index**
+
+> **Comprehensive collection of all interview questions across 120+ technologies - organized by category for efficient preparation**
+
+### 🔥 **Core Data Engineering Interview Questions**
+
+#### ☁️ **Cloud Platforms**
+| Technology | Interview Questions | Comprehensive/Extended |
+|------------|-------------------|------------------------|
+| **AWS** | [AWS Interview Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | ✅ Complete |
+| **Azure** | [Azure Interview Questions](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Comprehensive |
+| **GCP** | [GCP Interview Questions](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Comprehensive |
+
+#### 💻 **Programming Languages**
+| Technology | Interview Questions | Big4/Advanced |
+|------------|-------------------|---------------|
+| **Python** | [Python Interview Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | - |
+| **SQL** | [SQL Interview Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [Big4 Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) |
+| **PySpark** | [PySpark Interview Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | [Big4 Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md) |
+
+#### 🔄 **Data Processing & Big Data**
+| Technology | Interview Questions | Comprehensive/Extended |
+|------------|-------------------|------------------------|
+| **Apache Spark** | [Spark Interview Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | ✅ Complete |
+| **Databricks** | [Databricks Interview Questions](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Big4](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_BIG4_INTERVIEW_QUESTIONS.md) |
+| **Apache Hadoop** | [Hadoop Interview Questions](./Core-Data-Engineering/Data-Processing/Apache-Hadoop/HADOOP_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Hadoop/HADOOP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Extended](./Core-Data-Engineering/Data-Processing/Apache-Hadoop/HADOOP_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) |
+| **Apache Hive** | [Hive Interview Questions](./Core-Data-Engineering/Data-Processing/Apache-Hive/HIVE_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Hive/HIVE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Extended](./Core-Data-Engineering/Data-Processing/Apache-Hive/HIVE_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) |
+| **Apache Pig** | [Pig Interview Questions](./Core-Data-Engineering/Data-Processing/Apache-Pig/PIG_INTERVIEW_QUESTIONS.md) | [Apache Pig](./Core-Data-Engineering/Data-Processing/Apache-Pig/APACHE_PIG_INTERVIEW_QUESTIONS.md) + [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Pig/PIG_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Apache Sqoop** | [Sqoop Interview Questions](./Core-Data-Engineering/Data-Processing/Apache-Sqoop/APACHE_SQOOP_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Apache-Sqoop/SQOOP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+
+#### 🌊 **Streaming Technologies**
+| Technology | Interview Questions | Advanced/Comprehensive |
+|------------|-------------------|------------------------|
+| **Apache Kafka** | [Kafka Interview Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Apache Flink** | [Flink Interview Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_INTERVIEW_QUESTIONS.md) | [Apache Flink](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/APACHE_FLINK_INTERVIEW_QUESTIONS.md) + [Advanced](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_ADVANCED_INTERVIEW_QUESTIONS.md) + [Comprehensive](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Apache Pulsar** | [Pulsar Interview Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Pulsar/APACHE_PULSAR_INTERVIEW_QUESTIONS.md) | - |
+| **Confluent Kafka** | [Confluent Kafka Interview Questions](./Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/CONFLUENT_KAFKA_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Streaming/Confluent-Kafka/CONFLUENT_KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+
+#### 🔧 **ETL & Orchestration**
+| Technology | Interview Questions | Comprehensive |
+|------------|-------------------|---------------|
+| **Apache Airflow** | [Airflow Interview Questions](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **DBT** | [DBT Interview Questions](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Informatica** | [Informatica Interview Questions](./Core-Data-Engineering/Data-Processing/ETL/Informatica/INFORMATICA_INTERVIEW_QUESTIONS.md) | - |
+| **Snaplogic** | [Snaplogic Interview Questions](./Core-Data-Engineering/Data-Processing/ETL/Snaplogic/SNAPLOGIC_INTERVIEW_QUESTIONS.md) | - |
+| **SSIS** | [SSIS Interview Questions](./Core-Data-Engineering/Data-Processing/ETL/SSIS_INTERVIEW_QUESTIONS.md) | - |
+
+#### 🏢 **Data Warehousing**
+| Technology | Interview Questions | Big4/Comprehensive |
+|------------|-------------------|--------------------|
+| **Snowflake** | [Snowflake Interview Questions](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [Big4 Questions](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md) |
+| **Redshift** | [Redshift Interview Questions](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+
+#### 🗄️ **Databases**
+
+##### **Relational Databases**
+| Technology | Interview Questions | Comprehensive |
+|------------|-------------------|---------------|
+| **PostgreSQL** | [PostgreSQL Interview Questions](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **MySQL** | [MySQL Interview Questions](./Core-Data-Engineering/Databases/MySQL/MYSQL_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/MySQL/MYSQL_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Oracle** | [Oracle Interview Questions](./Core-Data-Engineering/Databases/Oracle/ORACLE_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/Oracle/ORACLE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **MS SQL Server** | [MSSQL Interview Questions](./Core-Data-Engineering/Databases/MS-SQL-Server/MSSQL_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/MS-SQL-Server/MSSQL_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Athena** | [Athena Interview Questions](./Core-Data-Engineering/Databases/Athena/ATHENA_INTERVIEW_QUESTIONS.md) | - |
+
+##### **NoSQL Databases**
+| Technology | Interview Questions | Comprehensive |
+|------------|-------------------|---------------|
+| **MongoDB** | [MongoDB Interview Questions](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Cassandra** | [Cassandra Interview Questions](./Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **DynamoDB** | [DynamoDB Interview Questions](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/DYNAMODB_INTERVIEW_QUESTIONS.md) | - |
+| **HBase** | [HBase Interview Questions](./Core-Data-Engineering/Databases/NoSQL/HBase/HBASE_INTERVIEW_QUESTIONS.md) | - |
+| **CouchDB** | [CouchDB Interview Questions](./Core-Data-Engineering/Databases/NoSQL/CouchDB/COUCHDB_INTERVIEW_QUESTIONS.md) | - |
+
+##### **Specialized Databases**
+| Technology | Interview Questions | Comprehensive |
+|------------|-------------------|---------------|
+| **Redis** | [Redis Interview Questions](./Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Memcached** | [Memcached Interview Questions](./Core-Data-Engineering/Databases/In-Memory/Memcached/MEMCACHED_INTERVIEW_QUESTIONS.md) | - |
+| **Elasticsearch** | [Elasticsearch Interview Questions](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Solr** | [Solr Interview Questions](./Core-Data-Engineering/Databases/Search-Engines/Solr/SOLR_INTERVIEW_QUESTIONS.md) | - |
+| **Neo4j** | [Neo4j Interview Questions](./Core-Data-Engineering/Databases/Graph-Databases/Neo4j/NEO4J_INTERVIEW_QUESTIONS.md) | - |
+| **Amazon Neptune** | [Neptune Interview Questions](./Core-Data-Engineering/Databases/Graph-Databases/Amazon-Neptune/AMAZON_NEPTUNE_INTERVIEW_QUESTIONS.md) | - |
+| **InfluxDB** | [InfluxDB Interview Questions](./Core-Data-Engineering/Databases/Time-Series/InfluxDB/INFLUXDB_INTERVIEW_QUESTIONS.md) | - |
+| **TimescaleDB** | [TimescaleDB Interview Questions](./Core-Data-Engineering/Databases/Time-Series/TimescaleDB/TIMESCALEDB_INTERVIEW_QUESTIONS.md) | - |
+| **CockroachDB** | [CockroachDB Interview Questions](./Core-Data-Engineering/Databases/NewSQL/CockroachDB/COCKROACHDB_INTERVIEW_QUESTIONS.md) | - |
+| **TiDB** | [TiDB Interview Questions](./Core-Data-Engineering/Databases/NewSQL/TiDB/TIDB_INTERVIEW_QUESTIONS.md) | - |
+
+#### 🏗️ **Data Architecture & Principles**
+| Technology | Interview Questions |
+|------------|-------------------|
+| **Data Vault 2.0** | [Data Vault Interview Questions](./Core-Data-Engineering/Data-Architecture/Data-Vault-2.0/DATA_VAULT_INTERVIEW_QUESTIONS.md) |
+| **Data Mesh** | [Data Mesh Interview Questions](./Core-Data-Engineering/Data-Architecture/Data-Mesh/DATA_MESH_INTERVIEW_QUESTIONS.md) |
+| **DataOps** | [DataOps Interview Questions](./Core-Data-Engineering/Data-Architecture/DataOps/DATAOPS_INTERVIEW_QUESTIONS.md) |
+| **Dimensional Data Modeling** | [Dimensional Modeling Interview Questions](./Core-Data-Engineering/Data-Architecture/Dimensional-Data-Modeling/DIMENSIONAL_DATA_MODELING_INTERVIEW_QUESTIONS.md) |
+| **Fact Data Modeling** | [Fact Data Modeling Interview Questions](./Core-Data-Engineering/Data-Architecture/Fact-Data-Modeling/FACT_DATA_MODELING_INTERVIEW_QUESTIONS.md) |
+| **Applying Analytical Patterns** | [Analytical Patterns Interview Questions](./Core-Data-Engineering/Data-Architecture/Applying-Analytical-Patterns/APPLYING_ANALYTICAL_PATTERNS_INTERVIEW_QUESTIONS.md) |
+| **KPIs and Experimentation** | [KPIs & Experimentation Interview Questions](./Core-Data-Engineering/Data-Architecture/KPIs-and-Experimentation/KPIS_EXPERIMENTATION_INTERVIEW_QUESTIONS.md) |
+
+---
+
+### 🛠️ **Supporting Tools Interview Questions**
+
+#### 🚀 **DevOps & Automation**
+| Technology | Interview Questions | Comprehensive/Extended |
+|------------|-------------------|------------------------|
+| **Docker** | [Docker Interview Questions](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Kubernetes** | [Kubernetes Interview Questions](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Terraform** | [Terraform Interview Questions](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Jenkins** | [Jenkins Interview Questions](./Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Extended](./Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) |
+| **Ansible** | [Ansible Interview Questions](./Supporting-Tools/DevOps-Automation/Ansible/ANSIBLE_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/DevOps-Automation/Ansible/ANSIBLE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **CI/CD** | [CI/CD Interview Questions](./Supporting-Tools/DevOps-Automation/CI-CD/CICD_INTERVIEW_QUESTIONS.md) | - |
+| **CircleCI** | [CircleCI Interview Questions](./Supporting-Tools/DevOps-Automation/CircleCI/CIRCLECI_INTERVIEW_QUESTIONS.md) | - |
+
+#### 🤖 **AI/ML & Data Science**
+| Technology | Interview Questions | Comprehensive |
+|------------|-------------------|---------------|
+| **Machine Learning** | [ML Interview Questions](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | - |
+| **MLOps** | [MLOps Interview Questions](./Supporting-Tools/AI/MLOps/MLOPS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | ✅ Comprehensive |
+| **OpenAI API** | [OpenAI API Interview Questions](./Supporting-Tools/AI/GenAI/OpenAI-API/OPENAI_API_INTERVIEW_QUESTIONS.md) | - |
+| **Azure OpenAI API** | [Azure OpenAI Interview Questions](./Supporting-Tools/AI/GenAI/Azure-OpenAI-API/AZURE_OPENAI_API_INTERVIEW_QUESTIONS.md) | - |
+| **LangChain** | [LangChain Interview Questions](./Supporting-Tools/AI/GenAI/LangChain/LANGCHAIN_INTERVIEW_QUESTIONS.md) | - |
+| **RAGs** | [RAGs Interview Questions](./Supporting-Tools/AI/GenAI/RAGs/RAGS_INTERVIEW_QUESTIONS.md) | - |
+| **Embeddings** | [Embeddings Interview Questions](./Supporting-Tools/AI/GenAI/Embeddings/EMBEDDINGS_INTERVIEW_QUESTIONS.md) | - |
+| **Vector Databases** | [Vector DB Interview Questions](./Supporting-Tools/AI/GenAI/Vector-DB/VECTOR_DB_INTERVIEW_QUESTIONS.md) | - |
+
+#### 💻 **Programming & Development**
+| Technology | Interview Questions | Big4/Advanced |
+|------------|-------------------|---------------|
+| **Data Structures & Algorithms** | [DSA Interview Questions](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_INTERVIEW_QUESTIONS.md) | [Big4 Questions](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_BIG4_INTERVIEW_QUESTIONS.md) |
+| **Design Patterns** | [Design Patterns Interview Questions](./Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_INTERVIEW_QUESTIONS.md) | [Big4 Questions](./Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_BIG4_INTERVIEW_QUESTIONS.md) |
+| **JavaScript** | [JavaScript Interview Questions](./Supporting-Tools/Programming/JavaScript/JAVASCRIPT_INTERVIEW_QUESTIONS.md) | - |
+| **C** | [C Interview Questions](./Supporting-Tools/Programming/C/C_INTERVIEW_QUESTIONS.md) | - |
+| **C++** | [C++ Interview Questions](./Supporting-Tools/Programming/CPP/CPP_INTERVIEW_QUESTIONS.md) | - |
+| **C#** | [C# Interview Questions](./Supporting-Tools/Programming/CSharp/CSHARP_INTERVIEW_QUESTIONS.md) | - |
+| **HTML** | [HTML Interview Questions](./Supporting-Tools/Programming/HTML/HTML_INTERVIEW_QUESTIONS.md) | - |
+| **CSS** | [CSS Interview Questions](./Supporting-Tools/Programming/CSS/CSS_INTERVIEW_QUESTIONS.md) | - |
+| **MATLAB** | [MATLAB Interview Questions](./Supporting-Tools/Programming/MATLAB/MATLAB_INTERVIEW_QUESTIONS.md) | - |
+| **API Development** | [API Development Interview Questions](./Supporting-Tools/Programming/API-Development/API_DEVELOPMENT_INTERVIEW_QUESTIONS.md) | - |
+| **GraphQL** | [GraphQL Interview Questions](./Supporting-Tools/Programming/Web/GraphQL/GRAPHQL_INTERVIEW_QUESTIONS.md) | - |
+| **jQuery** | [jQuery Interview Questions](./Supporting-Tools/Programming/Web/jQuery/JQUERY_INTERVIEW_QUESTIONS.md) | - |
+| **Node.js** | [Node.js Interview Questions](./Supporting-Tools/Programming/Web/Node-js/NODEJS_INTERVIEW_QUESTIONS.md) | - |
+
+#### 🖥️ **Systems & Infrastructure**
+| Technology | Interview Questions | Advanced |
+|------------|-------------------|----------|
+| **Linux** | [Linux Interview Questions](./Supporting-Tools/Systems/Linux/LINUX_INTERVIEW_QUESTIONS.md) | [Advanced](./Supporting-Tools/Systems/Linux/LINUX_ADVANCED_INTERVIEW_QUESTIONS.md) |
+| **Windows** | [Windows Interview Questions](./Supporting-Tools/Systems/Windows/WINDOWS_INTERVIEW_QUESTIONS.md) | - |
+| **Shell Scripting** | [Shell Scripting Interview Questions](./Supporting-Tools/Systems/Shell-Scripting/SHELL_SCRIPTING_INTERVIEW_QUESTIONS.md) | - |
+| **System Design** | [System Design Interview Questions](./Supporting-Tools/Systems/System-Design/SYSTEM_DESIGN_INTERVIEW_QUESTIONS.md) | - |
+| **Networking** | [Networking Interview Questions](./Supporting-Tools/Systems/Networking/NETWORKING_INTERVIEW_QUESTIONS.md) | - |
+| **Security** | [Security Interview Questions](./Supporting-Tools/Systems/Security/SECURITY_INTERVIEW_QUESTIONS.md) | - |
+
+#### 📊 **Visualization & BI**
+| Technology | Interview Questions | Comprehensive |
+|------------|-------------------|---------------|
+| **Tableau** | [Tableau Interview Questions](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | [Comprehensive](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| **Power BI** | [Power BI Interview Questions](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md) | - |
+| **Kibana** | [Kibana Interview Questions](./Supporting-Tools/Visualization-Reporting/Kibana/KIBANA_INTERVIEW_QUESTIONS.md) | - |
+
+#### 📈 **Monitoring & Management**
+| Technology | Interview Questions |
+|------------|-------------------|
+| **Datadog** | [Datadog Interview Questions](./Supporting-Tools/Monitoring/Datadog/DATADOG_INTERVIEW_QUESTIONS.md) |
+| **Grafana** | [Grafana Interview Questions](./Supporting-Tools/Monitoring/Grafana/GRAFANA_INTERVIEW_QUESTIONS.md) |
+
+#### 🔧 **Version Control**
+| Technology | Interview Questions | Advanced/CI-CD |
+|------------|-------------------|----------------|
+| **Git** | [Git Interview Questions](./Supporting-Tools/Version-Control/Git/GIT_INTERVIEW_QUESTIONS.md) | [Advanced](./Supporting-Tools/Version-Control/Git/GIT_ADVANCED_INTERVIEW_QUESTIONS.md) |
+| **GitLab** | [GitLab Interview Questions](./Supporting-Tools/Version-Control/GitLab/GITLAB_INTERVIEW_QUESTIONS.md) | [CI/CD](./Supporting-Tools/Version-Control/GitLab/GITLAB_CICD_INTERVIEW_QUESTIONS.md) |
+| **Bitbucket** | [Bitbucket Interview Questions](./Supporting-Tools/Version-Control/Bitbucket/BITBUCKET_INTERVIEW_QUESTIONS.md) | - |
+
+#### 📋 **Project Management**
+| Technology | Interview Questions |
+|------------|-------------------|
+| **Agile Methodologies** | [Agile Interview Questions](./Supporting-Tools/Project-Management/Agile-Methodologies/AGILE_METHODOLOGIES_INTERVIEW_QUESTIONS.md) |
+| **Scrum** | [Scrum Interview Questions](./Supporting-Tools/Project-Management/Scrum/SCRUM_INTERVIEW_QUESTIONS.md) |
+| **Kanban** | [Kanban Interview Questions](./Supporting-Tools/Project-Management/Kanban/KANBAN_INTERVIEW_QUESTIONS.md) |
+| **Jira** | [Jira Interview Questions](./Supporting-Tools/Project-Management/Jira/JIRA_INTERVIEW_QUESTIONS.md) |
+| **Confluence** | [Confluence Interview Questions](./Supporting-Tools/Project-Management/Confluence/CONFLUENCE_INTERVIEW_QUESTIONS.md) |
+| **ServiceNow** | [ServiceNow Interview Questions](./Supporting-Tools/Project-Management/ServiceNow/SERVICENOW_INTERVIEW_QUESTIONS.md) |
+
+---
+
+### 📊 **Interview Questions Statistics**
+
+| Category | Total Files | Basic | Comprehensive | Big4/Advanced | Extended |
+|----------|-------------|-------|---------------|---------------|----------|
+| **Core Data Engineering** | 85+ | 45+ | 25+ | 8+ | 7+ |
+| **Supporting Tools** | 45+ | 35+ | 8+ | 2+ | 0+ |
+| **Total** | **130+** | **80+** | **33+** | **10+** | **7+** |
+
+### 🎯 **Quick Interview Prep by Role**
+
+#### **Data Engineer (Essential)**
+- [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) + [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) + [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md)
+- [AWS](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) + [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) + [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) + [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+#### **Senior Data Engineer (Advanced)**
+- All Essential + [System Design](./Supporting-Tools/Systems/System-Design/SYSTEM_DESIGN_INTERVIEW_QUESTIONS.md) + [Data Architecture](./Core-Data-Engineering/Data-Architecture/)
+- [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+#### **Big Tech (FAANG) Preparation**
+- [SQL Big4](./Core-Data-Engineering/Programming-Languages/SQL/SQL_BIG4_INTERVIEW_QUESTIONS.md) + [PySpark Big4](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_BIG4_INTERVIEW_QUESTIONS.md)
+- [DSA Big4](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_BIG4_INTERVIEW_QUESTIONS.md) + [Design Patterns Big4](./Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_BIG4_INTERVIEW_QUESTIONS.md)
+- [Snowflake Big4](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_BIG4_INTERVIEW_QUESTIONS.md) + [Databricks Big4](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_BIG4_INTERVIEW_QUESTIONS.md)
+
+#### **Cloud-Focused Roles**
+- [AWS Complete](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) + [Azure Comprehensive](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [GCP Comprehensive](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+---
+
+### 🔍 **Search Interview Questions by Technology Stack**
+
+#### **Modern Data Stack**
+- **Ingestion**: [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Processing**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) + [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Storage**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) + [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Transformation**: [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Visualization**: [Tableau](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+#### **Big Data Ecosystem**
+- **Core**: [Hadoop](./Core-Data-Engineering/Data-Processing/Apache-Hadoop/HADOOP_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) + [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) + [Hive](./Core-Data-Engineering/Data-Processing/Apache-Hive/HIVE_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md)
+- **Streaming**: [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Flink](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Flink/FLINK_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **NoSQL**: [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Cassandra](./Core-Data-Engineering/Databases/NoSQL/Cassandra/CASSANDRA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+#### **Cloud-Native Stack**
+- **AWS**: [AWS Complete](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) + [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [DynamoDB](./Core-Data-Engineering/Databases/NoSQL/DynamoDB/DYNAMODB_INTERVIEW_QUESTIONS.md)
+- **Azure**: [Azure Comprehensive](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Azure OpenAI](./Supporting-Tools/AI/GenAI/Azure-OpenAI-API/AZURE_OPENAI_API_INTERVIEW_QUESTIONS.md)
+- **GCP**: [GCP Comprehensive](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+#### **DevOps & Infrastructure**
+- **Containerization**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **IaC**: [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) + [Ansible](./Supporting-Tools/DevOps-Automation/Ansible/ANSIBLE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **CI/CD**: [Jenkins](./Supporting-Tools/DevOps-Automation/Jenkins/JENKINS_COMPREHENSIVE_INTERVIEW_QUESTIONS_EXTENDED.md) + [GitLab CI/CD](./Supporting-Tools/Version-Control/GitLab/GITLAB_CICD_INTERVIEW_QUESTIONS.md)
+
+#### **AI/ML & GenAI Stack**
+- **Traditional ML**: [Machine Learning](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) + [MLOps](./Supporting-Tools/AI/MLOps/MLOPS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **GenAI**: [OpenAI API](./Supporting-Tools/AI/GenAI/OpenAI-API/OPENAI_API_INTERVIEW_QUESTIONS.md) + [LangChain](./Supporting-Tools/AI/GenAI/LangChain/LANGCHAIN_INTERVIEW_QUESTIONS.md) + [RAGs](./Supporting-Tools/AI/GenAI/RAGs/RAGS_INTERVIEW_QUESTIONS.md)
+- **Vector**: [Vector Databases](./Supporting-Tools/AI/GenAI/Vector-DB/VECTOR_DB_INTERVIEW_QUESTIONS.md) + [Embeddings](./Supporting-Tools/AI/GenAI/Embeddings/EMBEDDINGS_INTERVIEW_QUESTIONS.md)Ops-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) + [Systems Tools](./Supporting-Tools/Systems/ALL_SYSTEMS_INFRASTRUCTURE_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/CLOUD_ALL_PROVIDERS_REFERENCE.md)
 - **Business Analyst** → [Visualization Tools](./Supporting-Tools/Visualization-Reporting/ALL_VISUALIZATION_TOOLS_REFERENCE.md) + [Data Processing](./Core-Data-Engineering/Data-Processing/DATA_PROCESSING_ALL_TOOLS_REFERENCE.md) (subset)
 - **System Administrator** → [Systems Tools](./Supporting-Tools/Systems/ALL_SYSTEMS_INFRASTRUCTURE_TOOLS_REFERENCE.md) + [DevOps Tools](./Supporting-Tools/DevOps-Automation/ALL_DEVOPS_TOOLS_REFERENCE.md) + [Cloud Platforms](./Core-Data-Engineering/Cloud/CLOUD_ALL_PROVIDERS_REFERENCE.md)
 

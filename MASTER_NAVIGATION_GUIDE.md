@@ -106,7 +106,106 @@
 | 1 | Python | Programming fundamentals | 4-6 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/Python/) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) |
 | 2 | SQL | Database querying | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/SQL/) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) |
 | 3 | PostgreSQL | Relational databases | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Databases/PostgreSQL/) \| [📋 Questions](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) |
-| 4 | AWS Basics | Cloud fundamentals | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Cloud/AWS/) \| [📋 Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) |
+| 4 | AWS Basics | Cloud fundamentals | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Cloud/AWS/) \| [📋 Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) |
+| 5 | Git | Version control | 1-2 weeks | [📄 Concepts](./Supporting-Tools/Version-Control/Git/) \| [📋 Questions](./Supporting-Tools/Version-Control/Git/GIT_INTERVIEW_QUESTIONS.md) |
+
+### 🚀 **Intermediate (1-3 years)**
+| Order | Technology | Focus Area | Time Investment | Resources |
+|-------|------------|------------|-----------------|-----------|
+| 1 | Apache Spark | Big data processing | 4-6 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Apache-Spark/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) |
+| 2 | Apache Kafka | Streaming data | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| 3 | Apache Airflow | Workflow orchestration | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| 4 | Docker | Containerization | 2-3 weeks | [📄 Concepts](./Supporting-Tools/DevOps-Automation/Docker/) \| [📋 Questions](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) |
+| 5 | Snowflake | Data warehousing | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Warehousing/Snowflake/) \| [📋 Questions](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) |
+| 6 | MongoDB | NoSQL databases | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Databases/NoSQL/MongoDB/) \| [📋 Questions](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) |
+
+### 🎯 **Advanced (3+ years)**
+| Order | Technology | Focus Area | Time Investment | Resources |
+|-------|------------|------------|-----------------|-----------|
+| 1 | PySpark | Advanced big data | 4-6 weeks | [📄 Concepts](./Core-Data-Engineering/Programming-Languages/PySpark/) \| [📋 Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) |
+| 2 | Kubernetes | Container orchestration | 4-6 weeks | [📄 Concepts](./Supporting-Tools/DevOps-Automation/Kubernetes/) \| [📋 Questions](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) |
+| 3 | Terraform | Infrastructure as Code | 3-4 weeks | [📄 Concepts](./Supporting-Tools/DevOps-Automation/Terraform/) \| [📋 Questions](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) |
+| 4 | DBT | Data transformation | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) |
+| 5 | Databricks | Unified analytics | 4-6 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Databricks/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) |
+| 6 | System Design | Architecture patterns | 6-8 weeks | [📄 Concepts](./Supporting-Tools/Systems/System-Design/) \| [📋 Questions](./Supporting-Tools/Systems/System-Design/SYSTEM_DESIGN_INTERVIEW_QUESTIONS.md) |
+
+---
+
+## 🎪 **Interview Preparation by Type**
+
+### 💻 **Technical Coding Interviews**
+| Priority | Technology | Key Topics | Interview Questions | Practice Resources |
+|----------|------------|------------|-------------------|-------------------|
+| **High** | Python | Data structures, algorithms, pandas | [📋 Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Core-Data-Engineering/Programming-Languages/Python/examples/) |
+| **High** | SQL | Joins, window functions, optimization | [📋 Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Core-Data-Engineering/Programming-Languages/SQL/examples/) |
+| **Medium** | PySpark | RDDs, DataFrames, performance tuning | [📋 Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Core-Data-Engineering/Programming-Languages/PySpark/examples/) |
+| **Medium** | Data Structures & Algorithms | Arrays, trees, graphs, sorting | [📋 Questions](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Supporting-Tools/Programming/Data-Structures-Algorithms/examples/) |
+
+### 🏗️ **System Design Interviews**
+| Priority | Topic | Key Concepts | Interview Questions | Architecture Examples |
+|----------|-------|--------------|-------------------|----------------------|
+| **High** | Data Pipeline Design | ETL/ELT, batch vs streaming | [📋 Spark Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | [📄 Examples](./Core-Data-Engineering/Data-Processing/Apache-Spark/examples/) |
+| **High** | Streaming Architecture | Kafka, real-time processing | [📋 Kafka Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/examples/) |
+| **High** | Data Warehouse Design | Dimensional modeling, OLAP | [📋 Snowflake Questions](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Core-Data-Engineering/Data-Warehousing/Snowflake/examples/) |
+| **Medium** | Microservices | Containerization, orchestration | [📋 Docker Questions](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Supporting-Tools/DevOps-Automation/Docker/examples/) |
+| **Medium** | System Design Fundamentals | Scalability, reliability, consistency | [📋 System Design Questions](./Supporting-Tools/Systems/System-Design/SYSTEM_DESIGN_INTERVIEW_QUESTIONS.md) | [📄 Examples](./Supporting-Tools/Systems/System-Design/examples/) |
+
+### ☁️ **Cloud Platform Interviews**
+| Platform | Priority | Key Services | Interview Questions | Service References |
+|----------|----------|--------------|-------------------|-------------------|
+| **AWS** | **High** | S3, EC2, Glue, Athena, Redshift | [📋 AWS Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | [🎯 320+ Services](./Core-Data-Engineering/Cloud/AWS/AWS_ALL_SERVICES_REFERENCE.md) |
+| **Azure** | **Medium** | Data Factory, Synapse, Cosmos DB | [📋 Azure Questions](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [🎯 300+ Services](./Core-Data-Engineering/Cloud/Azure/AZURE_ALL_SERVICES_REFERENCE.md) |
+| **GCP** | **Medium** | BigQuery, Dataflow, Pub/Sub | [📋 GCP Questions](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [🎯 300+ Services](./Core-Data-Engineering/Cloud/GCP/GCP_ALL_SERVICES_REFERENCE.md) |
+
+---
+
+## 📊 **Complete Interview Questions Summary**
+
+### 🔧 **Core Data Engineering (85+ files)**
+- **Programming**: [Python](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | [SQL](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md)
+- **Cloud**: [AWS](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | [Azure](./Core-Data-Engineering/Cloud/Azure/AZURE_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [GCP](./Core-Data-Engineering/Cloud/GCP/GCP_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Big Data**: [Spark](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | [Databricks](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | [Kafka](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Databases**: [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Redis](./Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_INTERVIEW_QUESTIONS.md) | [Elasticsearch](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md)
+- **Orchestration**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+- **Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
+
+### 🛠️ **Supporting Tools (45+ files)**
+- **DevOps**: [Docker](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | [Kubernetes](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | [Terraform](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md)
+- **Visualization**: [Tableau](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | [Power BI](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md)
+- **AI/ML**: [Machine Learning](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | [MLOps](./Supporting-Tools/AI/MLOps/MLOPS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [OpenAI API](./Supporting-Tools/AI/GenAI/OpenAI-API/OPENAI_API_INTERVIEW_QUESTIONS.md) | [RAGs](./Supporting-Tools/AI/GenAI/RAGs/RAGS_INTERVIEW_QUESTIONS.md)
+- **Programming**: [DSA](./Supporting-Tools/Programming/Data-Structures-Algorithms/DSA_INTERVIEW_QUESTIONS.md) | [Design Patterns](./Supporting-Tools/Programming/Design-Patterns/DESIGN_PATTERNS_INTERVIEW_QUESTIONS.md) | [JavaScript](./Supporting-Tools/Programming/JavaScript/JAVASCRIPT_INTERVIEW_QUESTIONS.md)
+- **Systems**: [Linux](./Supporting-Tools/Systems/Linux/LINUX_INTERVIEW_QUESTIONS.md) | [System Design](./Supporting-Tools/Systems/System-Design/SYSTEM_DESIGN_INTERVIEW_QUESTIONS.md) | [Networking](./Supporting-Tools/Systems/Networking/NETWORKING_INTERVIEW_QUESTIONS.md)
+
+---
+
+## 🎯 **Quick Access Summary**
+
+### 📚 **Essential Resources**
+- **🎯 [Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md)** - 1,200+ tools with interactive wizards
+- **📋 [Complete Interview Questions](#-complete-interview-questions-index)** - 130+ files with 1,200+ questions
+- **⚡ [Emergency Prep](./quick-prep/EMERGENCY_INTERVIEW_PREP.md)** - Last-minute interview preparation
+- **📖 [Complete Reference](./quick-prep/COMPLETE_REFERENCE_GUIDE.md)** - All cheat sheets in one place
+
+### 🔥 **Most Popular Links**
+1. [Python Interview Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) - 41 questions
+2. [SQL Interview Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) - 103 questions
+3. [AWS Complete Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) - 15 questions
+4. [Spark Complete Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) - 20 questions
+5. [Kafka Comprehensive Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) - 40 questions
+
+### 📊 **Statistics**
+- **Total Interview Files**: 130+
+- **Total Questions**: 1,200+
+- **Core Data Engineering**: 85+ files
+- **Supporting Tools**: 45+ files
+- **Big4 Specific**: 10+ files
+- **Comprehensive/Extended**: 35+ files
+
+---
+
+**🎯 This master navigation guide provides complete access to all resources in the Data Engineering Material repository. Use the quick links and structured paths above to efficiently navigate to exactly what you need for your learning and interview preparation.**
+
+*Last updated: December 2024 | Complete coverage: 1,200+ tools, 130+ interview files, 1,200+ questions* | AWS Basics | Cloud fundamentals | 2-3 weeks | [📄 Concepts](./Core-Data-Engineering/Cloud/AWS/) \| [📋 Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) |
 | 5 | Apache Spark | Big data processing | 3-4 weeks | [📄 Concepts](./Core-Data-Engineering/Data-Processing/Apache-Spark/) \| [📋 Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) |
 
 ### 🚀 **Intermediate (1-3 years)**
