@@ -1,651 +1,549 @@
 # CI/CD Interview Questions for Data Engineering
 
-## 📋 Table of Contents
+## 🚀 CI/CD Fundamentals
 
-1. [Core Concepts Questions (1-15)](#core-concepts-questions-1-15)
-2. [Pipeline Design Questions (16-30)](#pipeline-design-questions-16-30)
-3. [Tools & Technologies Questions (31-45)](#tools--technologies-questions-31-45)
-4. [Best Practices Questions (46-60)](#best-practices-questions-46-60)
+### Q1: What is CI/CD and why is it important for data engineering?
+**Answer:**
+**Continuous Integration (CI):**
+- Automated code integration and testing
+- Early detection of integration issues
+- Consistent build processes
 
----
+**Continuous Deployment (CD):**
+- Automated deployment to environments
+- Faster time to production
+- Reduced manual errors
 
-## 🎯 **Introduction**
+**Data Engineering Benefits:**
+- Automated data pipeline testing
+- Schema validation and migration
+- Data quality checks in pipelines
+- Environment consistency (dev/staging/prod)
 
-CI/CD (Continuous Integration/Continuous Deployment) is essential for modern data engineering workflows, enabling automated testing, deployment, and monitoring of data pipelines and infrastructure.
+### Q2: Explain the CI/CD pipeline stages for data projects.
+**Answer:**
 
-**Why CI/CD is Critical for Data Engineers:**
-- **Automation**: Automated testing and deployment of data pipelines
-- **Quality**: Consistent code quality and data validation
-- **Speed**: Faster delivery of data solutions
-- **Reliability**: Reduced manual errors and improved consistency
-- **Collaboration**: Better team coordination and code management
-
----
-
-## Core Concepts Questions (1-15)
-
-### 1. What is the difference between Continuous Integration, Continuous Delivery, and Continuous Deployment?
-**Answer**: 
-Understanding these three concepts is fundamental to CI/CD implementation.
-
-**Key Differences:**
-- **Continuous Integration (CI)**: Automatically integrating code changes into a shared repository multiple times per day, with automated builds and tests
-- **Continuous Delivery (CD)**: Extending CI to ensure code is always in a deployable state, with manual approval for production deployment
-- **Continuous Deployment**: Fully automated deployment to production without manual intervention
-
+**Typical Data Engineering CI/CD Pipeline:**
 ```yaml
-# CI Pipeline Example
-stages:
-  - build
-  - test
-  - package
+# .github/workflows/data-pipeline.yml
+name: Data Pipeline CI/CD
 
-build:
-  script:
-    - pip install -r requirements.txt
-    - python -m pytest tests/
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
 
-test:
-  script:
-    - python -m pytest tests/ --coverage
-    - flake8 src/
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      # 1. Code Quality
+      - name: Lint Python code
+        run: |
+          pip install flake8 black
+          flake8 src/
+          black --check src/
+      
+      # 2. Unit Tests
+      - name: Run unit tests
+        run: |
+          pip install pytest pytest-cov
+          pytest tests/unit/ --cov=src/
+      
+      # 3. Integration Tests
+      - name: Run integration tests
+        run: |
+          docker-compose up -d postgres
+          pytest tests/integration/
+      
+      # 4. Data Quality Tests
+      - name: Validate data schemas
+        run: |
+          python scripts/validate_schemas.py
+          python scripts/test_data_quality.py
 
-package:
-  script:
-    - docker build -t data-pipeline:$CI_COMMIT_SHA .
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      # 5. Build and Deploy
+      - name: Deploy to staging
+        run: |
+          docker build -t data-pipeline:${{ github.sha }} .
+          kubectl apply -f k8s/staging/
+      
+      # 6. Smoke Tests
+      - name: Run smoke tests
+        run: |
+          python scripts/smoke_tests.py --env staging
+      
+      # 7. Production Deployment
+      - name: Deploy to production
+        if: success()
+        run: |
+          kubectl apply -f k8s/production/
 ```
 
-### 2. How do you implement CI/CD for data pipelines?
-**Answer**: Data pipeline CI/CD requires special considerations for data quality, schema validation, and environment management.
+### Q3: How do you implement automated testing for data pipelines?
+**Answer:**
 
-```yaml
-# Data Pipeline CI/CD Example
-stages:
-  - validate
-  - test
-  - deploy
-  - monitor
-
-validate_schema:
-  script:
-    - python validate_schema.py
-    - great_expectations checkpoint run data_quality
-
-test_pipeline:
-  script:
-    - pytest tests/unit/
-    - pytest tests/integration/
-    - python test_data_quality.py
-
-deploy_dev:
-  script:
-    - terraform apply -var-file=dev.tfvars
-    - airflow dags unpause data_pipeline_dev
-
-deploy_prod:
-  script:
-    - terraform apply -var-file=prod.tfvars
-    - airflow dags unpause data_pipeline_prod
-  when: manual
-  only:
-    - main
-```
-
-### 3. What are the key components of a CI/CD pipeline for data engineering?
-**Answer**: Essential components include:
-
-1. **Source Control Integration**
-2. **Automated Testing** (unit, integration, data quality)
-3. **Build Automation**
-4. **Deployment Automation**
-5. **Environment Management**
-6. **Monitoring & Alerting**
-
+**Unit Testing:**
 ```python
-# Data Quality Testing Example
+# tests/test_data_transformations.py
+import pytest
+import pandas as pd
+from src.transformations import clean_user_data, calculate_metrics
+
+def test_clean_user_data():
+    # Arrange
+    input_data = pd.DataFrame({
+        'user_id': [1, 2, None, 4],
+        'email': ['user1@test.com', 'INVALID', 'user3@test.com', 'user4@test.com'],
+        'age': [25, -5, 30, 150]
+    })
+    
+    # Act
+    result = clean_user_data(input_data)
+    
+    # Assert
+    assert len(result) == 2  # Only valid records
+    assert result['age'].min() >= 0
+    assert result['age'].max() <= 120
+    assert '@' in result['email'].iloc[0]
+
+def test_calculate_metrics():
+    # Test data aggregation logic
+    orders = pd.DataFrame({
+        'user_id': [1, 1, 2, 2],
+        'amount': [100, 200, 50, 75],
+        'date': ['2023-01-01', '2023-01-02', '2023-01-01', '2023-01-03']
+    })
+    
+    metrics = calculate_metrics(orders)
+    
+    assert metrics.loc[1, 'total_amount'] == 300
+    assert metrics.loc[2, 'total_amount'] == 125
+```
+
+**Integration Testing:**
+```python
+# tests/test_pipeline_integration.py
+import pytest
+from testcontainers import DockerCompose
+from src.pipeline import DataPipeline
+
+@pytest.fixture(scope="module")
+def test_environment():
+    with DockerCompose(".", compose_file_name="docker-compose.test.yml") as compose:
+        # Wait for services to be ready
+        postgres_port = compose.get_service_port("postgres", 5432)
+        kafka_port = compose.get_service_port("kafka", 9092)
+        
+        yield {
+            'postgres_url': f'postgresql://test:test@localhost:{postgres_port}/testdb',
+            'kafka_url': f'localhost:{kafka_port}'
+        }
+
+def test_end_to_end_pipeline(test_environment):
+    # Setup test data
+    pipeline = DataPipeline(
+        postgres_url=test_environment['postgres_url'],
+        kafka_url=test_environment['kafka_url']
+    )
+    
+    # Insert test data
+    test_events = [
+        {'user_id': 1, 'event': 'login', 'timestamp': '2023-01-01T10:00:00'},
+        {'user_id': 2, 'event': 'purchase', 'amount': 100, 'timestamp': '2023-01-01T11:00:00'}
+    ]
+    
+    # Run pipeline
+    pipeline.process_events(test_events)
+    
+    # Verify results
+    results = pipeline.get_processed_data()
+    assert len(results) == 2
+    assert results[0]['processed'] == True
+```
+
+**Data Quality Testing:**
+```python
+# tests/test_data_quality.py
 import great_expectations as ge
 
-def test_data_quality(df):
-    """Test data quality in CI pipeline"""
-    context = ge.get_context()
+def test_data_quality_expectations():
+    # Load data
+    df = ge.read_csv('data/processed/user_metrics.csv')
     
-    # Create expectation suite
-    suite = context.create_expectation_suite("data_pipeline_suite")
+    # Define expectations
+    df.expect_column_to_exist('user_id')
+    df.expect_column_values_to_not_be_null('user_id')
+    df.expect_column_values_to_be_unique('user_id')
+    df.expect_column_values_to_be_between('age', min_value=0, max_value=120)
+    df.expect_column_values_to_match_regex('email', r'^[^@]+@[^@]+\.[^@]+$')
     
-    # Add expectations
-    df.expect_column_to_exist("customer_id")
-    df.expect_column_values_to_not_be_null("customer_id")
-    df.expect_column_values_to_be_unique("customer_id")
+    # Validate expectations
+    validation_result = df.validate()
+    assert validation_result.success, f"Data quality checks failed: {validation_result}"
+
+def test_schema_validation():
+    from pandera import DataFrameSchema, Column, Check
     
-    # Validate
-    results = df.validate(expectation_suite=suite)
+    schema = DataFrameSchema({
+        'user_id': Column(int, Check.greater_than(0)),
+        'email': Column(str, Check.str_matches(r'^[^@]+@[^@]+\.[^@]+$')),
+        'signup_date': Column('datetime64[ns]'),
+        'total_orders': Column(int, Check.greater_than_or_equal_to(0))
+    })
     
-    if not results["success"]:
-        raise ValueError("Data quality checks failed")
-    
-    return results
+    df = pd.read_csv('data/processed/users.csv')
+    validated_df = schema.validate(df)  # Raises exception if invalid
+    assert len(validated_df) > 0
 ```
 
-### 4. How do you handle environment management in data engineering CI/CD?
-**Answer**: Environment management strategies for data pipelines:
+## 🔧 CI/CD Tools & Platforms
 
-```yaml
-# Environment-specific configurations
-environments:
-  dev:
-    database_url: "postgresql://dev-db:5432/data_dev"
-    s3_bucket: "data-pipeline-dev"
-    spark_config:
-      executor_memory: "2g"
-      executor_instances: 2
-  
-  staging:
-    database_url: "postgresql://staging-db:5432/data_staging"
-    s3_bucket: "data-pipeline-staging"
-    spark_config:
-      executor_memory: "4g"
-      executor_instances: 5
-  
-  prod:
-    database_url: "postgresql://prod-db:5432/data_prod"
-    s3_bucket: "data-pipeline-prod"
-    spark_config:
-      executor_memory: "8g"
-      executor_instances: 10
-```
+### Q4: Compare different CI/CD platforms for data engineering.
+**Answer:**
 
-### 5. What testing strategies do you use for data pipelines in CI/CD?
-**Answer**: Comprehensive testing approach:
+| Platform | Strengths | Data Engineering Use Cases |
+|----------|-----------|---------------------------|
+| **GitHub Actions** | Git integration, free tier | Code-driven pipelines, open source |
+| **GitLab CI** | Built-in registry, security scanning | Enterprise, compliance requirements |
+| **Jenkins** | Highly customizable, plugins | Complex workflows, on-premise |
+| **Azure DevOps** | Microsoft ecosystem | .NET/SQL Server environments |
+| **AWS CodePipeline** | AWS native, serverless | AWS-heavy architectures |
 
-```python
-# Unit Testing
-def test_data_transformation():
-    input_data = [{"id": 1, "value": 100}]
-    result = transform_data(input_data)
-    assert result[0]["processed_value"] == 200
-
-# Integration Testing
-def test_pipeline_integration():
-    # Test full pipeline with sample data
-    input_path = "s3://test-bucket/sample-data/"
-    output_path = "s3://test-bucket/output/"
+**Jenkins Pipeline Example:**
+```groovy
+// Jenkinsfile
+pipeline {
+    agent any
     
-    run_pipeline(input_path, output_path)
-    
-    # Validate output
-    output_data = read_from_s3(output_path)
-    assert len(output_data) > 0
-    assert all("processed_timestamp" in record for record in output_data)
-
-# Data Quality Testing
-def test_data_quality():
-    df = spark.read.parquet("test_data.parquet")
-    
-    # Schema validation
-    expected_columns = ["id", "name", "timestamp", "value"]
-    assert set(df.columns) == set(expected_columns)
-    
-    # Data validation
-    assert df.count() > 0
-    assert df.filter(col("id").isNull()).count() == 0
-```
-
-## Pipeline Design Questions (16-30)
-
-### 16. How do you design a CI/CD pipeline for real-time data processing?
-**Answer**: Real-time pipeline CI/CD considerations:
-
-```yaml
-# Streaming Pipeline CI/CD
-stages:
-  - validate
-  - test
-  - deploy
-  - health_check
-
-validate_streaming_config:
-  script:
-    - python validate_kafka_config.py
-    - python validate_spark_streaming_config.py
-
-test_streaming_logic:
-  script:
-    - pytest tests/streaming/
-    - python test_kafka_integration.py
-
-deploy_streaming:
-  script:
-    - kubectl apply -f k8s/streaming-app.yaml
-    - ./scripts/wait_for_deployment.sh
-
-health_check:
-  script:
-    - python check_streaming_health.py
-    - python validate_output_metrics.py
-```
-
-### 17. How do you implement blue-green deployment for data pipelines?
-**Answer**: Blue-green deployment strategy for data systems:
-
-```python
-# Blue-Green Deployment Script
-class BlueGreenDeployment:
-    def __init__(self, config):
-        self.config = config
-        self.current_env = self.get_current_environment()
-    
-    def deploy_new_version(self, version):
-        # Deploy to inactive environment
-        inactive_env = "green" if self.current_env == "blue" else "blue"
-        
-        # Deploy new version
-        self.deploy_to_environment(inactive_env, version)
-        
-        # Run health checks
-        if self.health_check(inactive_env):
-            # Switch traffic
-            self.switch_traffic(inactive_env)
-            self.current_env = inactive_env
-        else:
-            # Rollback
-            self.cleanup_environment(inactive_env)
-            raise Exception("Health check failed, deployment aborted")
-    
-    def health_check(self, environment):
-        # Check data pipeline health
-        pipeline_healthy = self.check_pipeline_health(environment)
-        data_quality_ok = self.check_data_quality(environment)
-        
-        return pipeline_healthy and data_quality_ok
-```
-
-### 18. How do you handle database migrations in CI/CD pipelines?
-**Answer**: Database migration strategies:
-
-```sql
--- Migration Script Example
--- V001__create_customer_table.sql
-CREATE TABLE customers (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- V002__add_customer_status.sql
-ALTER TABLE customers 
-ADD COLUMN status VARCHAR(50) DEFAULT 'active';
-
-CREATE INDEX idx_customer_status ON customers(status);
-```
-
-```yaml
-# CI/CD with Database Migrations
-migrate_database:
-  script:
-    - flyway migrate -url=$DATABASE_URL -user=$DB_USER -password=$DB_PASSWORD
-    - python validate_migration.py
-
-test_with_migrated_schema:
-  script:
-    - pytest tests/integration/ --database-url=$DATABASE_URL
-  depends_on:
-    - migrate_database
-```
-
-## Tools & Technologies Questions (31-45)
-
-### 19. Compare different CI/CD tools for data engineering workflows.
-**Answer**: Tool comparison for data engineering:
-
-| Tool | Strengths | Best For | Data Engineering Features |
-|------|-----------|----------|---------------------------|
-| **Jenkins** | Highly customizable, plugin ecosystem | Complex workflows | Pipeline as Code, distributed builds |
-| **GitLab CI** | Integrated with Git, built-in registry | Full DevOps lifecycle | Auto DevOps, environment management |
-| **GitHub Actions** | Native GitHub integration, marketplace | GitHub-based projects | Matrix builds, artifact management |
-| **Azure DevOps** | Microsoft ecosystem integration | Azure-heavy environments | Release management, test plans |
-| **CircleCI** | Fast builds, Docker support | Container-based workflows | Parallelism, workflow orchestration |
-
-### 20. How do you implement Infrastructure as Code (IaC) in data engineering CI/CD?
-**Answer**: IaC implementation strategies:
-
-```hcl
-# Terraform for Data Infrastructure
-resource "aws_s3_bucket" "data_lake" {
-  bucket = "${var.environment}-data-lake"
-  
-  versioning {
-    enabled = true
-  }
-  
-  lifecycle_configuration {
-    rule {
-      enabled = true
-      
-      transition {
-        days          = 30
-        storage_class = "STANDARD_IA"
-      }
-      
-      transition {
-        days          = 90
-        storage_class = "GLACIER"
-      }
+    environment {
+        DOCKER_REGISTRY = 'your-registry.com'
+        KUBECONFIG = credentials('k8s-config')
     }
-  }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Test') {
+            parallel {
+                stage('Unit Tests') {
+                    steps {
+                        sh 'python -m pytest tests/unit/'
+                    }
+                }
+                stage('Lint') {
+                    steps {
+                        sh 'flake8 src/'
+                        sh 'black --check src/'
+                    }
+                }
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                script {
+                    def image = docker.build("${DOCKER_REGISTRY}/data-pipeline:${BUILD_NUMBER}")
+                    image.push()
+                }
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            steps {
+                sh '''
+                    helm upgrade --install data-pipeline-staging ./helm-chart \
+                        --set image.tag=${BUILD_NUMBER} \
+                        --set environment=staging
+                '''
+            }
+        }
+        
+        stage('Integration Tests') {
+            steps {
+                sh 'python scripts/integration_tests.py --env staging'
+            }
+        }
+        
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                input message: 'Deploy to production?', ok: 'Deploy'
+                sh '''
+                    helm upgrade --install data-pipeline-prod ./helm-chart \
+                        --set image.tag=${BUILD_NUMBER} \
+                        --set environment=production
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            publishTestResults testResultsPattern: 'test-results.xml'
+            publishHTML([
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'coverage',
+                reportFiles: 'index.html',
+                reportName: 'Coverage Report'
+            ])
+        }
+        failure {
+            emailext (
+                subject: "Pipeline Failed: ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
+                body: "Build failed. Check console output at ${env.BUILD_URL}",
+                to: "${env.CHANGE_AUTHOR_EMAIL}"
+            )
+        }
+    }
 }
-
-resource "aws_glue_job" "etl_job" {
-  name     = "${var.environment}-etl-job"
-  role_arn = aws_iam_role.glue_role.arn
-  
-  command {
-    script_location = "s3://${aws_s3_bucket.scripts.bucket}/etl_script.py"
-    python_version  = "3"
-  }
-  
-  default_arguments = {
-    "--job-language" = "python"
-    "--environment"  = var.environment
-  }
-}
 ```
 
-```yaml
-# CI/CD with Terraform
-deploy_infrastructure:
-  script:
-    - terraform init
-    - terraform plan -var-file=${ENVIRONMENT}.tfvars
-    - terraform apply -var-file=${ENVIRONMENT}.tfvars -auto-approve
-  artifacts:
-    paths:
-      - terraform.tfstate
-```
+### Q5: How do you handle database migrations in CI/CD?
+**Answer:**
 
-### 21. How do you implement container-based CI/CD for data pipelines?
-**Answer**: Container-based deployment strategies:
-
-```dockerfile
-# Data Pipeline Dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-
-# Install dependencies
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-# Copy application code
-COPY src/ ./src/
-COPY config/ ./config/
-
-# Set environment variables
-ENV PYTHONPATH=/app/src
-ENV ENVIRONMENT=production
-
-# Run pipeline
-CMD ["python", "src/main.py"]
-```
-
-```yaml
-# Kubernetes Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: data-pipeline
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: data-pipeline
-  template:
-    metadata:
-      labels:
-        app: data-pipeline
-    spec:
-      containers:
-      - name: pipeline
-        image: data-pipeline:${CI_COMMIT_SHA}
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-secret
-              key: url
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
-```
-
-## Best Practices Questions (46-60)
-
-### 22. What are the security best practices for data engineering CI/CD?
-**Answer**: Security considerations:
-
-```yaml
-# Secure CI/CD Pipeline
-variables:
-  # Use CI/CD variables for secrets
-  DATABASE_PASSWORD: $DATABASE_PASSWORD
-  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-
-security_scan:
-  script:
-    - bandit -r src/  # Python security linting
-    - safety check    # Check for known vulnerabilities
-    - docker run --rm -v $(pwd):/app clair-scanner # Container scanning
-
-deploy_with_secrets:
-  script:
-    - echo $KUBE_CONFIG | base64 -d > kubeconfig
-    - kubectl --kubeconfig=kubeconfig apply -f k8s/
-  after_script:
-    - rm kubeconfig  # Clean up sensitive files
-```
-
-### 23. How do you implement monitoring and alerting in CI/CD pipelines?
-**Answer**: Monitoring strategies:
-
+**Database Migration Strategy:**
 ```python
-# Pipeline Monitoring
-import logging
-import prometheus_client
-from datetime import datetime
+# migrations/001_create_users_table.py
+from alembic import op
+import sqlalchemy as sa
+
+def upgrade():
+    op.create_table(
+        'users',
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('email', sa.String(255), nullable=False, unique=True),
+        sa.Column('created_at', sa.DateTime, default=sa.func.now()),
+        sa.Column('updated_at', sa.DateTime, default=sa.func.now(), onupdate=sa.func.now())
+    )
+    
+    # Create indexes
+    op.create_index('idx_users_email', 'users', ['email'])
+
+def downgrade():
+    op.drop_table('users')
+
+# CI/CD Pipeline Integration
+# .github/workflows/deploy.yml
+- name: Run database migrations
+  run: |
+    # Install dependencies
+    pip install alembic psycopg2-binary
+    
+    # Run migrations
+    alembic upgrade head
+    
+    # Verify migration success
+    python scripts/verify_schema.py
+```
+
+**Zero-Downtime Deployment:**
+```python
+# Blue-Green Deployment for Data Pipelines
+class BlueGreenDeployment:
+    def __init__(self):
+        self.current_env = self.get_current_environment()
+        self.target_env = 'green' if self.current_env == 'blue' else 'blue'
+    
+    def deploy(self):
+        # 1. Deploy to target environment
+        self.deploy_to_environment(self.target_env)
+        
+        # 2. Run smoke tests
+        if not self.run_smoke_tests(self.target_env):
+            raise Exception("Smoke tests failed")
+        
+        # 3. Switch traffic
+        self.switch_traffic(self.target_env)
+        
+        # 4. Verify switch
+        if not self.verify_traffic_switch():
+            self.rollback()
+            raise Exception("Traffic switch verification failed")
+    
+    def rollback(self):
+        self.switch_traffic(self.current_env)
+```
+
+## 🛡️ Security & Compliance
+
+### Q6: How do you implement security in CI/CD pipelines?
+**Answer:**
+
+**Secret Management:**
+```yaml
+# GitHub Actions with secrets
+- name: Deploy to AWS
+  env:
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  run: |
+    # Use secrets in deployment
+    aws s3 sync ./data s3://my-bucket/
+```
+
+**Security Scanning:**
+```yaml
+# Security checks in pipeline
+- name: Security scan
+  run: |
+    # Dependency vulnerability scanning
+    pip install safety
+    safety check
+    
+    # Secret scanning
+    pip install detect-secrets
+    detect-secrets scan --all-files
+    
+    # Container security scanning
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+      aquasec/trivy image data-pipeline:latest
+```
+
+**Compliance Automation:**
+```python
+# Automated compliance checks
+class ComplianceChecker:
+    def check_data_retention(self, table_name):
+        # Verify data retention policies
+        query = f"""
+        SELECT COUNT(*) FROM {table_name} 
+        WHERE created_at < NOW() - INTERVAL '7 years'
+        """
+        old_records = self.db.execute(query).scalar()
+        
+        if old_records > 0:
+            raise ComplianceError(f"Found {old_records} records older than retention policy")
+    
+    def check_pii_encryption(self, table_name):
+        # Verify PII fields are encrypted
+        pii_fields = ['email', 'phone', 'ssn']
+        for field in pii_fields:
+            if self.is_field_unencrypted(table_name, field):
+                raise ComplianceError(f"PII field {field} is not encrypted")
+```
+
+## 📊 Monitoring & Observability
+
+### Q7: How do you monitor CI/CD pipelines and deployments?
+**Answer:**
+
+**Pipeline Monitoring:**
+```python
+# Pipeline metrics collection
+import time
+import requests
+from prometheus_client import Counter, Histogram, Gauge
+
+# Metrics
+pipeline_runs_total = Counter('pipeline_runs_total', 'Total pipeline runs', ['status', 'branch'])
+pipeline_duration = Histogram('pipeline_duration_seconds', 'Pipeline execution time')
+deployment_status = Gauge('deployment_status', 'Current deployment status', ['environment'])
 
 class PipelineMonitor:
     def __init__(self):
-        self.pipeline_duration = prometheus_client.Histogram(
-            'pipeline_duration_seconds',
-            'Time spent processing pipeline'
-        )
-        self.pipeline_success = prometheus_client.Counter(
-            'pipeline_success_total',
-            'Number of successful pipeline runs'
-        )
-        self.pipeline_failures = prometheus_client.Counter(
-            'pipeline_failures_total',
-            'Number of failed pipeline runs'
-        )
+        self.start_time = None
     
-    def monitor_pipeline(self, pipeline_func):
-        start_time = datetime.now()
+    def start_pipeline(self, branch):
+        self.start_time = time.time()
+        self.branch = branch
+    
+    def end_pipeline(self, status):
+        duration = time.time() - self.start_time
+        pipeline_duration.observe(duration)
+        pipeline_runs_total.labels(status=status, branch=self.branch).inc()
         
-        try:
-            result = pipeline_func()
-            self.pipeline_success.inc()
-            return result
-        except Exception as e:
-            self.pipeline_failures.inc()
-            logging.error(f"Pipeline failed: {e}")
-            raise
-        finally:
-            duration = (datetime.now() - start_time).total_seconds()
-            self.pipeline_duration.observe(duration)
+        # Send to monitoring system
+        self.send_metrics({
+            'pipeline_duration': duration,
+            'status': status,
+            'branch': self.branch,
+            'timestamp': time.time()
+        })
+    
+    def send_metrics(self, metrics):
+        # Send to DataDog, New Relic, etc.
+        requests.post('https://api.datadoghq.com/api/v1/series', 
+                     json={'series': [metrics]},
+                     headers={'DD-API-KEY': os.getenv('DATADOG_API_KEY')})
 ```
 
-### 24. How do you handle rollback strategies in data pipeline CI/CD?
-**Answer**: Rollback implementation:
-
+**Deployment Health Checks:**
 ```python
-# Rollback Strategy
-class DataPipelineRollback:
-    def __init__(self, config):
-        self.config = config
-        self.backup_manager = BackupManager()
+# Health check implementation
+class HealthChecker:
+    def __init__(self, endpoints):
+        self.endpoints = endpoints
     
-    def create_rollback_point(self, version):
-        """Create rollback point before deployment"""
-        return {
-            'version': version,
-            'timestamp': datetime.now(),
-            'database_backup': self.backup_manager.backup_database(),
-            'config_backup': self.backup_manager.backup_config(),
-            'data_snapshot': self.backup_manager.create_data_snapshot()
-        }
-    
-    def rollback_to_version(self, rollback_point):
-        """Rollback to previous version"""
-        try:
-            # Restore database
-            self.backup_manager.restore_database(rollback_point['database_backup'])
-            
-            # Restore configuration
-            self.backup_manager.restore_config(rollback_point['config_backup'])
-            
-            # Restore data if needed
-            if self.config.get('restore_data_on_rollback'):
-                self.backup_manager.restore_data(rollback_point['data_snapshot'])
-            
-            logging.info(f"Rollback to version {rollback_point['version']} completed")
-            
-        except Exception as e:
-            logging.error(f"Rollback failed: {e}")
-            raise
-```
-
-### 25. How do you implement data lineage tracking in CI/CD?
-**Answer**: Data lineage integration:
-
-```python
-# Data Lineage in CI/CD
-class DataLineageTracker:
-    def __init__(self, pipeline_version, commit_sha):
-        self.pipeline_version = pipeline_version
-        self.commit_sha = commit_sha
-        self.lineage_metadata = {}
-    
-    def track_transformation(self, input_datasets, output_datasets, transformation_name):
-        """Track data transformation in CI/CD context"""
-        lineage_entry = {
-            'pipeline_version': self.pipeline_version,
-            'commit_sha': self.commit_sha,
-            'transformation': transformation_name,
-            'input_datasets': input_datasets,
-            'output_datasets': output_datasets,
-            'timestamp': datetime.now().isoformat(),
-            'environment': os.getenv('CI_ENVIRONMENT_NAME', 'unknown')
-        }
+    def check_deployment_health(self):
+        results = {}
         
-        # Store lineage metadata
-        self.store_lineage(lineage_entry)
+        for name, endpoint in self.endpoints.items():
+            try:
+                response = requests.get(f"{endpoint}/health", timeout=10)
+                results[name] = {
+                    'status': 'healthy' if response.status_code == 200 else 'unhealthy',
+                    'response_time': response.elapsed.total_seconds(),
+                    'details': response.json()
+                }
+            except Exception as e:
+                results[name] = {
+                    'status': 'unhealthy',
+                    'error': str(e)
+                }
+        
+        return results
     
-    def store_lineage(self, lineage_entry):
-        """Store lineage information"""
-        # Store in data catalog or lineage system
-        catalog_client = DataCatalogClient()
-        catalog_client.record_lineage(lineage_entry)
+    def verify_data_pipeline(self):
+        # Check if data is flowing correctly
+        latest_batch = self.get_latest_batch_timestamp()
+        current_time = datetime.utcnow()
+        
+        if (current_time - latest_batch).total_seconds() > 3600:  # 1 hour
+            raise Exception("Data pipeline appears to be stalled")
+        
+        # Check data quality metrics
+        quality_metrics = self.get_data_quality_metrics()
+        if quality_metrics['error_rate'] > 0.05:  # 5%
+            raise Exception(f"High error rate: {quality_metrics['error_rate']}")
 ```
 
----
+## 🎯 Key Takeaways
 
-## 📚 **CI/CD Study Guide & Best Practices**
+**CI/CD Pipeline Stages:**
+- **Code Quality**: Linting, formatting, security scanning
+- **Testing**: Unit, integration, data quality tests
+- **Build**: Container images, artifacts
+- **Deploy**: Staging, production with approvals
+- **Monitor**: Health checks, metrics collection
 
-### 🎯 **Essential CI/CD Concepts for Data Engineers**
+**Data Engineering Specific Considerations:**
+- **Schema validation** and migration testing
+- **Data quality** checks in pipelines
+- **Environment consistency** for data sources
+- **Zero-downtime** deployments for data services
 
-#### **Core Principles**
-1. **Automation First**: Automate testing, deployment, and monitoring
-2. **Fail Fast**: Catch issues early in the pipeline
-3. **Immutable Infrastructure**: Treat infrastructure as code
-4. **Environment Parity**: Keep environments consistent
-5. **Continuous Monitoring**: Monitor pipeline health and data quality
-
-#### **Data-Specific Considerations**
-1. **Data Quality Gates**: Automated data validation
-2. **Schema Evolution**: Handle schema changes gracefully
-3. **Data Lineage**: Track data transformations
-4. **Environment Data Management**: Manage test data across environments
-5. **Compliance**: Ensure regulatory compliance in automated processes
-
-### 🚀 **Production-Ready CI/CD Patterns**
-
-#### **Pipeline Structure**
-```yaml
-# Complete Data Pipeline CI/CD
-stages:
-  - validate
-  - test
-  - security
-  - build
-  - deploy
-  - monitor
-
-validate:
-  - schema_validation
-  - config_validation
-  - dependency_check
-
-test:
-  - unit_tests
-  - integration_tests
-  - data_quality_tests
-  - performance_tests
-
-security:
-  - security_scan
-  - vulnerability_check
-  - compliance_check
-
-build:
-  - build_artifacts
-  - container_build
-  - infrastructure_plan
-
-deploy:
-  - deploy_infrastructure
-  - deploy_application
-  - run_migrations
-  - health_check
-
-monitor:
-  - setup_monitoring
-  - configure_alerts
-  - validate_metrics
-```
-
-### 📈 **Monitoring & Observability**
-
-#### **Key Metrics to Track**
-- Pipeline success/failure rates
-- Deployment frequency
-- Lead time for changes
-- Mean time to recovery (MTTR)
-- Data quality metrics
-- Performance metrics
-
-### 🔗 **Essential Resources**
-
-- **CI/CD Fundamentals**: [Continuous Integration/Continuous Deployment](https://www.atlassian.com/continuous-delivery)
-- **Data Pipeline Testing**: [Great Expectations](https://greatexpectations.io/)
-- **Infrastructure as Code**: [Terraform Documentation](https://www.terraform.io/docs)
-- **Container Orchestration**: [Kubernetes Documentation](https://kubernetes.io/docs/)
-- **Monitoring**: [Prometheus & Grafana](https://prometheus.io/docs/)
-
----
-
-**Remember**: CI/CD for data engineering requires special attention to data quality, schema evolution, and environment-specific configurations. Focus on building robust, automated pipelines that can handle the unique challenges of data workflows.
+**Best Practices:**
+- Automate everything possible
+- Fail fast with comprehensive testing
+- Use infrastructure as code
+- Implement proper secret management
+- Monitor pipeline and deployment health
+- Maintain rollback capabilities
