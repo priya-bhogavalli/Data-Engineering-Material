@@ -3,11 +3,11 @@
 ## 🚀 **Quick Start - Choose Your Path**
 
 ### 🛠️ **NEW: Complete Tool References** → [🎯 Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) - 1,200+ tools with interactive wizards
-### 📋 **Need something fast?** → [quick-prep/](./quick-prep/)
+### 📋 **Need something fast?** → [Quick Prep Guide](./docs/QUICK_PREP_COMPLETE.md)
 ### 🔧 **Want to master a skill?** → [Core-Data-Engineering/](./Core-Data-Engineering/)
-### 🎪 **Ready to practice?** → [Interview Questions](./docs/INTERVIEW_QUESTIONS_MASTER_INDEX.md)
+### 🎪 **Ready to practice?** → [Interview Questions](./ALL_TOOLS_MASTER_INDEX.md#-complete-interview-questions-index)
 
-👉 **New here?** Start with [Comprehensive Navigation Guide](./docs/COMPREHENSIVE_NAVIGATION_GUIDE.md) for complete guidance
+👉 **New here?** Start with [Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) for complete guidance
 
 ## 🎯 **Quick Interview Questions Reference**
 
@@ -61,7 +61,7 @@ This comprehensive repository serves as a complete resource for Data Engineering
 
 ## 🧭 **Complete Navigation Guide**
 
-**🎯 [Comprehensive Navigation Guide](./docs/COMPREHENSIVE_NAVIGATION_GUIDE.md) - Your complete roadmap to this repository**
+**🎯 [Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) - Your complete roadmap to this repository**
 
 This guide includes:
 - ⚡ **Quick prep resources** for last-minute interview preparation
@@ -73,7 +73,7 @@ This guide includes:
 
 ### 📚 **Alternative Navigation**
 - **[🎯 Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md)** - Complete navigation for 1,200+ tools with interactive wizards
-- **[Interview Questions Master Index](./docs/INTERVIEW_QUESTIONS_MASTER_INDEX.md)** - Complete list of all interview questions
+- **[Interview Questions Collection](./ALL_TOOLS_MASTER_INDEX.md#-complete-interview-questions-index)** - Complete list of all interview questions
 - **[Awesome GitHub Repositories](./docs/AWESOME_GITHUB_REPOS.md)** - Curated list of essential GitHub repos for data engineering
 - **[Core-Data-Engineering/](./Core-Data-Engineering/)** - Essential data engineering topics
 - **[Supporting-Tools/](./Supporting-Tools/)** - Additional skills and tools
