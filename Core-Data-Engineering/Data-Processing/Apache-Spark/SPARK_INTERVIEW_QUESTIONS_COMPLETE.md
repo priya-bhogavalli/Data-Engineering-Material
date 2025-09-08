@@ -15,6 +15,62 @@
 ## Basic Level Questions (1-30)
 
 ### 1. What is Apache Spark and how does it differ from Hadoop MapReduce?
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **In-Memory Computing**: Stores intermediate data in memory rather than disk for 100x speed improvement
+- **Directed Acyclic Graph (DAG)**: Optimizes execution plans through intelligent task scheduling
+- **Resilient Distributed Datasets (RDDs)**: Fault-tolerant distributed data structures with lineage tracking
+- **Unified Engine**: Single platform for batch, streaming, ML, and graph processing
+- **Lazy Evaluation**: Defers execution until actions are called, enabling optimization
+
+#### **Historical Context**
+- **2009**: Created at UC Berkeley AMPLab by Matei Zaharia
+- **2010**: Open-sourced under BSD license
+- **2013**: Became Apache top-level project
+- **2014**: Spark 1.0 with Spark SQL and MLlib
+- **2016**: Spark 2.0 with unified Dataset API
+- **2020**: Spark 3.0 with adaptive query execution
+- **2023**: Spark 3.4 with improved streaming and ML capabilities
+
+#### **Architectural Principles**
+- **Fault Tolerance**: Automatic recovery through RDD lineage without checkpointing
+- **Horizontal Scalability**: Linear scaling across thousands of nodes
+- **Multi-Language Support**: APIs in Scala, Java, Python, R, and SQL
+- **Pluggable Architecture**: Support for multiple cluster managers and storage systems
+- **Catalyst Optimizer**: Rule-based and cost-based query optimization
+
+### 📈 **Comparative Analysis**
+
+#### **Big Data Processing Framework Comparison Matrix**
+| Feature | Apache Spark | Hadoop MapReduce | Apache Flink | Apache Storm |
+|---------|--------------|------------------|--------------|---------------|
+| **Processing Model** | Batch + Streaming | Batch only | Streaming-first | Stream only |
+| **Memory Usage** | In-memory caching | Disk-based | Memory + disk | Memory-based |
+| **Latency** | Sub-second | Minutes | Milliseconds | Milliseconds |
+| **Fault Tolerance** | RDD lineage | Task restart | Checkpointing | At-least-once |
+| **API Complexity** | High-level APIs | Low-level | Medium-level | Low-level |
+| **Machine Learning** | MLlib built-in | External tools | FlinkML | None |
+| **SQL Support** | Spark SQL | Hive integration | Flink SQL | None |
+| **Ecosystem** | Very mature | Very mature | Growing | Limited |
+| **Learning Curve** | Medium | High | High | Medium |
+| **Resource Usage** | High memory | Low memory | Medium | Low |
+
+#### **Performance Benchmarks**
+```
+Spark vs MapReduce Performance (100GB dataset):
+┌─────────────────┬──────────────┬──────────────┬──────────────┐
+| Workload        | Spark        | MapReduce    | Speedup      |
+├─────────────────┼──────────────┼──────────────┼──────────────┤
+| Word Count      | 2 minutes    | 15 minutes   | 7.5x         |
+| Sort            | 3 minutes    | 45 minutes   | 15x          |
+| Iterative ML    | 5 minutes    | 2 hours      | 24x          |
+| Graph Analytics | 8 minutes    | 4 hours      | 30x          |
+| Complex ETL     | 12 minutes   | 3 hours      | 15x          |
+└─────────────────┴──────────────┴──────────────┴──────────────┘
+```
+
 **Answer:**
 Apache Spark is a unified analytics engine for large-scale data processing that has revolutionized big data processing.
 
@@ -35,6 +91,50 @@ result.show()
 ```
 
 ### 2. Explain Spark's architecture and core components
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **Master-Worker Architecture**: Driver coordinates work across distributed executors
+- **Resource Management**: Pluggable cluster managers handle resource allocation
+- **Task Scheduling**: DAG scheduler optimizes task execution across stages
+- **Data Locality**: Scheduler attempts to run tasks close to data
+- **Dynamic Resource Allocation**: Automatically scales executors based on workload
+
+#### **Component Interaction Flow**
+```
+Spark Architecture Data Flow:
+┌────────────────────┬────────────────┬────────────────┐
+| Component           | Responsibility     | Resource Usage   |
+├────────────────────┼────────────────┼────────────────┤
+| Driver Program      | Job coordination   | 1-4 GB RAM       |
+| └─ SparkContext    | Entry point        | Minimal          |
+| └─ DAG Scheduler   | Stage planning     | CPU intensive    |
+| └─ Task Scheduler  | Task distribution  | Network I/O      |
+| Cluster Manager     | Resource mgmt      | Varies by type   |
+| └─ YARN           | Hadoop integration | 512MB-2GB        |
+| └─ Kubernetes     | Container orchest  | 1-2GB            |
+| └─ Standalone     | Simple deployment  | Minimal          |
+| Executors           | Task execution     | 2-64GB RAM       |
+| └─ JVM Process    | Isolated execution | High memory      |
+| └─ Block Manager  | Data storage       | Memory + disk    |
+| └─ Task Threads   | Parallel execution | CPU cores        |
+└────────────────────┴────────────────┴────────────────┘
+```
+
+#### **Execution Model**
+```
+Spark Job Execution Lifecycle:
+1. Application Submission → Driver Program Created
+2. SparkContext Creation → Cluster Manager Contact
+3. Resource Allocation → Executors Launched
+4. Code Distribution → JAR/Python files sent
+5. Task Scheduling → DAG → Stages → Tasks
+6. Task Execution → Data Processing
+7. Result Collection → Driver aggregates results
+8. Resource Cleanup → Executors terminated
+```
+
 **Answer:**
 **Core Components:**
 - **Driver Program**: Coordinates the application and manages SparkContext
