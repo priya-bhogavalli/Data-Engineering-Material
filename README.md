@@ -118,6 +118,11 @@ Each topic folder contains:
 
 ## 🗂️ Core Data Engineering Topics
 
+### 📚 **NEW: Theoretical Foundations**
+- **[🎯 Data Engineering Fundamentals](./Core-Data-Engineering/Fundamentals/DATA_ENGINEERING_FUNDAMENTALS.md)** - Complete theoretical foundation with mathematical models
+- **[🌐 Distributed Systems Theory](./Core-Data-Engineering/Fundamentals/DISTRIBUTED_SYSTEMS_THEORY.md)** - CAP theorem, consensus algorithms, fault tolerance
+- **[📋 Theoretical Enhancement Plan](./THEORETICAL_CONCEPTS_ENHANCEMENT_PLAN.md)** - Roadmap for comprehensive theoretical coverage
+
 ### Programming Languages
 - [Python](./Core-Data-Engineering/Programming-Languages/Python/) - Primary language for data engineering
 - [SQL](./Core-Data-Engineering/Programming-Languages/SQL/) - Essential for data manipulation
