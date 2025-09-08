@@ -2,11 +2,13 @@
 
 ## Table of Contents
 1. [OSI Model & TCP/IP](#osi-model--tcpip)
-2. [HTTP/HTTPS & Web Protocols](#httphttps--web-protocols)
-3. [DNS & Domain Resolution](#dns--domain-resolution)
-4. [Load Balancing & CDN](#load-balancing--cdn)
-5. [Network Security](#network-security)
-6. [Performance & Troubleshooting](#performance--troubleshooting)
+2. [TCP/IP Protocol Suite](#tcpip-protocol-suite)
+3. [SSH & Secure Protocols](#ssh--secure-protocols)
+4. [HTTP/HTTPS & Web Protocols](#httphttps--web-protocols)
+5. [DNS & Domain Resolution](#dns--domain-resolution)
+6. [Load Balancing & CDN](#load-balancing--cdn)
+7. [Network Security](#network-security)
+8. [Performance & Troubleshooting](#performance--troubleshooting)
 
 ---
 
