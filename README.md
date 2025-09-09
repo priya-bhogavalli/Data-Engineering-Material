@@ -21,7 +21,9 @@
 - **Databases**: [Database Types](./Core-Data-Engineering/Fundamentals/DATABASE_TYPES_INTERVIEW_QUESTIONS.md) | [PostgreSQL](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | [MongoDB](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | [Redis](./Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_INTERVIEW_QUESTIONS.md) | [Neo4j](./Core-Data-Engineering/Databases/Graph-Databases/Neo4j/NEO4J_INTERVIEW_QUESTIONS.md) | [Elasticsearch](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md)
 - **Fundamentals**: [Big Data 4 Vs](./Core-Data-Engineering/Fundamentals/BIG_DATA_4VS_INTERVIEW_QUESTIONS.md) | [Data Types](./Core-Data-Engineering/Fundamentals/DATA_TYPES_INTERVIEW_QUESTIONS.md) | [File Systems](./Core-Data-Engineering/Fundamentals/FILE_SYSTEMS_INTERVIEW_QUESTIONS.md) | [Data Serialization](./Core-Data-Engineering/Fundamentals/DATA_SERIALIZATION_INTERVIEW_QUESTIONS.md)
 - **Architecture**: [Lambda & Kappa](./Core-Data-Engineering/Data-Architecture/LAMBDA_KAPPA_ARCHITECTURE_INTERVIEW_QUESTIONS.md) | [Data Warehouse vs Lake](./Core-Data-Engineering/Data-Architecture/DATA_WAREHOUSE_VS_LAKE_INTERVIEW_QUESTIONS.md) | [Data Lake Management](./Core-Data-Engineering/Data-Architecture/DATA_LAKE_MANAGEMENT_INTERVIEW_QUESTIONS.md)
+- **Software Engineering**: [Testing & Development Best Practices](./Core-Data-Engineering/Software-Engineering-Principles/SOFTWARE_ENGINEERING_INTERVIEW_QUESTIONS.md)
 - **Data Quality**: [Data Profiling](./Core-Data-Engineering/Data-Quality/DATA_PROFILING_INTERVIEW_QUESTIONS.md)
+- **Security & Compliance**: [Data Security, Ethics & Compliance](./Core-Data-Engineering/Data-Security-Ethics-Compliance/DATA_SECURITY_ETHICS_COMPLIANCE_INTERVIEW_QUESTIONS.md)
 - **Orchestration**: [Airflow](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | [DBT](./Core-Data-Engineering/Data-Processing/Orchestration/DBT/DBT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
 - **Warehousing**: [Snowflake](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | [Redshift](./Core-Data-Engineering/Data-Warehousing/Redshift/REDSHIFT_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)
 
@@ -205,6 +207,12 @@ Each topic folder contains:
 - [Data Mesh](./Core-Data-Engineering/Data-Architecture/Data-Mesh/)
 - [DataOps](./Core-Data-Engineering/Data-Architecture/DataOps/)
 - [Dimensional Data Modeling](./Core-Data-Engineering/Data-Architecture/Dimensional-Data-Modeling/)
+
+### Software Engineering Principles
+- [Software Engineering Principles](./Core-Data-Engineering/Software-Engineering-Principles/) - Testing, indexing, scaling strategies, and development best practices for data systems
+
+### Data Security, Ethics & Compliance
+- [Data Security, Ethics & Compliance](./Core-Data-Engineering/Data-Security-Ethics-Compliance/) - Data protection, privacy, regulatory compliance, and ethical data practices
 
 ## 🛠️ Supporting Tools & Technologies
 

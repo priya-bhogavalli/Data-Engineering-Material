@@ -9,6 +9,11 @@
 - **Real-World Application**: Practical data engineering scenarios
 - **Advanced Concepts**: Window functions, CTEs, and complex joins
 
+### 🔥 **Essential References**
+- **[📚 Data Engineering Cookbook - Interview Questions](https://github.com/andkret/Cookbook/blob/master/sections/08-InterviewQuestions.md)** - Comprehensive external interview questions collection
+- **[🎯 FAANG SQL Interview Questions](./SQL_FAANG_INTERVIEW_QUESTIONS.md)** - Meta, Amazon, Apple, Netflix, Google, Microsoft specific questions
+- **[💼 DataLemur SQL Questions](https://datalemur.com/sql-interview-questions)** - Real FAANG company interview questions
+
 ### 🔥 **Most Critical Topics for Data Engineers**
 1. **Window Functions & Analytics** - Essential for data analysis
 2. **Performance Optimization** - Critical for large-scale data processing
@@ -890,6 +895,359 @@ SELECT
         WHEN 'ABC' = 'abc' THEN 'Case Insensitive'
         ELSE 'Case Sensitive'
     END as case_sensitivity_test;
+```
+
+### 21. What are windowing functions?
+**Answer:**
+Windowing functions perform calculations across a set of table rows related to the current row, without collapsing the result set like aggregate functions do.
+
+**Key Characteristics:**
+- Preserve individual rows while adding calculated columns
+- Use OVER clause to define the window
+- Can partition data and define ordering
+- Essential for analytics and ranking operations
+
+**Common Window Functions:**
+- **Ranking**: ROW_NUMBER(), RANK(), DENSE_RANK(), NTILE()
+- **Analytical**: LAG(), LEAD(), FIRST_VALUE(), LAST_VALUE()
+- **Aggregate**: SUM(), AVG(), COUNT(), MIN(), MAX() with OVER clause
+
+```sql
+-- Basic window function examples
+SELECT 
+    employee_id,
+    name,
+    salary,
+    department,
+    -- Ranking within department
+    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank,
+    -- Running total of salaries
+    SUM(salary) OVER (ORDER BY employee_id ROWS UNBOUNDED PRECEDING) as running_total,
+    -- Average salary in department
+    AVG(salary) OVER (PARTITION BY department) as dept_avg_salary,
+    -- Previous employee's salary
+    LAG(salary, 1) OVER (ORDER BY employee_id) as prev_salary,
+    -- Salary difference from department average
+    salary - AVG(salary) OVER (PARTITION BY department) as salary_diff
+FROM employees;
+
+-- Moving average example
+SELECT 
+    order_date,
+    daily_sales,
+    AVG(daily_sales) OVER (
+        ORDER BY order_date 
+        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ) as seven_day_avg
+FROM daily_sales_summary;
+```
+
+### 22. What is a stored procedure?
+**Answer:**
+A stored procedure is a precompiled collection of SQL statements and optional control-of-flow statements stored in the database that can be executed as a single unit.
+
+**Key Features:**
+- **Precompiled**: Faster execution than ad-hoc queries
+- **Parameterized**: Accept input and output parameters
+- **Reusable**: Can be called multiple times
+- **Security**: Can control data access and hide complex logic
+- **Transaction Control**: Can manage transactions internally
+
+```sql
+-- PostgreSQL stored procedure example
+CREATE OR REPLACE PROCEDURE update_employee_salary(
+    IN emp_id INT,
+    IN new_salary DECIMAL(10,2),
+    OUT result_message TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Validate input
+    IF new_salary <= 0 THEN
+        result_message := 'Error: Salary must be positive';
+        RETURN;
+    END IF;
+    
+    -- Check if employee exists
+    IF NOT EXISTS (SELECT 1 FROM employees WHERE employee_id = emp_id) THEN
+        result_message := 'Error: Employee not found';
+        RETURN;
+    END IF;
+    
+    -- Update salary
+    UPDATE employees 
+    SET salary = new_salary,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE employee_id = emp_id;
+    
+    -- Log the change
+    INSERT INTO salary_audit (employee_id, old_salary, new_salary, changed_at)
+    SELECT emp_id, 
+           (SELECT salary FROM employees WHERE employee_id = emp_id),
+           new_salary,
+           CURRENT_TIMESTAMP;
+    
+    result_message := 'Salary updated successfully';
+END;
+$$;
+
+-- Call the procedure
+CALL update_employee_salary(123, 75000.00, NULL);
+```
+
+### 23. Why would you use stored procedures?
+**Answer:**
+**Benefits:**
+- **Performance**: Precompiled and cached execution plans
+- **Security**: Controlled data access, prevent SQL injection
+- **Maintainability**: Centralized business logic
+- **Network Traffic**: Reduced data transfer
+- **Consistency**: Standardized operations across applications
+- **Transaction Management**: Complex transaction handling
+
+**Use Cases:**
+- Complex business logic that involves multiple tables
+- Data validation and transformation
+- Batch processing operations
+- Audit logging and compliance
+- Performance-critical operations
+
+**Drawbacks:**
+- Database vendor lock-in
+- Harder to version control
+- Limited debugging capabilities
+- Scalability challenges in distributed systems
+
+### 24. What are atomic attributes?
+**Answer:**
+Atomic attributes are indivisible data elements that cannot be broken down into smaller meaningful components within the context of the database design.
+
+**Characteristics:**
+- **Indivisible**: Cannot be split into smaller parts
+- **Single-valued**: Contains only one value
+- **Domain-specific**: Meaning depends on business context
+- **First Normal Form**: Required for 1NF compliance
+
+**Examples:**
+```sql
+-- NON-ATOMIC: Violates atomicity
+CREATE TABLE customers_bad (
+    customer_id INT,
+    full_name VARCHAR(100),  -- 'John Smith' - can be split
+    phone_numbers TEXT       -- '123-456-7890, 987-654-3210' - multiple values
+);
+
+-- ATOMIC: Properly normalized
+CREATE TABLE customers_good (
+    customer_id INT PRIMARY KEY,
+    first_name VARCHAR(50),   -- Atomic
+    last_name VARCHAR(50),    -- Atomic
+    email VARCHAR(100)        -- Atomic
+);
+
+CREATE TABLE customer_phones (
+    customer_id INT REFERENCES customers_good(customer_id),
+    phone_number VARCHAR(20), -- Atomic
+    phone_type VARCHAR(10),   -- 'mobile', 'home', 'work'
+    PRIMARY KEY (customer_id, phone_number)
+);
+```
+
+### 25. Explain ACID properties of a database
+**Answer:**
+ACID properties ensure database reliability and data integrity in transaction processing.
+
+**Atomicity** - "All or Nothing"
+- Either all operations in a transaction succeed, or none do
+- No partial transactions are allowed
+- If any operation fails, the entire transaction is rolled back
+
+**Consistency** - "Valid State to Valid State"
+- Database moves from one valid state to another
+- All constraints, triggers, and rules are satisfied
+- Data integrity is maintained
+
+**Isolation** - "Concurrent Transactions Don't Interfere"
+- Transactions execute independently
+- Intermediate states are not visible to other transactions
+- Prevents dirty reads, phantom reads, non-repeatable reads
+
+**Durability** - "Committed Changes Persist"
+- Once committed, changes survive system crashes
+- Data is written to permanent storage
+- Recovery mechanisms ensure persistence
+
+```sql
+-- ACID example: Bank transfer
+BEGIN TRANSACTION;
+    -- Atomicity: Both operations must succeed
+    UPDATE accounts SET balance = balance - 1000 WHERE account_id = 1;
+    UPDATE accounts SET balance = balance + 1000 WHERE account_id = 2;
+    
+    -- Consistency: Check business rules
+    IF (SELECT balance FROM accounts WHERE account_id = 1) < 0 THEN
+        ROLLBACK; -- Maintain consistency
+    ELSE
+        COMMIT; -- Durability: Changes are permanent
+    END IF;
+END;
+```
+
+### 26. How to optimize queries?
+**Answer:**
+**Query Optimization Strategies:**
+
+**1. Index Optimization**
+```sql
+-- Create appropriate indexes
+CREATE INDEX idx_orders_customer_date ON orders(customer_id, order_date);
+CREATE INDEX idx_products_category ON products(category_id) WHERE status = 'ACTIVE';
+```
+
+**2. Query Structure**
+```sql
+-- Use specific columns instead of SELECT *
+SELECT customer_id, name, email FROM customers; -- Good
+SELECT * FROM customers; -- Avoid
+
+-- Use WHERE clause effectively
+SELECT * FROM orders WHERE order_date >= '2023-01-01'; -- Good
+SELECT * FROM orders WHERE YEAR(order_date) = 2023; -- Avoid (not sargable)
+```
+
+**3. JOIN Optimization**
+```sql
+-- Use appropriate JOIN types
+SELECT c.name, o.total
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id -- Fastest
+WHERE c.status = 'ACTIVE';
+```
+
+**4. Subquery vs EXISTS**
+```sql
+-- Use EXISTS for better performance
+SELECT * FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id);
+```
+
+**5. LIMIT Large Result Sets**
+```sql
+SELECT * FROM large_table ORDER BY created_date DESC LIMIT 100;
+```
+
+### 27. What are the different types of JOIN (CROSS, INNER, OUTER)?
+**Answer:**
+
+**INNER JOIN** - Returns only matching records from both tables
+```sql
+SELECT c.name, o.order_date
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+**LEFT OUTER JOIN (LEFT JOIN)** - All records from left table + matches from right
+```sql
+SELECT c.name, o.order_date
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+**RIGHT OUTER JOIN (RIGHT JOIN)** - All records from right table + matches from left
+```sql
+SELECT c.name, o.order_date
+FROM customers c
+RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+**FULL OUTER JOIN** - All records from both tables
+```sql
+SELECT c.name, o.order_date
+FROM customers c
+FULL OUTER JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+**CROSS JOIN** - Cartesian product of both tables
+```sql
+SELECT c.name, p.product_name
+FROM customers c
+CROSS JOIN products p;
+-- Results in customers × products rows
+```
+
+**SELF JOIN** - Table joined with itself
+```sql
+SELECT e1.name as employee, e2.name as manager
+FROM employees e1
+JOIN employees e2 ON e1.manager_id = e2.employee_id;
+```
+
+### 28. What is the difference between Clustered Index and Non-Clustered Index - with examples?
+**Answer:**
+
+**Clustered Index:**
+- **Physical ordering**: Data rows are stored in the order of the index key
+- **One per table**: Only one clustered index allowed per table
+- **Primary key**: Usually the primary key becomes the clustered index
+- **Faster range queries**: Sequential data access
+- **Slower inserts**: May require data reorganization
+
+**Non-Clustered Index:**
+- **Logical ordering**: Separate structure that points to data rows
+- **Multiple allowed**: Can have many non-clustered indexes per table
+- **Additional storage**: Requires extra space for index structure
+- **Faster seeks**: Direct access to specific values
+- **Covering indexes**: Can include additional columns
+
+```sql
+-- Clustered Index Example
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,  -- Automatically creates clustered index
+    customer_id INT,
+    order_date DATE,
+    total_amount DECIMAL(10,2)
+);
+-- Data is physically stored in order_id sequence
+
+-- Non-Clustered Index Examples
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+CREATE INDEX idx_orders_date ON orders(order_date);
+CREATE INDEX idx_orders_customer_date ON orders(customer_id, order_date);
+
+-- Covering Index (includes additional columns)
+CREATE INDEX idx_orders_covering 
+ON orders(customer_id) 
+INCLUDE (order_date, total_amount);
+
+-- Query execution differences
+-- Clustered index scan (range query)
+SELECT * FROM orders WHERE order_id BETWEEN 1000 AND 2000;
+-- Fast because data is physically ordered
+
+-- Non-clustered index seek
+SELECT * FROM orders WHERE customer_id = 123;
+-- Uses idx_orders_customer, then looks up data rows
+
+-- Index usage analysis
+EXPLAIN (ANALYZE, BUFFERS) 
+SELECT customer_id, order_date, total_amount
+FROM orders 
+WHERE customer_id = 123;
+-- May use covering index without accessing table data
+```
+
+**Performance Comparison:**
+```
+┌─────────────────┬──────────────┬─────────────────┬──────────────┐
+│ Operation       │ Clustered    │ Non-Clustered   │ Best Use     │
+├─────────────────┼──────────────┼─────────────────┼──────────────┤
+│ Range Queries   │ Excellent    │ Good            │ Clustered    │
+│ Point Lookups   │ Good         │ Excellent       │ Non-Clust.   │
+│ Inserts         │ Slower       │ Faster          │ Non-Clust.   │
+│ Updates         │ Slower       │ Faster          │ Non-Clust.   │
+│ Storage Space   │ None extra   │ Additional      │ Clustered    │
+└─────────────────┴──────────────┴─────────────────┴──────────────┘
 ```
 
 ## Intermediate Level Questions (16-35)
@@ -3400,6 +3758,295 @@ SELECT * FROM execute_data_quality_checks();
 ---
 
 ---
+
+## Cloud Computing Questions
+
+### 29. What is serverless?
+**Answer:**
+Serverless is a cloud computing execution model where the cloud provider manages the infrastructure, automatically scaling resources based on demand, and charges only for actual usage.
+
+**Key Characteristics:**
+- **No server management**: Cloud provider handles infrastructure
+- **Automatic scaling**: Scales from zero to thousands of instances
+- **Pay-per-use**: Charged only for execution time and resources used
+- **Event-driven**: Triggered by events (HTTP requests, database changes, etc.)
+- **Stateless**: Functions don't maintain state between executions
+
+**Serverless Services:**
+- **Compute**: AWS Lambda, Azure Functions, Google Cloud Functions
+- **Databases**: DynamoDB, CosmosDB, Firestore
+- **Storage**: S3, Blob Storage, Cloud Storage
+- **API Gateway**: AWS API Gateway, Azure API Management
+
+**Benefits:**
+- Reduced operational overhead
+- Automatic scaling and high availability
+- Cost efficiency for variable workloads
+- Faster time to market
+- Built-in monitoring and logging
+
+**Limitations:**
+- Cold start latency
+- Vendor lock-in
+- Limited execution time
+- Debugging complexity
+- Less control over infrastructure
+
+```python
+# AWS Lambda example
+import json
+import boto3
+
+def lambda_handler(event, context):
+    # Process incoming data
+    data = json.loads(event['body'])
+    
+    # Perform business logic
+    result = process_data(data)
+    
+    # Return response
+    return {
+        'statusCode': 200,
+        'body': json.dumps(result)
+    }
+```
+
+### 30. What is the difference between IaaS, PaaS and SaaS?
+**Answer:**
+
+**Infrastructure as a Service (IaaS)**
+- **Definition**: Provides virtualized computing resources over the internet
+- **Control Level**: High - manage OS, runtime, applications
+- **Responsibility**: Customer manages everything except physical infrastructure
+- **Examples**: AWS EC2, Azure VMs, Google Compute Engine
+- **Use Cases**: Lift-and-shift migrations, custom applications, development environments
+
+**Platform as a Service (PaaS)**
+- **Definition**: Provides platform and environment for developing and deploying applications
+- **Control Level**: Medium - manage applications and data only
+- **Responsibility**: Provider manages OS, runtime, middleware
+- **Examples**: AWS Elastic Beanstalk, Azure App Service, Google App Engine
+- **Use Cases**: Application development, API development, microservices
+
+**Software as a Service (SaaS)**
+- **Definition**: Provides complete software applications over the internet
+- **Control Level**: Low - use the application as-is
+- **Responsibility**: Provider manages everything
+- **Examples**: Salesforce, Office 365, Google Workspace
+- **Use Cases**: Email, CRM, productivity tools, business applications
+
+**Comparison Matrix:**
+```
+┌─────────────────┬─────────────┬─────────────┬─────────────┐
+│ Component       │ IaaS        │ PaaS        │ SaaS        │
+├─────────────────┼─────────────┼─────────────┼─────────────┤
+│ Applications    │ You Manage  │ You Manage  │ Provider    │
+│ Data            │ You Manage  │ You Manage  │ Provider    │
+│ Runtime         │ You Manage  │ Provider    │ Provider    │
+│ Middleware      │ You Manage  │ Provider    │ Provider    │
+│ OS              │ You Manage  │ Provider    │ Provider    │
+│ Virtualization  │ Provider    │ Provider    │ Provider    │
+│ Servers         │ Provider    │ Provider    │ Provider    │
+│ Storage         │ Provider    │ Provider    │ Provider    │
+│ Networking      │ Provider    │ Provider    │ Provider    │
+└─────────────────┴─────────────┴─────────────┴─────────────┘
+```
+
+### 31. How do you move from the ingest layer to the consumption layer? (In Serverless)
+**Answer:**
+In serverless architectures, data flows through multiple layers using event-driven, managed services.
+
+**Serverless Data Pipeline Architecture:**
+
+**1. Ingest Layer**
+```
+Data Sources → API Gateway → Lambda → Kinesis/SQS → S3 Raw
+```
+
+**2. Processing Layer**
+```
+S3 Raw → Lambda/Step Functions → Glue/EMR Serverless → S3 Processed
+```
+
+**3. Storage Layer**
+```
+S3 Processed → DynamoDB/RDS Serverless → Data Lake/Warehouse
+```
+
+**4. Consumption Layer**
+```
+Data Warehouse → API Gateway → Lambda → Analytics/BI Tools
+```
+
+**Implementation Example:**
+```python
+# Ingest Lambda Function
+import json
+import boto3
+
+def ingest_handler(event, context):
+    s3 = boto3.client('s3')
+    kinesis = boto3.client('kinesis')
+    
+    # Process incoming data
+    for record in event['Records']:
+        data = json.loads(record['body'])
+        
+        # Store raw data in S3
+        s3.put_object(
+            Bucket='raw-data-bucket',
+            Key=f"raw/{data['timestamp']}/{data['id']}.json",
+            Body=json.dumps(data)
+        )
+        
+        # Send to processing stream
+        kinesis.put_record(
+            StreamName='processing-stream',
+            Data=json.dumps(data),
+            PartitionKey=data['id']
+        )
+
+# Processing Lambda Function
+def process_handler(event, context):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('processed-data')
+    
+    for record in event['Records']:
+        # Decode Kinesis data
+        data = json.loads(base64.b64decode(record['kinesis']['data']))
+        
+        # Transform data
+        processed_data = transform_data(data)
+        
+        # Store in DynamoDB
+        table.put_item(Item=processed_data)
+
+# Consumption API Lambda
+def api_handler(event, context):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('processed-data')
+    
+    # Query processed data
+    response = table.query(
+        KeyConditionExpression=Key('partition_key').eq(event['pathParameters']['id'])
+    )
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps(response['Items'])
+    }
+```
+
+**Serverless Services by Layer:**
+- **Ingest**: API Gateway, Lambda, Kinesis Data Streams, SQS
+- **Process**: Lambda, Step Functions, Glue, EMR Serverless
+- **Store**: S3, DynamoDB, RDS Serverless, Redshift Serverless
+- **Consume**: Lambda, API Gateway, QuickSight, Athena
+
+### 32. What is edge computing?
+**Answer:**
+Edge computing brings computation and data storage closer to the location where it's needed, reducing latency and bandwidth usage.
+
+**Key Concepts:**
+- **Proximity**: Processing happens near data sources
+- **Low Latency**: Reduced round-trip time to central servers
+- **Bandwidth Efficiency**: Less data transmitted to cloud
+- **Offline Capability**: Can operate without internet connectivity
+- **Real-time Processing**: Immediate response to events
+
+**Edge Computing Architecture:**
+```
+Devices/Sensors → Edge Nodes → Regional Data Centers → Cloud
+```
+
+**Use Cases:**
+- **IoT Applications**: Smart cities, industrial automation
+- **Autonomous Vehicles**: Real-time decision making
+- **Content Delivery**: CDNs, video streaming
+- **Gaming**: Low-latency gaming experiences
+- **Healthcare**: Real-time patient monitoring
+- **Retail**: In-store analytics, inventory management
+
+**Edge Computing Services:**
+- **AWS**: IoT Greengrass, Lambda@Edge, CloudFront
+- **Azure**: IoT Edge, Azure Stack Edge
+- **Google**: Cloud IoT Edge, Anthos
+
+**Benefits:**
+- Reduced latency (1-10ms vs 100-200ms)
+- Lower bandwidth costs
+- Improved reliability and availability
+- Enhanced security and privacy
+- Real-time processing capabilities
+
+**Challenges:**
+- Limited computing resources
+- Management complexity
+- Security concerns
+- Standardization issues
+- Higher infrastructure costs
+
+### 33. What is the difference between cloud, edge, and on-premise?
+**Answer:**
+
+**On-Premise**
+- **Location**: Customer's physical location
+- **Control**: Full control over hardware and software
+- **Responsibility**: Customer manages everything
+- **Latency**: Lowest for local access
+- **Costs**: High upfront capital expenditure
+- **Scalability**: Limited by physical infrastructure
+- **Security**: Customer responsible for all security
+
+**Cloud Computing**
+- **Location**: Provider's data centers (geographically distributed)
+- **Control**: Shared responsibility model
+- **Responsibility**: Provider manages infrastructure
+- **Latency**: Variable based on distance to data center
+- **Costs**: Pay-as-you-use operational expenditure
+- **Scalability**: Virtually unlimited
+- **Security**: Shared security model
+
+**Edge Computing**
+- **Location**: Close to end users/devices
+- **Control**: Hybrid model
+- **Responsibility**: Distributed between customer and provider
+- **Latency**: Ultra-low (1-10ms)
+- **Costs**: Moderate, focused on specific use cases
+- **Scalability**: Limited but strategically placed
+- **Security**: Distributed security model
+
+**Comparison Matrix:**
+```
+┌─────────────────┬─────────────┬─────────────┬─────────────┐
+│ Aspect          │ On-Premise  │ Cloud       │ Edge        │
+├─────────────────┼─────────────┼─────────────┼─────────────┤
+│ Latency         │ Very Low    │ Medium      │ Ultra Low   │
+│ Scalability     │ Limited     │ Unlimited   │ Moderate    │
+│ Control         │ Full        │ Shared      │ Hybrid      │
+│ Upfront Cost    │ High        │ Low         │ Medium      │
+│ Operational     │ High        │ Low         │ Medium      │
+│ Maintenance     │ Customer    │ Provider    │ Shared      │
+│ Security        │ Customer    │ Shared      │ Distributed │
+│ Customization   │ Full        │ Limited     │ Moderate    │
+│ Reliability     │ Variable    │ High        │ High        │
+│ Compliance      │ Full        │ Shared      │ Complex     │
+└─────────────────┴─────────────┴─────────────┴─────────────┘
+```
+
+**Hybrid Approaches:**
+- **Multi-Cloud**: Using multiple cloud providers
+- **Hybrid Cloud**: Combination of on-premise and cloud
+- **Edge-Cloud**: Edge computing with cloud backend
+- **Distributed Cloud**: Cloud services distributed to edge locations
+
+**Decision Factors:**
+- **Latency Requirements**: Edge for real-time, cloud for batch processing
+- **Data Sensitivity**: On-premise for highly sensitive data
+- **Scalability Needs**: Cloud for variable workloads
+- **Compliance Requirements**: On-premise for strict regulations
+- **Cost Considerations**: Cloud for cost optimization
+- **Technical Expertise**: Cloud for reduced operational burden
 
 ## 🔮 **Future Trends & Evolution**
 

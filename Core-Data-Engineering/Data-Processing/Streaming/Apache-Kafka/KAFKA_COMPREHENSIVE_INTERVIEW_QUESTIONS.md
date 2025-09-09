@@ -158,7 +158,73 @@ kafka-topics.sh --create --topic user-events \
   --bootstrap-server localhost:9092
 ```
 
-### 3. What is a Kafka broker and how does leader election work?
+### 3. What is a topic?
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **Topic Definition**: Named category or feed to which messages are published
+- **Logical Grouping**: Organizes related messages for consumption
+- **Partition Distribution**: Topics split into partitions for scalability
+- **Retention Policies**: Configurable message retention based on time or size
+- **Schema Evolution**: Support for message format changes over time
+
+#### **Topic Architecture**
+```
+Topic Structure:
+Topic: user-events
+├── Partition 0: [msg1, msg2, msg3, ...]
+├── Partition 1: [msg4, msg5, msg6, ...]
+└── Partition 2: [msg7, msg8, msg9, ...]
+
+Each partition is:
+- Ordered sequence of messages
+- Immutable log structure
+- Replicated across brokers
+- Consumed independently
+```
+
+#### **Topic Configuration Matrix**
+```
+┌────────────────┬──────────────┬──────────────┬──────────────┐
+| Configuration   | Default       | Use Case      | Impact        |
+├────────────────┼──────────────┼──────────────┼──────────────┤
+| Partitions      | 1             | Parallelism   | Scalability   |
+| Replication     | 1             | Fault tolerance| Durability   |
+| Retention       | 7 days        | Data lifecycle| Storage cost  |
+| Compression     | None          | Storage/Network| Performance  |
+└────────────────┴──────────────┴──────────────┴──────────────┘
+```
+
+**Answer**: 
+A Kafka topic is a named category or stream to which messages are published and from which they are consumed.
+
+**Key Characteristics:**
+- **Logical Grouping**: Related messages organized together
+- **Partitioned**: Split into multiple partitions for scalability
+- **Persistent**: Messages stored durably on disk
+- **Ordered**: Messages within partition maintain order
+
+**Topic Operations:**
+```bash
+# Create topic
+kafka-topics.sh --create --topic user-events \
+  --partitions 3 --replication-factor 3 \
+  --bootstrap-server localhost:9092
+
+# List topics
+kafka-topics.sh --list --bootstrap-server localhost:9092
+
+# Describe topic
+kafka-topics.sh --describe --topic user-events \
+  --bootstrap-server localhost:9092
+
+# Delete topic
+kafka-topics.sh --delete --topic user-events \
+  --bootstrap-server localhost:9092
+```
+
+### 3a. What is a Kafka broker and how does leader election work?
 
 ### 🎯 **Theoretical Foundation**
 
@@ -215,96 +281,60 @@ props.put("enable.idempotence", true);
 
 ### 4. How does Kafka ensure message ordering?
 
-
 ### 🎯 **Theoretical Foundation**
 
 #### **Core Concepts**
-  - Core principles and concepts
-  - Key features and capabilities
-  - Industry standards and best practices
+- **Partition-Level Ordering**: Messages within same partition maintain strict order
+- **Key-Based Partitioning**: Messages with same key routed to same partition
+- **Producer Ordering**: Single producer maintains send order within partition
+- **Consumer Ordering**: Messages consumed in partition order
+- **Cross-Partition Limitations**: No ordering guarantee across different partitions
 
-#### **Historical Context**
-Evolution and development of kafka
+#### **Ordering Mechanisms**
+```
+Kafka Ordering Hierarchy:
+1. Global Level: ❌ No guarantee across topics
+2. Topic Level: ❌ No guarantee across partitions
+3. Partition Level: ✅ Strict FIFO ordering
+4. Key Level: ✅ Same key → same partition → ordered
+5. Producer Level: ✅ Per-partition ordering maintained
+```
 
-#### **Architectural Principles**
-Key architectural decisions in kafka design
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying kafka operations
-
-
-
-### 📊 **Comparative Analysis**
-
-#### **Technology Comparison Matrix**
-| Feature | kafka | Alternative 1 | Alternative 2 | Alternative 3 |
-|---------|---------------|---------------|---------------|---------------|
-| **Performance** | Analysis needed | Analysis needed | Analysis needed | Analysis needed |
-| **Scalability** | Analysis needed | Analysis needed | Analysis needed | Analysis needed |
-| **Cost (TCO)** | Analysis needed | Analysis needed | Analysis needed | Analysis needed |
-| **Learning Curve** | Analysis needed | Analysis needed | Analysis needed | Analysis needed |
-| **Community Support** | Analysis needed | Analysis needed | Analysis needed | Analysis needed |
-| **Enterprise Features** | Analysis needed | Analysis needed | Analysis needed | Analysis needed |
-
-#### **Decision Framework**
-Decision criteria and selection process for kafka
-
-#### **Use Case Scenarios**
-- **Choose kafka when:** [Specific scenarios]
-- **Consider alternatives when:** [Specific conditions]
-- **Avoid kafka when:** [Specific limitations]
-
-
-
-### 🌍 **Real-World Applications**
-
-#### **Industry Use Cases**
-Common industry applications of kafka
-
-#### **Production Considerations**
-Key considerations when deploying kafka in production
-
-#### **Case Studies**
-Real-world case studies of kafka implementations
-
-
-
-### 🔮 **Future Trends & Evolution**
-
-#### **Emerging Developments**
-Latest developments in kafka ecosystem
-
-#### **Industry Direction**
-Future direction of kafka technologies
-
-#### **Skills Evolution Requirements**
-Evolving skill requirements for kafka professionals
-
-
-
-### 📚 **Further Reading**
-- [Official Kafka Documentation](#kafka-docs)
-- [Performance Optimization Guide](#kafka-performance)
-- [Best Practices and Patterns](#kafka-patterns)
-- [Community Resources](#kafka-community)
-- [Certification Paths](#kafka-certification)
-
-
-### **Enhanced Answer**
+#### **Ordering Configuration Impact**
+```
+Producer Settings Impact on Ordering:
+┌────────────────────┬──────────────┬──────────────┬──────────────┐
+| Configuration      | Ordering     | Performance  | Reliability  |
+├────────────────────┼──────────────┼──────────────┼──────────────┤
+| max.in.flight=1    | Strict       | Low          | High         |
+| max.in.flight=5    | Relaxed      | High         | Medium       |
+| enable.idempotence | Guaranteed   | Medium       | Very High    |
+| retries=0          | Best effort  | Highest      | Low          |
+└────────────────────┴──────────────┴──────────────┴──────────────┘
+```
 
 **Answer**: 
-Kafka guarantees ordering within partitions:
+Kafka guarantees ordering within partitions, not across partitions:
 
 **Ordering Guarantees:**
-- Messages within same partition are ordered
+- Messages within same partition are strictly ordered
 - No ordering guarantee across partitions
-- Use same key to ensure related messages go to same partition
+- Use consistent keys to ensure related messages go to same partition
+- Producer maintains send order within each partition
 
+**Implementation for Ordering:**
 ```java
 // Ensure ordering by using consistent keys
 producer.send(new ProducerRecord<>("user-events", 
     user.getId(), // Key ensures same partition
     event));
+
+// Producer configuration for strict ordering
+Properties props = new Properties();
+props.put("max.in.flight.requests.per.connection", 1); // Strict ordering
+props.put("enable.idempotence", true); // Prevent duplicates
+props.put("acks", "all"); // Wait for all replicas
+props.put("retries", Integer.MAX_VALUE); // Retry on failure
 
 // Consumer processes messages in partition order
 while (true) {
@@ -313,7 +343,226 @@ while (true) {
         // Messages processed in partition order
         processMessage(record);
     }
+    consumer.commitSync(); // Commit after processing
 }
+```
+
+**Global Ordering Strategy:**
+```java
+// For global ordering, use single partition (not recommended for scale)
+kafka-topics.sh --create --topic ordered-events \
+  --partitions 1 --replication-factor 3 \
+  --bootstrap-server localhost:9092
+
+// Or implement application-level sequencing
+public class SequencedMessage {
+    private long sequenceNumber;
+    private String payload;
+    private long timestamp;
+    
+    // Application handles ordering across partitions
+}
+```
+
+### 3b. How to ensure FIFO (First In, First Out)?
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **Partition-Level Ordering**: FIFO guaranteed within single partition only
+- **Key-Based Partitioning**: Messages with same key go to same partition
+- **Producer Ordering**: Single producer maintains order within partition
+- **Consumer Ordering**: Single consumer processes messages in partition order
+- **Global Ordering Limitations**: No FIFO guarantee across partitions
+
+#### **FIFO Implementation Strategies**
+```
+FIFO Strategy Matrix:
+┌────────────────┬──────────────┬──────────────┬──────────────┐
+| Strategy        | Scope         | Performance   | Complexity    |
+├────────────────┼──────────────┼──────────────┼──────────────┤
+| Single Partition| Topic-wide    | Low          | Simple        |
+| Key Partitioning| Per key       | High         | Medium        |
+| Custom Partition| Custom logic  | Variable     | High          |
+| Sequential Keys | Ordered keys  | Medium       | Medium        |
+└────────────────┴──────────────┴──────────────┴──────────────┘
+```
+
+**Answer**: 
+Kafka ensures FIFO ordering within partitions, not across partitions:
+
+**FIFO Implementation:**
+```java
+// Ensure FIFO by using consistent keys
+String userId = "user123";
+ProducerRecord<String, String> record = new ProducerRecord<>(
+    "user-events", 
+    userId,  // Same key ensures same partition
+    eventData
+);
+producer.send(record);
+
+// Single partition for global FIFO (not recommended for scale)
+kafka-topics.sh --create --topic ordered-events \
+  --partitions 1 --replication-factor 3 \
+  --bootstrap-server localhost:9092
+```
+
+**Producer Configuration for Ordering:**
+```java
+Properties props = new Properties();
+props.put("max.in.flight.requests.per.connection", 1); // Strict ordering
+props.put("enable.idempotence", true); // Prevent duplicates
+props.put("acks", "all"); // Wait for all replicas
+props.put("retries", Integer.MAX_VALUE); // Retry on failure
+```
+
+### 3c. How do you know if all messages in a topic have been fully consumed?
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **Consumer Lag Monitoring**: Difference between latest offset and consumer position
+- **High Water Mark**: Latest committed offset in partition
+- **Consumer Group Coordination**: Tracking consumption across multiple consumers
+- **Offset Management**: Current position vs. latest available offset
+- **End-of-Stream Detection**: Identifying when caught up with producers
+
+**Answer**: 
+Monitor consumer lag to determine if all messages are consumed:
+
+**Check Consumer Lag:**
+```bash
+# Check consumer group lag
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+  --group analytics-group --describe
+
+# Output shows:
+# TOPIC    PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG
+# events   0          1000           1000            0
+# events   1          1500           1500            0
+# events   2          2000           2000            0
+```
+
+**Programmatic Lag Monitoring:**
+```java
+public class ConsumerLagMonitor {
+    public boolean isFullyConsumed(String groupId) {
+        Map<TopicPartition, Long> lags = getConsumerLag(groupId);
+        return lags.values().stream().allMatch(lag -> lag == 0);
+    }
+    
+    private Map<TopicPartition, Long> getConsumerLag(String groupId) {
+        // Get consumer group offsets and latest offsets
+        // Calculate lag = latestOffset - currentOffset
+        // Return lag per partition
+    }
+}
+```
+
+### 3d. What are brokers?
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **Broker Definition**: Individual Kafka server instance in cluster
+- **Distributed Architecture**: Multiple brokers form fault-tolerant cluster
+- **Partition Management**: Each broker hosts subset of topic partitions
+- **Replication Coordination**: Brokers replicate data for fault tolerance
+- **Client Coordination**: Brokers handle producer/consumer requests
+
+**Answer**: 
+Kafka brokers are individual server instances that form a distributed Kafka cluster:
+
+**Broker Characteristics:**
+- **Unique ID**: Each broker has unique broker.id
+- **Partition Hosting**: Stores subset of topic partitions
+- **Replication**: Maintains replicas for fault tolerance
+- **Load Distribution**: Partitions distributed across brokers
+
+**Broker Configuration:**
+```properties
+# server.properties
+broker.id=1
+listeners=PLAINTEXT://localhost:9092
+log.dirs=/var/kafka-logs
+num.network.threads=8
+num.io.threads=8
+```
+
+### 3e. What are consumer groups?
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **Consumer Group Definition**: Set of consumers sharing consumption of topic partitions
+- **Partition Assignment**: Each partition consumed by only one consumer in group
+- **Load Balancing**: Automatic distribution of partitions among consumers
+- **Fault Tolerance**: Automatic rebalancing when consumers join/leave
+- **Offset Management**: Group-level tracking of consumption progress
+
+**Answer**: 
+Consumer groups enable scalable, fault-tolerant message consumption:
+
+**Key Features:**
+- **Shared Consumption**: Multiple consumers share topic partitions
+- **Exclusive Assignment**: Each partition assigned to one consumer
+- **Automatic Rebalancing**: Dynamic partition reassignment
+- **Offset Coordination**: Group-level progress tracking
+
+**Consumer Group Configuration:**
+```java
+Properties props = new Properties();
+props.put("group.id", "analytics-group");
+props.put("enable.auto.commit", "false");
+props.put("auto.offset.reset", "earliest");
+
+KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+consumer.subscribe(Arrays.asList("user-events"));
+```
+
+### 3f. What is a producer?
+
+### 🎯 **Theoretical Foundation**
+
+#### **Core Concepts**
+- **Producer Definition**: Client application that publishes messages to Kafka topics
+- **Message Publishing**: Sends records to specific topics and partitions
+- **Partitioning Strategy**: Determines which partition receives each message
+- **Delivery Guarantees**: Configurable acknowledgment and retry behavior
+- **Batching Optimization**: Groups messages for efficient network utilization
+
+**Answer**: 
+A Kafka producer is a client application that publishes messages to Kafka topics:
+
+**Producer Responsibilities:**
+- **Message Creation**: Format and serialize messages
+- **Partition Selection**: Choose target partition for each message
+- **Delivery**: Send messages to appropriate brokers
+- **Error Handling**: Retry failed sends and handle errors
+
+**Producer Implementation:**
+```java
+// Basic producer setup
+Properties props = new Properties();
+props.put("bootstrap.servers", "localhost:9092");
+props.put("key.serializer", StringSerializer.class.getName());
+props.put("value.serializer", StringSerializer.class.getName());
+props.put("acks", "all");
+props.put("retries", Integer.MAX_VALUE);
+props.put("enable.idempotence", true);
+
+KafkaProducer<String, String> producer = new KafkaProducer<>(props);
+
+// Send message
+ProducerRecord<String, String> record = new ProducerRecord<>(
+    "user-events",    // topic
+    "user123",        // key
+    "{\"event\": \"login\"}"  // value
+);
+
+producer.send(record);
+producer.close();
 ```
 
 ### 5. What are consumer groups and how do they work?

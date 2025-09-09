@@ -757,7 +757,70 @@ sudo cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db
 sudo aide --check
 ```
 
-### 10. How do you troubleshoot performance issues in Linux?
+### 10. What is crontab?
+**Answer**: Crontab (cron table) is a configuration file that specifies shell commands to run periodically on a given schedule.
+
+**Cron Basics:**
+- **Purpose**: Automate recurring tasks and system maintenance
+- **Daemon**: Controlled by the cron daemon (crond)
+- **User-specific**: Each user can have their own crontab
+- **System-wide**: System crontab files in /etc/cron.d/
+
+**Crontab Syntax:**
+```bash
+# Format: minute hour day month day_of_week command
+# * * * * * command
+# | | | | |
+# | | | | +-- Day of week (0-7, Sunday=0 or 7)
+# | | | +---- Month (1-12)
+# | | +------ Day of month (1-31)
+# | +-------- Hour (0-23)
+# +---------- Minute (0-59)
+
+# Examples:
+0 2 * * * /opt/scripts/backup.sh          # Daily at 2 AM
+*/15 * * * * /opt/scripts/monitor.sh       # Every 15 minutes
+0 9-17 * * 1-5 /opt/scripts/business.sh   # Business hours, weekdays
+0 0 1 * * /opt/scripts/monthly.sh         # First day of month
+```
+
+**Common Crontab Commands:**
+```bash
+# Edit user crontab
+crontab -e
+
+# List current cron jobs
+crontab -l
+
+# Remove all cron jobs
+crontab -r
+
+# Edit another user's crontab (as root)
+crontab -u username -e
+
+# System-wide cron directories
+/etc/cron.hourly/    # Hourly scripts
+/etc/cron.daily/     # Daily scripts
+/etc/cron.weekly/    # Weekly scripts
+/etc/cron.monthly/   # Monthly scripts
+```
+
+**Data Engineering Use Cases:**
+```bash
+# Daily data backup
+0 2 * * * /opt/scripts/backup_data.sh >> /var/log/backup.log 2>&1
+
+# Hourly log rotation
+0 * * * * /opt/scripts/rotate_logs.sh
+
+# Weekly cleanup of old files
+0 3 * * 0 find /data/temp -type f -mtime +7 -delete
+
+# Monthly report generation
+0 6 1 * * /opt/scripts/generate_monthly_report.sh
+```
+
+### 11. How do you troubleshoot performance issues in Linux?
 **Answer**: Performance troubleshooting methodology:
 
 **System Performance Analysis**:
@@ -911,4 +974,101 @@ check_critical_issues() {
 check_critical_issues
 ```
 
-This comprehensive Linux interview question set covers essential knowledge for data engineers, from basic command-line operations to advanced system administration, security, and performance troubleshooting in data engineering environments.
+### 12. How do you manage and troubleshoot cron jobs?
+**Answer**: Comprehensive cron job management and troubleshooting:
+
+**Debugging Cron Jobs:**
+```bash
+# Check if cron daemon is running
+systemctl status cron
+# or
+ps aux | grep cron
+
+# View cron logs
+tail -f /var/log/cron
+# or on some systems
+journalctl -u cron -f
+
+# Test cron job manually
+# Run the exact command from crontab to test
+/opt/scripts/backup.sh
+
+# Check user's mail for cron output
+mail
+# or
+cat /var/mail/$USER
+```
+
+**Common Cron Issues and Solutions:**
+```bash
+# Issue: Environment variables not available
+# Solution: Set environment in crontab
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+HOME=/home/user
+
+# Issue: Script works manually but not in cron
+# Solution: Use absolute paths
+0 2 * * * cd /opt/data-pipeline && /usr/bin/python3 /opt/data-pipeline/process.py
+
+# Issue: No output or error messages
+# Solution: Redirect output to log files
+0 2 * * * /opt/scripts/backup.sh >> /var/log/backup.log 2>&1
+
+# Issue: Script runs but fails silently
+# Solution: Add error handling and logging
+#!/bin/bash
+set -e  # Exit on error
+exec > >(tee -a /var/log/script.log)
+exec 2>&1
+echo "[$(date)] Starting backup process"
+```
+
+**Advanced Cron Management:**
+```bash
+# Cron job wrapper for better error handling
+#!/bin/bash
+# /opt/scripts/cron_wrapper.sh
+SCRIPT="$1"
+LOG_FILE="/var/log/cron_jobs.log"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+}
+
+log "Starting $SCRIPT"
+if "$@"; then
+    log "SUCCESS: $SCRIPT completed"
+else
+    log "ERROR: $SCRIPT failed with exit code $?"
+    # Send alert email
+    echo "Cron job $SCRIPT failed at $(date)" | mail -s "Cron Job Failure" admin@company.com
+fi
+
+# Use wrapper in crontab
+0 2 * * * /opt/scripts/cron_wrapper.sh /opt/scripts/backup.sh
+```
+
+**Monitoring Cron Jobs:**
+```bash
+# Create monitoring script
+#!/bin/bash
+# Check if critical cron jobs are running
+check_cron_job() {
+    local job_pattern="$1"
+    local max_age_minutes="$2"
+    
+    # Check if job has run recently
+    if ! grep -q "$job_pattern" /var/log/cron | tail -100 | grep -q "$(date -d "$max_age_minutes minutes ago" '+%b %d %H:%M')"; then
+        echo "WARNING: Cron job '$job_pattern' may not be running"
+        return 1
+    fi
+    return 0
+}
+
+# Monitor critical jobs
+check_cron_job "backup.sh" 1440  # Should run daily
+check_cron_job "monitor.sh" 30   # Should run every 15 minutes
+```
+
+This comprehensive Linux interview question set covers essential knowledge for data engineers, from basic command-line operations to advanced system administration, security, performance troubleshooting, and automated task scheduling in data engineering environments.

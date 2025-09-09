@@ -2266,4 +2266,150 @@ VACUUM sales;
 - Automated resource cleanup
 - Cost-aware development practices
 
+### 241. What are AWS Lambda functions and why would you use them?
+**Answer:**
+AWS Lambda is a serverless compute service that runs code in response to events without provisioning or managing servers. It's particularly valuable for data engineering tasks that require event-driven processing.
+
+**Key Characteristics:**
+- **Serverless**: No server management required
+- **Event-driven**: Triggered by various AWS services or HTTP requests
+- **Auto-scaling**: Automatically scales based on demand
+- **Pay-per-use**: Charged only for compute time consumed
+- **Stateless**: Each invocation is independent
+
+**Why Use Lambda in Data Engineering:**
+
+**1. Real-time Data Processing:**
+- Process streaming data from Kinesis
+- Transform data as it arrives in S3
+- Real-time ETL operations
+- Event-driven data validation
+
+**2. Cost Efficiency:**
+- No idle server costs
+- Automatic scaling eliminates over-provisioning
+- Pay only for actual execution time
+- No infrastructure management overhead
+
+**3. Integration with AWS Services:**
+- Native integration with 200+ AWS services
+- Seamless data pipeline orchestration
+- Event-driven architecture enablement
+- Simplified service-to-service communication
+
+**4. Rapid Development:**
+- Quick deployment and iteration
+- Built-in monitoring and logging
+- Multiple runtime support (Python, Java, Node.js, etc.)
+- Simplified error handling and retry logic
+
+**Data Engineering Use Cases:**
+
+**File Processing:**
+```python
+import json
+import boto3
+
+def lambda_handler(event, context):
+    """Process files uploaded to S3"""
+    s3 = boto3.client('s3')
+    
+    for record in event['Records']:
+        bucket = record['s3']['bucket']['name']
+        key = record['s3']['object']['key']
+        
+        # Process the file
+        response = s3.get_object(Bucket=bucket, Key=key)
+        data = response['Body'].read()
+        
+        # Transform data
+        processed_data = transform_data(data)
+        
+        # Save processed data
+        output_key = f"processed/{key}"
+        s3.put_object(
+            Bucket=bucket,
+            Key=output_key,
+            Body=processed_data
+        )
+    
+    return {'statusCode': 200, 'body': 'Processing complete'}
+```
+
+**Database Triggers:**
+```python
+import json
+import boto3
+
+def lambda_handler(event, context):
+    """Process DynamoDB stream events"""
+    for record in event['Records']:
+        if record['eventName'] == 'INSERT':
+            # New record added
+            new_data = record['dynamodb']['NewImage']
+            process_new_record(new_data)
+        elif record['eventName'] == 'MODIFY':
+            # Record updated
+            old_data = record['dynamodb']['OldImage']
+            new_data = record['dynamodb']['NewImage']
+            process_updated_record(old_data, new_data)
+    
+    return {'statusCode': 200}
+```
+
+**API Data Processing:**
+```python
+import json
+import requests
+import boto3
+
+def lambda_handler(event, context):
+    """Fetch and process data from external APIs"""
+    # Extract API endpoint from event
+    api_url = event.get('api_url')
+    
+    # Fetch data
+    response = requests.get(api_url)
+    data = response.json()
+    
+    # Process and store
+    processed_data = process_api_data(data)
+    
+    # Store in S3
+    s3 = boto3.client('s3')
+    s3.put_object(
+        Bucket='data-lake-bucket',
+        Key=f"api-data/{datetime.now().isoformat()}.json",
+        Body=json.dumps(processed_data)
+    )
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps(f'Processed {len(processed_data)} records')
+    }
+```
+
+**When to Use Lambda:**
+- Event-driven data processing
+- Short-duration tasks (< 15 minutes)
+- Infrequent or unpredictable workloads
+- Microservices architecture
+- Real-time data transformation
+- API backends for data services
+
+**When NOT to Use Lambda:**
+- Long-running processes (> 15 minutes)
+- High-memory requirements (> 10GB)
+- Persistent connections needed
+- Complex state management required
+- Consistent high-volume processing
+
+**Best Practices:**
+- Keep functions small and focused
+- Use environment variables for configuration
+- Implement proper error handling
+- Monitor performance and costs
+- Use layers for shared dependencies
+- Optimize cold start performance
+
 This comprehensive collection of AWS interview questions covers all aspects of data engineering on AWS, from basic concepts to advanced architectural patterns, providing both theoretical understanding and practical implementation knowledge. The questions progress from fundamental concepts to complex enterprise scenarios, ensuring thorough preparation for data engineering interviews at any level.
