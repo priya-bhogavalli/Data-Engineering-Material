@@ -53,26 +53,6 @@ class DataMeshArchitecture:
 
 ### 2. What are the four foundational principles of Data Mesh?
 
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-Data Mesh represents a paradigm shift from centralized data platforms to decentralized, domain-oriented data architecture. It applies product thinking to data management while maintaining federated governance standards.
-
-#### **Historical Context**
-- **2019**: Zhamak Dehghani introduces Data Mesh concept at ThoughtWorks
-- **2020**: First production implementations at Netflix, Uber
-- **2021**: Industry adoption accelerates with cloud-native tools
-- **2022**: Enterprise frameworks and governance models mature
-- **2023**: Integration with modern data stack becomes standard
-
-#### **Architectural Principles**
-- **Decentralization**: Domain teams own their data products end-to-end
-- **Product Thinking**: Data treated as products with clear ownership and SLAs
-- **Platform Abstraction**: Self-serve infrastructure reduces operational complexity
-- **Federated Governance**: Balance between autonomy and organizational standards
-
-### 📊 **Comparative Analysis**
-
 #### **Data Architecture Comparison Matrix**
 | Feature | Data Mesh | Data Lake | Data Warehouse | Lakehouse |
 |---------|-----------|-----------|----------------|----------|
@@ -86,44 +66,6 @@ Data Mesh represents a paradigm shift from centralized data platforms to decentr
 | **Technology Flexibility** | High (domain choice) | Medium | Low (vendor lock) | High |
 | **Cost Model** | Domain-based allocation | Centralized budget | Predictable costs | Usage-based |
 | **Learning Curve** | Steep (new paradigm) | Medium | Low (established) | Medium |
-
-#### **Decision Framework**
-```mermaid
-graph TD
-    A[Data Architecture Decision] --> B{Organization Size?}
-    B -->|< 100 people| C[Traditional DW/Lake]
-    B -->|100-1000 people| D{Domain Boundaries Clear?}
-    B -->|> 1000 people| E[Consider Data Mesh]
-    
-    D -->|Yes| F[Data Mesh]
-    D -->|No| G[Lakehouse]
-    
-    E --> H{Technical Maturity?}
-    H -->|High| I[Data Mesh]
-    H -->|Medium| J[Lakehouse]
-    H -->|Low| K[Data Lake]
-```
-
-#### **Use Case Scenarios**
-
-**Choose Data Mesh when:**
-- **Large Organization (1000+ employees)**: Multiple business domains with clear boundaries
-- **High Data Autonomy Needs**: Domains require different technologies and update cycles
-- **Mature DevOps Culture**: Teams comfortable with "you build it, you run it" philosophy
-- **Regulatory Compliance**: Need for domain-specific data governance and privacy controls
-- **Innovation Speed**: Domains need to move fast without central coordination bottlenecks
-
-**Consider Traditional Architecture when:**
-- **Small Organization (< 100 people)**: Limited resources for distributed architecture complexity
-- **Simple Data Needs**: Single domain or straightforward reporting requirements
-- **Cost Sensitivity**: Need predictable, centralized cost structure
-- **Limited Technical Expertise**: Team lacks distributed systems experience
-
-**Avoid Data Mesh when:**
-- **Unclear Domain Boundaries**: Business domains are not well-defined or frequently changing
-- **Low Data Maturity**: Organization lacks basic data management practices
-- **Tight Coupling Requirements**: Need for real-time consistency across all data
-- **Resource Constraints**: Cannot invest in platform team and domain enablement
 
 #### **Implementation Complexity Analysis**
 ```

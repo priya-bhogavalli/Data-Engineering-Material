@@ -85,8 +85,6 @@
 
 ### 1. What's the difference between INNER JOIN and LEFT JOIN?
 
-### 📊 **Comparative Analysis**
-
 #### **JOIN Performance Comparison**
 | Join Type | Performance | Use Case | Memory Usage | Result Size |
 |-----------|-------------|----------|--------------|-------------|
@@ -94,52 +92,6 @@
 | **LEFT JOIN** | Moderate | All left + matches | Higher | Larger |
 | **RIGHT JOIN** | Moderate | All right + matches | Higher | Larger |
 | **FULL OUTER** | Slowest | Complete dataset | Highest | Largest |
-
-#### **Decision Framework**
-```mermaid
-graph TD
-    A[Need all records?] --> B{From which table?}
-    B -->|Left table| C[LEFT JOIN]
-    B -->|Right table| D[RIGHT JOIN]
-    B -->|Both tables| E[FULL OUTER JOIN]
-    A -->|Only matching| F[INNER JOIN]
-```
-
-**Answer:**
-JOINs are fundamental SQL operations for combining data from multiple tables, essential for data engineering workflows.
-
-**Conceptual Understanding:**
-- **INNER JOIN**: Returns only records that have matching values in both tables (intersection)
-- **LEFT JOIN**: Returns all records from the left table, plus matching records from the right table (NULL for non-matches)
-- **RIGHT JOIN**: Returns all records from the right table, plus matching records from the left table
-- **FULL OUTER JOIN**: Returns all records when there's a match in either table (union)
-
-**Use Cases:**
-- **INNER JOIN**: When you need only customers who have placed orders
-- **LEFT JOIN**: When you need all customers, regardless of whether they've placed orders
-- **Performance**: INNER JOINs are typically faster as they return fewer rows
-
-#### **Performance Benchmarks**
-```
-Benchmark Results (1M customers, 5M orders):
-┌─────────────────┐─────────────────┐─────────────────┐
-│ Join Type       │ Execution Time │ Memory Usage   │
-├─────────────────┼─────────────────┼─────────────────┤
-│ INNER JOIN      │ 2.3 seconds    │ 450 MB         │
-│ LEFT JOIN       │ 3.1 seconds    │ 680 MB         │
-│ FULL OUTER JOIN │ 4.7 seconds    │ 920 MB         │
-└─────────────────┴─────────────────┴─────────────────┘
-```
-
-```sql
--- INNER JOIN - only customers with orders
-SELECT c.name, o.order_date FROM customers c
-INNER JOIN orders o ON c.customer_id = o.customer_id;
-
--- LEFT JOIN - all customers, including those without orders  
-SELECT c.name, o.order_date FROM customers c
-LEFT JOIN orders o ON c.customer_id = o.customer_id;
-```
 
 ### 2. Explain the difference between WHERE and HAVING clauses
 

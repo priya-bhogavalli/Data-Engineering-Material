@@ -1,20 +1,3 @@
-# Azure Event Hubs Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Event Processing](#event-processing)
-4. [Partitioning & Scaling](#partitioning--scaling)
-5. [Security & Access Control](#security--access-control)
-6. [Integration & SDKs](#integration--sdks)
-7. [Monitoring & Management](#monitoring--management)
-8. [Performance & Optimization](#performance--optimization)
-9. [Best Practices](#best-practices)
-10. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Azure Event Hubs and what problems does it solve?
 **Answer:**

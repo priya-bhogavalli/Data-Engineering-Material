@@ -1,21 +1,3 @@
-# Google Cloud Pub/Sub Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Publishing & Subscribing](#publishing--subscribing)
-4. [Message Delivery & Acknowledgment](#message-delivery--acknowledgment)
-5. [Scaling & Performance](#scaling--performance)
-6. [Security & Access Control](#security--access-control)
-7. [Integration & SDKs](#integration--sdks)
-8. [Monitoring & Management](#monitoring--management)
-9. [Advanced Features](#advanced-features)
-10. [Best Practices](#best-practices)
-11. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Google Cloud Pub/Sub and what problems does it solve?
 **Answer:**

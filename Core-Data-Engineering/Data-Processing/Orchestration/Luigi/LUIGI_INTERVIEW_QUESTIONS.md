@@ -1,23 +1,3 @@
-# Luigi Interview Questions
-
-## 📋 Table of Contents
-
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Task Development](#task-development)
-4. [Dependency Management](#dependency-management)
-5. [Configuration & Parameters](#configuration--parameters)
-6. [Scheduling & Execution](#scheduling--execution)
-7. [Error Handling & Monitoring](#error-handling--monitoring)
-8. [Integration & Ecosystem](#integration--ecosystem)
-9. [Performance & Scaling](#performance--scaling)
-10. [Best Practices](#best-practices)
-11. [Troubleshooting](#troubleshooting)
-12. [Comparison Questions](#comparison-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Luigi and what problems does it solve?
 **Answer:**

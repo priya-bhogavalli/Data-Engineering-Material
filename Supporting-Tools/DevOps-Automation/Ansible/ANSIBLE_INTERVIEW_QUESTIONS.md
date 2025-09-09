@@ -1,17 +1,3 @@
-# Ansible Interview Questions
-
-## Table of Contents
-
-1. [Basic Ansible Concepts](#basic-ansible-concepts)
-2. [Playbooks and Tasks](#playbooks-and-tasks)
-3. [Inventory and Variables](#inventory-and-variables)
-4. [Roles and Collections](#roles-and-collections)
-5. [Advanced Features](#advanced-features)
-6. [Data Engineering Use Cases](#data-engineering-use-cases)
-
----
-
-## Basic Ansible Concepts
 
 ### Q1: What is Ansible and how does it differ from other configuration management tools?
 

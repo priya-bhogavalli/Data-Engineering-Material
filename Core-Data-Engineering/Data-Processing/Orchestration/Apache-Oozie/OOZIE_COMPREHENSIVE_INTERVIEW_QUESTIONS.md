@@ -1,18 +1,3 @@
-# Apache Oozie - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [Workflow Development](#-workflow-development)
-3. [Coordinator & Bundle](#-coordinator--bundle)
-4. [Action Types](#-action-types)
-5. [Configuration & Deployment](#-configuration--deployment)
-6. [Monitoring & Management](#-monitoring--management)
-7. [Integration & Use Cases](#-integration--use-cases)
-8. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache Oozie and what problems does it solve?
 **Answer:**

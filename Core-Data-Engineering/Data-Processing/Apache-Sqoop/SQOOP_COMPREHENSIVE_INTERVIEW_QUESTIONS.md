@@ -1,19 +1,3 @@
-# Apache Sqoop - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [Import Operations](#-import-operations)
-3. [Export Operations](#-export-operations)
-4. [Incremental Imports](#-incremental-imports)
-5. [Performance Optimization](#-performance-optimization)
-6. [Integration & Formats](#-integration--formats)
-7. [Security & Authentication](#-security--authentication)
-8. [Troubleshooting](#-troubleshooting)
-9. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache Sqoop and what problems does it solve?
 **Answer:**

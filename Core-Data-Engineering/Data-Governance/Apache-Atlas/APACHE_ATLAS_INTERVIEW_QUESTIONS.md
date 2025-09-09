@@ -1,20 +1,3 @@
-# Apache Atlas Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Data Governance](#data-governance)
-4. [Metadata Management](#metadata-management)
-5. [Data Lineage](#data-lineage)
-6. [Security & Access Control](#security--access-control)
-7. [Integration & APIs](#integration--apis)
-8. [Administration](#administration)
-9. [Best Practices](#best-practices)
-10. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Apache Atlas and what problems does it solve?
 **Answer:**

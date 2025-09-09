@@ -340,43 +340,6 @@ class ColumnStorage:
         # Salary column: [50000, 60000, 70000]
         
         # Benefits:
-        # 1. Better compression (similar data types)
-        # 2. Faster analytical queries (read only needed columns)
-        # 3. Vectorized processing
-        pass
-
-# Parquet file format example
-import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
-
-def optimize_parquet_storage():
-    # Create sample data
-    df = pd.DataFrame({
-        'customer_id': range(1000000),
-        'order_date': pd.date_range('2023-01-01', periods=1000000, freq='1min'),
-        'product_category': ['Electronics', 'Clothing', 'Books'] * 333334,
-        'amount': np.random.uniform(10, 1000, 1000000)
-    })
-    
-    # Optimize storage with partitioning and compression
-    table = pa.Table.from_pandas(df)
-    
-    # Write with partitioning by date
-    pq.write_to_dataset(
-        table,
-        root_path='data/sales_partitioned',
-        partition_cols=['order_date'],
-        compression='snappy',
-        use_dictionary=True  # Dictionary encoding for categorical data
-    )
-    
-    # Query optimization - only read needed partitions
-    filters = [('order_date', '>=', '2023-06-01')]
-    result = pq.read_table('data/sales_partitioned', filters=filters)
-    
-    return result.to_pandas()
-```
 
 ### Q6: How do you implement data partitioning strategies?
 **Answer:**

@@ -40,53 +40,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      # 1. Code Quality
-      - name: Lint Python code
-        run: |
-          pip install flake8 black
-          flake8 src/
-          black --check src/
-      
-      # 2. Unit Tests
-      - name: Run unit tests
-        run: |
-          pip install pytest pytest-cov
-          pytest tests/unit/ --cov=src/
-      
-      # 3. Integration Tests
-      - name: Run integration tests
-        run: |
-          docker-compose up -d postgres
-          pytest tests/integration/
-      
-      # 4. Data Quality Tests
-      - name: Validate data schemas
-        run: |
-          python scripts/validate_schemas.py
-          python scripts/test_data_quality.py
-
-  deploy:
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      # 5. Build and Deploy
-      - name: Deploy to staging
-        run: |
-          docker build -t data-pipeline:${{ github.sha }} .
-          kubectl apply -f k8s/staging/
-      
-      # 6. Smoke Tests
-      - name: Run smoke tests
-        run: |
-          python scripts/smoke_tests.py --env staging
-      
-      # 7. Production Deployment
-      - name: Deploy to production
-        if: success()
-        run: |
-          kubectl apply -f k8s/production/
-```
 
 ### Q3: How do you implement automated testing for data pipelines?
 **Answer:**

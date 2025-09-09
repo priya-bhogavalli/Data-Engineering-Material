@@ -1,6 +1,3 @@
-# SQL Missing Interview Questions
-
-## Windowing Functions
 
 ### What are windowing functions?
 **Answer:**

@@ -1,22 +1,3 @@
-# Looker Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [LookML Fundamentals](#lookml-fundamentals)
-3. [Data Modeling](#data-modeling)
-4. [Explores & Dimensions](#explores--dimensions)
-5. [Measures & Calculations](#measures--calculations)
-6. [Dashboards & Visualizations](#dashboards--visualizations)
-7. [Administration & Security](#administration--security)
-8. [Performance & Optimization](#performance--optimization)
-9. [Advanced Features](#advanced-features)
-10. [Troubleshooting](#troubleshooting)
-11. [Best Practices](#best-practices)
-12. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Looker and how does it differ from traditional BI tools?
 **Answer:**

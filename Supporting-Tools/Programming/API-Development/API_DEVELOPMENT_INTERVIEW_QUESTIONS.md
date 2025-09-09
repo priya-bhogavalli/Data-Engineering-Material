@@ -1,6 +1,3 @@
-# API Development Interview Questions for Data Engineering
-
-## REST API Fundamentals
 
 ### Q1: How do you design RESTful APIs for data services?
 **Answer:**

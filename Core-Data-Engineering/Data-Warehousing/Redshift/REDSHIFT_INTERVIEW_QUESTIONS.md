@@ -1,17 +1,3 @@
-# Amazon Redshift Interview Questions
-
-## Table of Contents
-
-1. [Basic Redshift Concepts](#basic-redshift-concepts)
-2. [Architecture and Performance](#architecture-and-performance)
-3. [Data Loading and ETL](#data-loading-and-etl)
-4. [Query Optimization](#query-optimization)
-5. [Security and Administration](#security-and-administration)
-6. [Data Engineering Use Cases](#data-engineering-use-cases)
-
----
-
-## Basic Redshift Concepts
 
 ### Q1: What is Amazon Redshift and how does it differ from traditional databases?
 

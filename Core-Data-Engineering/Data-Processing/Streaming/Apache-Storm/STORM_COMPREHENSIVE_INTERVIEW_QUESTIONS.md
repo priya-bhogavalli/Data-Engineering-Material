@@ -1,18 +1,3 @@
-# Apache Storm - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [Architecture & Components](#-architecture--components)
-3. [Topology Development](#-topology-development)
-4. [Stream Processing](#-stream-processing)
-5. [Performance & Scalability](#-performance--scalability)
-6. [Integration & Use Cases](#-integration--use-cases)
-7. [Troubleshooting](#-troubleshooting)
-8. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache Storm and what problems does it solve?
 **Answer:**

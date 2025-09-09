@@ -14,31 +14,6 @@
 
 ### 1. What is Data Vault 2.0 and how does it differ from traditional data modeling approaches?
 
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Ensemble Modeling**: Hybrid approach combining best practices from multiple methodologies
-- **Insert-Only Architecture**: Immutable data storage with complete audit trails
-- **Business Key Driven**: Focus on natural business identifiers rather than surrogate keys
-- **Temporal Consistency**: Built-in time-variant data handling
-- **Parallel Processing**: Architecture designed for concurrent loading and querying
-
-#### **Historical Context**
-- **Origins**: Developed by Dan Linstedt in the early 2000s
-- **Evolution Timeline**:
-  - 2000: Data Vault 1.0 introduction
-  - 2013: Data Vault 2.0 with NoSQL and Big Data integration
-  - 2016: Automation and code generation focus
-  - 2020: Cloud-native implementations
-  - Current: AI/ML integration and real-time processing
-
-#### **Architectural Principles**
-- **Separation of Concerns**: Business keys, relationships, and attributes stored separately
-- **Normalization**: Highly normalized structure for flexibility
-- **Immutability**: Historical data preservation through insert-only operations
-- **Traceability**: Complete lineage from source systems to data warehouse
-- **Scalability**: Horizontal scaling through parallel processing
-
-### 📊 **Comparative Analysis**
 #### **Data Modeling Approaches Comparison**
 | Feature | Data Vault 2.0 | Dimensional (Kimball) | Normalized (Inmon) | Data Lake |
 |---------|----------------|----------------------|-------------------|------------|
@@ -50,37 +25,6 @@
 | **Scalability** | Excellent | Good | Medium | Excellent |
 | **Complexity** | Medium | Low | High | High |
 | **Business User Friendly** | Medium | Excellent | Medium | Low |
-
-#### **Decision Framework**
-```mermaid
-graph TD
-    A[Data Warehouse Requirements] --> B{Primary Need?}
-    B -->|Agility & Flexibility| C[Data Vault 2.0]
-    B -->|Query Performance| D[Dimensional Model]
-    B -->|Data Integration| E[Normalized Model]
-    B -->|Exploration & Analytics| F[Data Lake]
-    
-    C --> G{Data Volume?}
-    G -->|High Volume| H[Parallel Processing Focus]
-    G -->|Medium Volume| I[Standard Implementation]
-    
-    D --> J{User Type?}
-    J -->|Business Users| K[Star Schema]
-    J -->|Power Users| L[Snowflake Schema]
-```
-
-#### **Use Case Scenarios**
-- **Choose Data Vault 2.0 when:**
-  - Frequent changes in business requirements
-  - Multiple source systems with different data models
-  - Regulatory compliance requiring complete audit trails
-  - Need for parallel development and loading
-  - Long-term data warehouse evolution expected
-
-- **Consider Alternatives when:**
-  - **Dimensional**: Primary focus on business intelligence and reporting
-  - **Normalized**: Strong data governance and consistency requirements
-  - **Data Lake**: Exploratory analytics and unstructured data processing
 
 #### **Performance Characteristics**
 ```
@@ -153,28 +97,6 @@ CREATE TABLE sat_customer_details (
 
 ### 2. Explain the three core components of Data Vault: Hubs, Links, and Satellites.
 
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Separation of Concerns**: Each component serves a distinct purpose in the data model
-- **Referential Integrity**: Maintained through hash key relationships
-- **Temporal Modeling**: Time-variant data handled through satellite versioning
-- **Business Rule Independence**: Structure independent of business logic
-- **Source System Agnostic**: Components can accommodate any source system structure
-
-#### **Historical Context**
-- **Design Philosophy**: Based on Entity-Relationship modeling principles
-- **Normalization Theory**: Extends 3NF principles with temporal considerations
-- **Data Warehouse Evolution**: Response to limitations of traditional star/snowflake schemas
-- **Agile Development**: Supports iterative and parallel development approaches
-
-#### **Architectural Principles**
-- **Hub Stability**: Business keys provide stable foundation
-- **Link Flexibility**: Relationships can evolve without structural changes
-- **Satellite Adaptability**: Attributes can be added without impacting existing structure
-- **Hash Key Consistency**: Deterministic key generation for integration
-- **Audit Trail Completeness**: Full historical tracking at granular level
-
-### 📊 **Comparative Analysis**
 #### **Data Vault Components vs Traditional Structures**
 | Aspect | Hubs | Links | Satellites | Fact Tables | Dimension Tables |
 |--------|------|-------|------------|-------------|------------------|
@@ -257,28 +179,12 @@ hash_diff = generate_hash_diff(["John", "Doe", "john@email.com"])
 
 ### 3. What is a hash key and why is it used in Data Vault?
 
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Cryptographic Hashing**: One-way mathematical function producing fixed-length output
-- **Deterministic Generation**: Same input always produces same hash value
-- **Collision Resistance**: Extremely low probability of different inputs producing same hash
-- **Distribution Properties**: Even distribution across hash space for performance
-- **Immutability**: Hash values never change once generated
-
-#### **Historical Context**
-- **Hash Function Evolution**:
-  - 1990s: MD5 widely adopted for data warehousing
-  - 2000s: SHA-1 introduced for enhanced security
-  - 2010s: SHA-256 for high-security environments
-  - Current: Blake2 and SHA-3 for performance optimization
-
 #### **Mathematical Principles**
 - **Hash Function Properties**: Deterministic, uniform distribution, avalanche effect
 - **Key Space**: 2^128 possible values for MD5, 2^160 for SHA-1
 - **Collision Probability**: Negligible for practical data warehouse sizes
 - **Performance Characteristics**: O(1) lookup time, fixed storage requirements
 
-### 📊 **Comparative Analysis**
 #### **Hash Key vs Traditional Key Approaches**
 | Feature | Hash Keys | Natural Keys | Surrogate Keys | Composite Keys |
 |---------|-----------|--------------|----------------|----------------|

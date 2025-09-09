@@ -1,6 +1,3 @@
-# Software Engineering Principles Interview Questions
-
-## 🎯 **Testing Strategies**
 
 ### **Q1: How do you implement data quality testing in ETL pipelines?**
 

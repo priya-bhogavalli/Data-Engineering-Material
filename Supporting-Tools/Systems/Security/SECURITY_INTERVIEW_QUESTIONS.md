@@ -1,6 +1,3 @@
-# Security Interview Questions for Data Engineering
-
-## Data Security Fundamentals
 
 ### Q1: What are the key security principles for data engineering?
 **Answer:**

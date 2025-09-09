@@ -1,20 +1,3 @@
-# Immuta Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Data Access Control](#data-access-control)
-3. [Policy Management](#policy-management)
-4. [Data Masking & Privacy](#data-masking--privacy)
-5. [Integration & Connectivity](#integration--connectivity)
-6. [Compliance & Governance](#compliance--governance)
-7. [Administration & Security](#administration--security)
-8. [Performance & Scalability](#performance--scalability)
-9. [Best Practices](#best-practices)
-10. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Immuta and what problems does it solve?
 **Answer:**

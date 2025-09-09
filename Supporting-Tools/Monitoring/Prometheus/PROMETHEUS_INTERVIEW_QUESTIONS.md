@@ -1,21 +1,3 @@
-# Prometheus Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Metrics & Data Model](#metrics--data-model)
-4. [PromQL](#promql)
-5. [Configuration](#configuration)
-6. [Service Discovery](#service-discovery)
-7. [Alerting](#alerting)
-8. [Storage & Performance](#storage--performance)
-9. [Integration](#integration)
-10. [Best Practices](#best-practices)
-11. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Prometheus and what problems does it solve?
 **Answer:**

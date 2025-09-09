@@ -1,6 +1,3 @@
-# Shell Scripting Interview Questions for Data Engineering
-
-## Bash Fundamentals
 
 ### Q1: How do you process CSV files with shell commands?
 **Answer:**

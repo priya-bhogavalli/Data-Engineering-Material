@@ -1,6 +1,3 @@
-# Windows Interview Questions for Data Engineering
-
-## Windows Fundamentals
 
 ### Q1: How do you manage data processing tasks on Windows?
 **Answer:**

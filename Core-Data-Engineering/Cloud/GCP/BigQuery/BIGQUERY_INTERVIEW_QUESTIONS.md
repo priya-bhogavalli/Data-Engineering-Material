@@ -1,22 +1,3 @@
-# Google BigQuery Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Storage](#architecture--storage)
-3. [SQL & Querying](#sql--querying)
-4. [Data Loading & Export](#data-loading--export)
-5. [Performance & Optimization](#performance--optimization)
-6. [Security & Access Control](#security--access-control)
-7. [Machine Learning](#machine-learning)
-8. [Streaming & Real-time](#streaming--real-time)
-9. [Cost Management](#cost-management)
-10. [Integration & APIs](#integration--apis)
-11. [Best Practices](#best-practices)
-12. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Google BigQuery and what makes it unique?
 **Answer:**

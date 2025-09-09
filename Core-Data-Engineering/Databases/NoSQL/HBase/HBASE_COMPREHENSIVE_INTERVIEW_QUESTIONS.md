@@ -1,18 +1,3 @@
-# Apache HBase - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [Architecture & Components](#-architecture--components)
-3. [Data Model & Operations](#-data-model--operations)
-4. [Performance & Optimization](#-performance--optimization)
-5. [Security & Administration](#-security--administration)
-6. [Integration & Use Cases](#-integration--use-cases)
-7. [Troubleshooting](#-troubleshooting)
-8. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache HBase and what problems does it solve?
 **Answer:**

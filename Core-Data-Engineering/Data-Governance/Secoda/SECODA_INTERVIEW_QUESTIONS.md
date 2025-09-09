@@ -1,19 +1,3 @@
-# Secoda Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Data Discovery](#data-discovery)
-3. [Metadata Management](#metadata-management)
-4. [Data Lineage](#data-lineage)
-5. [Collaboration Features](#collaboration-features)
-6. [Integration & APIs](#integration--apis)
-7. [Administration & Security](#administration--security)
-8. [Best Practices](#best-practices)
-9. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Secoda and what problems does it solve?
 **Answer:**

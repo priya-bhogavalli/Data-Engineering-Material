@@ -1,19 +1,3 @@
-# Data Modeling Interview Questions
-
-## 📋 Table of Contents
-1. [Fundamentals](#fundamentals)
-2. [Relational Data Modeling](#relational-data-modeling)
-3. [Dimensional Modeling](#dimensional-modeling)
-4. [Data Vault 2.0](#data-vault-20)
-5. [Activity Schema](#activity-schema)
-6. [NoSQL Data Modeling](#nosql-data-modeling)
-7. [Modern Approaches](#modern-approaches)
-8. [Performance & Optimization](#performance--optimization)
-9. [Real-World Scenarios](#real-world-scenarios)
-
----
-
-## Fundamentals
 
 ### Q1: What is data modeling and why is it important?
 **Answer:**

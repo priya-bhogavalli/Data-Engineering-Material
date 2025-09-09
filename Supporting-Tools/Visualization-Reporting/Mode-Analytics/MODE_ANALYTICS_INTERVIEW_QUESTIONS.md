@@ -207,20 +207,6 @@ ggplot(monthly_data, aes(x = month, y = total_sales)) +
 **Example Report Structure:**
 ```python
 # Report with multiple components
-# 1. SQL Query: Extract sales data
-# 2. Python Analysis: Calculate metrics
-# 3. Visualization: Create charts
-# 4. Text: Add insights and recommendations
-
-# Python cell for metrics calculation
-total_revenue = df['revenue'].sum()
-growth_rate = ((df['revenue'].iloc[-1] / df['revenue'].iloc[0]) - 1) * 100
-avg_order_value = df['order_value'].mean()
-
-print(f"Total Revenue: ${total_revenue:,.2f}")
-print(f"Growth Rate: {growth_rate:.1f}%")
-print(f"Average Order Value: ${avg_order_value:.2f}")
-```
 
 ### Q8: How do you implement interactive parameters in Mode?
 **Answer:**

@@ -1,19 +1,3 @@
-# Apache Hadoop - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [HDFS (Hadoop Distributed File System)](#-hdfs-hadoop-distributed-file-system)
-3. [MapReduce](#-mapreduce)
-4. [YARN (Yet Another Resource Negotiator)](#-yarn-yet-another-resource-negotiator)
-5. [Hadoop Ecosystem](#-hadoop-ecosystem)
-6. [Performance & Optimization](#-performance--optimization)
-7. [Security & Administration](#-security--administration)
-8. [Troubleshooting](#-troubleshooting)
-9. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache Hadoop and what are its core components?
 **Answer:**

@@ -1,20 +1,3 @@
-# C# Interview Questions for Data Engineering
-
-## 📋 Table of Contents
-1. [Basic C# Concepts](#basic-c-concepts)
-2. [Object-Oriented Programming](#object-oriented-programming)
-3. [Data Structures & Collections](#data-structures--collections)
-4. [LINQ & Data Processing](#linq--data-processing)
-5. [File I/O & Data Handling](#file-io--data-handling)
-6. [Database Connectivity](#database-connectivity)
-7. [Async Programming](#async-programming)
-8. [Performance & Memory Management](#performance--memory-management)
-9. [Data Engineering Specific](#data-engineering-specific)
-10. [Advanced Topics](#advanced-topics)
-
----
-
-## Basic C# Concepts
 
 ### Q1: What are the main differences between C# and Python for data processing?
 **Answer:**

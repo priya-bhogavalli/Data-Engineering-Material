@@ -87,18 +87,6 @@ headers = {'Authorization': f'Bearer {token}'}
 **3. OAuth 2.0:**
 ```python
 # Authorization Code Flow
-# 1. Redirect to authorization server
-# 2. Get authorization code
-# 3. Exchange code for access token
-# 4. Use access token for API calls
-```
-
-**4. Basic Authentication:**
-```python
-import base64
-credentials = base64.b64encode(b'username:password').decode()
-headers = {'Authorization': f'Basic {credentials}'}
-```
 
 ### Q5: How do you implement rate limiting?
 **Answer:**

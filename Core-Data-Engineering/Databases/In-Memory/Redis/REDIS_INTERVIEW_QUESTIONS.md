@@ -27,30 +27,6 @@ Redis is an in-memory data structure store used as a database, cache, and messag
 
 ### 1. What is Redis and what are its primary use cases?
 
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **In-Memory Architecture**: All data stored in RAM for sub-millisecond latency
-- **Single-Threaded Event Loop**: Eliminates context switching and locking overhead
-- **Data Structure Server**: Native support for complex data types beyond key-value
-- **Persistence Models**: RDB snapshots and AOF logging for durability
-- **Network Protocol**: RESP (Redis Serialization Protocol) for client communication
-
-#### **Historical Context**
-- **2009**: Created by Salvatore Sanfilippo to solve real-time web application scaling
-- **2010**: VMware sponsorship and enterprise adoption
-- **2013**: Redis Labs formation and commercial support
-- **2015**: Redis Cluster introduction for horizontal scaling
-- **2018**: Redis Modules system for extensibility
-- **2020**: Redis 6.0 with multi-threading for I/O operations
-
-#### **Architectural Principles**
-- **Memory-First Design**: Optimized for RAM storage with optional persistence
-- **Atomic Operations**: All operations are atomic at the command level
-- **Pipelining Support**: Batch multiple commands to reduce network round trips
-- **Pub/Sub Messaging**: Built-in publish-subscribe messaging system
-- **Lua Scripting**: Server-side scripting for complex atomic operations
-
 ### 📈 **Comparative Analysis**
 
 #### **In-Memory Database Comparison Matrix**
@@ -66,51 +42,7 @@ Redis is an in-memory data structure store used as a database, cache, and messag
 | **Learning Curve** | Medium | Low | High | Very High |
 | **Use Cases** | Cache, DB, Broker | Pure cache | Distributed computing | HTAP workloads |
 
-#### **Performance Benchmarks**
-```
-Redis Performance Characteristics (Single Instance):
-┌─────────────────┬──────────────┬──────────────┬──────────────┐
-| Operation       | Throughput   | Latency      | Memory Impact|
-├─────────────────┼──────────────┼──────────────┼──────────────┤
-| GET             | 200K ops/sec | 0.1ms        | None         |
-| SET             | 150K ops/sec | 0.2ms        | Variable     |
-| HGET            | 180K ops/sec | 0.15ms       | None         |
-| LPUSH           | 120K ops/sec | 0.3ms        | +Memory      |
-| ZADD            | 100K ops/sec | 0.4ms        | +Memory      |
-| Lua Script      | 50K ops/sec  | 1-5ms        | Variable     |
-└─────────────────┴──────────────┴──────────────┴──────────────┘
-```
-
-**Answer**: Redis (Remote Dictionary Server) is an in-memory data structure store with multiple use cases.
-
-**Primary Use Cases:**
-- **Caching**: Application-level and database query caching
-- **Session Storage**: Web application session management
-- **Real-time Analytics**: Counters, leaderboards, analytics
-- **Message Queuing**: Pub/Sub and task queues
-- **Rate Limiting**: API rate limiting and throttling
-
-```bash
-# Basic Redis operations
-redis-cli
-127.0.0.1:6379> SET user:1000 "John Doe"
-OK
-127.0.0.1:6379> GET user:1000
-"John Doe"
-127.0.0.1:6379> EXPIRE user:1000 3600
-(integer) 1
-```
-
 ### 2. What are Redis data types and when do you use each?
-
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **Data Structure Optimization**: Each type optimized for specific access patterns
-- **Memory Encoding**: Automatic optimization based on size and content
-- **Time Complexity**: O(1) for most operations, O(log N) for sorted sets
-- **Atomic Operations**: All operations on data structures are atomic
-- **Type Safety**: Commands are type-specific to prevent errors
 
 #### **Data Structure Internal Implementations**
 ```
@@ -180,15 +112,6 @@ ZREVRANGE leaderboard 0 2 WITHSCORES
 
 ### 3. How does Redis achieve high performance?
 
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **Single-Threaded Architecture**: Eliminates context switching and lock contention
-- **Event-Driven I/O**: Non-blocking I/O using epoll/kqueue for high concurrency
-- **Memory Locality**: Data structures optimized for CPU cache efficiency
-- **Protocol Efficiency**: RESP protocol minimizes parsing overhead
-- **Command Pipelining**: Reduces network round-trip latency
-
 #### **Performance Architecture Analysis**
 ```
 Redis Performance Factors:
@@ -247,15 +170,6 @@ pipe.execute()
 ```
 
 ### 4. What is Redis persistence and what are the options?
-
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **Durability vs Performance Trade-off**: Persistence adds overhead but ensures data survival
-- **Point-in-Time Recovery**: RDB provides consistent snapshots at specific moments
-- **Write-Ahead Logging**: AOF logs every write operation for complete recovery
-- **Hybrid Approach**: Combines RDB and AOF for optimal durability and performance
-- **Background Operations**: Persistence operations don't block main thread
 
 #### **Persistence Strategy Comparison**
 ```

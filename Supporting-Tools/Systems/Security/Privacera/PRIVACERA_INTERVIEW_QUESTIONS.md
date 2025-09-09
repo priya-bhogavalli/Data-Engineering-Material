@@ -1,18 +1,3 @@
-# Privacera Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Data Security & Privacy](#data-security--privacy)
-3. [Policy Management](#policy-management)
-4. [Integration & Platforms](#integration--platforms)
-5. [Compliance & Governance](#compliance--governance)
-6. [Administration](#administration)
-7. [Best Practices](#best-practices)
-8. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Privacera and what problems does it solve?
 **Answer:**

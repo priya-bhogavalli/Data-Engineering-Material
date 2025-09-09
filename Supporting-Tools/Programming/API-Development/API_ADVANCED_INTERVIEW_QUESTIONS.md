@@ -1,6 +1,3 @@
-# Advanced API Interview Questions for Data Engineering
-
-## 🏗️ API Architecture & Design
 
 ### Q15: How do you design microservices APIs?
 **Answer:**

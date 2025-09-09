@@ -1,6 +1,3 @@
-# Cloud Computing Fundamentals Interview Questions
-
-## Serverless Computing
 
 ### What is serverless?
 **Answer:**

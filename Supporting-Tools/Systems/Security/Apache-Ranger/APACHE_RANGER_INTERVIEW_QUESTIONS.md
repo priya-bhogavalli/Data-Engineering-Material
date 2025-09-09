@@ -1,19 +1,3 @@
-# Apache Ranger Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Policy Management](#policy-management)
-4. [Access Control](#access-control)
-5. [Audit & Monitoring](#audit--monitoring)
-6. [Integration](#integration)
-7. [Administration](#administration)
-8. [Best Practices](#best-practices)
-9. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Apache Ranger and what problems does it solve?
 **Answer:**

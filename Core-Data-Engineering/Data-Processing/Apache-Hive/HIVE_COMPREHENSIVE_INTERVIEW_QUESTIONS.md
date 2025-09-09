@@ -1,20 +1,3 @@
-# Apache Hive - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [Hive Architecture](#-hive-architecture)
-3. [HiveQL (Hive Query Language)](#-hiveql-hive-query-language)
-4. [Data Types & File Formats](#-data-types--file-formats)
-5. [Partitioning & Bucketing](#-partitioning--bucketing)
-6. [Performance Optimization](#-performance-optimization)
-7. [Hive Metastore](#-hive-metastore)
-8. [User Defined Functions (UDFs)](#-user-defined-functions-udfs)
-9. [Integration & Ecosystem](#-integration--ecosystem)
-10. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache Hive and what problems does it solve?
 **Answer:**

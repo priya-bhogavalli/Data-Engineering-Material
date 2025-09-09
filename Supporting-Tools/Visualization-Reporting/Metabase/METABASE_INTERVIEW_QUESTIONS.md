@@ -1,20 +1,3 @@
-# Metabase Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Installation & Setup](#installation--setup)
-3. [Data Sources & Connections](#data-sources--connections)
-4. [Questions & Dashboards](#questions--dashboards)
-5. [Administration & Security](#administration--security)
-6. [Performance & Optimization](#performance--optimization)
-7. [Advanced Features](#advanced-features)
-8. [Troubleshooting](#troubleshooting)
-9. [Best Practices](#best-practices)
-10. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Metabase and what are its key features?
 **Answer:**

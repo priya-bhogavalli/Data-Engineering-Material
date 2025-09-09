@@ -1,19 +1,3 @@
-# Amundsen Interview Questions
-
-## 📋 Table of Contents
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Data Discovery](#data-discovery)
-4. [Metadata Management](#metadata-management)
-5. [Search & Navigation](#search--navigation)
-6. [Integration & Setup](#integration--setup)
-7. [Administration & Security](#administration--security)
-8. [Best Practices](#best-practices)
-9. [Scenario-Based Questions](#scenario-based-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Amundsen and what problems does it solve?
 **Answer:**

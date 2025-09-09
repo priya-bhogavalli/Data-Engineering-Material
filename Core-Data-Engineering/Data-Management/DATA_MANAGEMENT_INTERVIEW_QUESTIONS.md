@@ -1,20 +1,3 @@
-# Data Management Interview Questions
-
-## 📋 Table of Contents
-1. [Data Governance](#-data-governance)
-2. [Data Cataloging & Discovery](#-data-cataloging--discovery)
-3. [Data Lifecycle Management](#-data-lifecycle-management)
-4. [Data Quality Management](#-data-quality-management)
-5. [Master Data Management (MDM)](#-master-data-management-mdm)
-6. [Metadata Management](#-metadata-management)
-7. [Data Privacy & Compliance](#-data-privacy--compliance)
-8. [Data Architecture & Organization](#-data-architecture--organization)
-9. [Data Stewardship](#-data-stewardship)
-10. [Data Security & Access Control](#-data-security--access-control)
-
----
-
-## 🏛️ **Data Governance**
 
 ### Q1: What is data governance and why is it critical for organizations?
 **Answer:**

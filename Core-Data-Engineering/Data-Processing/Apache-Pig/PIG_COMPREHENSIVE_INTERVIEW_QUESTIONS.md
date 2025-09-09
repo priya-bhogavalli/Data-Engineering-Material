@@ -1,19 +1,3 @@
-# Apache Pig - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [Pig Latin Language](#-pig-latin-language)
-3. [Data Types & Operations](#-data-types--operations)
-4. [Built-in Functions](#-built-in-functions)
-5. [User Defined Functions (UDFs)](#-user-defined-functions-udfs)
-6. [Performance Optimization](#-performance-optimization)
-7. [Integration & Ecosystem](#-integration--ecosystem)
-8. [Error Handling & Debugging](#-error-handling--debugging)
-9. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache Pig and what problems does it solve?
 **Answer:**

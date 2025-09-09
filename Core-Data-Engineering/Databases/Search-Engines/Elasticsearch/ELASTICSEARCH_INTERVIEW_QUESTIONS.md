@@ -13,30 +13,6 @@
 
 ### 1. What is Elasticsearch and its primary use cases?
 
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **Inverted Index**: Core data structure mapping terms to documents for fast text search
-- **Distributed Architecture**: Horizontal scaling through sharding across multiple nodes
-- **Near Real-time Search**: Documents searchable within 1 second of indexing
-- **Schema-free JSON**: Dynamic mapping with automatic field type detection
-- **RESTful API**: HTTP-based interface for all operations
-
-#### **Historical Context**
-- **2010**: Created by Shay Banon, inspired by Apache Lucene limitations
-- **2012**: Elasticsearch 0.20 with distributed search capabilities
-- **2014**: Formation of Elastic company and ELK stack popularity
-- **2017**: X-Pack integration for security and monitoring
-- **2019**: Open source license change to Elastic License
-- **2021**: Elasticsearch 7.x with machine learning capabilities
-
-#### **Architectural Principles**
-- **Distributed by Design**: Built for horizontal scaling from day one
-- **Fault Tolerance**: Automatic shard replication and node failure handling
-- **Multi-tenancy**: Single cluster serving multiple applications
-- **Real-time Analytics**: Fast aggregations on large datasets
-- **Full-text Search**: Advanced text analysis and relevance scoring
-
 ### 📈 **Comparative Analysis**
 
 #### **Search Engine Technology Comparison Matrix**
@@ -52,20 +28,6 @@
 | **Cost Model** | Self-hosted/Cloud | Self-hosted/Cloud | Pay-per-use | Pay-per-use |
 | **Learning Curve** | Medium-High | High | Low | Medium |
 | **Community** | Very Large | Large | Limited | Growing |
-
-#### **Performance Benchmarks**
-```
-Elasticsearch Performance Characteristics:
-┌─────────────────┬──────────────┬──────────────┬──────────────┐
-| Operation       | Throughput   | Latency      | Resource Usage|
-├─────────────────┼──────────────┼──────────────┼──────────────┤
-| Indexing        | 10K docs/sec | 100-500ms    | High CPU/Disk |
-| Simple Search   | 1K queries/sec| 10-50ms      | Medium CPU    |
-| Complex Search  | 100 queries/sec| 50-200ms     | High CPU/RAM  |
-| Aggregations    | 50 queries/sec | 100-1000ms   | High CPU/RAM  |
-| Bulk Operations | 50K docs/sec  | 1-5 seconds  | Very High I/O |
-└─────────────────┴──────────────┴──────────────┴──────────────┘
-```
 
 #### **Use Case Decision Matrix**
 ```
@@ -106,15 +68,6 @@ curl -X GET "localhost:9200/products/_search?q=laptop"
 ```
 
 ### 2. Explain Elasticsearch cluster architecture
-
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **Cluster State**: Metadata about cluster topology, indices, and shard allocation
-- **Master Node**: Manages cluster state and coordinates cluster-wide operations
-- **Data Node**: Stores data and executes search and indexing operations
-- **Shard Allocation**: Automatic distribution of shards across available nodes
-- **Split-Brain Prevention**: Minimum master nodes configuration prevents cluster splits
 
 #### **Cluster Architecture Components**
 ```

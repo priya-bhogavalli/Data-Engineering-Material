@@ -1,6 +1,3 @@
-# Relational Modeling Interview Questions
-
-## 🗄️ Relational Database Fundamentals
 
 ### Q1: What are the key principles of relational database design?
 **Answer:**

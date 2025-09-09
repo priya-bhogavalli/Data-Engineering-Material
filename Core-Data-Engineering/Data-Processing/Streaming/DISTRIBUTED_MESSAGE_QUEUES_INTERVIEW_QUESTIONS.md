@@ -1,6 +1,3 @@
-# Distributed Message Queues Interview Questions
-
-## 🚀 Message Queue Fundamentals
 
 ### Q1: What are distributed message queues and why are they important?
 **Answer:**

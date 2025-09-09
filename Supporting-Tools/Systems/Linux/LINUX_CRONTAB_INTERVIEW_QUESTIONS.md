@@ -1,6 +1,3 @@
-# Linux Crontab Interview Questions
-
-## What is crontab?
 
 ### Answer:
 Crontab (cron table) is a time-based job scheduler in Unix-like operating systems that allows users to schedule commands or scripts to run automatically at specified times and intervals.

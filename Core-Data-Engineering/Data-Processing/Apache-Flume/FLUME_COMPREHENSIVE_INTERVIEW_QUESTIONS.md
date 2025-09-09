@@ -1027,11 +1027,6 @@ export JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 grep "corruption\|checkpoint" /var/log/flume/flume.log
 
 # Recovery steps
-# 1. Stop Flume agent
-# 2. Remove corrupted checkpoint files
-rm -rf /var/flume/checkpoint/*
-# 3. Restart agent (will rebuild checkpoint)
-```
 
 ### Q17: How do you monitor Flume agents in production?
 **Answer:**

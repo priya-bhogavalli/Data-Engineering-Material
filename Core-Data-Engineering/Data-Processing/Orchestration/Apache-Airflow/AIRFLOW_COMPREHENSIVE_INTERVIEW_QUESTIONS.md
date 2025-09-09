@@ -13,30 +13,6 @@
 
 ### 1. What is Apache Airflow and what problems does it solve?
 
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **Workflow Orchestration**: Programmatic scheduling and monitoring of data workflows
-- **Directed Acyclic Graph (DAG)**: Mathematical model ensuring no circular dependencies
-- **Task Dependency Management**: Complex dependency resolution using topological sorting
-- **Distributed Execution**: Horizontal scaling through pluggable executors
-- **Idempotency**: Tasks designed to produce same result regardless of execution count
-
-#### **Historical Context**
-- **2014**: Created at Airbnb by Maxime Beauchemin to solve data pipeline challenges
-- **2016**: Open-sourced and donated to Apache Software Foundation
-- **2019**: Became Apache top-level project
-- **2020**: Airflow 2.0 with major architectural improvements
-- **2021**: TaskFlow API and improved UI introduction
-- **2023**: Airflow 2.6+ with enhanced security and performance
-
-#### **Architectural Principles**
-- **Configuration as Code**: Workflows defined in Python for version control
-- **Extensibility**: Plugin architecture for custom operators and hooks
-- **Scalability**: Multi-node deployment with various executors
-- **Observability**: Comprehensive logging, monitoring, and alerting
-- **Fault Tolerance**: Automatic retry mechanisms and failure handling
-
 ### 📈 **Comparative Analysis**
 
 #### **Workflow Orchestration Platform Comparison Matrix**
@@ -52,19 +28,6 @@
 | **Testing** | Manual setup | Built-in | Native | Basic |
 | **Deployment** | Complex | Managed/Self | Flexible | Simple |
 | **Cost** | Open source | Freemium | Commercial | Open source |
-
-#### **Performance Benchmarks**
-```
-Airflow Performance Characteristics:
-┌─────────────────┬──────────────┬──────────────┬──────────────┐
-| Deployment      | DAGs/Cluster | Tasks/Hour   | Resource Usage|
-├─────────────────┼──────────────┼──────────────┼──────────────┤
-| Single Node     | 100-500      | 10K-50K      | 2-8GB RAM     |
-| Multi-Node      | 1000-5000    | 100K-500K    | 16-64GB RAM   |
-| Kubernetes      | 5000+        | 1M+          | Auto-scaling  |
-| Cloud Managed   | 10000+       | 5M+          | Fully managed |
-└─────────────────┴──────────────┴──────────────┴──────────────┘
-```
 
 #### **Use Case Decision Matrix**
 ```
@@ -91,15 +54,6 @@ Airflow Use Case Selection Guide:
 - **Scalability**: Distributed task execution
 
 ### 2. Explain Airflow's core components
-
-### 🎯 **Theoretical Foundation**
-
-#### **Core Concepts**
-- **Component Separation**: Microservices architecture with distinct responsibilities
-- **Stateful Coordination**: Metadata database as single source of truth
-- **Pluggable Execution**: Executor abstraction for different deployment models
-- **Event-Driven Scheduling**: Reactive scheduling based on task state changes
-- **Horizontal Scalability**: Components can be scaled independently
 
 #### **Component Architecture**
 ```

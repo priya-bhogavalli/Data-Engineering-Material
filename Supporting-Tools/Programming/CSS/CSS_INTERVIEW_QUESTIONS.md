@@ -1,18 +1,3 @@
-# CSS Interview Questions for Data Engineering
-
-## 📋 Table of Contents
-1. [CSS Fundamentals](#css-fundamentals)
-2. [Layout & Positioning](#layout--positioning)
-3. [Responsive Design](#responsive-design)
-4. [Data Visualization Styling](#data-visualization-styling)
-5. [Dashboard Design](#dashboard-design)
-6. [Performance & Optimization](#performance--optimization)
-7. [CSS Frameworks](#css-frameworks)
-8. [Advanced CSS](#advanced-css)
-
----
-
-## CSS Fundamentals
 
 ### Q1: What is CSS and how does it relate to data visualization?
 **Answer:**

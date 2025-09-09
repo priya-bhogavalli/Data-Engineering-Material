@@ -2,26 +2,6 @@
 
 ## 1. What is Agile methodology and how does it differ from traditional project management approaches?
 
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Agile Manifesto**: Four values and twelve principles emphasizing individuals, working software, customer collaboration, and responding to change
-- **Iterative Development**: Short development cycles (sprints) with continuous feedback and adaptation
-- **Empirical Process Control**: Transparency, inspection, and adaptation as core pillars
-- **Cross-functional Teams**: Self-organizing teams with all skills needed to deliver working software
-
-#### **Historical Context**
-- **2001**: Agile Manifesto created by 17 software developers
-- **Pre-Agile Era**: Heavy documentation, rigid planning, waterfall methodology dominance
-- **Evolution**: From manufacturing (Lean) to software development adaptation
-- **Modern Adoption**: 95% of organizations use some form of Agile methodology
-
-#### **Architectural Principles**
-- **Value-driven delivery**: Focus on customer value over process compliance
-- **Adaptive planning**: Embrace change rather than following a fixed plan
-- **Continuous improvement**: Regular retrospectives and process refinement
-- **Sustainable pace**: Maintain team productivity and quality over time
-
-### 📊 **Comparative Analysis**
 #### **Methodology Comparison Matrix**
 | Aspect | Agile | Waterfall | Lean | DevOps |
 |--------|-------|-----------|------|--------|
@@ -32,41 +12,6 @@
 | **Delivery** | Incremental | Big bang | Continuous flow | Continuous delivery |
 | **Risk Management** | Early detection | Late discovery | Waste reduction | Automated testing |
 
-#### **Decision Framework**
-```mermaid
-graph TD
-    A[Project Requirements] --> B{Requirements Clarity?}
-    B -->|Clear & Stable| C[Consider Waterfall]
-    B -->|Unclear/Changing| D[Choose Agile]
-    
-    D --> E{Team Size?}
-    E -->|Small (2-9)| F[Scrum]
-    E -->|Large (10+)| G[SAFe/LeSS]
-    
-    F --> H{Project Duration?}
-    H -->|< 6 months| I[Kanban]
-    H -->|> 6 months| J[Scrum with Sprints]
-```
-
-### 🏗️ **Implementation Deep Dive**
-**Agile differs from traditional approaches in:**
-
-1. **Planning Approach**
-   - **Agile**: Adaptive planning with regular re-evaluation
-   - **Traditional**: Comprehensive upfront planning with minimal changes
-
-2. **Delivery Model**
-   - **Agile**: Incremental delivery every 1-4 weeks
-   - **Traditional**: Single delivery at project end
-
-3. **Risk Management**
-   - **Agile**: Early and continuous risk identification
-   - **Traditional**: Risk assessment primarily during planning phase
-
-4. **Customer Involvement**
-   - **Agile**: Continuous customer collaboration and feedback
-   - **Traditional**: Customer involvement mainly at requirements and delivery
-
 ### **Answer**
 Agile methodology is an iterative approach to project management and software development that emphasizes flexibility, collaboration, and customer satisfaction. Unlike traditional waterfall approaches that follow sequential phases, Agile breaks work into short iterations called sprints, typically 1-4 weeks long.
 
@@ -75,13 +20,6 @@ Key differences include: adaptive vs. comprehensive planning, incremental vs. bi
 ---
 
 ## 2. Explain the Scrum framework and its key components.
-
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Empirical Process Control**: Based on transparency, inspection, and adaptation
-- **Time-boxed Events**: Fixed-duration ceremonies that create rhythm and focus
-- **Defined Roles**: Clear responsibilities for Product Owner, Scrum Master, and Development Team
-- **Artifacts**: Product Backlog, Sprint Backlog, and Product Increment as information radiators
 
 #### **Scrum Framework Structure**
 ```
@@ -118,7 +56,6 @@ SCRUM FRAMEWORK COMPONENTS:
 └─────────────────┴─────────────────┴─────────────────────────┘
 ```
 
-### 📊 **Comparative Analysis**
 #### **Agile Framework Comparison**
 | Framework | Team Size | Structure | Ceremonies | Best For |
 |-----------|-----------|-----------|------------|----------|
@@ -126,34 +63,6 @@ SCRUM FRAMEWORK COMPONENTS:
 | **Kanban** | Any size | Flexible | Minimal | Maintenance/support |
 | **SAFe** | 50-125 people | Hierarchical | Multiple levels | Enterprise scaling |
 | **LeSS** | 8-50 people | Simplified scaling | Extended Scrum | Large product development |
-
-### 🏗️ **Implementation Deep Dive**
-
-**Scrum Roles:**
-1. **Product Owner**
-   - Defines product vision and strategy
-   - Manages and prioritizes Product Backlog
-   - Accepts or rejects work results
-   - Single point of contact for requirements
-
-2. **Scrum Master**
-   - Facilitates Scrum process and events
-   - Removes impediments blocking the team
-   - Coaches team on Scrum practices
-   - Shields team from external distractions
-
-3. **Development Team**
-   - Cross-functional group (3-9 members)
-   - Self-organizing and self-managing
-   - Collectively responsible for delivery
-   - No sub-teams or hierarchies
-
-**Scrum Events:**
-1. **Sprint** (1-4 weeks): Time-boxed iteration
-2. **Sprint Planning** (8 hours): Define sprint goal and backlog
-3. **Daily Scrum** (15 minutes): Daily synchronization
-4. **Sprint Review** (4 hours): Demonstrate completed work
-5. **Sprint Retrospective** (3 hours): Process improvement
 
 ### **Answer**
 Scrum is an Agile framework for managing product development with three roles, five events, and three artifacts. The Product Owner defines what to build, the Scrum Master facilitates the process, and the Development Team builds the product.
@@ -163,13 +72,6 @@ Key events include Sprints (1-4 week iterations), Sprint Planning (defining spri
 ---
 
 ## 3. What is the Waterfall methodology and when should it be used?
-
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Sequential Phases**: Linear progression through distinct project phases
-- **Gate-based Approach**: Each phase must be completed before the next begins
-- **Comprehensive Documentation**: Detailed specifications and sign-offs at each stage
-- **Predictive Planning**: Extensive upfront planning and requirement definition
 
 #### **Waterfall Phases**
 ```
@@ -223,7 +125,6 @@ WATERFALL METHODOLOGY PHASES:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 📊 **Comparative Analysis**
 #### **When to Use Each Methodology**
 | Scenario | Waterfall | Agile | Hybrid |
 |----------|-----------|-------|--------|
@@ -249,26 +150,6 @@ Waterfall Usage by Industry:
 │ Startups        │ 5%           │ 85%          │ 10%          │
 └─────────────────┴──────────────┴──────────────┴──────────────┘
 ```
-
-### 🏗️ **Implementation Deep Dive**
-
-**Waterfall Advantages:**
-- **Predictability**: Clear timeline and budget estimates
-- **Documentation**: Comprehensive project documentation
-- **Quality Control**: Thorough testing and validation
-- **Compliance**: Meets regulatory and audit requirements
-
-**Waterfall Disadvantages:**
-- **Inflexibility**: Difficult to accommodate changes
-- **Late Feedback**: Customer sees product only at the end
-- **Risk**: High risk of project failure if requirements change
-- **Time to Market**: Longer delivery cycles
-
-**Best Use Cases for Waterfall:**
-1. **Regulatory Projects**: FDA approvals, financial compliance
-2. **Infrastructure Projects**: Data center builds, network implementations
-3. **Integration Projects**: Legacy system integrations
-4. **Fixed-Scope Projects**: Well-defined requirements with minimal change
 
 ### **Answer**
 Waterfall is a linear, sequential project management methodology where each phase must be completed before the next begins. It follows six phases: Requirements Analysis, System Design, Implementation, Testing, Deployment, and Maintenance.

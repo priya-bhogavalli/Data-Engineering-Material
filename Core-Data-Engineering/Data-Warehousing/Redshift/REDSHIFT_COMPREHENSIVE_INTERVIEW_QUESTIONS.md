@@ -13,134 +13,8 @@
 
 ### 1. What is Amazon Redshift and what problems does it solve?
 
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Massively Parallel Processing (MPP)**: Distributed computing architecture for analytical workloads
-- **Columnar Storage**: Data stored in columns rather than rows for analytical optimization
-- **Shared-Nothing Architecture**: Each node operates independently with its own CPU, memory, and storage
-- **Zone Maps**: Metadata structures that enable efficient data pruning
-- **Leader-Compute Node Architecture**: Separation of query coordination and execution
-
-#### **Historical Context**
-- **Founded**: 2012 as part of AWS data services expansion
-- **Origins**: Based on PostgreSQL 8.0.2 with massive modifications for analytics
-- **Key Milestones**:
-  - 2013: General availability launch
-  - 2016: Redshift Spectrum introduction
-  - 2019: RA3 node types with managed storage
-  - 2021: Redshift Serverless preview
-  - 2022: Multi-AZ deployments
-
-#### **Architectural Principles**
-- **Data Locality**: Minimize data movement across nodes
-- **Parallel Execution**: Distribute query processing across all available resources
-- **Compression**: Automatic data compression to reduce I/O
-- **Cost Optimization**: Pay only for compute and storage used
-- **AWS Integration**: Native integration with AWS ecosystem
-
-### 📊 **Comparative Analysis**
-#### **Technology Comparison Matrix**
-| Feature | Amazon Redshift | Snowflake | Google BigQuery | Azure Synapse |
-|---------|-----------------|-----------|-----------------|----------------|
-| **Architecture** | MPP, shared-nothing | Multi-cluster, shared data | Serverless, columnar | Hybrid MPP/serverless |
-| **Scaling** | Manual cluster resize | Auto-scaling compute | Auto-scaling | Manual/auto-scaling |
-| **Storage** | Local SSD/Managed | Cloud object storage | Distributed storage | Premium/standard storage |
-| **Pricing** | Node-hour based | Per-second usage | Per-query pricing | DWU-based |
-| **Concurrency** | Limited by nodes | Unlimited scaling | High concurrency | Configurable slots |
-| **Data Loading** | COPY command | Multiple methods | Streaming/batch | PolyBase/COPY |
-| **Ecosystem** | AWS native | Multi-cloud | GCP native | Azure native |
-| **Maintenance** | Managed patches | Fully managed | Serverless | Managed/self-managed |
-
-#### **Decision Framework**
-```mermaid
-graph TD
-    A[Data Warehouse Requirements] --> B{Primary Cloud?}
-    B -->|AWS| C{Workload Pattern?}
-    B -->|Multi-cloud| D[Consider Snowflake]
-    B -->|GCP| E[Consider BigQuery]
-    B -->|Azure| F[Consider Synapse]
-    
-    C -->|Predictable| G[Redshift Reserved]
-    C -->|Variable| H[Redshift Serverless]
-    C -->|Mixed| I{Budget Priority?}
-    
-    I -->|Cost-sensitive| G
-    I -->|Performance-first| J[Redshift RA3]
-```
-
-#### **Use Case Scenarios**
-- **Choose Amazon Redshift when:**
-  - Deep AWS ecosystem integration required
-  - Predictable analytical workloads with consistent resource needs
-  - Cost optimization through reserved instances is important
-  - PostgreSQL compatibility is beneficial
-  - Need for fine-grained performance tuning and control
-
-- **Consider Alternatives when:**
-  - **Snowflake**: Multi-cloud strategy, variable workloads, minimal administration
-  - **BigQuery**: Serverless preference, Google ecosystem, pay-per-query model
-  - **Synapse**: Microsoft stack integration, hybrid analytics requirements
-
-#### **Performance Benchmarks**
-```
-TPC-DS 10TB Benchmark Results:
-┌─────────────────┬──────────────┬──────────────┬──────────────┐
-│ Metric          │ Redshift     │ Snowflake    │ BigQuery     │
-├─────────────────┼──────────────┼──────────────┼──────────────┤
-│ Query Time (avg)│ 52 seconds   │ 45 seconds   │ 38 seconds   │
-│ Load Speed      │ 12 min       │ 15 min       │ 8 min        │
-│ Concurrency     │ 50 users     │ 100+ users   │ 1000+ users  │
-│ Cost per Query  │ $0.12        │ $0.15        │ $0.18        │
-│ Setup Time      │ 15 min       │ 5 min        │ Instant      │
-└─────────────────┴──────────────┴──────────────┴──────────────┘
-```
-
-#### **Cost Analysis**
-```
-Total Cost of Ownership (3-year projection for 10TB data warehouse):
-┌─────────────────┬──────────────┬──────────────┬──────────────┐
-│ Cost Component  │ Redshift     │ Snowflake    │ BigQuery     │
-├─────────────────┼──────────────┼──────────────┼──────────────┤
-│ Compute         │ $150K        │ $180K        │ $200K        │
-│ Storage         │ $30K         │ $25K         │ $20K         │
-│ Data Transfer   │ $10K         │ $15K         │ $25K         │
-│ Administration  │ $120K        │ $50K         │ $60K         │
-├─────────────────┼──────────────┼──────────────┼──────────────┤
-│ **TOTAL**       │ **$310K**    │ **$270K**    │ **$305K**    │
-└─────────────────┴──────────────┴──────────────┴──────────────┘
-```
-
-**Answer:** Amazon Redshift is a fully managed, petabyte-scale data warehouse service in the cloud that solves:
-- **Scalability**: Handle massive datasets (petabytes)
-- **Performance**: Fast analytical queries using columnar storage
-- **Cost-effectiveness**: Pay-as-you-use pricing model
-- **Integration**: Native AWS ecosystem integration
-- **Maintenance**: Fully managed service with automated backups
-
 ### 2. Explain Redshift's architecture components
 
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Leader-Compute Separation**: Clear separation of query coordination and execution
-- **Slice-Based Parallelism**: Data and processing distributed across slices
-- **Shared-Nothing Architecture**: No shared resources between compute nodes
-- **Zone Maps**: Block-level metadata for efficient data pruning
-- **Result Caching**: Query result caching for performance optimization
-
-#### **Historical Context**
-- **MPP Evolution**: Based on traditional MPP database architectures from 1980s-1990s
-- **PostgreSQL Foundation**: Built on PostgreSQL 8.0.2 with extensive modifications
-- **Cloud Adaptation**: Traditional MPP adapted for cloud-native deployment
-- **Columnar Innovation**: Adoption of columnar storage for analytical workloads
-
-#### **Architectural Principles**
-- **Horizontal Scalability**: Add nodes to increase capacity and performance
-- **Data Locality**: Keep related data on same node to minimize network traffic
-- **Parallel Processing**: Execute operations simultaneously across all nodes
-- **Fault Tolerance**: Automatic node replacement and data replication
-- **Resource Isolation**: Workload management through queue-based resource allocation
-
-### 📊 **Comparative Analysis**
 #### **Architecture Comparison Matrix**
 | Component | Redshift | Snowflake | BigQuery | Synapse |
 |-----------|----------|-----------|----------|----------|
@@ -150,23 +24,6 @@ Total Cost of Ownership (3-year projection for 10TB data warehouse):
 | **Parallelism** | Slice-based | Multi-cluster | Slot-based | Distribution-based |
 | **Caching** | Result cache | Multi-tier | BI Engine | Result cache |
 | **Scaling** | Manual resize | Auto-scaling | Serverless | Manual/auto |
-
-#### **Decision Framework**
-```mermaid
-graph TD
-    A[Architecture Requirements] --> B{Control Preference?}
-    B -->|High Control| C[Redshift MPP]
-    B -->|Managed Service| D[Snowflake/BigQuery]
-    
-    C --> E{Workload Type?}
-    E -->|Batch Analytics| F[Traditional Nodes]
-    E -->|Mixed Workloads| G[RA3 Nodes]
-    E -->|Variable Load| H[Serverless]
-    
-    D --> I{Cloud Preference?}
-    I -->|Multi-cloud| J[Snowflake]
-    I -->|GCP Native| K[BigQuery]
-```
 
 #### **Performance Characteristics**
 ```
@@ -191,28 +48,12 @@ Architecture Performance Impact:
 
 ### 3. What are the different Redshift node types?
 
-### 🎯 **Theoretical Foundation**
-#### **Core Concepts**
-- **Compute-Storage Separation**: RA3 nodes separate compute and storage for independent scaling
-- **Dense Compute vs Dense Storage**: Different optimization strategies for workload types
-- **Managed Storage**: AWS-managed storage layer with automatic scaling
-- **Local SSD Storage**: High-performance local storage for specific workloads
-- **Resource Optimization**: Match node type to workload characteristics
-
-#### **Historical Context**
-- **Node Type Evolution**:
-  - 2013: ds1/ds2 nodes (original dense storage)
-  - 2016: dc1/dc2 nodes (dense compute with SSD)
-  - 2019: ra3 nodes (managed storage architecture)
-  - 2021: Serverless (no node management)
-
 #### **Selection Principles**
 - **Workload Analysis**: Match compute and storage requirements
 - **Cost Optimization**: Balance performance and cost
 - **Scalability Planning**: Consider future growth patterns
 - **Performance Requirements**: Align with query complexity and concurrency
 
-### 📊 **Comparative Analysis**
 #### **Node Type Comparison Matrix**
 | Node Type | Use Case | Storage | Memory | vCPUs | Price/Hour | Best For |
 |-----------|----------|---------|--------|-------|------------|----------|
@@ -221,25 +62,6 @@ Architecture Performance Impact:
 | **ra3.16xlarge** | Largest workloads | Managed Storage | 384 GB | 48 | $39.12 | Enterprise scale |
 | **dc2.large** | Small datasets | 160 GB SSD | 15 GB | 2 | $0.25 | Development/test |
 | **dc2.8xlarge** | Large datasets | 2.56 TB SSD | 244 GB | 32 | $4.80 | High-performance |
-
-#### **Decision Framework**
-```mermaid
-graph TD
-    A[Node Type Selection] --> B{Data Size?}
-    B -->|<1TB| C[DC2 Nodes]
-    B -->|1-100TB| D[RA3 Nodes]
-    B -->|>100TB| E[RA3 Large Nodes]
-    
-    C --> F{Performance Needs?}
-    F -->|Basic| G[dc2.large]
-    F -->|High| H[dc2.8xlarge]
-    
-    D --> I{Compute Intensity?}
-    I -->|Moderate| J[ra3.xlplus]
-    I -->|High| K[ra3.4xlarge]
-    
-    E --> L[ra3.16xlarge]
-```
 
 #### **Performance Characteristics**
 ```
@@ -254,34 +76,6 @@ Node Type Performance Comparison (TPC-DS 1TB):
 │ ra3.16xlarge    │ 30 sec       │ Very High    │ $1.96        │
 └─────────────────┴──────────────┴──────────────┴──────────────┘
 ```
-
-#### **Use Case Scenarios**
-- **Choose RA3 nodes when:**
-  - Data size exceeds local storage capacity
-  - Need independent compute and storage scaling
-  - Workload has variable compute requirements
-  - Long-term cost optimization is important
-
-- **Choose DC2 nodes when:**
-  - Dataset fits within local storage limits
-  - Consistent high-performance requirements
-  - Predictable workload patterns
-  - Maximum I/O performance is critical
-
-- **Choose Serverless when:**
-  - Unpredictable or intermittent workloads
-  - Development and testing environments
-  - Minimal administration overhead required
-  - Pay-per-use cost model preferred
-
-**Answer:**
-| Node Type | Use Case | Storage | Memory | vCPUs |
-|-----------|----------|---------|--------|-------|
-| **ra3.xlplus** | Balanced workloads | Managed Storage | 32 GB | 4 |
-| **ra3.4xlarge** | Heavy workloads | Managed Storage | 96 GB | 12 |
-| **ra3.16xlarge** | Largest workloads | Managed Storage | 384 GB | 48 |
-| **dc2.large** | Small datasets | 160 GB SSD | 15 GB | 2 |
-| **dc2.8xlarge** | Large datasets | 2.56 TB SSD | 244 GB | 32 |
 
 ### 4. How does Redshift's columnar storage work?
 **Answer:**

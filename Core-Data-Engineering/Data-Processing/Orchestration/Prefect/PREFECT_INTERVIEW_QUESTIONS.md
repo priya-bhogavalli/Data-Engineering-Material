@@ -1,23 +1,3 @@
-# Prefect Interview Questions
-
-## 📋 Table of Contents
-
-1. [Basic Concepts](#basic-concepts)
-2. [Architecture & Components](#architecture--components)
-3. [Flow Development](#flow-development)
-4. [Task Management](#task-management)
-5. [Deployment & Execution](#deployment--execution)
-6. [Monitoring & Observability](#monitoring--observability)
-7. [Error Handling & Retries](#error-handling--retries)
-8. [Scaling & Performance](#scaling--performance)
-9. [Integration & Ecosystem](#integration--ecosystem)
-10. [Best Practices](#best-practices)
-11. [Troubleshooting](#troubleshooting)
-12. [Comparison Questions](#comparison-questions)
-
----
-
-## Basic Concepts
 
 ### Q1: What is Prefect and how does it differ from traditional workflow orchestration tools?
 **Answer:**

@@ -1,18 +1,3 @@
-# Apache Impala - Comprehensive Interview Questions & Answers
-
-## 📋 Table of Contents
-1. [Core Concepts](#-core-concepts)
-2. [Architecture & Components](#-architecture--components)
-3. [SQL & Query Processing](#-sql--query-processing)
-4. [Performance Optimization](#-performance-optimization)
-5. [Data Formats & Storage](#-data-formats--storage)
-6. [Security & Administration](#-security--administration)
-7. [Integration & Use Cases](#-integration--use-cases)
-8. [Real-world Scenarios](#-real-world-scenarios)
-
----
-
-## 🎯 Core Concepts
 
 ### Q1: What is Apache Impala and what problems does it solve?
 **Answer:**
