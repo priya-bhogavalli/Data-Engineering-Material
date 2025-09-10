@@ -1,9 +1,32 @@
-# Apache Spark - Key Concepts
+# Apache Spark Key Concepts for Data Engineering
 
-## 🎯 What is Apache Spark?
+## 📋 Table of Contents
+
+1. [Overview](#-overview)
+2. [Core Components](#-core-components)
+   - [RDDs (Resilient Distributed Datasets)](#rdds-resilient-distributed-datasets)
+   - [DataFrames](#dataframes)
+   - [Datasets](#datasets)
+3. [Spark Architecture](#-spark-architecture)
+4. [Spark SQL](#-spark-sql)
+5. [Streaming (Structured Streaming)](#-streaming-structured-streaming)
+6. [Performance Optimization](#-performance-optimization)
+   - [Partitioning](#1-partitioning)
+   - [Caching](#2-caching)
+   - [Broadcast Variables](#3-broadcast-variables)
+7. [Configuration](#️-configuration)
+8. [Machine Learning (MLlib)](#-machine-learning-mllib)
+9. [When to Use Spark](#-when-to-use-spark)
+10. [Interview Focus Areas](#-interview-focus-areas)
+11. [Quick References](#-quick-references)
+
+---
+
+## 🎯 Overview
+
 Apache Spark is a unified analytics engine for large-scale data processing, providing high-level APIs for distributed computing. It's designed to be fast (up to 100x faster than Hadoop MapReduce), easy to use, and supports multiple programming languages (Scala, Java, Python, R).
 
-## 🔑 Core Concepts
+## 📦 Core Components
 
 ### 1. Spark Architecture
 
