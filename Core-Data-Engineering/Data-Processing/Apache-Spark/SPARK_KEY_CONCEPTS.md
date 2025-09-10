@@ -844,6 +844,137 @@ result.show()
 # |   category|total|
 # +-----------+-----+
 # |Electronics| 2500|
+# |   Cl# Apache Spark Key Concepts for Data Engineering
+
+## 📋 Table of Contents
+
+1. [Overview](#-overview)
+2. [Core Components](#-core-components)
+   - [RDDs (Resilient Distributed Datasets)](#rdds-resilient-distributed-datasets)
+   - [DataFrames](#dataframes)
+   - [Datasets](#datasets)
+3. [Spark Architecture](#-spark-architecture)
+4. [Spark SQL](#-spark-sql)
+5. [Streaming (Structured Streaming)](#-streaming-structured-streaming)
+6. [Performance Optimization](#-performance-optimization)
+   - [Partitioning](#1-partitioning)
+   - [Caching](#2-caching)
+   - [Broadcast Variables](#3-broadcast-variables)
+7. [Configuration](#️-configuration)
+8. [Machine Learning (MLlib)](#-machine-learning-mllib)
+9. [When to Use Spark](#-when-to-use-spark)
+10. [Interview Focus Areas](#-interview-focus-areas)
+11. [Quick References](#-quick-references)
+
+---
+
+## 🎯 Overview
+
+Apache Spark is a unified analytics engine for large-scale data processing with built-in modules for streaming, SQL, machine learning, and graph processing.
+
+**Key Benefits:**
+- **Speed**: 100x faster than Hadoop MapReduce due to in-memory computing
+- **Ease of Use**: Simple APIs in Java, Scala, Python, and R
+- **Generality**: Combines SQL, streaming, and complex analytics
+- **Runs Everywhere**: YARN, Mesos, Kubernetes, standalone, or cloud
+
+## 📦 Core Components
+
+### RDDs (Resilient Distributed Datasets)
+**Definition**: Fundamental data structure of Spark - immutable distributed collection of objects.
+
+**Key Characteristics**:
+- **Immutable**: Cannot be changed after creation
+- **Distributed**: Partitioned across cluster nodes
+- **Fault-tolerant**: Recovers from failures using lineage
+- **Lazy evaluation**: Computed only when actions are called
+
+```python
+# Create RDD
+rdd = spark.sparkContext.parallelize([1, 2, 3, 4, 5])
+print(f"RDD created with {rdd.count()} elements")
+# Output: RDD created with 5 elements
+
+# Transformations (lazy)
+mapped_rdd = rdd.map(lambda x: x * 2)
+filtered_rdd = mapped_rdd.filter(lambda x: x > 5)
+
+# Action (triggers execution)
+result = filtered_rdd.collect()
+print(f"Result: {result}")
+# Output: Result: [6, 8, 10]
+```
+
+### DataFrames
+**Definition**: Distributed collection of data organized into named columns, similar to a table in relational database.
+
+**Key Features**:
+- **Schema**: Structured data with defined column types
+- **Catalyst Optimization**: Automatic query optimization
+- **SQL Support**: Can be queried using SQL syntax
+- **Language Agnostic**: Same API across Python, Scala, Java, R
+
+```python
+# Create DataFrame
+data = [("Alice", 25, "Engineer"), ("Bob", 30, "Manager"), ("Charlie", 35, "Analyst")]
+df = spark.createDataFrame(data, ["name", "age", "role"])
+
+# DataFrame operations
+result = df.filter(df.age > 25).select("name", "role")
+result.show()
+# Output:
+# +-------+-------+
+# |   name|   role|
+# +-------+-------+
+# |    Bob|Manager|
+# |Charlie|Analyst|
+# +-------+-------+
+```
+
+### Datasets
+**Definition**: Type-safe version of DataFrames (available in Scala/Java only, not Python).
+
+**Key Features**:
+- **Type Safety**: Compile-time type checking
+- **Object-Oriented**: Work with JVM objects
+- **Performance**: Same optimizations as DataFrames
+- **Encoder**: Automatic serialization/deserialization
+
+## 🚀 Spark SQL
+
+**Definition**: Module for structured data processing that provides a programming interface for working with structured and semi-structured data.
+
+**Key Components**:
+- **Catalyst Optimizer**: Rule-based query optimizer
+- **Tungsten**: Execution engine for memory management and code generation
+- **Data Sources API**: Unified interface for reading from various sources
+- **Hive Integration**: Compatible with Hive metastore and HiveQL
+
+### Using SQL Syntax
+```python
+# Sample sales data
+sales_data = [("Electronics", 1000, "2023-06-01"), ("Clothing", 500, "2023-06-02"), 
+              ("Electronics", 1500, "2023-06-03"), ("Books", 300, "2023-06-04")]
+df = spark.createDataFrame(sales_data, ["category", "amount", "date"])
+
+# Register DataFrame as temp view
+df.createOrReplaceTempView("sales")
+
+# Use SQL
+result = spark.sql("""
+    SELECT category, SUM(amount) as total
+    FROM sales
+    WHERE date >= '2023-01-01'
+    GROUP BY category
+    ORDER BY total DESC
+""")
+
+result.show()
+# Output:
+# +-----------+-----+
+# |   category|total|
+# +-----------+-----+
+# |Electronics| 2500|
 # |   Clothing|  500|
 # |      Books|  300|
 # +-----------+-----+
@@ -852,6 +983,87 @@ result.show()
 ## 🏧 Spark Architecture
 
 **Definition**: Master-slave architecture with driver program coordinating work across distributed executors.
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                SPARK CLUSTER                                   │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐                    ┌─────────────────────────────────────┐ │
+│  │   DRIVER NODE   │                    │         CLUSTER MANAGER             │ │
+│  │                 │                    │                                     │ │
+│  │  ┌───────────┐  │◄──────────────────►│  ┌─────────────────────────────────┐ │ │
+│  │  │  Driver   │  │   Resource Mgmt    │  │ • YARN                          │ │ │
+│  │  │ Program   │  │   & Scheduling     │  │ • Kubernetes                    │ │ │
+│  │  │           │  │                    │  │ • Mesos                         │ │ │
+│  │  │SparkContext│  │                    │  │ • Standalone                    │ │ │
+│  │  └───────────┘  │                    │  └─────────────────────────────────┘ │ │
+│  └─────────────────┘                    └─────────────────────────────────────┘ │
+│           │                                                                     │
+│           │ Task Distribution & Results Collection                              │
+│           ▼                                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                           WORKER NODES                                     │ │
+│  │                                                                             │ │
+│  │ ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │ │
+│  │ │   EXECUTOR 1    │  │   EXECUTOR 2    │  │   EXECUTOR N    │             │ │
+│  │ │                 │  │                 │  │                 │             │ │
+│  │ │ ┌─────────────┐ │  │ ┌─────────────┐ │  │ ┌─────────────┐ │             │ │
+│  │ │ │   Task 1    │ │  │ │   Task 3    │ │  │ │   Task N    │ │             │ │
+│  │ │ │   Task 2    │ │  │ │   Task 4    │ │  │ │   Task N+1  │ │             │ │
+│  │ │ └─────────────┘ │  │ └─────────────┘ │  │ └─────────────┘ │             │ │
+│  │ │                 │  │                 │  │                 │             │ │
+│  │ │ ┌─────────────┐ │  │ ┌─────────────┐ │  │ ┌─────────────┐ │             │ │
+│  │ │ │Block Manager│ │  │ │Block Manager│ │  │ │Block Manager│ │             │ │
+│  │ │ │(Data Cache) │ │  │ │(Data Cache) │ │  │ │(Data Cache) │ │             │ │
+│  │ │ └─────────────┘ │  │ └─────────────┘ │  │ └─────────────┘ │             │ │
+│  │ └─────────────────┘  └─────────────────┘  └─────────────────┘             │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                                DATA FLOW
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                 │
+│  1. Driver creates SparkContext and submits application                        │
+│  2. Cluster Manager allocates resources and launches Executors                 │
+│  3. Driver sends application code to Executors                                 │
+│  4. Driver converts application into DAG of stages and tasks                   │
+│  5. Tasks are scheduled and executed on Executors                              │
+│  6. Executors run tasks and store/cache data in Block Manager                  │
+│  7. Results are sent back to Driver                                            │
+│  8. Driver aggregates results and returns to client                            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Detailed Component Breakdown
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            SPARK APPLICATION LIFECYCLE                         │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐             │
+│  │   CLIENT APP    │    │   DRIVER NODE   │    │  WORKER NODES   │             │
+│  │                 │    │                 │    │                 │             │
+│  │ spark-submit    │───►│  SparkContext   │───►│   Executors     │             │
+│  │ or IDE/Notebook │    │                 │    │                 │             │
+│  │                 │    │ ┌─────────────┐ │    │ ┌─────────────┐ │             │
+│  │                 │    │ │DAG Scheduler│ │    │ │   Tasks     │ │             │
+│  │                 │    │ │Task Scheduler│ │    │ │ ┌─────────┐ │ │             │
+│  │                 │    │ │Block Manager│ │    │ │ │ Thread1 │ │ │             │
+│  │                 │    │ │Broadcast Mgr│ │    │ │ │ Thread2 │ │ │             │
+│  │                 │    │ └─────────────┘ │    │ │ │ ThreadN │ │ │             │
+│  │                 │    │                 │    │ │ └─────────┘ │ │             │
+│  │                 │    │                 │    │ │             │ │             │
+│  │                 │    │                 │    │ │Block Manager│ │             │
+│  │                 │    │                 │    │ │(Memory/Disk)│ │             │
+│  └─────────────────┘    └─────────────────┘    │ └─────────────┘ │             │
+│                                                 └─────────────────┘             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
 **Core Components**:
 - **Driver Program**: Coordinates the application, maintains SparkContext
