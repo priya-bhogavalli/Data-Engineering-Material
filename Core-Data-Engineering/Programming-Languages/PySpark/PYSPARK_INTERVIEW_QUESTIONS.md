@@ -29,34 +29,30 @@ PySpark is the Python API for Apache Spark, enabling data engineers to leverage 
 
 ### 1. What is the difference between RDD, DataFrame, and Dataset in PySpark?
 
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying Python operations
-
-#### **Case Studies**
-Real-world case studies of Python implementations
-
-#### **Industry Direction**
-Future direction of Programming Language technologies
-
-### **Enhanced Answer**
-
-**Answer**: 
-Understanding these three abstractions is fundamental to PySpark development. Each serves different use cases and offers varying levels of optimization and type safety.
+**Answer**: Understanding these abstractions is fundamental to PySpark development.
 
 **Key Differences:**
-- **RDD (Resilient Distributed Dataset)**: Low-level API, immutable distributed collection of objects. No schema, no optimization by Catalyst optimizer.
-- **DataFrame**: Higher-level API built on RDDs with schema. Optimized by Catalyst optimizer, supports SQL operations.
-- **Dataset**: Type-safe version of DataFrame (not available in Python, only Scala/Java).
+- **RDD**: Low-level API, no schema, no Catalyst optimization, functional programming style
+- **DataFrame**: High-level API with schema, Catalyst optimization, SQL support
+- **Dataset**: Type-safe DataFrames (Scala/Java only, not available in Python)
 
 ```python
-# RDD example
+# RDD - functional style, no optimization
 rdd = spark.sparkContext.parallelize([1, 2, 3, 4])
 result_rdd = rdd.map(lambda x: x * 2).filter(lambda x: x > 4)
 
-# DataFrame example
+# DataFrame - declarative style, optimized
 df = spark.createDataFrame([(1,), (2,), (3,), (4,)], ["value"])
 result_df = df.select(col("value") * 2).filter(col("value") > 2)
 ```
+
+**When to use RDDs:**
+- Unstructured data (logs, text)
+- Complex data types
+- Low-level transformations
+- Legacy code maintenance
+
+**📚 For detailed RDD concepts, see [RDD Interview Questions](./RDD_INTERVIEW_QUESTIONS.md)**
 
 **Q2: Explain PySpark's lazy evaluation and when actions are triggered.**
 
