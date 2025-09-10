@@ -2,11 +2,11 @@
 
 ## 📋 Table of Contents
 
-1. [Solution Architecture Patterns](#solution-architecture-patterns)
-2. [Code Best Practices](#code-best-practices)
-3. [Performance Optimization](#performance-optimization)
-4. [Security & Compliance](#security--compliance)
-5. [Implementation Guidelines](#implementation-guidelines)
+1. [Solution Architecture Patterns](#-solution-architecture-patterns)
+2. [Code Best Practices](#-code-best-practices)
+3. [Performance Optimization](#-performance-optimization)
+4. [Security & Compliance](#-security--compliance)
+5. [Implementation Guidelines](#-implementation-guidelines)
 
 ---
 
