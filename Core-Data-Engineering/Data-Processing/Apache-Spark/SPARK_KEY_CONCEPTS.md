@@ -1155,6 +1155,25 @@ query = processed.writeStream \
 query.awaitTermination()
 ```
 
+### Advanced Streaming Features
+```python
+# Windowed aggregations with watermarking
+from pyspark.sql.functions import window, current_timestamp
+
+windowed_counts = stream_df \
+    .withWatermark("timestamp", "10 minutes") \
+    .groupBy(window(col("timestamp"), "5 minutes"), col("category")) \
+    .count()
+
+# Output modes
+query = windowed_counts.writeStream \
+    .outputMode("append") \
+    .format("delta") \
+    .option("path", "/path/to/delta-table") \
+    .option("checkpointLocation", "/path/to/checkpoint") \
+    .start()
+```
+
 ## ⚡ Performance Optimization
 
 **Definition**: Techniques to improve Spark application performance through better resource utilization, data organization, and execution strategies.
@@ -1300,23 +1319,174 @@ print(f"Spark Version: {spark.version}")
 - **Model Selection**: Cross-validation and hyperparameter tuning
 
 ```python
-from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.feature import VectorAssembler, StandardScaler
 from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml import Pipeline
 
 # Sample data
-data = [(1.0, 2.0, 1), (2.0, 3.0, 0), (3.0, 4.0, 1)]
+data = [(1.0, 2.0, 1), (2.0, 3.0, 0), (3.0, 4.0, 1), (4.0, 5.0, 0)]
 df = spark.createDataFrame(data, ["feature1", "feature2", "label"])
 
-# Create ML pipeline
+# Create ML pipeline with feature scaling
 assembler = VectorAssembler(inputCols=["feature1", "feature2"], outputCol="features")
-lr = LogisticRegression(featuresCol="features", labelCol="label")
-pipeline = Pipeline(stages=[assembler, lr])
+scaler = StandardScaler(inputCol="features", outputCol="scaledFeatures")
+lr = LogisticRegression(featuresCol="scaledFeatures", labelCol="label")
+pipeline = Pipeline(stages=[assembler, scaler, lr])
 
-# Train model
-model = pipeline.fit(df)
-print("Model trained successfully")
-# Output: Model trained successfully
+# Cross-validation and hyperparameter tuning
+paramGrid = ParamGridBuilder() \
+    .addGrid(lr.regParam, [0.01, 0.1, 1.0]) \
+    .build()
+
+evaluator = BinaryClassificationEvaluator()
+cv = CrossValidator(estimator=pipeline, estimatorParamMaps=paramGrid, evaluator=evaluator, numFolds=3)
+
+# Train model with cross-validation
+model = cv.fit(df)
+print("Model trained with cross-validation")
+# Output: Model trained with cross-validation
+
+# Make predictions
+predictions = model.transform(df)
+predictions.select("features", "label", "prediction", "probability").show()
+```
+
+## 📊 Graph Processing (GraphFrames)
+
+**Definition**: Graph processing library for Spark that provides DataFrame-based graphs.
+
+**Key Features**:
+- **Graph Abstraction**: Vertices and edges as DataFrames
+- **Graph Algorithms**: PageRank, Connected Components, Triangle Counting
+- **Motif Finding**: Pattern matching in graphs
+- **Integration**: Works seamlessly with Spark SQL and DataFrames
+
+```python
+# Note: Requires graphframes package
+# pip install graphframes
+from graphframes import GraphFrame
+
+# Create vertices and edges DataFrames
+vertices = spark.createDataFrame([
+    ("a", "Alice", 34),
+    ("b", "Bob", 36),
+    ("c", "Charlie", 30)
+], ["id", "name", "age"])
+
+edges = spark.createDataFrame([
+    ("a", "b", "friend"),
+    ("b", "c", "follow"),
+    ("c", "a", "friend")
+], ["src", "dst", "relationship"])
+
+# Create GraphFrame
+g = GraphFrame(vertices, edges)
+print(f"Graph created with {g.vertices.count()} vertices and {g.edges.count()} edges")
+# Output: Graph created with 3 vertices and 3 edges
+
+# Run PageRank algorithm
+results = g.pageRank(resetProbability=0.01, maxIter=20)
+results.vertices.select("id", "pagerank").show()
+```
+
+## 🚀 Deployment Modes
+
+**Definition**: Different ways to deploy and run Spark applications.
+
+**Deployment Options**:
+- **Client Mode**: Driver runs on client machine
+- **Cluster Mode**: Driver runs on cluster worker node
+- **Local Mode**: Single JVM for development
+
+```bash
+# Local mode (development)
+spark-submit --master local[*] app.py
+
+# Standalone cluster
+spark-submit --master spark://master:7077 \
+  --executor-memory 2g \
+  --executor-cores 2 \
+  app.py
+
+# YARN cluster mode
+spark-submit --master yarn \
+  --deploy-mode cluster \
+  --executor-memory 4g \
+  --num-executors 10 \
+  app.py
+
+# Kubernetes
+spark-submit --master k8s://https://kubernetes-api \
+  --deploy-mode cluster \
+  --conf spark.kubernetes.container.image=spark:latest \
+  app.py
+```
+
+### Resource Configuration
+```python
+# Dynamic resource allocation
+spark = SparkSession.builder \
+    .appName("ProductionApp") \
+    .config("spark.dynamicAllocation.enabled", "true") \
+    .config("spark.dynamicAllocation.minExecutors", "2") \
+    .config("spark.dynamicAllocation.maxExecutors", "20") \
+    .config("spark.executor.memory", "4g") \
+    .config("spark.executor.cores", "4") \
+    .config("spark.sql.adaptive.enabled", "true") \
+    .getOrCreate()
+```
+
+## 🔧 Error Handling & Debugging
+
+**Definition**: Techniques for troubleshooting and debugging Spark applications.
+
+**Common Debugging Approaches**:
+- **Spark UI**: Monitor jobs, stages, and tasks
+- **Logging**: Configure log levels and analyze logs
+- **Explain Plans**: Understand query execution
+- **Performance Metrics**: Track execution time and resource usage
+
+```python
+# Enable debug logging
+spark.sparkContext.setLogLevel("WARN")  # INFO, DEBUG, ERROR
+
+# Explain query execution plan
+df.explain(True)  # Shows all optimization phases
+df.explain("cost")  # Shows cost-based optimization
+
+# Monitor application
+print(f"Spark UI: {spark.sparkContext.uiWebUrl}")
+print(f"Application ID: {spark.sparkContext.applicationId}")
+# Output: Spark UI: http://localhost:4040
+# Output: Application ID: app-20240101-123456-0001
+
+# Performance monitoring
+import time
+start_time = time.time()
+result = df.count()
+end_time = time.time()
+print(f"Query executed in {end_time - start_time:.2f} seconds")
+# Output: Query executed in 2.34 seconds
+
+# Check query execution statistics
+df.explain("formatted")
+```
+
+### Common Performance Issues
+```python
+# Data skew detection
+df.groupBy("partition_key").count().orderBy("count", ascending=False).show()
+
+# Memory usage monitoring
+print(f"Storage level: {df.storageLevel}")
+print(f"Is cached: {df.is_cached}")
+
+# Partition analysis
+print(f"Number of partitions: {df.rdd.getNumPartitions()}")
+partition_sizes = df.rdd.mapPartitions(lambda x: [sum(1 for _ in x)]).collect()
+print(f"Partition sizes: {partition_sizes}")
 ```
 
 ## 📊 When to Use Spark

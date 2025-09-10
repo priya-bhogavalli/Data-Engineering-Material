@@ -3,6 +3,23 @@
 ## 🎯 Overview
 Comprehensive reference for Apache Spark features, APIs, deployment modes, performance tuning, and ecosystem integrations.
 
+## 📋 Table of Contents
+
+1. [Overview](#-overview)
+2. [Legend](#-legend)
+3. [Core Components & Features](#️-core-components--features)
+4. [Deployment Modes Comparison](#-deployment-modes-comparison)
+5. [Data Sources & Formats](#-data-sources--formats)
+6. [Performance Optimization Features](#-performance-optimization-features)
+7. [Configuration Categories](#-configuration-categories)
+8. [Ecosystem Integrations](#-ecosystem-integrations)
+9. [Performance Benchmarks & Limits](#-performance-benchmarks--limits)
+10. [Monitoring & Debugging](#-monitoring--debugging)
+11. [Common Issues & Solutions](#-common-issues--solutions)
+12. [Version Compatibility](#-version-compatibility)
+13. [Quick Reference Commands](#-quick-reference-commands)
+14. [Related Resources](#-related-resources)
+
 ## 📍 Legend
 
 ### Component Status
@@ -141,7 +158,88 @@ Comprehensive reference for Apache Spark features, APIs, deployment modes, perfo
 
 | Issue | Symptoms | Root Cause | Solution | Prevention |
 |-------|----------|------------|----------|-----------|
-| **OutOfMemoryError** | Executor failures | Large partitions, insufficient memory | Increase executor memory, repartition | Monitor partition sizes |
+| **OutOfMemoryError** | Executor crashes, job failures | Insufficient executor memory | Increase `spark.executor.memory`, optimize data types | Monitor memory usage, use appropriate data types |
+| **Data Skew** | Few tasks take much longer | Uneven data distribution | Use salting, broadcast joins, custom partitioning | Analyze data distribution, choose good partition keys |
+| **Shuffle Spill** | Slow performance, disk I/O | Large shuffle operations | Increase `spark.sql.shuffle.partitions`, tune memory | Optimize joins, reduce data before shuffle |
+| **Small Files Problem** | Many small partitions | Poor partitioning strategy | Use `coalesce()`, `repartition()`, bucketing | Set appropriate partition size, use columnar formats |
+| **Serialization Issues** | Task not serializable errors | Non-serializable objects in closures | Use Kryo serializer, avoid closures with non-serializable objects | Design serializable classes, use broadcast variables |
+| **Driver Memory Issues** | Driver OOM, slow collect operations | Large result sets, many partitions | Increase `spark.driver.memory`, avoid collect() | Use `take()`, `sample()`, process data in chunks |
+| **Connection Timeouts** | Network-related failures | Network instability, firewall issues | Increase timeout settings, check network configuration | Use stable network, configure firewalls properly |
+| **Checkpoint Failures** | Stream processing failures | Checkpoint corruption | Clean checkpoint directory, implement custom checkpointing | Regular checkpoint cleanup, monitor checkpoint health |
+
+## 🔄 Version Compatibility
+
+| Spark Version | Release Date | Key Features | End of Support | Recommended For |
+|---------------|--------------|--------------|----------------|------------------|
+| **3.5.x** | 2024 | Enhanced AQE, improved streaming | Active | Latest features, new projects |
+| **3.4.x** | 2023 | Connect API, improved ML | Active | Production workloads |
+| **3.3.x** | 2022 | Pandas API, error handling | Active | Stable production |
+| **3.2.x** | 2021 | RocksDB state store | Extended | Legacy compatibility |
+| **3.1.x** | 2021 | ANSI SQL, AQE improvements | Extended | Migration path |
+| **2.4.x** | 2019 | Kubernetes GA, Delta Lake | EOL | Legacy systems only |
+
+## ⚡ Quick Reference Commands
+
+### Spark Submit Options
+```bash
+# Basic submission
+spark-submit --master yarn --deploy-mode cluster app.py
+
+# With tuning parameters
+spark-submit \
+  --master yarn \
+  --deploy-mode cluster \
+  --num-executors 10 \
+  --executor-cores 4 \
+  --executor-memory 8g \
+  --driver-memory 4g \
+  --conf spark.sql.shuffle.partitions=400 \
+  app.py
+```
+
+### Performance Tuning Quick Wins
+```python
+# Enable adaptive query execution
+spark.conf.set("spark.sql.adaptive.enabled", "true")
+spark.conf.set("spark.sql.adaptive.coalescePartitions.enabled", "true")
+
+# Optimize joins
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", "50MB")
+
+# Use Kryo serialization
+spark.conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+```
+
+### Common DataFrame Operations
+```python
+# Optimal partitioning
+df.repartition(200, "partition_column")
+
+# Efficient caching
+df.cache().count()  # Trigger caching
+
+# Broadcast small tables
+from pyspark.sql.functions import broadcast
+large_df.join(broadcast(small_df), "key")
+```
+
+## 📚 Related Resources
+
+### Internal Links
+- [Spark Interview Questions](./SPARK_INTERVIEW_QUESTIONS_COMPLETE.md)
+- [PySpark Examples](../../../Programming-Languages/PySpark/examples/)
+- [Databricks Integration](../Databricks/)
+
+### External Resources
+- [Apache Spark Documentation](https://spark.apache.org/docs/latest/)
+- [Spark Performance Tuning Guide](https://spark.apache.org/docs/latest/tuning.html)
+- [Databricks Spark Guide](https://docs.databricks.com/spark/)
+- [Spark Community](https://spark.apache.org/community.html)
+
+---
+
+**Last Updated**: 2024
+**Spark Version Coverage**: 3.0 - 3.5.x*OutOfMemoryError** | Executor failures | Large partitions, insufficient memory | Increase executor memory, repartition | Monitor partition sizes |
 | **Data Skew** | Slow tasks, stragglers | Uneven data distribution | Salting, custom partitioning | Analyze data distribution |
 | **Shuffle Spill** | Slow performance | Insufficient memory for shuffle | Increase executor memory, optimize joins | Use broadcast joins |
 | **Small Files** | Slow I/O | Many small partitions | Coalesce, repartition | Control output partitioning |
