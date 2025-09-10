@@ -21,11 +21,10 @@
 ## 📊 Interview Question Categories
 
 ### 🟢 Fundamentals
-1. [Python 2 vs Python 3](#1-python-2-vs-python-3)
-2. [Memory Management & GC](#2-memory-management--garbage-collection)
-3. [is vs == Operators](#3-is-vs--operators)
-4. [Lists vs Tuples](#4-lists-vs-tuples)
-5. [List Comprehensions vs Generators](#5-list-comprehensions-vs-generators)
+1. [Memory Management & GC](#1-memory-management--garbage-collection)
+2. [is vs == Operators](#2-is-vs--operators)
+3. [Lists vs Tuples](#3-lists-vs-tuples)
+4. [List Comprehensions vs Generators](#4-list-comprehensions-vs-generators)
 
 ### 🟡 Intermediate
 6. [Decorators](#6-decorators)
@@ -79,914 +78,159 @@
 
 ## 🟢 Fundamentals
 
-### 1. What are the key differences between Python 2 and Python 3?
-
-#### **Case Studies**
-Real-world case studies of Python implementations
-
-#### **Industry Direction**
-Future direction of Programming Language technologies
-
-### **Enhanced Answer**
-
+### 1. Explain Python's memory management and garbage collection.
 **Answer:**
-Python 3 was released in 2008 as a major revision that broke backward compatibility to fix fundamental design issues in Python 2. Understanding these differences is crucial for data engineers working with legacy systems or migrating codebases.
+Python uses automatic memory management with two main mechanisms:
 
-**Historical Context & Impact:**
-- **10-Year Transition Period**: The longest migration in programming language history
-- **End-of-Life 2020**: Python 2.7 reached end-of-life, forcing enterprise migrations
-- **Ecosystem Evolution**: Libraries gradually dropped Python 2 support
-- **Performance Improvements**: Python 3 introduced significant optimizations
+**Reference Counting:**
+- Each object tracks how many variables reference it
+- Object is deleted when reference count reaches zero
+- Fast but can't handle circular references
 
-**Key Differences:**
-
-**Print Statement vs Function:**
-- **Python 2**: `print` is a statement: `print "hello", "world"`
-- **Python 3**: `print()` is a function: `print("hello", "world")`
-- **Impact**: Function syntax allows better control and redirection
-
-**Division Behavior:**
-- **Python 2**: `/` performs integer division for integers: `5/2 = 2`
-- **Python 3**: `/` always returns float: `5/2 = 2.5`, use `//` for integer division
-- **Impact**: Prevents silent bugs in mathematical calculations
-
-**Unicode Handling:**
-- **Python 2**: Strings are bytes by default, Unicode requires `u"string"` prefix
-- **Python 3**: Strings are Unicode by default, bytes require `b"string"` prefix
-- **Impact**: Better internationalization and text processing
-
-**Range Function:**
-- **Python 2**: `range()` returns list, `xrange()` returns iterator
-- **Python 3**: `range()` returns iterator (like Python 2's `xrange()`)
-- **Impact**: Memory efficiency for large ranges
-
-**Input Function:**
-- **Python 2**: `input()` evaluates input, `raw_input()` returns string
-- **Python 3**: `input()` always returns string (safer)
-- **Impact**: Eliminates security risks from evaluating user input
-
-**Why This Matters for Data Engineering:**
-- **Legacy Systems**: Many data systems still run Python 2 code
-- **Migration Planning**: Understanding differences helps in upgrade strategies
-- **Library Compatibility**: Some data tools may have version-specific requirements
-- **Performance**: Python 3 has better performance and memory usage
-- **Security**: Python 2 no longer receives security updates
-- **Modern Libraries**: New data engineering tools require Python 3.6+
-- **Type Hints**: Python 3.5+ type annotations improve code quality
-- **f-strings**: Python 3.6+ f-string formatting is more efficient
-
-```python
-# Python 2 vs Python 3 examples
-
-# Print differences
-# Python 2: print "Hello", "World"  # Statement
-# Python 3:
-print("Hello", "World")  # Function
-print("Data:", 42, sep="-", end="\n\n")  # More control
-
-# Division differences
-print("Division in Python 3:")
-print(f"5/2 = {5/2}")      # 2.5 (float division)
-print(f"5//2 = {5//2}")    # 2 (integer division)
-print(f"5%2 = {5%2}")      # 1 (modulo)
-
-# Unicode handling
-text = "Hello, 世界"  # Unicode by default in Python 3
-bytes_data = b"Hello"  # Explicit bytes
-print(f"Text: {text}, Type: {type(text)}")
-print(f"Bytes: {bytes_data}, Type: {type(bytes_data)}")
-
-# Range behavior
-large_range = range(1000000)  # Memory efficient iterator
-print(f"Range type: {type(large_range)}")
-print(f"Range size in memory: {large_range.__sizeof__()} bytes")
-
-# Input function (Python 3 behavior)
-# user_input = input("Enter a number: ")  # Always returns string
-# print(f"You entered: {user_input} (type: {type(user_input)})")
-
-# String formatting improvements in Python 3
-name = "Alice"
-age = 30
-# Old style (works in both)
-print("Name: %s, Age: %d" % (name, age))
-# New style (Python 2.7+ and 3)
-print("Name: {}, Age: {}".format(name, age))
-# f-strings (Python 3.6+)
-print(f"Name: {name}, Age: {age}")
-
-# Exception handling syntax
-try:
-    result = 10 / 0
-except ZeroDivisionError as e:  # 'as' syntax (Python 3)
-    print(f"Error: {e}")
-# Python 2 used: except ZeroDivisionError, e:
-
-# Iterator behavior
-data = [1, 2, 3, 4, 5]
-# Python 3: map, filter, zip return iterators (memory efficient)
-mapped = map(lambda x: x*2, data)
-filtered = filter(lambda x: x > 2, data)
-print(f"Map result: {list(mapped)}")
-print(f"Filter result: {list(filtered)}")
-```
-
-### 2. Explain Python's memory management and garbage collection.
-**Answer:**
-Python's memory management is crucial for data engineering applications that process large datasets. Understanding how Python manages memory helps optimize performance and prevent memory leaks in long-running data pipelines.
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying Python operations
-
-#### **Case Studies**
-Real-world case studies of Python implementations
-
-#### **Industry Direction**
-Future direction of Programming Language technologies
-
-### **Enhanced Answer**
-
-**Python Memory Management Components:**
-
-**1. Reference Counting (Primary Mechanism):**
-- Every object has a reference count tracking how many variables point to it
-- When count reaches zero, object is immediately deallocated
-- Fast and deterministic for most objects
-- Cannot handle circular references
-
-**2. Cycle Detection (Garbage Collector):**
-- Detects and cleans up circular references
-- Runs periodically when allocation thresholds are reached
-- Uses mark-and-sweep algorithm
-- Can be manually triggered with `gc.collect()`
-
-**3. Memory Pools (PyMalloc):**
-- Optimizes allocation of small objects (<512 bytes)
-- Reduces memory fragmentation
-- Faster allocation/deallocation than system malloc
-- Pools organized by object size
-
-**4. Generational Garbage Collection:**
-- Objects categorized into generations (0, 1, 2)
+**Garbage Collection:**
+- Detects and cleans circular references
+- Uses generational collection (objects in generations 0, 1, 2)
 - Younger objects collected more frequently
-- Based on observation that most objects die young
-- Improves GC performance
+- Can be triggered manually with `gc.collect()`
 
-**Why This Matters for Data Engineering:**
-- **Large Datasets**: Understanding when objects are freed
-- **Long-Running Processes**: Preventing memory leaks in pipelines
-- **Performance Optimization**: Minimizing GC overhead
-- **Resource Planning**: Predicting memory usage patterns
+**For Data Engineering:**
+- Use generators for large datasets to avoid memory issues
+- Delete large objects explicitly when done
+- Monitor memory usage in long-running processes
 
 ```python
 import gc
 import sys
-import weakref
-from typing import List, Any
 
-# Demonstrate reference counting
-def demonstrate_reference_counting():
-    """Show how reference counting works."""
-    print("=== Reference Counting Demo ===")
-    
-    # Create an object
-    data = [1, 2, 3, 4, 5]
-    print(f"Initial ref count: {sys.getrefcount(data)}")
-    
-    # Add references
-    ref1 = data
-    print(f"After ref1: {sys.getrefcount(data)}")
-    
-    ref2 = data
-    print(f"After ref2: {sys.getrefcount(data)}")
-    
-    # Remove references
-    del ref1
-    print(f"After del ref1: {sys.getrefcount(data)}")
-    
-    del ref2
-    print(f"After del ref2: {sys.getrefcount(data)}")
-    
-    # Object still exists because 'data' variable holds reference
-    print(f"Data still exists: {data}")
+# Reference counting example
+data = [1, 2, 3]
+print(f"Reference count: {sys.getrefcount(data)}")  # Shows current references
 
-# Demonstrate circular references
+# Circular reference example
 class Node:
-    """Simple node class to create circular references."""
     def __init__(self, value):
         self.value = value
-        self.children = []
         self.parent = None
-    
-    def add_child(self, child):
-        child.parent = self  # Creates circular reference
-        self.children.append(child)
-    
-    def __del__(self):
-        print(f"Node {self.value} is being deleted")
+        self.children = []
 
-def demonstrate_circular_references():
-    """Show circular reference handling."""
-    print("\n=== Circular Reference Demo ===")
-    
-    # Create circular reference
-    parent = Node("parent")
-    child = Node("child")
-    parent.add_child(child)
-    
-    print(f"Parent refs: {sys.getrefcount(parent)}")
-    print(f"Child refs: {sys.getrefcount(child)}")
-    
-    # Remove our references
-    parent_id = id(parent)
-    child_id = id(child)
-    
-    del parent, child
-    
-    # Objects still exist due to circular reference
-    print("Objects deleted from local scope, but circular reference remains")
-    
-    # Force garbage collection
-    collected = gc.collect()
-    print(f"Garbage collector collected {collected} objects")
+parent = Node("parent")
+child = Node("child")
+parent.children.append(child)
+child.parent = parent  # Circular reference
 
-# Memory usage monitoring
-def monitor_memory_usage():
-    """Monitor memory usage patterns."""
-    print("\n=== Memory Usage Monitoring ===")
-    
-    # Get initial memory info
-    initial_objects = len(gc.get_objects())
-    print(f"Initial objects in memory: {initial_objects}")
-    
-    # Create many objects
-    large_list = []
-    for i in range(10000):
-        large_list.append({'id': i, 'data': f'item_{i}', 'values': list(range(10))})
-    
-    after_creation = len(gc.get_objects())
-    print(f"Objects after creation: {after_creation}")
-    print(f"New objects created: {after_creation - initial_objects}")
-    
-    # Clear references
-    del large_list
-    
-    # Check before GC
-    before_gc = len(gc.get_objects())
-    print(f"Objects before GC: {before_gc}")
-    
-    # Force garbage collection
-    collected = gc.collect()
-    after_gc = len(gc.get_objects())
-    
-    print(f"Objects collected: {collected}")
-    print(f"Objects after GC: {after_gc}")
-    print(f"Objects freed: {before_gc - after_gc}")
+# Force garbage collection
+collected = gc.collect()
+print(f"Objects collected: {collected}")
 
-# Garbage collection configuration
-def gc_configuration():
-    """Show garbage collection configuration."""
-    print("\n=== Garbage Collection Configuration ===")
+# Memory optimization with __slots__
+class OptimizedClass:
+    __slots__ = ['id', 'name', 'value']  # Reduces memory usage
     
-    # Get current thresholds
-    thresholds = gc.get_threshold()
-    print(f"GC thresholds: {thresholds}")
-    print("  Generation 0: {} allocations".format(thresholds[0]))
-    print("  Generation 1: {} gen0 collections".format(thresholds[1]))
-    print("  Generation 2: {} gen1 collections".format(thresholds[2]))
-    
-    # Get current counts
-    counts = gc.get_count()
-    print(f"Current counts: {counts}")
-    
-    # Get statistics
-    stats = gc.get_stats()
-    for i, stat in enumerate(stats):
-        print(f"Generation {i}: {stat}")
-
-# Memory optimization techniques
-class MemoryOptimizedClass:
-    """Example of memory optimization techniques."""
-    
-    # Use __slots__ to reduce memory overhead
-    __slots__ = ['id', 'name', 'value']
-    
-    def __init__(self, id: int, name: str, value: float):
+    def __init__(self, id, name, value):
         self.id = id
         self.name = name
         self.value = value
-
-class RegularClass:
-    """Regular class without optimization."""
-    
-    def __init__(self, id: int, name: str, value: float):
-        self.id = id
-        self.name = name
-        self.value = value
-
-def compare_memory_usage():
-    """Compare memory usage of different approaches."""
-    print("\n=== Memory Optimization Comparison ===")
-    
-    # Create instances
-    optimized = MemoryOptimizedClass(1, "test", 3.14)
-    regular = RegularClass(1, "test", 3.14)
-    
-    # Compare memory usage
-    print(f"Optimized class size: {sys.getsizeof(optimized)} bytes")
-    print(f"Regular class size: {sys.getsizeof(regular)} bytes")
-    
-    # Show __dict__ difference
-    print(f"Regular class has __dict__: {hasattr(regular, '__dict__')}")
-    print(f"Optimized class has __dict__: {hasattr(optimized, '__dict__')}")
-    
-    if hasattr(regular, '__dict__'):
-        print(f"__dict__ size: {sys.getsizeof(regular.__dict__)} bytes")
-
-# Weak references to avoid circular references
-def demonstrate_weak_references():
-    """Show how weak references help avoid memory leaks."""
-    print("\n=== Weak References Demo ===")
-    
-    class Parent:
-        def __init__(self, name):
-            self.name = name
-            self.children = []
-        
-        def add_child(self, child):
-            child.parent = weakref.ref(self)  # Weak reference
-            self.children.append(child)
-        
-        def __del__(self):
-            print(f"Parent {self.name} deleted")
-    
-    class Child:
-        def __init__(self, name):
-            self.name = name
-            self.parent = None
-        
-        def get_parent(self):
-            if self.parent is not None:
-                return self.parent()  # Call weak reference
-            return None
-        
-        def __del__(self):
-            print(f"Child {self.name} deleted")
-    
-    # Create parent-child relationship
-    parent = Parent("Alice")
-    child = Child("Bob")
-    parent.add_child(child)
-    
-    print(f"Child's parent: {child.get_parent().name if child.get_parent() else 'None'}")
-    
-    # Delete parent
-    del parent
-    
-    # Child's parent reference is now None
-    print(f"Child's parent after deletion: {child.get_parent()}")
-    
-    del child
-
-# Practical memory management for data engineering
-def data_processing_memory_tips():
-    """Memory management tips for data processing."""
-    print("\n=== Data Processing Memory Tips ===")
-    
-    # Tip 1: Use generators for large datasets
-    def process_large_dataset_bad(size):
-        """Memory-intensive approach."""
-        data = [i**2 for i in range(size)]  # All in memory
-        return sum(data)
-    
-    def process_large_dataset_good(size):
-        """Memory-efficient approach."""
-        return sum(i**2 for i in range(size))  # Generator
-    
-    # Tip 2: Delete large objects explicitly
-    large_data = list(range(100000))
-    print(f"Large data created: {len(large_data)} items")
-    
-    # Process data
-    result = sum(large_data)
-    
-    # Explicitly delete when done
-    del large_data
-    print("Large data deleted explicitly")
-    
-    # Tip 3: Use context managers for resources
-    class DataProcessor:
-        def __init__(self):
-            self.buffer = []
-        
-        def __enter__(self):
-            return self
-        
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            self.buffer.clear()  # Clean up
-            print("Buffer cleared in __exit__")
-        
-        def process(self, data):
-            self.buffer.extend(data)
-            return len(self.buffer)
-    
-    # Use with context manager
-    with DataProcessor() as processor:
-        result = processor.process([1, 2, 3, 4, 5])
-        print(f"Processed {result} items")
-    # Buffer automatically cleared
-
-if __name__ == "__main__":
-    # Run all demonstrations
-    demonstrate_reference_counting()
-    demonstrate_circular_references()
-    monitor_memory_usage()
-    gc_configuration()
-    compare_memory_usage()
-    demonstrate_weak_references()
-    data_processing_memory_tips()
-    
-    print("\n=== Memory Management Best Practices ===")
-    print("1. Use generators for large datasets")
-    print("2. Delete large objects explicitly when done")
-    print("3. Use weak references to avoid circular references")
-    print("4. Use __slots__ for classes with many instances")
-    print("5. Monitor memory usage in long-running processes")
-    print("6. Use context managers for resource cleanup")
-    print("7. Be aware of GC thresholds and tune if necessary")
 ```
 
-### 3. What is the difference between `is` and `==`?
+### 2. What is the difference between `is` and `==`?
 **Answer:**
-Understanding the difference between `is` and `==` is fundamental for Python developers, especially when working with data structures and object comparisons in data engineering applications. This distinction affects performance, correctness, and debugging.
+- `==` compares **values** (calls `__eq__()` method)
+- `is` compares **object identity** (same memory location)
 
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying Python operations
+**When to use:**
+- Use `==` for value comparison
+- Use `is` for None, True, False, and singleton objects
 
-#### **Case Studies**
-Real-world case studies of Python implementations
-
-#### **Industry Direction**
-Future direction of Programming Language technologies
-
-### **Enhanced Answer**
-
-**Key Differences:**
-
-**`==` (Equality Operator):**
-- Compares **values** of objects
-- Calls the `__eq__()` method
-- Can be overridden in custom classes
-- Used for logical equality
-- May involve computation
-
-**`is` (Identity Operator):**
-- Compares **object identity** (memory location)
-- Uses `id()` function internally
-- Cannot be overridden
-- Faster than `==` (simple pointer comparison)
-- Used for checking if two variables reference the same object
-
-**When to Use Each:**
-- **`==`**: Comparing values, data content, logical equality
-- **`is`**: Checking for None, singleton objects, same object reference
-
-**Python Object Interning:**
-Python interns (caches) certain objects for efficiency:
-- Small integers (-5 to 256)
-- Short strings without special characters
-- Empty collections (tuples, frozensets)
-
-**Common Pitfalls:**
-- Using `is` instead of `==` for value comparison
-- Assuming `is` behavior for all objects
-- Not understanding object interning
+**Python interns small integers (-5 to 256) and short strings:**
 
 ```python
-# Basic comparison examples
-def basic_comparison_examples():
-    """Demonstrate basic is vs == behavior."""
-    print("=== Basic Comparison Examples ===")
-    
-    # Lists with same content
-    a = [1, 2, 3]
-    b = [1, 2, 3]
-    c = a  # Same object reference
-    
-    print(f"a = {a}, id(a) = {id(a)}")
-    print(f"b = {b}, id(b) = {id(b)}")
-    print(f"c = {c}, id(c) = {id(c)}")
-    
-    print(f"a == b: {a == b}")  # True (same values)
-    print(f"a is b: {a is b}")  # False (different objects)
-    print(f"a == c: {a == c}")  # True (same values)
-    print(f"a is c: {a is c}")  # True (same object)
+# Basic examples
+a = [1, 2, 3]
+b = [1, 2, 3]
+c = a
 
-# Python object interning examples
-def interning_examples():
-    """Show Python's object interning behavior."""
-    print("\n=== Object Interning Examples ===")
-    
-    # Small integers are interned
-    x = 100
-    y = 100
-    print(f"x = {x}, y = {y}")
-    print(f"x == y: {x == y}")  # True
-    print(f"x is y: {x is y}")  # True (interned)
-    
-    # Large integers are not interned
-    x = 1000
-    y = 1000
-    print(f"\nx = {x}, y = {y}")
-    print(f"x == y: {x == y}")  # True
-    print(f"x is y: {x is y}")  # May be False (not guaranteed to be interned)
-    
-    # String interning
-    s1 = "hello"
-    s2 = "hello"
-    print(f"\ns1 = '{s1}', s2 = '{s2}'")
-    print(f"s1 == s2: {s1 == s2}")  # True
-    print(f"s1 is s2: {s1 is s2}")  # True (interned)
-    
-    # Strings with spaces may not be interned
-    s3 = "hello world"
-    s4 = "hello world"
-    print(f"\ns3 = '{s3}', s4 = '{s4}'")
-    print(f"s3 == s4: {s3 == s4}")  # True
-    print(f"s3 is s4: {s3 is s4}")  # May be False
+print(a == b)  # True (same values)
+print(a is b)  # False (different objects)
+print(a is c)  # True (same object)
 
-# None comparison (always use 'is')
-def none_comparison():
-    """Demonstrate proper None comparison."""
-    print("\n=== None Comparison ===")
-    
-    value = None
-    
-    # Correct way to check for None
-    if value is None:
-        print("Value is None (correct)")
-    
-    # Incorrect but works (don't do this)
-    if value == None:
-        print("Value equals None (works but incorrect style)")
-    
-    # Why 'is' is preferred for None
-    print(f"None == None: {None == None}")  # True
-    print(f"None is None: {None is None}")  # True
-    print(f"Performance: 'is' is faster than '=='")
+# Interning examples
+x = 100
+y = 100
+print(x is y)  # True (small integers are interned)
 
-# Custom class with __eq__ override
-class DataRecord:
-    """Example class showing custom equality."""
-    
-    def __init__(self, id: int, data: str):
+x = 1000
+y = 1000
+print(x is y)  # May be False (large integers not guaranteed)
+
+# Always use 'is' for None
+value = None
+if value is None:  # Correct
+    print("Value is None")
+
+# Custom equality
+class Person:
+    def __init__(self, id, name):
         self.id = id
-        self.data = data
+        self.name = name
     
     def __eq__(self, other):
-        """Custom equality based on ID only."""
-        if not isinstance(other, DataRecord):
-            return False
-        return self.id == other.id
-    
-    def __repr__(self):
-        return f"DataRecord(id={self.id}, data='{self.data}')"
+        return isinstance(other, Person) and self.id == other.id
 
-def custom_equality_example():
-    """Show custom equality behavior."""
-    print("\n=== Custom Equality Example ===")
-    
-    record1 = DataRecord(1, "first")
-    record2 = DataRecord(1, "second")  # Same ID, different data
-    record3 = record1  # Same object
-    
-    print(f"record1: {record1}")
-    print(f"record2: {record2}")
-    print(f"record3: {record3}")
-    
-    print(f"\nrecord1 == record2: {record1 == record2}")  # True (same ID)
-    print(f"record1 is record2: {record1 is record2}")    # False (different objects)
-    print(f"record1 == record3: {record1 == record3}")    # True (same ID)
-    print(f"record1 is record3: {record1 is record3}")    # True (same object)
-
-# Performance comparison
-def performance_comparison():
-    """Compare performance of is vs ==."""
-    print("\n=== Performance Comparison ===")
-    
-    import time
-    
-    # Create objects for testing
-    obj1 = [1, 2, 3] * 1000
-    obj2 = obj1  # Same object
-    obj3 = [1, 2, 3] * 1000  # Different object, same content
-    
-    iterations = 100000
-    
-    # Test 'is' performance (same object)
-    start = time.time()
-    for _ in range(iterations):
-        result = obj1 is obj2
-    is_time = time.time() - start
-    
-    # Test '==' performance (same object)
-    start = time.time()
-    for _ in range(iterations):
-        result = obj1 == obj2
-    eq_time_same = time.time() - start
-    
-    # Test '==' performance (different objects, same content)
-    start = time.time()
-    for _ in range(iterations):
-        result = obj1 == obj3
-    eq_time_diff = time.time() - start
-    
-    print(f"'is' comparison time: {is_time:.6f}s")
-    print(f"'==' comparison (same object): {eq_time_same:.6f}s")
-    print(f"'==' comparison (different objects): {eq_time_diff:.6f}s")
-    print(f"'is' is {eq_time_diff/is_time:.1f}x faster than '==' for different objects")
-
-# Common mistakes and best practices
-def common_mistakes():
-    """Show common mistakes and best practices."""
-    print("\n=== Common Mistakes and Best Practices ===")
-    
-    # Mistake 1: Using 'is' for value comparison
-    def check_status_wrong(status):
-        if status is "active":  # Wrong!
-            return True
-        return False
-    
-    def check_status_correct(status):
-        if status == "active":  # Correct!
-            return True
-        return False
-    
-    # Mistake 2: Not using 'is' for None checks
-    def process_data_wrong(data):
-        if data == None:  # Works but not recommended
-            return "No data"
-        return f"Processing {len(data)} items"
-    
-    def process_data_correct(data):
-        if data is None:  # Correct and faster
-            return "No data"
-        return f"Processing {len(data)} items"
-    
-    # Mistake 3: Assuming 'is' behavior for mutable objects
-    def create_default_list_wrong(items=None):
-        if items is []:  # Wrong! [] creates new object each time
-            items = []
-        return items
-    
-    def create_default_list_correct(items=None):
-        if items is None:  # Correct!
-            items = []
-        return items
-    
-    print("Best Practices:")
-    print("1. Use 'is' for None, True, False comparisons")
-    print("2. Use '==' for value comparisons")
-    print("3. Use 'is' when checking object identity matters")
-    print("4. Be aware of object interning behavior")
-    print("5. Use 'is' for performance when comparing to singletons")
-
-# Data engineering specific examples
-def data_engineering_examples():
-    """Examples relevant to data engineering."""
-    print("\n=== Data Engineering Examples ===")
-    
-    # Example 1: Checking for sentinel values
-    MISSING_VALUE = object()  # Unique sentinel object
-    
-    def process_record(record):
-        for key, value in record.items():
-            if value is MISSING_VALUE:  # Use 'is' for sentinel
-                print(f"Missing value for {key}")
-            elif value == "":
-                print(f"Empty string for {key}")
-            else:
-                print(f"{key}: {value}")
-    
-    # Example 2: Caching and object reuse
-    class DataCache:
-        def __init__(self):
-            self._cache = {}
-        
-        def get_data(self, key):
-            if key in self._cache:
-                cached_data = self._cache[key]
-                # Check if it's the same object (not just equal content)
-                if cached_data is not None:
-                    return cached_data
-            return None
-        
-        def set_data(self, key, data):
-            self._cache[key] = data
-    
-    # Example 3: Configuration object comparison
-    class Config:
-        _instance = None
-        
-        def __new__(cls):
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-            return cls._instance
-    
-    config1 = Config()
-    config2 = Config()
-    
-    print(f"config1 is config2: {config1 is config2}")  # True (singleton)
-    print(f"config1 == config2: {config1 == config2}")  # True
-
-if __name__ == "__main__":
-    basic_comparison_examples()
-    interning_examples()
-    none_comparison()
-    custom_equality_example()
-    performance_comparison()
-    common_mistakes()
-    data_engineering_examples()
-    
-    print("\n=== Summary ===")
-    print("• Use '==' to compare values")
-    print("• Use 'is' to compare object identity")
-    print("• Always use 'is' for None, True, False")
-    print("• 'is' is faster than '==' for identity checks")
-    print("• Be aware of Python's object interning")
-    print("• Custom classes can override '==' but not 'is'")
+p1 = Person(1, "Alice")
+p2 = Person(1, "Bob")  # Same ID, different name
+print(p1 == p2)  # True (same ID)
+print(p1 is p2)  # False (different objects)
 ```
 
 ### 4. What are the key differences between lists and tuples in Python?
 
 **Answer:**
-Lists and tuples are both sequence types in Python, but they serve different purposes and have distinct characteristics that make them suitable for different use cases in data engineering applications.
-
-**Key Differences:**
-
 **Mutability:**
-- **Lists**: Mutable - can be modified after creation (add, remove, change elements)
-- **Tuples**: Immutable - cannot be changed after creation
-- **Impact**: Lists for dynamic data that changes, tuples for fixed data structures
+- Lists are mutable (can be changed after creation)
+- Tuples are immutable (cannot be changed after creation)
 
 **Performance:**
-- **Tuples**: Faster for iteration, indexing, and creation
-- **Lists**: Slightly slower due to mutability overhead
-- **Memory**: Tuples use less memory due to immutability optimizations
+- Tuples are faster and use less memory
+- Lists have more overhead due to mutability
 
 **Use Cases:**
-- **Lists**: Dynamic collections, data that needs modification, stacks, queues
-- **Tuples**: Coordinates, database records, function return values, dictionary keys
-- **Data Engineering**: Tuples for schema definitions, lists for data processing
+- Lists: Dynamic data, collections that need modification
+- Tuples: Fixed data, coordinates, function returns, dictionary keys
 
 **Hashability:**
-- **Tuples**: Hashable (can be dictionary keys or set elements) if all elements are hashable
-- **Lists**: Not hashable (cannot be dictionary keys)
-
-**Methods Available:**
-- **Lists**: Many methods (append, extend, remove, pop, sort, etc.)
-- **Tuples**: Limited methods (count, index)
-
-**When to Use Each:**
-- **Lists**: When you need to modify the collection during program execution
-- **Tuples**: When you have a fixed collection that won't change
+- Tuples can be dictionary keys (if elements are hashable)
+- Lists cannot be dictionary keys
 
 ```python
-import sys
-import time
-
 # Basic examples
 my_list = [1, 2, 3]
 my_tuple = (1, 2, 3)
 
-# Mutability demonstration
-print("=== Mutability ===")
+# Mutability
 my_list.append(4)  # Works
-print(f"List after append: {my_list}")
-# Output: List after append: [1, 2, 3, 4]
+my_list[0] = 'changed'  # Works
+# my_tuple.append(4)  # Error - immutable
+# my_tuple[0] = 'changed'  # Error - immutable
 
-my_list[0] = 'changed'
-print(f"List after modification: {my_list}")
-# Output: List after modification: ['changed', 2, 3, 4]
+# Hashability - tuples can be dict keys
+coordinate_dict = {(0, 0): 'origin', (1, 1): 'point1'}  # Works
+# list_dict = {[0, 0]: 'origin'}  # Error - lists not hashable
 
-print(f"Tuple: {my_tuple}")
-# my_tuple.append(4)  # Error - tuples are immutable
-# my_tuple[0] = 'changed'  # Error - cannot modify
-# Output: Tuple: (1, 2, 3)
+# Use cases
+user_record = ('john_doe', 'john@example.com', 25)  # Immutable record
+data_batch = [100, 200, 300]  # Mutable processing list
 
-# Memory usage comparison
-print("\n=== Memory Usage ===")
-list_data = [i for i in range(1000)]
-tuple_data = tuple(i for i in range(1000))
+# Function returns
+def get_stats(data):
+    return min(data), max(data), sum(data)/len(data)  # Tuple
 
-print(f"List memory: {sys.getsizeof(list_data)} bytes")
-print(f"Tuple memory: {sys.getsizeof(tuple_data)} bytes")
-print(f"Memory savings with tuple: {sys.getsizeof(list_data) - sys.getsizeof(tuple_data)} bytes")
+min_val, max_val, avg_val = get_stats(data_batch)  # Unpacking
 
-# Performance comparison
-print("\n=== Performance Comparison ===")
-data = list(range(10000))
-
-# List creation time
-start = time.time()
-for _ in range(1000):
-    test_list = [1, 2, 3, 4, 5]
-list_time = time.time() - start
-
-# Tuple creation time
-start = time.time()
-for _ in range(1000):
-    test_tuple = (1, 2, 3, 4, 5)
-tuple_time = time.time() - start
-
-print(f"List creation time: {list_time:.6f}s")
-print(f"Tuple creation time: {tuple_time:.6f}s")
-print(f"Tuple is {list_time/tuple_time:.2f}x faster to create")
-
-# Iteration performance
-test_list = list(range(10000))
-test_tuple = tuple(range(10000))
-
-start = time.time()
-for item in test_list:
-    pass
-list_iter_time = time.time() - start
-
-start = time.time()
-for item in test_tuple:
-    pass
-tuple_iter_time = time.time() - start
-
-print(f"List iteration time: {list_iter_time:.6f}s")
-print(f"Tuple iteration time: {tuple_iter_time:.6f}s")
-
-# Hashability demonstration
-print("\n=== Hashability ===")
-try:
-    # Tuples can be dictionary keys
-    coordinate_dict = {(0, 0): 'origin', (1, 1): 'point1'}
-    print(f"Tuple as dict key works: {coordinate_dict}")
-except TypeError as e:
-    print(f"Tuple as dict key failed: {e}")
-
-try:
-    # Lists cannot be dictionary keys
-    list_dict = {[0, 0]: 'origin'}  # This will fail
-except TypeError as e:
-    print(f"List as dict key failed: {e}")
-
-# Practical data engineering examples
-print("\n=== Data Engineering Use Cases ===")
-
-# Tuple for database record (immutable structure)
-user_record = ('john_doe', 'john@example.com', 25, 'active')
-print(f"Database record (tuple): {user_record}")
-
-# List for data processing (mutable collection)
-data_batch = [100, 200, 300, 400, 500]
-print(f"Original batch: {data_batch}")
-
-# Process data (modify list)
-processed_batch = []
-for value in data_batch:
-    if value > 250:
-        processed_batch.append(value * 1.1)  # Apply 10% increase
-    else:
-        processed_batch.append(value)
-
-print(f"Processed batch: {processed_batch}")
-
-# Tuple for function return (multiple values)
-def get_statistics(data):
-    """Return statistics as tuple (immutable result)."""
-    return (min(data), max(data), sum(data)/len(data))
-
-stats = get_statistics(data_batch)
-min_val, max_val, avg_val = stats  # Tuple unpacking
-print(f"Statistics (min, max, avg): {stats}")
-
-# Named tuples for structured data
+# Named tuples
 from collections import namedtuple
-
-DataPoint = namedtuple('DataPoint', ['timestamp', 'value', 'source'])
-data_point = DataPoint('2023-01-01', 42.5, 'sensor_1')
-print(f"Named tuple: {data_point}")
-print(f"Access by name: {data_point.timestamp}, {data_point.value}")
-
-# List methods vs tuple methods
-print("\n=== Available Methods ===")
-print(f"List methods: {[method for method in dir(list) if not method.startswith('_')]}")
-print(f"Tuple methods: {[method for method in dir(tuple) if not method.startswith('_')]}")
-
-# Conversion between list and tuple
-print("\n=== Conversion ===")
-original_list = [1, 2, 3, 4, 5]
-converted_tuple = tuple(original_list)
-back_to_list = list(converted_tuple)
-
-print(f"Original list: {original_list}")
-print(f"Converted to tuple: {converted_tuple}")
-print(f"Back to list: {back_to_list}")
+Point = namedtuple('Point', ['x', 'y'])
+p = Point(1, 2)
+print(p.x, p.y)  # Access by name
 ```
 
 ### 5. Explain list comprehensions vs generator expressions.
@@ -1293,51 +537,26 @@ print("  • Infinite sequences")
 ### 6. What are decorators and how do they work?
 
 **Answer:**
-Decorators are a powerful Python feature that allows you to modify or extend the behavior of functions or classes without permanently modifying their code. They implement the decorator pattern and are essentially functions that take another function as input and return a modified version.
+Decorators are functions that modify or extend other functions without changing their code. They use the `@` syntax and are commonly used for logging, caching, authentication, and timing.
 
-**How Decorators Work:**
-- **Wrapper Functions**: Decorators wrap the original function with additional functionality
-- **@ Syntax**: Syntactic sugar for applying decorators cleanly
-- **Function Composition**: Chain multiple decorators for complex behavior
-- **Metadata Preservation**: Use `functools.wraps` to maintain original function information
+**How they work:**
+- Take a function as input
+- Return a modified version of that function
+- Use `functools.wraps` to preserve metadata
 
-**Common Use Cases in Data Engineering:**
-- **Logging**: Track function calls and execution times
-- **Caching**: Store expensive computation results
-- **Retry Logic**: Automatically retry failed operations
-- **Authentication**: Verify user permissions before execution
-- **Rate Limiting**: Control API call frequency
-- **Data Validation**: Validate inputs and outputs
-- **Performance Monitoring**: Measure and log performance metrics
-
-**Types of Decorators:**
-- **Function Decorators**: Modify function behavior
-- **Class Decorators**: Modify class behavior
-- **Property Decorators**: Create computed properties
-- **Static/Class Method Decorators**: Define method types
-
-**Advanced Concepts:**
-- **Decorator Factories**: Decorators that accept parameters
-- **Class-based Decorators**: Using classes as decorators
-- **Decorator Chaining**: Applying multiple decorators
-- **Conditional Decorators**: Apply decorators based on conditions
+**Common use cases:**
+- Logging and timing
+- Caching expensive operations
+- Input validation
+- Retry logic
 
 ```python
 import time
 import functools
-import logging
-from typing import Callable, Any, Dict
-from datetime import datetime
-import json
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Basic decorator example
-def timing_decorator(func: Callable) -> Callable:
-    """Decorator to measure function execution time."""
-    @functools.wraps(func)  # Preserves original function metadata
+# Basic decorator
+def timing_decorator(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         start = time.time()
         result = func(*args, **kwargs)
@@ -1348,340 +567,94 @@ def timing_decorator(func: Callable) -> Callable:
 
 @timing_decorator
 def slow_function():
-    """A function that takes some time to execute."""
     time.sleep(1)
     return "Done"
 
-# Decorator with parameters (decorator factory)
-def retry(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)):
-    """Decorator factory for retry logic with configurable parameters."""
-    def decorator(func: Callable) -> Callable:
+# Decorator with parameters
+def retry(max_attempts=3, delay=1.0):
+    def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             for attempt in range(max_attempts):
                 try:
                     return func(*args, **kwargs)
-                except exceptions as e:
+                except Exception as e:
                     if attempt == max_attempts - 1:
-                        logger.error(f"Max attempts ({max_attempts}) reached for {func.__name__}")
                         raise e
-                    
-                    logger.warning(f"Attempt {attempt + 1} failed for {func.__name__}: {e}")
                     time.sleep(delay)
         return wrapper
     return decorator
 
-@retry(max_attempts=3, delay=0.5, exceptions=(ConnectionError, TimeoutError))
+@retry(max_attempts=3, delay=0.5)
 def unreliable_function():
-    """Function that might fail randomly."""
     import random
     if random.random() < 0.7:
-        raise ConnectionError("Random connection failure")
+        raise ConnectionError("Random failure")
     return "Success!"
 
 # Caching decorator
-def cache_results(max_size: int = 128):
-    """Simple caching decorator with size limit."""
-    def decorator(func: Callable) -> Callable:
-        cache = {}
+def cache(func):
+    cache_dict = {}
+    
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        key = str(args) + str(sorted(kwargs.items()))
+        if key in cache_dict:
+            return cache_dict[key]
         
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            # Create cache key from arguments
-            key = str(args) + str(sorted(kwargs.items()))
-            
-            if key in cache:
-                print(f"Cache hit for {func.__name__}")
-                return cache[key]
-            
-            # Execute function and cache result
-            result = func(*args, **kwargs)
-            
-            # Implement simple LRU by removing oldest if cache is full
-            if len(cache) >= max_size:
-                oldest_key = next(iter(cache))
-                del cache[oldest_key]
-            
-            cache[key] = result
-            print(f"Cache miss for {func.__name__}, result cached")
-            return result
-        
-        # Add cache inspection methods
-        wrapper.cache_info = lambda: {'size': len(cache), 'max_size': max_size}
-        wrapper.cache_clear = lambda: cache.clear()
-        
-        return wrapper
-    return decorator
+        result = func(*args, **kwargs)
+        cache_dict[key] = result
+        return result
+    return wrapper
 
-@cache_results(max_size=10)
-def expensive_calculation(n: int) -> int:
-    """Simulate expensive computation."""
-    print(f"Computing factorial of {n}...")
-    time.sleep(0.1)  # Simulate work
-    result = 1
-    for i in range(1, n + 1):
-        result *= i
-    return result
-
-# Logging decorator
-def log_calls(include_args: bool = True, include_result: bool = False):
-    """Decorator to log function calls with configurable detail level."""
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            # Log function entry
-            log_msg = f"Calling {func.__name__}"
-            if include_args:
-                log_msg += f" with args={args}, kwargs={kwargs}"
-            logger.info(log_msg)
-            
-            try:
-                result = func(*args, **kwargs)
-                
-                # Log successful completion
-                success_msg = f"Completed {func.__name__}"
-                if include_result:
-                    success_msg += f" -> {result}"
-                logger.info(success_msg)
-                
-                return result
-            except Exception as e:
-                logger.error(f"Error in {func.__name__}: {e}")
-                raise
-        
-        return wrapper
-    return decorator
-
-@log_calls(include_args=True, include_result=True)
-def process_data(data: list, multiplier: int = 2) -> list:
-    """Process data with logging."""
-    return [x * multiplier for x in data]
+@cache
+def expensive_calculation(n):
+    return sum(i**2 for i in range(n))
 
 # Class-based decorator
 class RateLimiter:
-    """Class-based decorator for rate limiting."""
-    
-    def __init__(self, max_calls: int, time_window: float):
+    def __init__(self, max_calls, time_window):
         self.max_calls = max_calls
         self.time_window = time_window
         self.calls = []
     
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             now = time.time()
+            # Remove old calls
+            self.calls = [t for t in self.calls if now - t < self.time_window]
             
-            # Remove old calls outside time window
-            self.calls = [call_time for call_time in self.calls 
-                         if now - call_time < self.time_window]
-            
-            # Check rate limit
             if len(self.calls) >= self.max_calls:
-                raise Exception(f"Rate limit exceeded: {self.max_calls} calls per {self.time_window}s")
+                raise Exception("Rate limit exceeded")
             
-            # Record this call
             self.calls.append(now)
-            
             return func(*args, **kwargs)
-        
         return wrapper
 
 @RateLimiter(max_calls=3, time_window=10.0)
-def api_call(endpoint: str) -> dict:
-    """Simulate API call with rate limiting."""
-    print(f"Making API call to {endpoint}")
-    return {"status": "success", "endpoint": endpoint}
+def api_call(endpoint):
+    return f"Called {endpoint}"
 
-# Data validation decorator
-def validate_types(**type_hints):
-    """Decorator to validate function argument types."""
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            # Get function signature
-            import inspect
-            sig = inspect.signature(func)
-            bound_args = sig.bind(*args, **kwargs)
-            bound_args.apply_defaults()
-            
-            # Validate types
-            for param_name, expected_type in type_hints.items():
-                if param_name in bound_args.arguments:
-                    value = bound_args.arguments[param_name]
-                    if not isinstance(value, expected_type):
-                        raise TypeError(
-                            f"Parameter '{param_name}' must be {expected_type.__name__}, "
-                            f"got {type(value).__name__}"
-                        )
-            
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
-
-@validate_types(data=list, threshold=int)
-def filter_data(data: list, threshold: int) -> list:
-    """Filter data above threshold with type validation."""
-    return [x for x in data if x > threshold]
-
-# Performance monitoring decorator
-class PerformanceMonitor:
-    """Decorator class for comprehensive performance monitoring."""
-    
-    def __init__(self):
-        self.stats: Dict[str, list] = {}
-    
-    def __call__(self, func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            start_time = time.time()
-            start_memory = self._get_memory_usage()
-            
-            try:
-                result = func(*args, **kwargs)
-                success = True
-                error = None
-            except Exception as e:
-                success = False
-                error = str(e)
-                raise
-            finally:
-                end_time = time.time()
-                end_memory = self._get_memory_usage()
-                
-                # Record performance metrics
-                execution_time = end_time - start_time
-                memory_delta = end_memory - start_memory
-                
-                if func.__name__ not in self.stats:
-                    self.stats[func.__name__] = []
-                
-                self.stats[func.__name__].append({
-                    'timestamp': datetime.now().isoformat(),
-                    'execution_time': execution_time,
-                    'memory_delta': memory_delta,
-                    'success': success,
-                    'error': error
-                })
-            
-            return result
-        
-        return wrapper
-    
-    def _get_memory_usage(self) -> int:
-        """Get current memory usage (simplified)."""
-        import psutil
-        import os
-        process = psutil.Process(os.getpid())
-        return process.memory_info().rss
-    
-    def get_stats(self, func_name: str = None) -> dict:
-        """Get performance statistics."""
-        if func_name:
-            return self.stats.get(func_name, [])
-        return self.stats
-    
-    def print_summary(self):
-        """Print performance summary."""
-        for func_name, calls in self.stats.items():
-            successful_calls = [call for call in calls if call['success']]
-            if successful_calls:
-                avg_time = sum(call['execution_time'] for call in successful_calls) / len(successful_calls)
-                print(f"{func_name}: {len(successful_calls)} calls, avg time: {avg_time:.4f}s")
-
-# Usage examples
-if __name__ == "__main__":
-    # Performance monitoring
-    monitor = PerformanceMonitor()
-    
-    @monitor
-    def data_processing_task(size: int) -> list:
-        """Simulate data processing."""
-        return [i ** 2 for i in range(size)]
-    
-    # Test decorators
-    print("=== Testing Decorators ===")
-    
-    # Test timing decorator
-    print("\n1. Timing Decorator:")
-    result = slow_function()
-    print(f"Result: {result}")
-    
-    # Test retry decorator
-    print("\n2. Retry Decorator:")
-    try:
-        result = unreliable_function()
-        print(f"Result: {result}")
-    except Exception as e:
-        print(f"Final failure: {e}")
-    
-    # Test caching decorator
-    print("\n3. Caching Decorator:")
-    print(expensive_calculation(5))  # Cache miss
-    print(expensive_calculation(5))  # Cache hit
-    print(expensive_calculation(6))  # Cache miss
-    print(f"Cache info: {expensive_calculation.cache_info()}")
-    
-    # Test logging decorator
-    print("\n4. Logging Decorator:")
-    result = process_data([1, 2, 3, 4], multiplier=3)
-    
-    # Test rate limiter
-    print("\n5. Rate Limiter:")
-    try:
-        for i in range(5):
-            api_call(f"endpoint_{i}")
-    except Exception as e:
-        print(f"Rate limit error: {e}")
-    
-    # Test type validation
-    print("\n6. Type Validation:")
-    try:
-        result = filter_data([1, 2, 3, 4, 5], 3)
-        print(f"Filtered data: {result}")
-        
-        # This will raise TypeError
-        filter_data("not a list", 3)
-    except TypeError as e:
-        print(f"Type validation error: {e}")
-    
-    # Test performance monitoring
-    print("\n7. Performance Monitoring:")
-    data_processing_task(1000)
-    data_processing_task(5000)
-    monitor.print_summary()
-    
-    print("\n=== Decorator Chaining Example ===")
-    
-    @timing_decorator
-    @log_calls(include_result=False)
-    @cache_results(max_size=5)
-    def complex_calculation(n: int) -> int:
-        """Function with multiple decorators applied."""
-        time.sleep(0.1)
-        return sum(i ** 2 for i in range(n))
-    
-    # Test chained decorators
-    result1 = complex_calculation(10)  # All decorators active
-    result2 = complex_calculation(10)  # Should hit cache
-    
-    print(f"\nResults: {result1}, {result2}")
+# Multiple decorators
+@timing_decorator
+@cache
+def complex_function(n):
+    time.sleep(0.1)
+    return n * 2
 ```
 
 ### 7. Explain the difference between `*args` and `**kwargs`.
 **Answer:**
-`*args` and `**kwargs` are special syntax in Python that allow functions to accept variable numbers of arguments. This is essential for creating flexible APIs and wrapper functions in data engineering applications.
+- `*args` collects extra positional arguments into a tuple
+- `**kwargs` collects extra keyword arguments into a dictionary
+- Used for functions with variable numbers of arguments
+- Parameter order: regular args, `*args`, keyword args, `**kwargs`
 
-**Key Concepts:**
-- **`*args`**: Collects extra positional arguments into a tuple
-- **`**kwargs`**: Collects extra keyword arguments into a dictionary
-- **Unpacking**: Can also be used to unpack sequences and dictionaries when calling functions
-- **Order**: Parameters must be in order: regular args, `*args`, keyword args, `**kwargs`
-
-**Common Use Cases:**
-- **Wrapper Functions**: Decorators that need to pass through all arguments
-- **API Design**: Functions that accept flexible parameters
-- **Function Composition**: Combining multiple functions with different signatures
-- **Configuration**: Passing configuration options dynamically
+**Common uses:**
+- Wrapper functions and decorators
+- Flexible APIs
+- Function composition
 
 ```python
 # Basic usage
@@ -1693,19 +666,18 @@ example_function(1, 2, 3, name="John", age=30)
 # Output: args: (1, 2, 3)
 # Output: kwargs: {'name': 'John', 'age': 30}
 
-# Practical example: Flexible data processing function
+# Practical example
 def process_data(data, *transformations, **options):
-    """Process data with variable transformations and options."""
     result = data
     
-    # Apply all transformation functions
+    # Apply transformations
     for transform in transformations:
         result = transform(result)
     
     # Apply options
-    if options.get('sort', False):
+    if options.get('sort'):
         result = sorted(result)
-    if options.get('unique', False):
+    if options.get('unique'):
         result = list(set(result))
     
     return result
@@ -1715,26 +687,28 @@ def double(x): return [i*2 for i in x]
 def filter_even(x): return [i for i in x if i % 2 == 0]
 
 data = [1, 2, 3, 4, 5]
-result = process_data(data, double, filter_even, sort=True, unique=True)
-print(result)  # [2, 4, 6, 8, 10]
+result = process_data(data, double, filter_even, sort=True)
 
-# Unpacking examples
+# Unpacking
 args_tuple = (1, 2, 3)
 kwargs_dict = {'name': 'Alice', 'age': 25}
-
 example_function(*args_tuple, **kwargs_dict)
-# Same as: example_function(1, 2, 3, name='Alice', age=25)
 ```
 
 ### 8. What is the Global Interpreter Lock (GIL)?
 **Answer:**
-The Global Interpreter Lock (GIL) is a mutex that protects access to Python objects, preventing multiple native threads from executing Python bytecodes simultaneously. This is one of the most important concepts to understand for Python performance optimization.
+The GIL is a mutex that prevents multiple threads from executing Python code simultaneously.
 
-**Key Points:**
-- **Definition**: A mutex that prevents multiple threads from executing Python code simultaneously
-- **Impact**: Limits true parallelism in CPU-bound tasks but doesn't affect I/O-bound tasks
-- **Why it exists**: Simplifies memory management and prevents race conditions in CPython's reference counting
-- **Workarounds**: Use multiprocessing for CPU-bound tasks, async/await for I/O-bound tasks, or C extensions
+**Key points:**
+- Only one thread can execute Python bytecode at a time
+- Limits CPU-bound multithreading performance
+- Doesn't affect I/O-bound tasks (GIL is released during I/O)
+- Exists to protect CPython's memory management
+
+**Workarounds:**
+- Use multiprocessing for CPU-bound tasks
+- Use threading/asyncio for I/O-bound tasks
+- Use C extensions that release the GIL
 
 ```python
 import threading
@@ -1742,141 +716,112 @@ import time
 import multiprocessing
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-# CPU-bound task that shows GIL limitations
-def cpu_bound_task(n):
-    """CPU-intensive task that will be limited by GIL in threading."""
-    total = 0
-    for i in range(n):
-        total += i ** 2
-    return total
+# CPU-bound task (affected by GIL)
+def cpu_task(n):
+    return sum(i**2 for i in range(n))
 
-# I/O-bound task where GIL is released
-def io_bound_task(duration):
-    """I/O task where GIL is released during sleep."""
+# I/O-bound task (GIL released during I/O)
+def io_task(duration):
     time.sleep(duration)
-    return f"Completed after {duration} seconds"
+    return f"Completed after {duration}s"
 
-# Demonstrate GIL impact
-def compare_execution_methods():
-    n = 500000
+# Compare execution methods
+def compare_gil_impact():
+    n = 100000
     
     # Single-threaded
     start = time.time()
-    [cpu_bound_task(n) for _ in range(4)]
+    [cpu_task(n) for _ in range(4)]
     single_time = time.time() - start
     
-    # Multi-threaded (limited by GIL)
+    # Multi-threaded (GIL limits this)
     start = time.time()
     with ThreadPoolExecutor(max_workers=4) as executor:
-        list(executor.map(cpu_bound_task, [n] * 4))
+        list(executor.map(cpu_task, [n] * 4))
     thread_time = time.time() - start
     
     # Multi-processing (bypasses GIL)
     start = time.time()
     with ProcessPoolExecutor(max_workers=4) as executor:
-        list(executor.map(cpu_bound_task, [n] * 4))
+        list(executor.map(cpu_task, [n] * 4))
     process_time = time.time() - start
     
     print(f"Single-threaded: {single_time:.2f}s")
-    print(f"Multi-threaded: {thread_time:.2f}s (GIL limited)")
-    print(f"Multi-processing: {process_time:.2f}s (GIL bypassed)")
+    print(f"Multi-threaded: {thread_time:.2f}s")
+    print(f"Multi-processing: {process_time:.2f}s")
+
+compare_gil_impact()
 ```
 
 ### 9. Explain Python's method resolution order (MRO).
 **Answer:**
-Method Resolution Order (MRO) determines the order in which Python searches for methods in a class hierarchy, especially important in multiple inheritance scenarios. Understanding MRO is crucial when designing complex class hierarchies in data engineering frameworks.
+MRO determines the order Python searches for methods in class hierarchies, especially with multiple inheritance.
 
-**Key Concepts:**
-- **C3 Linearization**: Algorithm Python uses to determine MRO
-- **Left-to-Right**: Python searches parent classes from left to right
-- **Depth-First**: Goes deep into inheritance chain before moving to next parent
-- **Diamond Problem**: MRO solves conflicts when multiple inheritance creates diamond patterns
-- **`super()`**: Uses MRO to call next method in the chain
-
-**Why MRO Matters:**
-- **Predictable Behavior**: Ensures consistent method resolution
-- **Multiple Inheritance**: Handles complex inheritance hierarchies safely
-- **Framework Design**: Critical for plugin systems and mixins
-- **Debugging**: Understanding which method gets called
+**Key points:**
+- Uses C3 linearization algorithm
+- Searches left-to-right, depth-first
+- Solves diamond problem in multiple inheritance
+- `super()` follows MRO to call next method
+- View with `ClassName.__mro__` or `ClassName.mro()`
 
 ```python
 class A:
-    def method(self): print("A")
-    def common_method(self): return "A"
+    def method(self): return "A"
 
 class B(A):
-    def method(self): print("B")
-    def common_method(self): return "B"
+    def method(self): return "B"
 
 class C(A):
-    def method(self): print("C")
-    def common_method(self): return "C"
+    def method(self): return "C"
 
 class D(B, C):  # Multiple inheritance
     pass
 
-# MRO: D -> B -> C -> A -> object
-print("MRO:", [cls.__name__ for cls in D.__mro__])
-# Output: ['D', 'B', 'C', 'A', 'object']
+# Check MRO
+print(D.__mro__)  # (<class 'D'>, <class 'B'>, <class 'C'>, <class 'A'>, <class 'object'>)
 
 d = D()
-d.method()  # Calls B.method() (first in MRO after D)
-# Output: B
+print(d.method())  # "B" - first in MRO after D
 
-print(d.common_method())  # Also calls B.common_method()
-# Output: B
-
-# Practical example: Data processing pipeline with mixins
-class DataProcessor:
-    def process(self, data):
-        return f"Base processing: {data}"
-
+# Using super() with MRO
 class ValidationMixin:
     def process(self, data):
-        print("Validating data...")
-        return super().process(data)  # Uses MRO to call next method
+        print("Validating...")
+        return super().process(data)
 
 class LoggingMixin:
     def process(self, data):
-        print("Logging operation...")
+        print("Logging...")
         return super().process(data)
+
+class DataProcessor:
+    def process(self, data):
+        return f"Processed: {data}"
 
 class EnhancedProcessor(ValidationMixin, LoggingMixin, DataProcessor):
-    def process(self, data):
-        print("Enhanced processing...")
-        return super().process(data)
+    pass
 
-# MRO determines call order
+# MRO: EnhancedProcessor -> ValidationMixin -> LoggingMixin -> DataProcessor
 processor = EnhancedProcessor()
-print("MRO:", [cls.__name__ for cls in EnhancedProcessor.__mro__])
-result = processor.process("test data")
-# Output shows the order: Enhanced -> Validation -> Logging -> Base
+result = processor.process("data")
+# Calls: Validation -> Logging -> DataProcessor
 ```
 
 ### 10. Explain the difference between deep copy and shallow copy.
 **Answer:**
-Copying objects in Python is crucial for data manipulation, especially when working with nested data structures. Understanding the difference between shallow and deep copying prevents unexpected data mutations and bugs in data processing pipelines.
+- **Shallow copy**: Creates new object but references to nested objects are shared
+- **Deep copy**: Creates new object and recursively copies all nested objects
 
-**Key Concepts:**
-- **Shallow Copy**: Creates a new object but inserts references to objects found in the original
-- **Deep Copy**: Creates a new object and recursively copies all nested objects
-- **Reference Sharing**: Shallow copies share references to nested mutable objects
-- **Independence**: Deep copies create completely independent object hierarchies
+**When to use:**
+- Shallow copy: When you need a new container but can share nested objects
+- Deep copy: When you need complete independence from original object
 
-**When This Matters in Data Engineering:**
-- **Data Transformation**: Avoiding unintended modifications to source data
-- **Parallel Processing**: Ensuring thread safety when sharing data structures
-- **Caching**: Creating independent copies of cached data
-- **Configuration Management**: Isolating configuration changes
-
-**Performance Considerations:**
-- Shallow copying is faster and uses less memory
-- Deep copying can be expensive for large, nested structures
-- Consider immutable data structures when possible
+**Performance:**
+- Shallow copy is faster and uses less memory
+- Deep copy is slower but provides complete isolation
 
 ```python
 import copy
-import time
 
 # Basic example
 original = [[1, 2, 3], [4, 5, 6]]
@@ -1885,21 +830,28 @@ deep = copy.deepcopy(original)
 
 # Modify original
 original[0][0] = 'X'
-print(f"Original: {original}")
-print(f"Shallow copy: {shallow}")  # Affected!
-print(f"Deep copy: {deep}")       # Not affected
-# Output: Original: [['X', 2, 3], [4, 5, 6]]
-# Output: Shallow copy: [['X', 2, 3], [4, 5, 6]]
-# Output: Deep copy: [[1, 2, 3], [4, 5, 6]]
+print(f"Original: {original}")     # [['X', 2, 3], [4, 5, 6]]
+print(f"Shallow: {shallow}")       # [['X', 2, 3], [4, 5, 6]] - affected!
+print(f"Deep: {deep}")             # [[1, 2, 3], [4, 5, 6]] - not affected
+
+# List slicing creates shallow copy
+original = [1, 2, [3, 4]]
+shallow_slice = original[:]
+original[2][0] = 'changed'
+print(f"Original: {original}")     # [1, 2, ['changed', 4]]
+print(f"Slice: {shallow_slice}")   # [1, 2, ['changed', 4]] - affected!
 ```
 
 ## Advanced Questions
 
 ### 11. How do you implement a singleton pattern in Python?
 **Answer:**
+Singleton ensures only one instance of a class exists.
+
 ```python
 import threading
 
+# Method 1: Using __new__
 class Singleton:
     _instance = None
     _lock = threading.Lock()
@@ -1910,11 +862,28 @@ class Singleton:
                 if cls._instance is None:
                     cls._instance = super().__new__(cls)
         return cls._instance
+
+# Method 2: Using decorator
+def singleton(cls):
+    instances = {}
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return get_instance
+
+@singleton
+class DatabaseManager:
+    def __init__(self):
+        self.connection = "db_connection"
 ```
 
 ### 12. Explain context managers and the `with` statement.
 **Answer:**
+Context managers ensure proper resource cleanup using `__enter__` and `__exit__` methods.
+
 ```python
+# Custom context manager
 class DatabaseConnection:
     def __enter__(self):
         print("Opening connection")
@@ -1922,7 +891,23 @@ class DatabaseConnection:
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         print("Closing connection")
-        return False
+        return False  # Don't suppress exceptions
+
+# Using contextlib
+from contextlib import contextmanager
+
+@contextmanager
+def timer():
+    import time
+    start = time.time()
+    try:
+        yield start
+    finally:
+        print(f"Elapsed: {time.time() - start:.2f}s")
+
+# Usage
+with timer():
+    time.sleep(1)
 ```
 
 ## Data Engineering Specific Questions

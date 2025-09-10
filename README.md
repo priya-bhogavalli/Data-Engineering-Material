@@ -2,12 +2,13 @@
 
 ## 🚀 **Quick Start - Choose Your Path**
 
-### 🛠️ **NEW: Complete Tool References** → [🎯 Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) - 1,200+ tools with interactive wizards
+### ⚡ **NEW: Minimal Examples with Outputs** → [🎯 Quick Examples Index](./QUICK_EXAMPLES_INDEX.md) - Clean, focused code snippets
+### 🛠️ **Complete Tool References** → [🎯 Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) - 1,200+ tools with interactive wizards
 ### 📋 **Need something fast?** → [Fundamentals Deep Dive](./docs/FUNDAMENTALS_DEEP_DIVE.md)
 ### 🔧 **Want to master a skill?** → [Core-Data-Engineering/](./Core-Data-Engineering/)
 ### 🎪 **Ready to practice?** → [Interview Questions](./ALL_TOOLS_MASTER_INDEX.md)
 
-👉 **New here?** Start with [Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) for complete guidance
+👉 **New here?** Start with [Quick Examples Index](./QUICK_EXAMPLES_INDEX.md) for minimal code snippets or [Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) for complete guidance
 
 ## 🎯 **Quick Interview Questions Reference**
 
@@ -118,6 +119,7 @@ The repository is organized into two main categories for better focus and learni
 **Additional skills and tools that complement data engineering - EXPAND YOUR SKILLS**
 
 Each topic folder contains:
+- **⚡ Minimal Examples** (`examples/minimal_*.py`) - **NEW: Clean code snippets with outputs (70% less verbose)**
 - **Core Concepts** (`*_KEY_CONCEPTS.md`) - Fundamental principles and theory
 - **Real-World Examples** (`examples/`) - Practical code snippets and use cases
 - **Interview Questions** (`*_INTERVIEW_QUESTIONS.md`) - Common questions with sample answers
