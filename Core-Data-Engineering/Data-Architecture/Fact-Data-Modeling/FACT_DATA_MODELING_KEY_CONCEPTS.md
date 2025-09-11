@@ -1,383 +1,488 @@
-# Fact Data Modeling Key Concepts
+# Fact Data Modeling Key Concepts for Data Engineering
 
-## 🎯 What is Fact Data Modeling?
-Design approach for creating fact tables that store quantitative business measurements and events in data warehouses.
+## 📋 Table of Contents
 
-## 🏗️ Types of Fact Tables
+1. [Overview](#-overview)
+2. [Core Components](#-core-components)
+3. [Architecture](#-architecture)
+4. [Key Features](#-key-features)
+5. [Use Cases](#-use-cases)
+6. [Integration Patterns](#-integration-patterns)
+7. [Best Practices](#-best-practices)
+8. [Limitations](#-limitations)
+9. [Version Highlights](#-version-highlights)
 
-### 1. Transaction Facts
+---
+
+## 🎯 Overview
+
+Fact Data Modeling is a dimensional modeling technique that focuses on designing fact tables - the central tables in a data warehouse that store quantitative data for analysis. Facts represent business events or measurements and are typically numeric, additive values that can be aggregated across different dimensions.
+
+**Key Benefits:**
+- **Performance**: Optimized for analytical queries and aggregations
+- **Scalability**: Handles large volumes of transactional data efficiently  
+- **Flexibility**: Supports various analytical perspectives through dimensions
+- **Consistency**: Provides single source of truth for business metrics
+
+## 📦 Core Components
+
+### Fact Tables
+**Definition**: Central tables containing measurable business events with foreign keys to dimension tables.
+
+**Key Characteristics:**
+- **Grain**: Level of detail (transaction, daily, monthly)
+- **Measures**: Numeric values that can be aggregated
+- **Foreign Keys**: References to dimension tables
+- **Large Volume**: Typically contain millions/billions of rows
+
+### Types of Facts
+
+#### 1. Additive Facts
 ```sql
--- Individual business events
-CREATE TABLE fact_sales_transaction (
-    transaction_id INT PRIMARY KEY,
+-- Sales amount - can be summed across all dimensions
+CREATE TABLE sales_fact (
     date_key INT,
-    time_key INT,
-    customer_key INT,
     product_key INT,
     store_key INT,
-    salesperson_key INT,
-    quantity INT,
-    unit_price DECIMAL(10,2),
-    discount_amount DECIMAL(10,2),
-    tax_amount DECIMAL(10,2),
-    total_amount DECIMAL(10,2),
-    FOREIGN KEY (date_key) REFERENCES dim_date(date_key),
-    FOREIGN KEY (customer_key) REFERENCES dim_customer(customer_key)
+    sales_amount DECIMAL(10,2),  -- Additive
+    quantity_sold INT            -- Additive
 );
 ```
 
-### 2. Periodic Snapshot Facts
+#### 2. Semi-Additive Facts
 ```sql
--- Regular interval measurements
-CREATE TABLE fact_inventory_snapshot (
+-- Account balance - can be summed across accounts but not time
+CREATE TABLE account_balance_fact (
+    date_key INT,
+    account_key INT,
+    balance_amount DECIMAL(15,2)  -- Semi-additive
+);
+```
+
+#### 3. Non-Additive Facts
+```sql
+-- Ratios and percentages - cannot be summed
+CREATE TABLE performance_fact (
+    date_key INT,
+    employee_key INT,
+    performance_ratio DECIMAL(5,2),  -- Non-additive
+    satisfaction_score DECIMAL(3,1)  -- Non-additive
+);
+```
+
+#### 4. Factless Facts
+```sql
+-- Events with no measures - only foreign keys
+CREATE TABLE student_enrollment_fact (
+    student_key INT,
+    course_key INT,
+    semester_key INT,
+    enrollment_date DATE
+);
+```
+
+### Fact Table Types
+
+#### Transaction Fact Tables
+```sql
+-- One row per business transaction
+CREATE TABLE order_transaction_fact (
+    transaction_id VARCHAR(50) PRIMARY KEY,
+    date_key INT,
+    customer_key INT,
+    product_key INT,
+    order_amount DECIMAL(10,2),
+    quantity INT,
+    discount_amount DECIMAL(8,2)
+);
+```
+
+#### Periodic Snapshot Facts
+```sql
+-- Regular snapshots at specific intervals
+CREATE TABLE monthly_inventory_fact (
+    month_key INT,
     product_key INT,
     warehouse_key INT,
-    date_key INT,
-    quantity_on_hand INT,
-    quantity_allocated INT,
-    quantity_available INT,
-    unit_cost DECIMAL(10,2),
-    total_value DECIMAL(15,2),
-    PRIMARY KEY (product_key, warehouse_key, date_key)
-);
-
--- Monthly account balance snapshot
-CREATE TABLE fact_account_balance_monthly (
-    account_key INT,
-    date_key INT,
-    opening_balance DECIMAL(15,2),
-    closing_balance DECIMAL(15,2),
-    average_balance DECIMAL(15,2),
-    transaction_count INT,
-    PRIMARY KEY (account_key, date_key)
+    beginning_inventory INT,
+    ending_inventory INT,
+    average_inventory DECIMAL(10,2)
 );
 ```
 
-### 3. Accumulating Snapshot Facts
+#### Accumulating Snapshot Facts
 ```sql
--- Process lifecycle tracking
-CREATE TABLE fact_order_fulfillment (
+-- Tracks process lifecycle with multiple dates
+CREATE TABLE order_fulfillment_fact (
     order_key INT PRIMARY KEY,
     customer_key INT,
-    product_key INT,
-    order_date_key INT,
-    payment_date_key INT,
-    ship_date_key INT,
-    delivery_date_key INT,
+    order_date DATE,
+    payment_date DATE,
+    ship_date DATE,
+    delivery_date DATE,
     order_amount DECIMAL(10,2),
-    shipping_cost DECIMAL(10,2),
-    days_to_payment INT,
     days_to_ship INT,
-    days_to_delivery INT,
-    order_status VARCHAR(20)
+    days_to_deliver INT
 );
 ```
 
-### 4. Factless Facts
-```sql
--- Events without measures
-CREATE TABLE fact_student_class_attendance (
-    student_key INT,
-    class_key INT,
-    date_key INT,
-    attendance_type_key INT,
-    PRIMARY KEY (student_key, class_key, date_key)
-);
+## 🏗️ Architecture
 
--- Promotion coverage
-CREATE TABLE fact_promotion_coverage (
+### Star Schema Architecture
+```
+                    ┌─────────────────┐
+                    │   TIME_DIM      │
+                    │                 │
+                    │ date_key (PK)   │
+                    │ date            │
+                    │ month           │
+                    │ quarter         │
+                    │ year            │
+                    └─────────┬───────┘
+                              │
+    ┌─────────────────┐      │      ┌─────────────────┐
+    │  PRODUCT_DIM    │      │      │  CUSTOMER_DIM   │
+    │                 │      │      │                 │
+    │ product_key(PK) │      │      │ customer_key(PK)│
+    │ product_name    │      │      │ customer_name   │
+    │ category        │      │      │ city            │
+    │ brand           │      │      │ state           │
+    └─────────┬───────┘      │      └─────────┬───────┘
+              │              │                │
+              │    ┌─────────▼─────────┐      │
+              └────┤   SALES_FACT      ├──────┘
+                   │                   │
+                   │ date_key (FK)     │
+                   │ product_key (FK)  │
+                   │ customer_key (FK) │
+                   │ store_key (FK)    │
+                   │ sales_amount      │
+                   │ quantity_sold     │
+                   │ discount_amount   │
+                   └─────────┬─────────┘
+                             │
+                    ┌────────▼─────────┐
+                    │   STORE_DIM     │
+                    │                 │
+                    │ store_key (PK)  │
+                    │ store_name      │
+                    │ city            │
+                    │ region          │
+                    └─────────────────┘
+```
+
+### Snowflake Schema Architecture
+```
+    ┌─────────────────┐    ┌─────────────────┐
+    │   CATEGORY_DIM  │    │   BRAND_DIM     │
+    │                 │    │                 │
+    │ category_key(PK)│    │ brand_key (PK)  │
+    │ category_name   │    │ brand_name      │
+    └─────────┬───────┘    └─────────┬───────┘
+              │                      │
+    ┌─────────▼─────────┐           │
+    │  PRODUCT_DIM      │           │
+    │                   │           │
+    │ product_key (PK)  │           │
+    │ product_name      │           │
+    │ category_key (FK) ├───────────┘
+    │ brand_key (FK)    ├───────────┘
+    └─────────┬─────────┘
+              │
+    ┌─────────▼─────────┐
+    │   SALES_FACT      │
+    │                   │
+    │ product_key (FK)  │
+    │ sales_amount      │
+    │ quantity_sold     │
+    └───────────────────┘
+```
+
+## 🔧 Key Features
+
+### Grain Definition
+**Definition**: The level of detail stored in the fact table.
+
+```sql
+-- Transaction grain (most detailed)
+CREATE TABLE transaction_fact (
+    transaction_id VARCHAR(50),
+    timestamp TIMESTAMP,
+    customer_key INT,
     product_key INT,
-    store_key INT,
-    promotion_key INT,
-    date_key INT,
-    PRIMARY KEY (product_key, store_key, promotion_key, date_key)
+    amount DECIMAL(10,2)
 );
-```
 
-## 📊 Fact Table Design Patterns
-
-### Additive, Semi-Additive, and Non-Additive Facts
-```sql
-CREATE TABLE fact_financial_metrics (
-    account_key INT,
-    date_key INT,
-    -- Additive: Can sum across all dimensions
-    transaction_amount DECIMAL(15,2),
-    transaction_count INT,
-    
-    -- Semi-additive: Can sum across some dimensions (not time)
-    account_balance DECIMAL(15,2),
-    
-    -- Non-additive: Cannot sum meaningfully
-    interest_rate DECIMAL(5,4),
-    exchange_rate DECIMAL(10,6),
-    
-    -- Derived additive measures
-    interest_earned AS (account_balance * interest_rate / 365)
-);
-```
-
-### Multi-Grain Facts
-```sql
--- Different levels of detail in same fact table
-CREATE TABLE fact_sales_multi_grain (
-    grain_type VARCHAR(20), -- 'TRANSACTION', 'DAILY', 'MONTHLY'
-    transaction_id INT,     -- NULL for aggregated grains
+-- Daily grain (aggregated)
+CREATE TABLE daily_sales_fact (
     date_key INT,
     customer_key INT,
     product_key INT,
-    quantity INT,
-    total_amount DECIMAL(10,2),
-    record_count INT        -- 1 for transactions, >1 for aggregates
+    daily_sales_amount DECIMAL(12,2),
+    transaction_count INT
+);
+```
+
+### Slowly Changing Dimensions Integration
+```sql
+-- Fact table with SCD Type 2 dimension keys
+CREATE TABLE sales_fact (
+    transaction_date DATE,
+    customer_key INT,  -- Points to specific version
+    product_key INT,
+    sales_amount DECIMAL(10,2),
+    -- Metadata
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customer dimension with SCD Type 2
+CREATE TABLE customer_dim (
+    customer_key INT PRIMARY KEY,
+    customer_id VARCHAR(50),
+    customer_name VARCHAR(100),
+    address VARCHAR(200),
+    effective_date DATE,
+    expiration_date DATE,
+    current_flag BOOLEAN
 );
 ```
 
 ### Conformed Facts
 ```sql
--- Shared fact definitions across business processes
-CREATE TABLE fact_revenue (
-    revenue_id INT PRIMARY KEY,
+-- Revenue fact (conformed across business processes)
+CREATE TABLE sales_revenue_fact (
     date_key INT,
-    customer_key INT,
     product_key INT,
-    channel_key INT,
-    revenue_amount DECIMAL(15,2),
-    revenue_type VARCHAR(20) -- 'SALES', 'SUBSCRIPTION', 'SERVICE'
-);
-
--- Used consistently across different fact tables
-CREATE TABLE fact_sales (
-    sale_id INT PRIMARY KEY,
-    -- ... other dimensions
-    revenue_amount DECIMAL(15,2), -- Same definition as fact_revenue
-    cost_amount DECIMAL(15,2),
-    profit_amount AS (revenue_amount - cost_amount)
-);
-```
-
-## 🔧 Advanced Fact Modeling
-
-### Heterogeneous Products
-```sql
--- Generic fact structure for different product types
-CREATE TABLE fact_product_sales (
-    sale_id INT PRIMARY KEY,
-    date_key INT,
     customer_key INT,
+    revenue_amount DECIMAL(12,2)  -- Conformed measure
+);
+
+CREATE TABLE marketing_revenue_fact (
+    date_key INT,
+    campaign_key INT,
     product_key INT,
-    base_amount DECIMAL(15,2),
-    
-    -- Product-specific measures (nullable)
-    -- For books
-    pages INT,
-    isbn VARCHAR(20),
-    
-    -- For electronics
-    warranty_months INT,
-    power_consumption DECIMAL(8,2),
-    
-    -- For clothing
-    size_key INT,
-    color_key INT
+    revenue_amount DECIMAL(12,2)  -- Same definition as sales
 );
-```
-
-### Hot Swappable Dimensions
-```sql
--- Flexible dimension assignment
-CREATE TABLE fact_flexible_sales (
-    sale_id INT PRIMARY KEY,
-    date_key INT,
-    dimension_1_key INT, -- Could be customer, product, etc.
-    dimension_2_key INT,
-    dimension_3_key INT,
-    dimension_type_1 VARCHAR(20), -- 'CUSTOMER', 'PRODUCT', etc.
-    dimension_type_2 VARCHAR(20),
-    dimension_type_3 VARCHAR(20),
-    amount DECIMAL(15,2)
-);
-```
-
-## 🚀 Implementation Strategies
-
-### Python Fact Loading
-```python
-import pandas as pd
-from datetime import datetime, timedelta
-
-class FactTableLoader:
-    def __init__(self, db_connection):
-        self.conn = db_connection
-    
-    def load_transaction_facts(self, source_df, fact_table):
-        """Load transaction-level facts"""
-        # Add surrogate keys
-        fact_df = self.add_dimension_keys(source_df)
-        
-        # Add audit columns
-        fact_df['load_timestamp'] = datetime.now()
-        fact_df['source_system'] = 'OLTP'
-        
-        # Load to fact table
-        fact_df.to_sql(fact_table, self.conn, if_exists='append', index=False)
-        
-        return len(fact_df)
-    
-    def create_periodic_snapshot(self, base_date, fact_table):
-        """Create periodic snapshot from transaction data"""
-        snapshot_sql = f"""
-        INSERT INTO {fact_table} (
-            product_key, warehouse_key, date_key,
-            quantity_on_hand, quantity_allocated, total_value
-        )
-        SELECT 
-            product_key,
-            warehouse_key,
-            {self.get_date_key(base_date)} as date_key,
-            SUM(CASE WHEN transaction_type = 'RECEIPT' THEN quantity ELSE -quantity END) as quantity_on_hand,
-            SUM(CASE WHEN status = 'ALLOCATED' THEN quantity ELSE 0 END) as quantity_allocated,
-            SUM(quantity * unit_cost) as total_value
-        FROM fact_inventory_transactions
-        WHERE transaction_date <= %s
-        GROUP BY product_key, warehouse_key
-        """
-        
-        cursor = self.conn.cursor()
-        cursor.execute(snapshot_sql, (base_date,))
-        self.conn.commit()
-    
-    def update_accumulating_snapshot(self, order_id, milestone, milestone_date):
-        """Update accumulating snapshot with new milestone"""
-        update_sql = f"""
-        UPDATE fact_order_fulfillment 
-        SET {milestone}_date_key = %s,
-            days_to_{milestone} = DATEDIFF(day, order_date, %s)
-        WHERE order_key = (
-            SELECT order_key FROM dim_order WHERE order_id = %s
-        )
-        """
-        
-        date_key = self.get_date_key(milestone_date)
-        cursor = self.conn.cursor()
-        cursor.execute(update_sql, (date_key, milestone_date, order_id))
-        self.conn.commit()
-    
-    def add_dimension_keys(self, source_df):
-        """Replace business keys with surrogate keys"""
-        fact_df = source_df.copy()
-        
-        # Customer key lookup
-        customer_lookup = pd.read_sql(
-            "SELECT customer_id, customer_key FROM dim_customer WHERE is_current = TRUE",
-            self.conn
-        )
-        fact_df = fact_df.merge(customer_lookup, on='customer_id', how='left')
-        
-        # Product key lookup
-        product_lookup = pd.read_sql(
-            "SELECT product_id, product_key FROM dim_product WHERE is_current = TRUE",
-            self.conn
-        )
-        fact_df = fact_df.merge(product_lookup, on='product_id', how='left')
-        
-        # Date key lookup
-        fact_df['date_key'] = fact_df['transaction_date'].apply(
-            lambda x: int(x.strftime('%Y%m%d'))
-        )
-        
-        return fact_df
-```
-
-### Fact Aggregation Strategies
-```python
-class FactAggregator:
-    def __init__(self, db_connection):
-        self.conn = db_connection
-    
-    def create_daily_aggregates(self, source_fact_table, target_fact_table):
-        """Create daily aggregated facts from transaction facts"""
-        agg_sql = f"""
-        INSERT INTO {target_fact_table} (
-            date_key, customer_key, product_key,
-            transaction_count, total_quantity, total_amount
-        )
-        SELECT 
-            date_key,
-            customer_key,
-            product_key,
-            COUNT(*) as transaction_count,
-            SUM(quantity) as total_quantity,
-            SUM(total_amount) as total_amount
-        FROM {source_fact_table}
-        WHERE date_key = %s
-        GROUP BY date_key, customer_key, product_key
-        """
-        
-        cursor = self.conn.cursor()
-        cursor.execute(agg_sql, (self.get_yesterday_key(),))
-        self.conn.commit()
-    
-    def create_rolling_aggregates(self, fact_table, window_days=30):
-        """Create rolling window aggregates"""
-        rolling_sql = f"""
-        SELECT 
-            customer_key,
-            date_key,
-            SUM(total_amount) OVER (
-                PARTITION BY customer_key 
-                ORDER BY date_key 
-                ROWS BETWEEN {window_days-1} PRECEDING AND CURRENT ROW
-            ) as rolling_{window_days}day_amount,
-            AVG(total_amount) OVER (
-                PARTITION BY customer_key 
-                ORDER BY date_key 
-                ROWS BETWEEN {window_days-1} PRECEDING AND CURRENT ROW
-            ) as avg_{window_days}day_amount
-        FROM {fact_table}
-        """
-        
-        return pd.read_sql(rolling_sql, self.conn)
-```
-
-## 🎯 Best Practices
-
-### Fact Table Design
-- Choose appropriate grain (level of detail)
-- Use consistent measure definitions
-- Implement proper indexing strategy
-- Consider partitioning for large tables
-- Design for common query patterns
-
-### Performance Optimization
-```sql
--- Partitioning by date
-CREATE TABLE fact_sales_partitioned (
-    sale_id INT,
-    date_key INT,
-    customer_key INT,
-    total_amount DECIMAL(15,2)
-) PARTITION BY RANGE (date_key) (
-    PARTITION p2023 VALUES LESS THAN (20240101),
-    PARTITION p2024 VALUES LESS THAN (20250101)
-);
-
--- Covering indexes for common queries
-CREATE INDEX idx_fact_sales_customer_date 
-ON fact_sales (customer_key, date_key) 
-INCLUDE (total_amount, quantity);
 ```
 
 ## 🎯 Use Cases
-- Sales and revenue analysis
-- Inventory management
-- Financial reporting
-- Customer behavior tracking
-- Operational metrics
-- Performance monitoring
 
-## ⚠️ Considerations
-- Storage requirements for detailed facts
-- ETL complexity for different fact types
-- Query performance optimization needs
-- Data freshness requirements
-- Aggregation strategy planning
+### 1. Sales Analytics
+```sql
+-- Monthly sales performance by region
+SELECT 
+    d.year,
+    d.month,
+    s.region,
+    SUM(f.sales_amount) as total_sales,
+    COUNT(*) as transaction_count
+FROM sales_fact f
+JOIN date_dim d ON f.date_key = d.date_key
+JOIN store_dim s ON f.store_key = s.store_key
+WHERE d.year = 2023
+GROUP BY d.year, d.month, s.region
+ORDER BY d.month, total_sales DESC;
+```
+
+### 2. Financial Reporting
+```sql
+-- Quarterly financial summary
+SELECT 
+    d.quarter,
+    SUM(CASE WHEN f.transaction_type = 'SALE' THEN f.amount ELSE 0 END) as revenue,
+    SUM(CASE WHEN f.transaction_type = 'REFUND' THEN f.amount ELSE 0 END) as refunds,
+    COUNT(DISTINCT f.customer_key) as unique_customers
+FROM financial_fact f
+JOIN date_dim d ON f.date_key = d.date_key
+WHERE d.year = 2023
+GROUP BY d.quarter
+ORDER BY d.quarter;
+```
+
+### 3. Inventory Management
+```sql
+-- Inventory turnover analysis
+SELECT 
+    p.category,
+    AVG(f.beginning_inventory) as avg_beginning_inventory,
+    AVG(f.ending_inventory) as avg_ending_inventory,
+    SUM(f.units_sold) / AVG(f.average_inventory) as inventory_turnover
+FROM inventory_fact f
+JOIN product_dim p ON f.product_key = p.product_key
+JOIN date_dim d ON f.date_key = d.date_key
+WHERE d.year = 2023
+GROUP BY p.category
+ORDER BY inventory_turnover DESC;
+```
+
+## 🔗 Integration Patterns
+
+### ETL Integration
+```python
+# Python ETL example for fact table loading
+def load_sales_fact(spark, source_data):
+    # Extract from source
+    transactions = spark.read.jdbc(
+        url="jdbc:postgresql://source-db:5432/sales",
+        table="transactions",
+        properties={"user": "etl_user", "password": "password"}
+    )
+    
+    # Transform - join with dimensions to get keys
+    fact_data = transactions.alias("t") \
+        .join(date_dim.alias("d"), 
+              col("t.transaction_date") == col("d.date")) \
+        .join(customer_dim.alias("c"), 
+              col("t.customer_id") == col("c.customer_id")) \
+        .join(product_dim.alias("p"), 
+              col("t.product_id") == col("p.product_id")) \
+        .select(
+            col("d.date_key"),
+            col("c.customer_key"),
+            col("p.product_key"),
+            col("t.amount").alias("sales_amount"),
+            col("t.quantity")
+        )
+    
+    # Load to fact table
+    fact_data.write.mode("append").saveAsTable("sales_fact")
+```
+
+### Real-time Integration
+```python
+# Streaming fact table updates
+def stream_fact_updates(spark):
+    # Read from Kafka
+    stream = spark.readStream \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "localhost:9092") \
+        .option("subscribe", "transactions") \
+        .load()
+    
+    # Parse and enrich
+    parsed_stream = stream.select(
+        from_json(col("value").cast("string"), transaction_schema).alias("data")
+    ).select("data.*")
+    
+    # Write to Delta table for ACID compliance
+    query = parsed_stream.writeStream \
+        .format("delta") \
+        .outputMode("append") \
+        .option("checkpointLocation", "/checkpoints/sales_fact") \
+        .start("/delta/sales_fact")
+    
+    return query
+```
+
+## 📋 Best Practices
+
+### 1. Grain Consistency
+```sql
+-- Ensure consistent grain across related facts
+-- All facts at daily grain
+CREATE TABLE daily_sales_fact (
+    date_key INT,
+    product_key INT,
+    daily_sales_amount DECIMAL(12,2)
+);
+
+CREATE TABLE daily_inventory_fact (
+    date_key INT,
+    product_key INT,
+    ending_inventory INT
+);
+```
+
+### 2. Surrogate Keys
+```sql
+-- Use surrogate keys for dimension references
+CREATE TABLE sales_fact (
+    sales_fact_key BIGINT IDENTITY(1,1) PRIMARY KEY,
+    date_key INT NOT NULL,
+    customer_key INT NOT NULL,
+    product_key INT NOT NULL,
+    sales_amount DECIMAL(10,2),
+    FOREIGN KEY (date_key) REFERENCES date_dim(date_key),
+    FOREIGN KEY (customer_key) REFERENCES customer_dim(customer_key),
+    FOREIGN KEY (product_key) REFERENCES product_dim(product_key)
+);
+```
+
+### 3. Partitioning Strategy
+```sql
+-- Partition by date for query performance
+CREATE TABLE sales_fact (
+    date_key INT,
+    customer_key INT,
+    product_key INT,
+    sales_amount DECIMAL(10,2)
+) PARTITION BY RANGE (date_key);
+
+-- Create monthly partitions
+CREATE TABLE sales_fact_202301 PARTITION OF sales_fact
+FOR VALUES FROM (20230101) TO (20230201);
+```
+
+### 4. Indexing Strategy
+```sql
+-- Create indexes on foreign keys and frequently filtered columns
+CREATE INDEX idx_sales_fact_date ON sales_fact(date_key);
+CREATE INDEX idx_sales_fact_customer ON sales_fact(customer_key);
+CREATE INDEX idx_sales_fact_product ON sales_fact(product_key);
+CREATE INDEX idx_sales_fact_composite ON sales_fact(date_key, customer_key);
+```
+
+## ⚠️ Limitations
+
+### 1. Storage Requirements
+- **Large Volume**: Fact tables can become extremely large
+- **Storage Costs**: Detailed grain requires significant storage
+- **Backup Complexity**: Large tables increase backup/restore time
+
+### 2. Performance Challenges
+- **Join Complexity**: Multiple dimension joins can impact performance
+- **Aggregation Time**: Large fact tables slow down aggregation queries
+- **Index Maintenance**: Multiple indexes require maintenance overhead
+
+### 3. Data Quality Issues
+- **Late Arriving Facts**: Handling delayed transaction data
+- **Dimension Key Lookup**: Missing or invalid dimension references
+- **Data Consistency**: Ensuring referential integrity across tables
+
+### 4. Maintenance Overhead
+- **ETL Complexity**: Complex transformation logic for fact loading
+- **Historical Data**: Managing historical fact data and changes
+- **Schema Evolution**: Modifying fact table structure in production
+
+## 🔄 Version Highlights
+
+### Traditional Fact Modeling
+- **Kimball Methodology**: Star schema with conformed dimensions
+- **Inmon Approach**: Normalized data warehouse with fact tables
+- **OLAP Cubes**: Pre-aggregated fact data for fast queries
+
+### Modern Fact Modeling
+- **Delta Lake**: ACID transactions for fact table updates
+- **Data Vault 2.0**: Hub-link-satellite model with fact satellites
+- **Data Mesh**: Domain-oriented fact tables as data products
+- **Real-time Facts**: Streaming fact table updates with Kafka/Kinesis
+
+### Cloud-Native Approaches
+- **Snowflake**: Automatic clustering and micro-partitions
+- **BigQuery**: Columnar storage with automatic optimization
+- **Redshift**: Distribution keys and sort keys for performance
+- **Databricks**: Delta Lake with optimized Spark processing
+
+### Advanced Patterns
+- **Temporal Facts**: Bi-temporal fact tables with valid/transaction time
+- **Multi-Grain Facts**: Facts at different levels of aggregation
+- **Bridge Tables**: Handling many-to-many relationships
+- **Factless Facts**: Event tracking without measures
+
+---
+
+## 📚 Quick References
+- [Kimball Dimensional Modeling](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/)
+- [Data Vault 2.0 Methodology](https://datavaultalliance.com/)
+- [Modern Data Stack Patterns](https://www.getdbt.com/analytics-engineering/)
+- [Delta Lake Documentation](https://delta.io/)
