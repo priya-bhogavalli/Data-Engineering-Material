@@ -1,2 +1,0 @@
-# Data Serialization - Interview Questions
-

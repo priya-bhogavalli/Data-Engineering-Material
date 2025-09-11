@@ -1,2 +1,0 @@
-# Database Types - Interview Questions
-

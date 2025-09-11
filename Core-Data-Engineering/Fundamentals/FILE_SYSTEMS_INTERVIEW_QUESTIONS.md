@@ -1,2 +1,0 @@
-# File Systems - Interview Questions
-

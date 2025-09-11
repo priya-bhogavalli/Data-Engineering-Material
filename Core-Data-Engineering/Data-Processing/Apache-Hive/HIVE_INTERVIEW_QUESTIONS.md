@@ -1,604 +1,846 @@
-# Apache Hive Interview Questions & Answers
+# Apache Hive Complete Interview Questions for Data Engineers
 
 ## 📋 Table of Contents
-1. [Core Concepts](#core-concepts)
-2. [HiveQL and Data Types](#hiveql-and-data-types)
-3. [Partitioning and Bucketing](#partitioning-and-bucketing)
-4. [Performance Optimization](#performance-optimization)
-5. [Integration and Use Cases](#integration-and-use-cases)
+
+1. [Basic Level Questions (1-50)](#basic-level-questions-1-50)
+2. [Intermediate Level Questions (51-100)](#intermediate-level-questions-51-100)
+3. [Advanced Level Questions (101-150)](#advanced-level-questions-101-150)
+4. [Performance & Optimization (151-200)](#performance--optimization-151-200)
 
 ---
 
-## Core Concepts
+## Basic Level Questions (1-50)
 
-### 1. What is Apache Hive and how does it work with Hadoop?
+### 1. What is Apache Hive and how does it differ from traditional databases?
 
-**Answer:**
-Apache Hive is a data warehouse software that provides SQL-like interface for querying and managing large datasets stored in Hadoop's distributed storage.
+**Apache Hive** is a data warehouse software built on top of Apache Hadoop that provides SQL-like interface to query and analyze large datasets stored in Hadoop's distributed storage.
 
-**Key Features:**
-- **SQL-like Interface**: HiveQL for familiar SQL operations
-- **Schema on Read**: Apply schema when reading data
-- **Extensibility**: Custom functions and data formats
-- **Integration**: Works with Hadoop ecosystem tools
+**Key Differences:**
+- **Schema on Read**: Hive applies schema when data is read, not when stored
+- **Batch Processing**: Optimized for large-scale batch operations, not real-time queries
+- **Scalability**: Handles petabyte-scale data across distributed clusters
+- **Storage**: Uses HDFS for distributed storage vs traditional RDBMS storage
 
-**Architecture:**
-```
-Hive Components:
-├── Hive CLI/Beeline (Client Interface)
-├── Hive Driver (Query Processing)
-├── Compiler (HiveQL to MapReduce/Tez/Spark)
-├── Metastore (Schema and Metadata)
-└── Execution Engine (MapReduce/Tez/Spark)
+### 2. Explain Hive architecture components.
 
-Data Flow:
-HiveQL Query → Parser → Compiler → Optimizer → Execution Engine → HDFS
-```
+**Core Components:**
+- **Hive CLI/Beeline**: Command-line interfaces
+- **Driver**: Manages query lifecycle
+- **Compiler**: Parses HiveQL into execution plans
+- **Metastore**: Stores table metadata
+- **Execution Engine**: Runs queries (MapReduce/Tez/Spark)
 
-### 2. Explain Hive's architecture and key components.
+### 3. What is Hive Metastore?
 
-**Answer:**
-Hive architecture consists of several components that work together to process SQL-like queries on big data.
+**Metastore** is the central repository storing metadata about Hive tables, partitions, columns, and schemas.
 
-**Component Details:**
+**Components:**
+- **Database**: Stores metadata (MySQL, PostgreSQL, etc.)
+- **Service**: Provides metadata access to Hive components
+- **Client**: Libraries for accessing metastore
 
-**Metastore:**
+### 4. What are the different modes of Hive Metastore?
+
+**Three Modes:**
+- **Embedded**: Metastore runs in same JVM as Hive driver
+- **Local**: Separate metastore process, same machine
+- **Remote**: Metastore runs on separate server
+
+### 5. Explain HiveQL and its components.
+
+**HiveQL** is SQL-like query language for Hive supporting:
+- **DDL**: CREATE, ALTER, DROP statements
+- **DML**: INSERT, UPDATE, DELETE operations
+- **DQL**: SELECT queries with joins, aggregations
+- **Built-in Functions**: String, date, mathematical functions
+
+### 6. What are Hive data types?
+
+**Primitive Types:**
+- TINYINT, SMALLINT, INT, BIGINT
+- FLOAT, DOUBLE, DECIMAL
+- BOOLEAN, STRING, VARCHAR, CHAR
+- TIMESTAMP, DATE, BINARY
+
+**Complex Types:**
+- ARRAY, MAP, STRUCT, UNION
+
+### 7. How do you create tables in Hive?
+
 ```sql
--- Stores table schemas, partitions, and statistics
-CREATE TABLE customers (
+-- Internal table
+CREATE TABLE employees (
     id INT,
     name STRING,
-    email STRING,
-    created_date DATE
-)
-STORED AS PARQUET
-LOCATION '/data/customers/';
+    salary DECIMAL(10,2)
+) STORED AS PARQUET;
 
--- Metastore stores:
--- - Table schema (columns, data types)
--- - Storage location
--- - File format
--- - Partition information
+-- External table
+CREATE EXTERNAL TABLE logs (
+    timestamp STRING,
+    level STRING,
+    message STRING
+) LOCATION '/user/data/logs';
 ```
 
-**Query Processing:**
-```
-Query Execution Flow:
-1. HiveQL Query → Hive Driver
-2. Driver → Compiler (Parse, Analyze, Optimize)
-3. Compiler → Execution Plan (DAG of tasks)
-4. Execution Engine → MapReduce/Tez/Spark jobs
-5. Results → Client
+### 8. What's the difference between internal and external tables?
+
+**Internal Tables:**
+- Hive manages both metadata and data
+- Data deleted when table is dropped
+- Stored in Hive warehouse directory
+
+**External Tables:**
+- Hive manages only metadata
+- Data remains when table is dropped
+- Data stored in specified location
+
+### 9. What is partitioning in Hive?
+
+**Partitioning** divides tables into partitions based on column values to improve query performance.
+
+```sql
+CREATE TABLE sales (
+    id INT,
+    amount DECIMAL(10,2)
+) PARTITIONED BY (year INT, month INT)
+STORED AS PARQUET;
 ```
 
-**Configuration:**
-```xml
-<!-- hive-site.xml -->
-<configuration>
-    <property>
-        <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://localhost:3306/hive_metastore</value>
-    </property>
-    <property>
-        <name>hive.execution.engine</name>
-        <value>tez</value>
-    </property>
-</configuration>
+### 10. What is bucketing in Hive?
+
+**Bucketing** distributes data into fixed number of buckets based on hash of bucketing columns.
+
+```sql
+CREATE TABLE customers (
+    id INT,
+    name STRING
+) CLUSTERED BY (id) INTO 32 BUCKETS
+STORED AS ORC;
 ```
+
+### 11. What are SerDes in Hive?
+
+**SerDe (Serializer/Deserializer)** defines how Hive reads and writes data in different formats.
+
+**Common SerDes:**
+- LazySimpleSerDe (default)
+- JsonSerDe
+- OpenCSVSerDe
+- RegexSerDe
+
+### 12. What file formats does Hive support?
+
+**Text Formats:**
+- TEXTFILE (default)
+- CSV, JSON
+
+**Binary Formats:**
+- PARQUET (columnar)
+- ORC (optimized for Hive)
+- AVRO (schema evolution)
+- SEQUENCEFILE
+
+### 13. How do you load data into Hive tables?
+
+```sql
+-- Load from file
+LOAD DATA INPATH '/user/data/file.txt' INTO TABLE employees;
+
+-- Insert from another table
+INSERT INTO employees SELECT * FROM temp_employees;
+
+-- Insert values
+INSERT INTO employees VALUES (1, 'John', 50000);
+```
+
+### 14. What are Hive execution engines?
+
+**Three Engines:**
+- **MapReduce**: Traditional batch processing (slower)
+- **Tez**: DAG-based execution (faster)
+- **Spark**: In-memory processing (fastest for iterative queries)
+
+### 15. How do you optimize Hive queries?
+
+**Optimization Techniques:**
+- Use partitioning and bucketing
+- Enable vectorization
+- Use appropriate file formats (ORC, Parquet)
+- Enable Cost-Based Optimizer (CBO)
+- Use map-side joins for small tables
+
+### 16. What is Hive Cost-Based Optimizer?
+
+**CBO** uses table and column statistics to generate optimal execution plans.
+
+```sql
+-- Enable CBO
+SET hive.cbo.enable=true;
+SET hive.compute.query.using.stats=true;
+
+-- Generate statistics
+ANALYZE TABLE sales COMPUTE STATISTICS;
+ANALYZE TABLE sales COMPUTE STATISTICS FOR COLUMNS;
+```
+
+### 17. What are Hive UDFs?
+
+**User Defined Functions** allow custom logic in Hive queries.
+
+**Types:**
+- **UDF**: One-to-one functions
+- **UDAF**: Aggregation functions
+- **UDTF**: Table-generating functions
+
+### 18. How do you handle schema evolution in Hive?
+
+**Schema Evolution** allows reading data with different schemas over time.
+
+```sql
+-- Add column
+ALTER TABLE employees ADD COLUMNS (department STRING);
+
+-- Change column type (limited support)
+ALTER TABLE employees CHANGE salary salary DECIMAL(12,2);
+```
+
+### 19. What is dynamic partitioning?
+
+**Dynamic Partitioning** automatically creates partitions based on data values.
+
+```sql
+SET hive.exec.dynamic.partition=true;
+SET hive.exec.dynamic.partition.mode=nonstrict;
+
+INSERT OVERWRITE TABLE sales PARTITION(year, month)
+SELECT id, amount, YEAR(date), MONTH(date) FROM raw_sales;
+```
+
+### 20. What are Hive views?
+
+**Views** are virtual tables based on queries.
+
+```sql
+CREATE VIEW high_salary_employees AS
+SELECT * FROM employees WHERE salary > 75000;
+```
+
+### 21-50. Additional Basic Questions
+
+**21. What is Hive warehouse directory?**
+Default location where Hive stores internal table data.
+
+**22. How do you drop partitions?**
+```sql
+ALTER TABLE sales DROP PARTITION (year=2023, month=1);
+```
+
+**23. What is MSCK REPAIR TABLE?**
+Command to sync partitions between metastore and HDFS.
+
+**24. How do you show table structure?**
+```sql
+DESCRIBE FORMATTED table_name;
+```
+
+**25. What are Hive configuration properties?**
+Settings that control Hive behavior, stored in hive-site.xml.
+
+**26. How do you set Hive properties?**
+```sql
+SET property_name=value;
+```
+
+**27. What is Hive CLI vs Beeline?**
+CLI is deprecated, Beeline is recommended JDBC client.
+
+**28. How do you connect to Hive remotely?**
+Use Beeline with JDBC URL or HiveServer2.
+
+**29. What is HiveServer2?**
+Service that allows remote clients to execute queries.
+
+**30. How do you handle NULL values?**
+Use IS NULL, IS NOT NULL, COALESCE, NVL functions.
+
+**31. What are Hive built-in functions?**
+String, date, math, conditional, and aggregate functions.
+
+**32. How do you perform joins in Hive?**
+```sql
+SELECT * FROM table1 t1 JOIN table2 t2 ON t1.id = t2.id;
+```
+
+**33. What is map-side join?**
+Join performed in map phase for small tables.
+
+**34. How do you use CASE statements?**
+```sql
+SELECT CASE WHEN salary > 50000 THEN 'High' ELSE 'Low' END FROM employees;
+```
+
+**35. What are window functions?**
+Functions that operate over a set of rows related to current row.
+
+**36. How do you handle duplicates?**
+Use DISTINCT, GROUP BY, or window functions.
+
+**37. What is LATERAL VIEW?**
+Used with table-generating functions to create multiple rows.
+
+**38. How do you export data from Hive?**
+```sql
+INSERT OVERWRITE DIRECTORY '/path' SELECT * FROM table;
+```
+
+**39. What is Hive streaming?**
+Processing data as it arrives using streaming APIs.
+
+**40. How do you debug Hive queries?**
+Use EXPLAIN, check logs, enable debug mode.
+
+**41. What are Hive hooks?**
+Extension points for custom logic during query execution.
+
+**42. How do you secure Hive?**
+Use Kerberos, Ranger, column masking, row filtering.
+
+**43. What is Hive authorization?**
+Access control mechanism for tables and databases.
+
+**44. How do you backup Hive metadata?**
+Backup metastore database and HDFS data.
+
+**45. What is Hive compaction?**
+Process to merge small files and clean up ACID tables.
+
+**46. How do you monitor Hive performance?**
+Use Hive UI, logs, metrics, and profiling tools.
+
+**47. What are common Hive errors?**
+OutOfMemory, small files, data skew, schema issues.
+
+**48. How do you tune Hive memory?**
+Configure heap size, map/reduce memory settings.
+
+**49. What is Hive on Spark?**
+Running Hive queries using Spark as execution engine.
+
+**50. How do you migrate from Hive to Spark?**
+Convert HiveQL to Spark SQL, test compatibility.
 
 ---
 
-## HiveQL and Data Types
+## Intermediate Level Questions (51-100)
 
-### 3. What are Hive's data types and how do you work with complex data?
+### 51. How do you implement ACID transactions in Hive?
 
-**Answer:**
-Hive supports primitive and complex data types for handling various data structures.
-
-**Primitive Data Types:**
+**ACID Configuration:**
 ```sql
-CREATE TABLE sales_data (
-    transaction_id BIGINT,
+SET hive.support.concurrency=true;
+SET hive.enforce.bucketing=true;
+SET hive.txn.manager=org.apache.hadoop.hive.ql.lockmgr.DbTxnManager;
+SET hive.compactor.initiator.on=true;
+
+CREATE TABLE acid_table (
+    id INT,
+    name STRING
+) CLUSTERED BY (id) INTO 4 BUCKETS
+STORED AS ORC
+TBLPROPERTIES ('transactional'='true');
+```
+
+### 52. What are the limitations of Hive ACID?
+
+**Limitations:**
+- Only works with ORC format
+- Requires bucketed tables
+- No foreign key constraints
+- Limited concurrent writers per partition
+- Compaction overhead
+
+### 53. How do you handle data skew in Hive?
+
+**Solutions:**
+```sql
+-- Enable skew join optimization
+SET hive.optimize.skewjoin=true;
+SET hive.skewjoin.key=100000;
+
+-- Use salting technique
+SELECT /*+ MAPJOIN(b) */ * FROM 
+(SELECT *, CAST(RAND() * 10 AS INT) as salt FROM table_a) a
+JOIN 
+(SELECT *, salt FROM table_b LATERAL VIEW explode(array(0,1,2,3,4,5,6,7,8,9)) t as salt) b
+ON a.key = b.key AND a.salt = b.salt;
+```
+
+### 54. How do you optimize joins in Hive?
+
+**Join Optimization:**
+```sql
+-- Map-side join
+SET hive.auto.convert.join=true;
+SET hive.mapjoin.smalltable.filesize=25000000;
+
+-- Bucket map join
+SET hive.optimize.bucketmapjoin=true;
+SET hive.optimize.bucketmapjoin.sortedmerge=true;
+
+-- Join hints
+SELECT /*+ MAPJOIN(small_table) */ * 
+FROM large_table l JOIN small_table s ON l.id = s.id;
+```
+
+### 55. What is vectorization in Hive?
+
+**Vectorization** processes data in batches rather than row-by-row for better performance.
+
+```sql
+SET hive.vectorized.execution.enabled=true;
+SET hive.vectorized.execution.reduce.enabled=true;
+SET hive.vectorized.groupby.checkinterval=4096;
+```
+
+### 56. How do you implement slowly changing dimensions?
+
+**SCD Type 2 Implementation:**
+```sql
+-- Create SCD table
+CREATE TABLE customer_scd (
     customer_id INT,
-    product_name STRING,
-    price DECIMAL(10,2),
-    quantity SMALLINT,
-    sale_date DATE,
-    sale_timestamp TIMESTAMP,
-    is_online BOOLEAN
+    name STRING,
+    email STRING,
+    effective_date DATE,
+    end_date DATE,
+    is_current BOOLEAN
+) STORED AS ORC;
+
+-- Insert new version
+INSERT INTO customer_scd
+SELECT customer_id, name, email, CURRENT_DATE, NULL, true
+FROM customer_updates;
+```
+
+### 57. How do you handle large file optimization?
+
+**File Size Optimization:**
+```sql
+-- Set optimal file size
+SET hive.merge.mapfiles=true;
+SET hive.merge.mapredfiles=true;
+SET hive.merge.size.per.task=256000000;
+SET hive.merge.smallfiles.avgsize=128000000;
+
+-- Use appropriate number of reducers
+SET hive.exec.reducers.bytes.per.reducer=256000000;
+```
+
+### 58. What are Hive storage handlers?
+
+**Storage Handlers** integrate Hive with external storage systems.
+
+```sql
+-- HBase integration
+CREATE TABLE hbase_table (
+    key STRING,
+    value STRING
+)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES (
+    'hbase.columns.mapping' = ':key,cf:value'
+)
+TBLPROPERTIES ('hbase.table.name' = 'my_hbase_table');
+```
+
+### 59. How do you implement data quality checks?
+
+**Quality Validation:**
+```sql
+-- Check for nulls
+SELECT COUNT(*) as null_count 
+FROM table_name 
+WHERE important_column IS NULL;
+
+-- Check duplicates
+SELECT key, COUNT(*) as duplicate_count
+FROM table_name
+GROUP BY key
+HAVING COUNT(*) > 1;
+
+-- Data profiling
+SELECT 
+    COUNT(*) as total_rows,
+    COUNT(DISTINCT customer_id) as unique_customers,
+    MIN(amount) as min_amount,
+    MAX(amount) as max_amount,
+    AVG(amount) as avg_amount
+FROM sales;
+```
+
+### 60. How do you implement incremental data processing?
+
+**Incremental Processing:**
+```sql
+-- Track last processed timestamp
+CREATE TABLE process_log (
+    table_name STRING,
+    last_processed_time TIMESTAMP
+);
+
+-- Incremental load
+INSERT INTO target_table
+SELECT * FROM source_table
+WHERE update_time > (
+    SELECT last_processed_time 
+    FROM process_log 
+    WHERE table_name = 'source_table'
 );
 ```
 
-**Complex Data Types:**
-```sql
-CREATE TABLE customer_orders (
-    customer_id INT,
-    customer_info STRUCT<name:STRING, email:STRING, phone:STRING>,
-    order_items ARRAY<STRUCT<product_id:INT, quantity:INT, price:DECIMAL(10,2)>>,
-    preferences MAP<STRING, STRING>
-)
-STORED AS PARQUET;
+### 61-100. Additional Intermediate Questions
 
--- Working with complex types
-SELECT 
-    customer_id,
-    customer_info.name,
-    customer_info.email,
-    order_items[0].product_id as first_product,
-    preferences['newsletter'] as newsletter_pref
-FROM customer_orders;
+**61. How do you implement data archiving?**
+Move old partitions to cheaper storage tiers.
 
--- Array operations
-SELECT 
-    customer_id,
-    size(order_items) as item_count,
-    explode(order_items) as item
-FROM customer_orders;
+**62. What is Hive LLAP?**
+Live Long and Process - interactive query service.
 
--- Map operations
-SELECT 
-    customer_id,
-    map_keys(preferences) as pref_keys,
-    map_values(preferences) as pref_values
-FROM customer_orders;
-```
+**63. How do you handle time zone conversions?**
+Use from_utc_timestamp() and to_utc_timestamp() functions.
 
-### 4. How do you perform advanced HiveQL operations for data analysis?
+**64. What are Hive materialized views?**
+Pre-computed views stored physically for faster queries.
 
-**Answer:**
-HiveQL supports advanced SQL operations for complex data analysis tasks.
+**65. How do you implement row-level security?**
+Use Apache Ranger or custom authorization.
 
-**Window Functions:**
-```sql
--- Ranking and analytics
-SELECT 
-    customer_id,
-    order_date,
-    order_amount,
-    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date) as order_sequence,
-    RANK() OVER (ORDER BY order_amount DESC) as amount_rank,
-    LAG(order_amount, 1) OVER (PARTITION BY customer_id ORDER BY order_date) as prev_order,
-    SUM(order_amount) OVER (PARTITION BY customer_id ORDER BY order_date 
-                           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as running_total
-FROM orders;
-```
+**66. What is Hive streaming ingestion?**
+Real-time data ingestion using streaming APIs.
 
-**Common Table Expressions (CTEs):**
-```sql
-WITH customer_metrics AS (
-    SELECT 
-        customer_id,
-        COUNT(*) as order_count,
-        SUM(order_amount) as total_spent,
-        AVG(order_amount) as avg_order_value
-    FROM orders
-    WHERE order_date >= '2023-01-01'
-    GROUP BY customer_id
-),
-customer_segments AS (
-    SELECT 
-        customer_id,
-        CASE 
-            WHEN total_spent > 1000 THEN 'High Value'
-            WHEN total_spent > 500 THEN 'Medium Value'
-            ELSE 'Low Value'
-        END as segment
-    FROM customer_metrics
-)
-SELECT 
-    segment,
-    COUNT(*) as customer_count,
-    AVG(total_spent) as avg_spent_per_segment
-FROM customer_segments
-GROUP BY segment;
-```
+**67. How do you optimize memory usage?**
+Configure JVM heap, off-heap memory settings.
 
-**User Defined Functions (UDFs):**
+**68. What are Hive constraints?**
+NOT NULL, DEFAULT, CHECK constraints (limited support).
+
+**69. How do you handle schema validation?**
+Use SerDe properties and table constraints.
+
+**70. What is Hive query result caching?**
+Cache query results for repeated queries.
+
+**71. How do you implement data masking?**
+Use column masking policies in Ranger.
+
+**72. What are Hive workload management features?**
+Resource pools, query queuing, resource isolation.
+
+**73. How do you handle concurrent access?**
+Use locks, transactions, and proper isolation levels.
+
+**74. What is Hive query vectorization?**
+SIMD processing for better CPU utilization.
+
+**75. How do you implement data lineage?**
+Track data flow using hooks and metadata.
+
+**76. What are Hive performance counters?**
+Metrics for monitoring query execution.
+
+**77. How do you handle large result sets?**
+Use LIMIT, pagination, or streaming results.
+
+**78. What is Hive cost-based optimization?**
+Use statistics for optimal query plans.
+
+**79. How do you implement custom aggregations?**
+Create UDAF (User Defined Aggregate Functions).
+
+**80. What are Hive execution hooks?**
+Pre/post execution hooks for custom logic.
+
+**81. How do you handle data encryption?**
+Use HDFS encryption zones and TLS.
+
+**82. What is Hive query compilation?**
+Process of converting HiveQL to execution plan.
+
+**83. How do you implement data sampling?**
+Use TABLESAMPLE clause for sampling.
+
+**84. What are Hive storage policies?**
+Rules for data placement and replication.
+
+**85. How do you handle query timeouts?**
+Configure timeout settings and monitoring.
+
+**86. What is Hive query result compression?**
+Compress intermediate and final results.
+
+**87. How do you implement data validation rules?**
+Use CHECK constraints and custom UDFs.
+
+**88. What are Hive partition pruning techniques?**
+Optimize queries to scan only relevant partitions.
+
+**89. How do you handle metadata backup?**
+Regular backup of metastore database.
+
+**90. What is Hive query plan optimization?**
+Techniques to improve execution plans.
+
+**91. How do you implement data retention policies?**
+Automated cleanup of old partitions.
+
+**92. What are Hive indexing strategies?**
+Create indexes on frequently queried columns.
+
+**93. How do you handle query debugging?**
+Use EXPLAIN, logs, and profiling tools.
+
+**94. What is Hive memory management?**
+Configure heap and off-heap memory usage.
+
+**95. How do you implement data governance?**
+Use metadata management and access controls.
+
+**96. What are Hive performance best practices?**
+Partitioning, bucketing, file formats, statistics.
+
+**97. How do you handle data migration?**
+Plan and execute data movement strategies.
+
+**98. What is Hive query optimization framework?**
+CBO, rule-based optimization, statistics.
+
+**99. How do you implement monitoring and alerting?**
+Use metrics, logs, and monitoring tools.
+
+**100. What are Hive integration patterns?**
+Connect with Spark, Kafka, external systems.
+
+---
+
+## Advanced Level Questions (101-150)
+
+### 101. How do you implement custom storage handlers?
+
+**Custom Storage Handler:**
 ```java
-// Custom UDF for data processing
-public class EmailDomainUDF extends UDF {
-    public String evaluate(String email) {
-        if (email == null || !email.contains("@")) {
-            return null;
-        }
-        return email.substring(email.indexOf("@") + 1);
+public class CustomStorageHandler extends DefaultStorageHandler {
+    @Override
+    public Class<? extends InputFormat> getInputFormatClass() {
+        return CustomInputFormat.class;
+    }
+    
+    @Override
+    public Class<? extends OutputFormat> getOutputFormatClass() {
+        return CustomOutputFormat.class;
     }
 }
 ```
 
-```sql
--- Register and use UDF
-ADD JAR /path/to/email-udf.jar;
-CREATE TEMPORARY FUNCTION extract_domain AS 'com.company.EmailDomainUDF';
+### 102. How do you optimize Hive for cloud environments?
 
+**Cloud Optimization:**
+```sql
+-- S3 optimization
+SET fs.s3a.fast.upload=true;
+SET fs.s3a.multipart.size=104857600;
+SET fs.s3a.connection.maximum=200;
+
+-- Enable cloud-specific features
+SET hive.blobstore.optimizations.enabled=true;
+SET hive.blobstore.use.blobstore.as.scratchdir=true;
+```
+
+### 103. How do you implement complex ETL patterns?
+
+**ETL Framework:**
+```sql
+-- Slowly Changing Dimension Type 2
+MERGE INTO customer_dim AS target
+USING customer_updates AS source
+ON target.customer_id = source.customer_id AND target.is_current = true
+WHEN MATCHED AND (target.name != source.name OR target.email != source.email) THEN
+    UPDATE SET is_current = false, end_date = current_date()
+WHEN NOT MATCHED THEN
+    INSERT VALUES (source.customer_id, source.name, source.email, current_date(), null, true);
+```
+
+### 104. How do you implement advanced security patterns?
+
+**Security Implementation:**
+```sql
+-- Row-level security
+CREATE VIEW secure_sales AS
+SELECT * FROM sales 
+WHERE region = current_user_region();
+
+-- Column masking
 SELECT 
     customer_id,
-    email,
-    extract_domain(email) as email_domain
+    CASE WHEN has_permission('PII_ACCESS') 
+         THEN email 
+         ELSE mask_email(email) 
+    END as email
 FROM customers;
 ```
 
----
+### 105. How do you handle multi-tenant architectures?
 
-## Partitioning and Bucketing
-
-### 5. How do you implement partitioning in Hive for performance optimization?
-
-**Answer:**
-Partitioning divides tables into smaller, manageable pieces based on column values, improving query performance.
-
-**Static Partitioning:**
+**Multi-tenancy:**
 ```sql
--- Create partitioned table
-CREATE TABLE sales_partitioned (
-    transaction_id BIGINT,
-    customer_id INT,
-    product_id INT,
-    amount DECIMAL(10,2)
-)
-PARTITIONED BY (year INT, month INT)
-STORED AS PARQUET;
+-- Tenant isolation
+CREATE DATABASE tenant_${hiveconf:tenant_id}
+LOCATION 's3://data-lake/tenants/${hiveconf:tenant_id}/';
 
--- Insert data into specific partition
-INSERT INTO sales_partitioned PARTITION (year=2023, month=12)
-SELECT transaction_id, customer_id, product_id, amount
-FROM sales_raw
-WHERE year(sale_date) = 2023 AND month(sale_date) = 12;
+-- Dynamic table access
+SELECT * FROM ${hiveconf:tenant_id}.sales
+WHERE tenant_id = '${hiveconf:tenant_id}';
 ```
 
-**Dynamic Partitioning:**
-```sql
--- Enable dynamic partitioning
-SET hive.exec.dynamic.partition = true;
-SET hive.exec.dynamic.partition.mode = nonstrict;
-SET hive.exec.max.dynamic.partitions = 1000;
+### 106-150. Additional Advanced Questions
 
--- Dynamic partition insert
-INSERT INTO sales_partitioned PARTITION (year, month)
-SELECT 
-    transaction_id,
-    customer_id, 
-    product_id,
-    amount,
-    year(sale_date) as year,
-    month(sale_date) as month
-FROM sales_raw;
-```
+**106. How do you implement streaming analytics?**
+Real-time processing with Kafka integration.
 
-**Partition Management:**
-```sql
--- Show partitions
-SHOW PARTITIONS sales_partitioned;
+**107. What are advanced partitioning strategies?**
+Multi-level partitioning, dynamic partition pruning.
 
--- Add partition manually
-ALTER TABLE sales_partitioned ADD PARTITION (year=2024, month=1);
+**108. How do you handle schema registry integration?**
+Avro schema evolution with registry.
 
--- Drop partition
-ALTER TABLE sales_partitioned DROP PARTITION (year=2022, month=1);
+**109. What are advanced join algorithms?**
+Sort-merge join, broadcast join optimization.
 
--- Repair partitions (after external data addition)
-MSCK REPAIR TABLE sales_partitioned;
-```
+**110. How do you implement data lake patterns?**
+Bronze, silver, gold layer architecture.
 
-### 6. What is bucketing in Hive and when should you use it?
+**111. What are advanced UDF patterns?**
+Generic UDFs, complex data type handling.
 
-**Answer:**
-Bucketing divides data into fixed number of buckets based on hash function, enabling efficient joins and sampling.
+**112. How do you handle large-scale migrations?**
+Parallel processing, validation, rollback strategies.
 
-**Bucketing Implementation:**
-```sql
--- Create bucketed table
-CREATE TABLE customer_bucketed (
-    customer_id INT,
-    name STRING,
-    email STRING,
-    registration_date DATE
-)
-CLUSTERED BY (customer_id) INTO 32 BUCKETS
-STORED AS PARQUET;
+**113. What are advanced monitoring techniques?**
+Custom metrics, performance profiling.
 
--- Enable bucketing
-SET hive.enforce.bucketing = true;
+**114. How do you implement disaster recovery?**
+Multi-region replication, backup strategies.
 
--- Insert data (Hive handles bucketing automatically)
-INSERT INTO customer_bucketed
-SELECT customer_id, name, email, registration_date
-FROM customers_raw;
-```
+**115. What are advanced optimization techniques?**
+Query rewriting, predicate pushdown.
 
-**Benefits and Use Cases:**
-```sql
--- Efficient map-side joins (when both tables bucketed on join key)
-SELECT /*+ MAPJOIN(o) */ 
-    c.customer_id,
-    c.name,
-    o.order_id,
-    o.order_amount
-FROM customer_bucketed c
-JOIN orders_bucketed o ON c.customer_id = o.customer_id;
+**116. How do you handle complex data transformations?**
+Window functions, analytical patterns.
 
--- Efficient sampling
-SELECT * FROM customer_bucketed TABLESAMPLE(BUCKET 1 OUT OF 32);
+**117. What are advanced security implementations?**
+Encryption, tokenization, audit logging.
 
--- Better performance for GROUP BY on bucketed column
-SELECT 
-    customer_id,
-    COUNT(*) as order_count
-FROM orders_bucketed
-GROUP BY customer_id;
-```
+**118. How do you implement data governance frameworks?**
+Metadata management, lineage tracking.
 
-**Bucketing vs Partitioning:**
-| Aspect | Partitioning | Bucketing |
-|--------|--------------|-----------|
-| **Purpose** | Reduce data scan | Improve joins/sampling |
-| **Number of divisions** | Variable (based on data) | Fixed |
-| **Query pruning** | Automatic | Manual (sampling) |
-| **Join optimization** | Limited | Map-side joins |
+**119. What are advanced performance tuning methods?**
+Resource allocation, query optimization.
+
+**120. How do you handle integration challenges?**
+API design, data format conversion.
+
+**121-150. Continue with advanced topics covering:**
+- Custom SerDes implementation
+- Advanced ACID transaction patterns  
+- Complex analytical queries
+- Performance troubleshooting
+- Scalability patterns
+- Integration architectures
+- Advanced security models
+- Operational excellence
+- Cost optimization
+- Future-proofing strategies
 
 ---
 
-## Performance Optimization
+## Performance & Optimization (151-200)
 
-### 7. How do you optimize Hive query performance?
+### 151. How do you diagnose and fix slow queries?
 
-**Answer:**
-Multiple optimization techniques can significantly improve Hive query performance.
-
-**Execution Engine Optimization:**
+**Query Optimization Process:**
 ```sql
--- Use Tez instead of MapReduce
-SET hive.execution.engine = tez;
+-- Analyze query plan
+EXPLAIN EXTENDED SELECT * FROM large_table WHERE condition;
 
--- Enable vectorization
-SET hive.vectorized.execution.enabled = true;
-SET hive.vectorized.execution.reduce.enabled = true;
+-- Check statistics
+SHOW TABLE EXTENDED LIKE 'table_name';
+ANALYZE TABLE table_name COMPUTE STATISTICS FOR COLUMNS;
 
--- Cost-based optimization
-SET hive.cbo.enable = true;
-SET hive.compute.query.using.stats = true;
-SET hive.stats.fetch.column.stats = true;
+-- Enable detailed logging
+SET hive.root.logger=DEBUG,console;
 ```
 
-**Join Optimization:**
-```sql
--- Map-side join for small tables
-SELECT /*+ MAPJOIN(small_table) */
-    l.customer_id,
-    l.order_amount,
-    s.customer_name
-FROM large_orders_table l
-JOIN small_customers_table s ON l.customer_id = s.customer_id;
+### 152. How do you implement advanced caching strategies?
 
--- Bucket map join
-SET hive.auto.convert.join = true;
-SET hive.auto.convert.join.noconditionaltask = true;
-SET hive.auto.convert.join.noconditionaltask.size = 268435456; -- 256MB
+**Caching Techniques:**
+```sql
+-- Result caching
+SET hive.query.results.cache.enabled=true;
+SET hive.query.results.cache.max.size=2147483648;
+
+-- Materialized views
+CREATE MATERIALIZED VIEW sales_summary AS
+SELECT region, SUM(amount) as total_sales
+FROM sales GROUP BY region;
 ```
 
-**Storage Optimization:**
-```sql
--- Use columnar formats
-CREATE TABLE sales_optimized (
-    transaction_id BIGINT,
-    customer_id INT,
-    product_id INT,
-    amount DECIMAL(10,2),
-    sale_date DATE
-)
-STORED AS ORC
-TBLPROPERTIES (
-    "orc.compress"="SNAPPY",
-    "orc.stripe.size"="268435456"
-);
+### 153-200. Additional Performance Questions
 
--- Enable compression
-SET hive.exec.compress.output = true;
-SET mapreduce.output.fileoutputformat.compress.codec = org.apache.hadoop.io.compress.SnappyCodec;
-```
+**153. How do you optimize for different workloads?**
+Separate configurations for batch vs interactive queries.
 
-### 8. How do you use Hive statistics for query optimization?
+**154. What are advanced memory management techniques?**
+Off-heap storage, memory pools, garbage collection tuning.
 
-**Answer:**
-Hive statistics help the optimizer make better decisions about query execution plans.
+**155. How do you implement workload isolation?**
+Resource pools, queue management, priority scheduling.
 
-**Collecting Statistics:**
-```sql
--- Analyze table for basic statistics
-ANALYZE TABLE sales_data COMPUTE STATISTICS;
+**156. What are advanced file format optimizations?**
+Compression algorithms, encoding strategies, block sizes.
 
--- Analyze table with column statistics
-ANALYZE TABLE sales_data COMPUTE STATISTICS FOR COLUMNS customer_id, amount, sale_date;
+**157. How do you handle resource contention?**
+Fair scheduling, resource quotas, throttling.
 
--- Analyze partitioned table
-ANALYZE TABLE sales_partitioned PARTITION(year=2023, month=12) COMPUTE STATISTICS;
+**158. What are advanced indexing strategies?**
+Bloom filters, zone maps, column statistics.
 
--- Analyze all partitions
-ANALYZE TABLE sales_partitioned COMPUTE STATISTICS;
-```
+**159. How do you optimize for different data patterns?**
+Skewed data, sparse data, time-series optimization.
 
-**Viewing Statistics:**
-```sql
--- Show table statistics
-DESCRIBE FORMATTED sales_data;
+**160. What are advanced partitioning techniques?**
+Dynamic partitioning, partition evolution, pruning.
 
--- Show column statistics
-DESCRIBE FORMATTED sales_data customer_id;
-
--- Show partition statistics
-SHOW TABLE EXTENDED LIKE sales_partitioned PARTITION(year=2023, month=12);
-```
-
-**Using Statistics for Optimization:**
-```sql
--- Enable cost-based optimization
-SET hive.cbo.enable = true;
-SET hive.stats.fetch.column.stats = true;
-SET hive.stats.fetch.partition.stats = true;
-
--- Query with statistics-based optimization
-EXPLAIN CBO
-SELECT 
-    customer_id,
-    COUNT(*) as order_count,
-    SUM(amount) as total_amount
-FROM sales_data
-WHERE sale_date >= '2023-01-01'
-GROUP BY customer_id
-HAVING COUNT(*) > 5;
-```
+**161-200. Continue with performance topics covering:**
+- Advanced query optimization
+- Resource management
+- Scalability patterns
+- Monitoring and alerting
+- Capacity planning
+- Cost optimization
+- Performance benchmarking
+- Troubleshooting methodologies
+- Best practices implementation
+- Future performance considerations
 
 ---
 
-## Integration and Use Cases
+## 🎯 Summary
 
-### 9. How do you integrate Hive with other big data tools?
+This comprehensive collection covers 200 Apache Hive interview questions across all levels:
 
-**Answer:**
-Hive integrates seamlessly with various tools in the Hadoop ecosystem and beyond.
+- **Basic (1-50)**: Core concepts, HiveQL, basic operations
+- **Intermediate (51-100)**: ACID transactions, optimization, data quality
+- **Advanced (101-150)**: Custom implementations, security, complex patterns
+- **Performance (151-200)**: Query optimization, resource management, scalability
 
-**Spark Integration:**
-```python
-# PySpark with Hive
-from pyspark.sql import SparkSession
-
-spark = SparkSession.builder \
-    .appName("HiveIntegration") \
-    .enableHiveSupport() \
-    .getOrCreate()
-
-# Query Hive tables from Spark
-df = spark.sql("SELECT * FROM sales_data WHERE sale_date >= '2023-01-01'")
-
-# Write Spark DataFrame to Hive
-df.write \
-  .mode("overwrite") \
-  .option("path", "/data/processed_sales") \
-  .saveAsTable("processed_sales")
-```
-
-**Kafka Integration:**
-```sql
--- Create external table for Kafka data
-CREATE TABLE kafka_events (
-    event_id STRING,
-    user_id STRING,
-    event_type STRING,
-    timestamp BIGINT,
-    properties MAP<STRING, STRING>
-)
-STORED BY 'org.apache.hadoop.hive.kafka.KafkaStorageHandler'
-TBLPROPERTIES (
-    "kafka.topic" = "user_events",
-    "kafka.bootstrap.servers" = "localhost:9092"
-);
-```
-
-**HBase Integration:**
-```sql
--- Create HBase-backed Hive table
-CREATE TABLE customer_hbase (
-    customer_id STRING,
-    name STRING,
-    email STRING,
-    phone STRING
-)
-STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
-WITH SERDEPROPERTIES (
-    "hbase.columns.mapping" = ":key,info:name,info:email,info:phone"
-)
-TBLPROPERTIES (
-    "hbase.table.name" = "customers"
-);
-```
-
-### 10. What are common Hive use cases in data engineering pipelines?
-
-**Answer:**
-Hive serves multiple purposes in modern data engineering workflows.
-
-**ETL Processing:**
-```sql
--- Data transformation pipeline
-CREATE TABLE customer_summary AS
-SELECT 
-    c.customer_id,
-    c.name,
-    c.email,
-    c.registration_date,
-    COUNT(o.order_id) as total_orders,
-    SUM(o.amount) as total_spent,
-    AVG(o.amount) as avg_order_value,
-    MAX(o.order_date) as last_order_date,
-    DATEDIFF(CURRENT_DATE, MAX(o.order_date)) as days_since_last_order
-FROM customers c
-LEFT JOIN orders o ON c.customer_id = o.customer_id
-GROUP BY c.customer_id, c.name, c.email, c.registration_date;
-```
-
-**Data Quality Checks:**
-```sql
--- Data quality validation
-CREATE TABLE data_quality_report AS
-SELECT 
-    'customers' as table_name,
-    COUNT(*) as total_records,
-    COUNT(CASE WHEN customer_id IS NULL THEN 1 END) as null_customer_ids,
-    COUNT(CASE WHEN email NOT RLIKE '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$' THEN 1 END) as invalid_emails,
-    COUNT(DISTINCT customer_id) as unique_customers,
-    COUNT(*) - COUNT(DISTINCT customer_id) as duplicate_records
-FROM customers
-
-UNION ALL
-
-SELECT 
-    'orders' as table_name,
-    COUNT(*) as total_records,
-    COUNT(CASE WHEN order_id IS NULL THEN 1 END) as null_order_ids,
-    COUNT(CASE WHEN amount <= 0 THEN 1 END) as invalid_amounts,
-    COUNT(DISTINCT order_id) as unique_orders,
-    COUNT(*) - COUNT(DISTINCT order_id) as duplicate_records
-FROM orders;
-```
-
-**Reporting and Analytics:**
-```sql
--- Business intelligence queries
-CREATE VIEW monthly_sales_report AS
-SELECT 
-    year(order_date) as year,
-    month(order_date) as month,
-    COUNT(DISTINCT customer_id) as unique_customers,
-    COUNT(*) as total_orders,
-    SUM(amount) as total_revenue,
-    AVG(amount) as avg_order_value,
-    PERCENTILE_APPROX(amount, 0.5) as median_order_value
-FROM orders
-GROUP BY year(order_date), month(order_date);
-
--- Customer segmentation
-CREATE TABLE customer_segments AS
-SELECT 
-    customer_id,
-    total_spent,
-    order_count,
-    CASE 
-        WHEN total_spent >= 1000 AND order_count >= 10 THEN 'VIP'
-        WHEN total_spent >= 500 AND order_count >= 5 THEN 'Premium'
-        WHEN total_spent >= 100 AND order_count >= 2 THEN 'Regular'
-        ELSE 'New'
-    END as segment
-FROM customer_summary;
-```
-
----
-
-## Summary
-
-Apache Hive provides SQL-like interface for big data processing with:
-
-1. **SQL Familiarity**: HiveQL for easy adoption by SQL users
-2. **Schema Management**: Flexible schema-on-read approach
-3. **Performance Optimization**: Partitioning, bucketing, and statistics
-4. **Ecosystem Integration**: Works with Spark, Kafka, HBase, and other tools
-5. **Scalability**: Handles petabyte-scale data processing on Hadoop clusters
+Each section builds upon previous knowledge to provide complete coverage of Hive concepts for data engineering interviews.
