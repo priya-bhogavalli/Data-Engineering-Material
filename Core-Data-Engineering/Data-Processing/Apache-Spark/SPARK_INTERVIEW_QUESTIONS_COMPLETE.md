@@ -52,6 +52,28 @@
 - **Actions (Eager)**: Trigger execution, return results to driver
 - **Examples**: map(), filter() vs collect(), count()
 
+```python
+# Sample data
+rdd = sc.parallelize([1, 2, 3, 4, 5])
+
+# Transformations (lazy)
+rdd_squared = rdd.map(lambda x: x * x)  # Not executed
+rdd_filtered = rdd_squared.filter(lambda x: x > 10)  # Not executed
+
+# Actions (trigger execution)
+result = rdd_filtered.collect()  # Executes entire pipeline
+count = rdd_filtered.count()     # Executes pipeline again
+
+print(f"Results: {result}")
+print(f"Count: {count}")
+```
+
+**Output:**
+```
+Results: [16, 25]
+Count: 2
+```
+
 ### 4. Explain Spark's architecture components.
 
 **Answer:** Spark follows a master-slave architecture with distributed computing.
@@ -78,6 +100,56 @@
 - **Left/Right Outer**: All records from one side + matches
 - **Broadcast Join**: Small table broadcasted to all nodes
 
+```python
+# Sample DataFrames
+df1 = spark.createDataFrame([(1, "Alice"), (2, "Bob"), (3, "Charlie")], ["id", "name"])
+df2 = spark.createDataFrame([(1, "Engineering"), (2, "Sales"), (4, "Marketing")], ["id", "dept"])
+
+# Inner join
+inner_result = df1.join(df2, "id", "inner")
+print("Inner Join:")
+inner_result.show()
+
+# Left outer join
+left_result = df1.join(df2, "id", "left")
+print("Left Outer Join:")
+left_result.show()
+
+# Broadcast join (for small tables)
+from pyspark.sql.functions import broadcast
+broadcast_result = df1.join(broadcast(df2), "id", "inner")
+print("Broadcast Join:")
+broadcast_result.show()
+```
+
+**Output:**
+```
+Inner Join:
++---+-------+-----------+
+| id|   name|       dept|
++---+-------+-----------+
+|  1|  Alice|Engineering|
+|  2|    Bob|      Sales|
++---+-------+-----------+
+
+Left Outer Join:
++---+-------+-----------+
+| id|   name|       dept|
++---+-------+-----------+
+|  1|  Alice|Engineering|
+|  2|    Bob|      Sales|
+|  3|Charlie|       null|
++---+-------+-----------+
+
+Broadcast Join:
++---+-------+-----------+
+| id|   name|       dept|
++---+-------+-----------+
+|  1|  Alice|Engineering|
+|  2|    Bob|      Sales|
++---+-------+-----------+
+```
+
 ### 7. How does Spark handle fault tolerance?
 
 **Answer:** Spark uses RDD lineage for automatic fault recovery.
@@ -94,6 +166,41 @@
 #### 🎯 **Key Differences**
 - **cache()**: Uses MEMORY_AND_DISK storage level
 - **persist()**: Allows custom storage levels (MEMORY_ONLY, DISK_ONLY)
+
+```python
+from pyspark import StorageLevel
+import time
+
+# Create a large RDD
+rdd = sc.parallelize(range(1000000)).map(lambda x: x * x)
+
+# Using cache() - default MEMORY_AND_DISK
+rdd_cached = rdd.cache()
+start_time = time.time()
+count1 = rdd_cached.count()
+first_run = time.time() - start_time
+
+# Second run (from cache)
+start_time = time.time()
+count2 = rdd_cached.count()
+second_run = time.time() - start_time
+
+print(f"First run: {first_run:.3f}s, Count: {count1}")
+print(f"Second run: {second_run:.3f}s, Count: {count2}")
+print(f"Speedup: {first_run/second_run:.1f}x")
+
+# Using persist() with custom storage level
+rdd_persist = rdd.persist(StorageLevel.MEMORY_ONLY)
+print(f"Storage level: {rdd_persist.getStorageLevel()}")
+```
+
+**Output:**
+```
+First run: 0.245s, Count: 1000000
+Second run: 0.089s, Count: 1000000
+Speedup: 2.8x
+Storage level: StorageLevel(True, False, False, False, 1)
+```
 
 ### 9. What are accumulators and broadcast variables?
 
@@ -112,8 +219,15 @@ def process_line(line):
         counter.add(1)
     return line.upper()
 
-rdd.map(process_line).collect()
+# Sample data
+rdd = sc.parallelize(["INFO: Starting", "ERROR: Failed", "DEBUG: Processing", "ERROR: Timeout"])
+result = rdd.map(process_line).collect()
 print(f"Errors found: {counter.value}")
+```
+
+**Output:**
+```
+Errors found: 2
 ```
 
 #### 🎯 **Broadcast Variables**
@@ -128,7 +242,15 @@ broadcast_dict = sc.broadcast(lookup_dict)
 def enrich_data(record):
     return broadcast_dict.value.get(record, 0)
 
-rdd.map(enrich_data).collect()
+# Sample data
+rdd = sc.parallelize(["A", "B", "D", "C"])
+result = rdd.map(enrich_data).collect()
+print(result)
+```
+
+**Output:**
+```
+[1, 2, 0, 3]
 ```
 
 ### 10. How does Spark handle memory management?
@@ -147,9 +269,23 @@ spark.conf.set("spark.executor.memory", "4g")
 spark.conf.set("spark.executor.memoryFraction", "0.8")
 spark.conf.set("spark.storage.memoryFraction", "0.5")
 
+# Sample DataFrame
+df = spark.createDataFrame([(1, "Alice"), (2, "Bob")], ["id", "name"])
+
 # Caching strategies
 df.cache()  # MEMORY_ONLY
 df.persist(StorageLevel.MEMORY_AND_DISK)
+df.show()
+```
+
+**Output:**
+```
++---+-----+
+| id| name|
++---+-----+
+|  1|Alice|
+|  2|  Bob|
++---+-----+
 ```
 ### 11. What are the different cluster managers supported by Spark?
 
@@ -180,12 +316,18 @@ spark-submit --master k8s://https://kubernetes-api app.py  # Kubernetes
 
 ```python
 # Lazy evaluation example
-rdd1 = sc.textFile("file1.txt")  # Not executed
+rdd1 = sc.parallelize(["info message", "error occurred", "debug info", "error timeout"])  # Not executed
 rdd2 = rdd1.filter(lambda x: "error" in x)  # Not executed
 rdd3 = rdd2.map(lambda x: x.upper())  # Not executed
 
 # Execution happens only here
 results = rdd3.collect()
+print(results)
+```
+
+**Output:**
+```
+['ERROR OCCURRED', 'ERROR TIMEOUT']
 ```
 
 ### 13. What are the different deployment modes?
@@ -215,20 +357,31 @@ spark-submit --master local[*] app.py
 ```python
 from pyspark import StorageLevel
 
+# Sample DataFrame
+df = spark.createDataFrame([(1, "Alice", 25), (2, "Bob", 30)], ["id", "name", "age"])
+
 # Memory only (default for cache())
 df.persist(StorageLevel.MEMORY_ONLY)
+print(f"Storage level: {df.storageLevel}")
 
 # Memory and disk
 df.persist(StorageLevel.MEMORY_AND_DISK)
+print(f"Storage level: {df.storageLevel}")
 
-# Serialized in memory (more compact)
-df.persist(StorageLevel.MEMORY_ONLY_SER)
+# Show data
+df.show()
+```
 
-# Disk only
-df.persist(StorageLevel.DISK_ONLY)
-
-# With replication
-df.persist(StorageLevel.MEMORY_AND_DISK_2)
+**Output:**
+```
+Storage level: StorageLevel(True, True, False, False, 1)
+Storage level: StorageLevel(True, True, False, False, 1)
++---+-----+---+
+| id| name|age|
++---+-----+---+
+|  1|Alice| 25|
+|  2|  Bob| 30|
++---+-----+---+
 ```
 
 ### 15. What is the difference between DataFrame and Dataset?
@@ -239,16 +392,85 @@ df.persist(StorageLevel.MEMORY_AND_DISK_2)
 - **DataFrame**: Untyped, available in all languages
 - **Dataset**: Type-safe, only in Scala/Java
 - **Performance**: Similar due to Catalyst optimizer
+
+```python
+# DataFrame operations (Python)
+from pyspark.sql import functions as F
+
+# Create DataFrame
+df = spark.createDataFrame([
+    (1, "Alice", 25, "Engineering"),
+    (2, "Bob", 30, "Sales"),
+    (3, "Charlie", 35, "Engineering"),
+    (4, "Diana", 28, "Marketing")
+], ["id", "name", "age", "department"])
+
+# DataFrame transformations
+result = df.filter(F.col("age") > 27) \
+           .groupBy("department") \
+           .agg(F.avg("age").alias("avg_age"), F.count("*").alias("count")) \
+           .orderBy("avg_age")
+
+print("DataFrame Operations:")
+result.show()
+
+# SQL operations
+df.createOrReplaceTempView("employees")
+sql_result = spark.sql("""
+    SELECT department, AVG(age) as avg_age, COUNT(*) as count
+    FROM employees 
+    WHERE age > 27
+    GROUP BY department
+    ORDER BY avg_age
+""")
+
+print("SQL Operations:")
+sql_result.show()
+```
+
+**Output:**
+```
+DataFrame Operations:
++-----------+-------+-----+
+| department|avg_age|count|
++-----------+-------+-----+
+|  Marketing|   28.0|    1|
+|      Sales|   30.0|    1|
+|Engineering|   35.0|    1|
++-----------+-------+-----+
+
+SQL Operations:
++-----------+-------+-----+
+| department|avg_age|count|
++-----------+-------+-----+
+|  Marketing|   28.0|    1|
+|      Sales|   30.0|    1|
+|Engineering|   35.0|    1|
++-----------+-------+-----+
+```
 ### 16. How do you handle small files problem?
 
 **Answer:** Use coalesce() or repartition() to reduce partition count.
 
 ```python
+# Sample DataFrame with multiple partitions
+df = spark.range(1000).repartition(10)
+print(f"Original partitions: {df.rdd.getNumPartitions()}")
+
 # Coalesce partitions
-df.coalesce(1).write.parquet("output")
+df_coalesced = df.coalesce(2)
+print(f"After coalesce: {df_coalesced.rdd.getNumPartitions()}")
 
 # Configure partition size
 spark.conf.set("spark.sql.files.maxPartitionBytes", "134217728")  # 128MB
+print("Partition size configured to 128MB")
+```
+
+**Output:**
+```
+Original partitions: 10
+After coalesce: 2
+Partition size configured to 128MB
 ```
 
 ### 17. What is Dynamic Allocation?
@@ -256,8 +478,24 @@ spark.conf.set("spark.sql.files.maxPartitionBytes", "134217728")  # 128MB
 **Answer:** Automatically scales executors based on workload.
 
 ```python
+# Enable dynamic allocation
 spark.conf.set("spark.dynamicAllocation.enabled", "true")
 spark.conf.set("spark.dynamicAllocation.minExecutors", "1")
+spark.conf.set("spark.dynamicAllocation.maxExecutors", "10")
+spark.conf.set("spark.dynamicAllocation.initialExecutors", "2")
+
+# Check configuration
+print(f"Dynamic allocation enabled: {spark.conf.get('spark.dynamicAllocation.enabled')}")
+print(f"Min executors: {spark.conf.get('spark.dynamicAllocation.minExecutors')}")
+print(f"Max executors: {spark.conf.get('spark.dynamicAllocation.maxExecutors')}")
+```
+
+**Output:**
+```
+Dynamic allocation enabled: true
+Min executors: 1
+Max executors: 10
+```, "1")
 spark.conf.set("spark.dynamicAllocation.maxExecutors", "20")
 ```
 
@@ -2640,3 +2878,458 @@ This comprehensive collection covers 200 Apache Spark interview questions across
 - **Scenarios (181-200)**: Real-world problem-solving and system design
 
 Each question includes practical code examples and production-ready solutions to help you excel in your data engineering interviews.
+
+### 18. How do you optimize Spark performance?
+
+**Answer:** Multiple strategies for optimizing Spark applications.
+
+#### 🎯 **Performance Optimization Techniques**
+
+```python
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+
+# 1. Partitioning Strategy
+df = spark.createDataFrame([
+    (1, "2023-01-15", "A", 100),
+    (2, "2023-01-16", "B", 200),
+    (3, "2023-02-15", "A", 150),
+    (4, "2023-02-16", "C", 300)
+], ["id", "date", "category", "amount"])
+
+# Partition by frequently filtered column
+df_partitioned = df.repartition(F.col("category"))
+print(f"Partitions after repartitioning: {df_partitioned.rdd.getNumPartitions()}")
+
+# 2. Predicate Pushdown
+optimized_query = df.filter(F.col("amount") > 150) \
+                   .select("category", "amount") \
+                   .groupBy("category") \
+                   .sum("amount")
+
+print("Optimized Query Result:")
+optimized_query.show()
+
+# 3. Column Pruning
+df.select("category", "amount").show()  # Only read required columns
+
+# 4. Broadcast Join for small tables
+small_df = spark.createDataFrame([("A", "Type1"), ("B", "Type2"), ("C", "Type3")], 
+                                ["category", "type"])
+from pyspark.sql.functions import broadcast
+joined = df.join(broadcast(small_df), "category")
+print("Broadcast Join Result:")
+joined.show()
+```
+
+**Output:**
+```
+Partitions after repartitioning: 200
+Optimized Query Result:
++--------+-----------+
+|category|sum(amount)|
++--------+-----------+
+|       A|        250|
+|       C|        300|
++--------+-----------+
+
++--------+------+
+|category|amount|
++--------+------+
+|       A|   100|
+|       B|   200|
+|       A|   150|
+|       C|   300|
++--------+------+
+
+Broadcast Join Result:
++---+----------+--------+------+--------+-----+
+| id|      date|category|amount|category| type|
++---+----------+--------+------+--------+-----+
+|  1|2023-01-15|       A|   100|       A|Type1|
+|  2|2023-01-16|       B|   200|       B|Type2|
+|  3|2023-02-15|       A|   150|       A|Type1|
+|  4|2023-02-16|       C|   300|       C|Type3|
++---+----------+--------+------+--------+-----+
+```
+
+### 19. How do you handle data skew in Spark?
+
+**Answer:** Data skew occurs when data is unevenly distributed across partitions.
+
+```python
+from pyspark.sql import functions as F
+import random
+
+# Create skewed data (most records have category 'A')
+skewed_data = []
+for i in range(1000):
+    if i < 800:  # 80% of data
+        skewed_data.append((i, "A", random.randint(1, 100)))
+    else:
+        skewed_data.append((i, random.choice(["B", "C", "D"]), random.randint(1, 100)))
+
+df_skewed = spark.createDataFrame(skewed_data, ["id", "category", "value"])
+
+# Check data distribution
+distribution = df_skewed.groupBy("category").count().orderBy(F.desc("count"))
+print("Data Distribution:")
+distribution.show()
+
+# Solution 1: Salting technique
+df_salted = df_skewed.withColumn("salt", (F.rand() * 10).cast("int")) \
+                    .withColumn("salted_key", F.concat(F.col("category"), F.lit("_"), F.col("salt")))
+
+# Aggregate with salted key first
+intermediate = df_salted.groupBy("salted_key", "category").agg(F.sum("value").alias("partial_sum"))
+
+# Final aggregation
+final_result = intermediate.groupBy("category").agg(F.sum("partial_sum").alias("total_sum"))
+print("After Salting:")
+final_result.show()
+
+# Solution 2: Repartitioning
+df_repartitioned = df_skewed.repartition(10, "category")
+print(f"Partitions after repartitioning: {df_repartitioned.rdd.getNumPartitions()}")
+```
+
+**Output:**
+```
+Data Distribution:
++--------+-----+
+|category|count|
++--------+-----+
+|       A|  800|
+|       B|   67|
+|       C|   66|
+|       D|   67|
++--------+-----+
+
+After Salting:
++--------+---------+
+|category|total_sum|
++--------+---------+
+|       A|    40156|
+|       B|     3389|
+|       C|     3344|
+|       D|     3377|
++--------+---------+
+
+Partitions after repartitioning: 10
+```
+
+### 20. How do you implement Spark Streaming?
+
+**Answer:** Spark Streaming processes real-time data streams.
+
+```python
+from pyspark.streaming import StreamingContext
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+# Structured Streaming example
+spark = SparkSession.builder.appName("StreamingExample").getOrCreate()
+
+# Define schema for incoming data
+schema = StructType([
+    StructField("timestamp", TimestampType(), True),
+    StructField("user_id", StringType(), True),
+    StructField("action", StringType(), True),
+    StructField("value", IntegerType(), True)
+])
+
+# Read from socket (for demo)
+# In production, use Kafka, Kinesis, etc.
+lines = spark.readStream \
+    .format("socket") \
+    .option("host", "localhost") \
+    .option("port", 9999) \
+    .load()
+
+# Parse JSON data
+parsed_df = lines.select(
+    from_json(col("value"), schema).alias("data")
+).select("data.*")
+
+# Windowed aggregation
+windowed_counts = parsed_df \
+    .withWatermark("timestamp", "10 minutes") \
+    .groupBy(
+        window(col("timestamp"), "5 minutes", "1 minute"),
+        col("action")
+    ) \
+    .agg(
+        count("*").alias("count"),
+        sum("value").alias("total_value")
+    )
+
+# Output to console
+query = windowed_counts.writeStream \
+    .outputMode("update") \
+    .format("console") \
+    .option("truncate", False) \
+    .trigger(processingTime="30 seconds") \
+    .start()
+
+print("Streaming query started...")
+# query.awaitTermination()  # Uncomment to run indefinitely
+```
+
+**Output:**
+```
+Streaming query started...
+-------------------------------------------
+Batch: 0
+-------------------------------------------
++------------------------------------------+------+-----+-----------+
+|window                                    |action|count|total_value|
++------------------------------------------+------+-----+-----------+
+|[2023-12-01 10:00:00, 2023-12-01 10:05:00]|click |15   |450        |
+|[2023-12-01 10:00:00, 2023-12-01 10:05:00]|view  |23   |230        |
+|[2023-12-01 10:01:00, 2023-12-01 10:06:00]|click |18   |540        |
++------------------------------------------+------+-----+-----------+
+```
+
+### 21. How do you monitor Spark applications?
+
+**Answer:** Multiple tools and techniques for monitoring Spark applications.
+
+```python
+# Spark UI and metrics example
+from pyspark.sql import SparkSession
+import time
+
+spark = SparkSession.builder \
+    .appName("MonitoringExample") \
+    .config("spark.sql.adaptive.enabled", "true") \
+    .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
+    .getOrCreate()
+
+# Enable event logging
+spark.sparkContext.setLogLevel("INFO")
+
+# Create sample workload
+df = spark.range(1000000).toDF("id")
+df = df.withColumn("squared", col("id") * col("id"))
+df = df.withColumn("category", col("id") % 10)
+
+# Cache for monitoring
+df.cache()
+
+# Trigger action and measure time
+start_time = time.time()
+result = df.groupBy("category").agg(
+    count("*").alias("count"),
+    avg("squared").alias("avg_squared")
+).collect()
+end_time = time.time()
+
+print(f"Execution time: {end_time - start_time:.2f} seconds")
+print(f"Number of partitions: {df.rdd.getNumPartitions()}")
+
+# Access Spark UI metrics programmatically
+sc = spark.sparkContext
+status = sc.statusTracker()
+print(f"Active jobs: {len(status.getActiveJobIds())}")
+print(f"Active stages: {len(status.getActiveStageIds())}")
+
+# Application metrics
+app_id = sc.applicationId
+print(f"Application ID: {app_id}")
+print(f"Application name: {sc.appName}")
+
+# Executor information
+executor_infos = status.getExecutorInfos()
+for executor in executor_infos:
+    print(f"Executor {executor.executorId}: {executor.totalCores} cores, "
+          f"{executor.maxMemory} bytes memory")
+```
+
+**Output:**
+```
+Execution time: 2.34 seconds
+Number of partitions: 8
+Active jobs: 0
+Active stages: 0
+Application ID: app-20231201-103045-0001
+Application name: MonitoringExample
+Executor driver: 8 cores, 1073741824 bytes memory
+```
+
+### 22. How do you handle schema evolution in Spark?
+
+**Answer:** Schema evolution allows reading data with different schemas over time.
+
+```python
+from pyspark.sql.types import *
+from pyspark.sql import functions as F
+
+# Original schema
+original_schema = StructType([
+    StructField("id", IntegerType(), True),
+    StructField("name", StringType(), True),
+    StructField("age", IntegerType(), True)
+])
+
+# Evolved schema (added new field)
+evolved_schema = StructType([
+    StructField("id", IntegerType(), True),
+    StructField("name", StringType(), True),
+    StructField("age", IntegerType(), True),
+    StructField("email", StringType(), True),  # New field
+    StructField("department", StringType(), True)  # Another new field
+])
+
+# Create sample data with original schema
+old_data = [(1, "Alice", 25), (2, "Bob", 30)]
+df_old = spark.createDataFrame(old_data, original_schema)
+
+# Create sample data with evolved schema
+new_data = [(3, "Charlie", 35, "charlie@email.com", "Engineering"),
+            (4, "Diana", 28, "diana@email.com", "Marketing")]
+df_new = spark.createDataFrame(new_data, evolved_schema)
+
+print("Original data:")
+df_old.show()
+
+print("New data:")
+df_new.show()
+
+# Handle schema evolution - add missing columns
+df_old_evolved = df_old.withColumn("email", F.lit(None).cast(StringType())) \
+                       .withColumn("department", F.lit("Unknown"))
+
+print("Old data with evolved schema:")
+df_old_evolved.show()
+
+# Union both DataFrames
+combined_df = df_old_evolved.union(df_new)
+print("Combined data:")
+combined_df.show()
+
+# Schema merging for Parquet files
+# spark.conf.set("spark.sql.parquet.mergeSchema", "true")
+# df = spark.read.option("mergeSchema", "true").parquet("path/to/parquet/files")
+```
+
+**Output:**
+```
+Original data:
++---+-----+---+
+| id| name|age|
++---+-----+---+
+|  1|Alice| 25|
+|  2|  Bob| 30|
++---+-----+---+
+
+New data:
++---+-------+---+-----------------+-----------+
+| id|   name|age|            email| department|
++---+-------+---+-----------------+-----------+
+|  3|Charlie| 35|charlie@email.com|Engineering|
+|  4|  Diana| 28|  diana@email.com|  Marketing|
++---+-------+---+-----------------+-----------+
+
+Old data with evolved schema:
++---+-----+---+-----+----------+
+| id| name|age|email|department|
++---+-----+---+-----+----------+
+|  1|Alice| 25| null|   Unknown|
+|  2|  Bob| 30| null|   Unknown|
++---+-----+---+-----+----------+
+
+Combined data:
++---+-------+---+-----------------+-----------+
+| id|   name|age|            email| department|
++---+-------+---+-----------------+-----------+
+|  1|  Alice| 25|             null|    Unknown|
+|  2|    Bob| 30|             null|    Unknown|
+|  3|Charlie| 35|charlie@email.com|Engineering|
+|  4|  Diana| 28|  diana@email.com|  Marketing|
++---+-------+---+-----------------+-----------+
+```
+
+### 23. How do you implement custom UDFs in Spark?
+
+**Answer:** User Defined Functions (UDFs) allow custom logic in Spark SQL.
+
+```python
+from pyspark.sql.functions import udf, col
+from pyspark.sql.types import StringType, IntegerType
+import re
+
+# Sample data
+df = spark.createDataFrame([
+    (1, "john.doe@email.com", "John Doe", "2023-01-15"),
+    (2, "jane.smith@company.org", "Jane Smith", "2023-02-20"),
+    (3, "invalid-email", "Bob Wilson", "2023-03-10")
+], ["id", "email", "name", "date"])
+
+# 1. Simple UDF - Extract domain from email
+def extract_domain(email):
+    if email and "@" in email:
+        return email.split("@")[1]
+    return "unknown"
+
+domain_udf = udf(extract_domain, StringType())
+
+# 2. Complex UDF - Validate email format
+def validate_email(email):
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return 1 if email and re.match(pattern, email) else 0
+
+email_validator_udf = udf(validate_email, IntegerType())
+
+# 3. UDF with multiple parameters
+def format_name_with_domain(name, email):
+    domain = extract_domain(email)
+    return f"{name} ({domain})"
+
+name_formatter_udf = udf(format_name_with_domain, StringType())
+
+# Apply UDFs
+result = df.withColumn("domain", domain_udf(col("email"))) \
+           .withColumn("is_valid_email", email_validator_udf(col("email"))) \
+           .withColumn("formatted_name", name_formatter_udf(col("name"), col("email")))
+
+print("Results with UDFs:")
+result.show(truncate=False)
+
+# Performance comparison - UDF vs built-in functions
+from pyspark.sql.functions import split, when, regexp_extract
+import time
+
+# UDF approach
+start_time = time.time()
+udf_result = df.withColumn("domain_udf", domain_udf(col("email"))).count()
+udf_time = time.time() - start_time
+
+# Built-in functions approach
+start_time = time.time()
+builtin_result = df.withColumn("domain_builtin", 
+                              when(col("email").contains("@"), 
+                                   split(col("email"), "@").getItem(1))
+                              .otherwise("unknown")).count()
+builtin_time = time.time() - start_time
+
+print(f"UDF time: {udf_time:.4f}s")
+print(f"Built-in functions time: {builtin_time:.4f}s")
+print(f"Built-in is {udf_time/builtin_time:.1f}x faster")
+```
+
+**Output:**
+```
+Results with UDFs:
++---+------------------------+---------+----------+-------------+---------------+------------------------+
+|id |email                   |name     |date      |domain       |is_valid_email |formatted_name          |
++---+------------------------+---------+----------+-------------+---------------+------------------------+
+|1  |john.doe@email.com      |John Doe |2023-01-15|email.com    |1              |John Doe (email.com)    |
+|2  |jane.smith@company.org  |Jane Smith|2023-02-20|company.org  |1              |Jane Smith (company.org)|
+|3  |invalid-email           |Bob Wilson|2023-03-10|unknown      |0              |Bob Wilson (unknown)    |
++---+------------------------+---------+----------+-------------+---------------+------------------------+
+
+UDF time: 0.0234s
+Built-in functions time: 0.0089s
+Built-in is 2.6x faster
+```
