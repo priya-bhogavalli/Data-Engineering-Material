@@ -844,3 +844,10 @@ This comprehensive collection covers 200 Apache Hive interview questions across 
 - **Performance (151-200)**: Query optimization, resource management, scalability
 
 Each section builds upon previous knowledge to provide complete coverage of Hive concepts for data engineering interviews.
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

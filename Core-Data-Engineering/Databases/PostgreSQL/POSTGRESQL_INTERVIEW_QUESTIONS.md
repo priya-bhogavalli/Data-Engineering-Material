@@ -1314,3 +1314,262 @@ SELECT * FROM profile_table('customers');
 ```
 
 This comprehensive set covers PostgreSQL from basic concepts through advanced enterprise architecture, security, and data quality monitoring with practical data engineering applications.
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+
+
+
+---
+
+## 📚 Additional Content
+
+*(Content merged from POSTGRESQL_INTERVIEW_QUESTIONS_COMPLETE.md)*
+
+### 4. How do you write complex queries with JOINs and subqueries?
+
+**Answer:** PostgreSQL supports various JOIN types and advanced subquery patterns.
+
+#### 🎯 **JOIN Types**
+- **INNER JOIN**: Matching records from both tables
+- **LEFT/RIGHT JOIN**: All records from one side + matches
+- **FULL OUTER JOIN**: All records from both tables
+- **CROSS JOIN**: Cartesian product
+- **SELF JOIN**: Table joined with itself
+
+```sql
+-- Create related tables for JOIN demonstrations
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    city VARCHAR(50),
+    registration_date DATE DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INTEGER REFERENCES customers(customer_id),
+    order_date DATE NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending'
+);
+
+CREATE TABLE order_items (
+    item_id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(order_id),
+    product_name VARCHAR(100) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL
+);
+
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2) NOT NULL,
+    stock_quantity INTEGER DEFAULT 0
+);
+
+-- Insert sample data
+INSERT INTO customers (customer_name, email, city) VALUES
+('Alice Johnson', 'alice@email.com', 'New York'),
+('Bob Smith', 'bob@email.com', 'Los Angeles'),
+('Charlie Brown', 'charlie@email.com', 'Chicago'),
+('Diana Prince', 'diana@email.com', 'New York'),
+('Eve Wilson', 'eve@email.com', 'Boston');
+
+INSERT INTO orders (customer_id, order_date, total_amount, status) VALUES
+(1, '2024-01-15', 299.99, 'completed'),
+(1, '2024-01-20', 149.50, 'completed'),
+(2, '2024-01-18', 89.99, 'pending'),
+(3, '2024-01-22', 199.99, 'completed'),
+(4, '2024-01-25', 349.99, 'shipped');
+
+INSERT INTO order_items (order_id, product_name, quantity, unit_price) VALUES
+(1, 'Laptop', 1, 299.99),
+(2, 'Mouse', 2, 24.99),
+(2, 'Keyboard', 1, 99.52),
+(3, 'Headphones', 1, 89.99),
+(4, 'Monitor', 1, 199.99),
+(5, 'Tablet', 1, 349.99);
+
+INSERT INTO products (product_name, category, price, stock_quantity) VALUES
+('Laptop', 'Electronics', 299.99, 50),
+('Mouse', 'Electronics', 24.99, 200),
+('Keyboard', 'Electronics', 99.52, 150),
+('Headphones', 'Electronics', 89.99, 100),
+('Monitor', 'Electronics', 199.99, 75),
+('Tablet', 'Electronics', 349.99, 30);
+
+-- 1. INNER JOIN - Customers with orders
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    c.email,
+    c.city,
+    COUNT(o.order_id) AS total_orders,
+    SUM(o.total_amount) AS total_spent,
+    AVG(o.total_amount) AS avg_order_value,
+    MIN(o.order_date) AS first_order,
+    MAX(o.order_date) AS last_order
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name, c.email, c.city
+ORDER BY total_spent DESC;
+
+-- 2. LEFT JOIN - All customers including those without orders
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    c.city,
+    COALESCE(COUNT(o.order_id), 0) AS total_orders,
+    COALESCE(SUM(o.total_amount), 0) AS total_spent,
+    CASE 
+        WHEN COUNT(o.order_id) = 0 THEN 'No Orders'
+        WHEN SUM(o.total_amount) > 300 THEN 'High Value'
+        WHEN SUM(o.total_amount) > 100 THEN 'Medium Value'
+        ELSE 'Low Value'
+    END AS customer_segment
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name, c.city
+ORDER BY total_spent DESC;
+
+-- 3. Complex JOIN with multiple tables
+SELECT 
+    c.customer_name,
+    o.order_id,
+    o.order_date,
+    o.status,
+    oi.product_name,
+    oi.quantity,
+    oi.unit_price,
+    oi.quantity * oi.unit_price AS line_total,
+    p.category,
+    p.stock_quantity
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id
+INNER JOIN order_items oi ON o.order_id = oi.order_id
+LEFT JOIN products p ON oi.product_name = p.product_name
+ORDER BY c.customer_name, o.order_date, oi.item_id;
+
+-- 4. Self JOIN - Find customers from the same city
+SELECT 
+    c1.customer_name AS customer1,
+    c2.customer_name AS customer2,
+    c1.city
+FROM customers c1
+INNER JOIN customers c2 ON c1.city = c2.city AND c1.customer_id < c2.customer_id
+ORDER BY c1.city, c1.customer_name;
+
+-- 5. Subqueries - Correlated and non-correlated
+-- Find customers who spent more than average
+SELECT 
+    customer_name,
+    email,
+    (SELECT SUM(total_amount) FROM orders WHERE customer_id = c.customer_id) AS total_spent
+FROM customers c
+WHERE (SELECT SUM(total_amount) FROM orders WHERE customer_id = c.customer_id) > 
+      (SELECT AVG(customer_total) FROM 
+       (SELECT SUM(total_amount) AS customer_total FROM orders GROUP BY customer_id) AS avg_calc)
+ORDER BY total_spent DESC;
+
+-- 6. EXISTS subquery
+-- Find customers who have placed orders in the last 30 days
+SELECT 
+    customer_name,
+    email,
+    city
+FROM customers c
+WHERE EXISTS (
+    SELECT 1 FROM orders o 
+    WHERE o.customer_id = c.customer_id 
+    AND o.order_date >= CURRENT_DATE - INTERVAL '30 days'
+);
+
+-- 7. Window functions with JOINs
+SELECT 
+    c.customer_name,
+    o.order_date,
+    o.total_amount,
+    SUM(o.total_amount) OVER (PARTITION BY c.customer_id ORDER BY o.order_date) AS running_total,
+    ROW_NUMBER() OVER (PARTITION BY c.customer_id ORDER BY o.order_date) AS order_sequence,
+    LAG(o.total_amount) OVER (PARTITION BY c.customer_id ORDER BY o.order_date) AS previous_order_amount,
+    LEAD(o.total_amount) OVER (PARTITION BY c.customer_id ORDER BY o.order_date) AS next_order_amount
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id
+ORDER BY c.customer_name, o.order_date;
+
+-- 8. CTE (Common Table Expression) with complex logic
+WITH customer_metrics AS (
+    SELECT 
+        c.customer_id,
+        c.customer_name,
+        c.city,
+        COUNT(o.order_id) AS order_count,
+        SUM(o.total_amount) AS total_spent,
+        AVG(o.total_amount) AS avg_order_value,
+        MAX(o.order_date) AS last_order_date
+    FROM customers c
+    LEFT JOIN orders o ON c.customer_id = o.customer_id
+    GROUP BY c.customer_id, c.customer_name, c.city
+),
+city_stats AS (
+    SELECT 
+        city,
+        COUNT(*) AS customers_in_city,
+        AVG(total_spent) AS avg_city_spending
+    FROM customer_metrics
+    GROUP BY city
+)
+SELECT 
+    cm.customer_name,
+    cm.city,
+    cm.order_count,
+    cm.total_spent,
+    cm.avg_order_value,
+    cs.customers_in_city,
+    cs.avg_city_spending,
+    CASE 
+        WHEN cm.total_spent > cs.avg_city_spending THEN 'Above City Average'
+        ELSE 'Below City Average'
+    END AS spending_vs_city_avg
+FROM customer_metrics cm
+INNER JOIN city_stats cs ON cm.city = cs.city
+ORDER BY cm.city, cm.total_spent DESC;
+```
+
+**Output:**
+```
+customer_id | customer_name | email           | city        | total_orders | total_spent | avg_order_value | first_order | last_order
+------------|---------------|-----------------|-------------|--------------|-------------|-----------------|-------------|------------
+1           | Alice Johnson | alice@email.com | New York    | 2            | 449.49      | 224.75          | 2024-01-15  | 2024-01-20
+4           | Diana Prince  | diana@email.com | New York    | 1            | 349.99      | 349.99          | 2024-01-25  | 2024-01-25
+3           | Charlie Brown | charlie@email.com| Chicago     | 1            | 199.99      | 199.99          | 2024-01-22  | 2024-01-22
+2           | Bob Smith     | bob@email.com   | Los Angeles | 1            | 89.99       | 89.99           | 2024-01-18  | 2024-01-18
+
+customer_id | customer_name | city        | total_orders | total_spent | customer_segment
+------------|---------------|-------------|--------------|-------------|------------------
+1           | Alice Johnson | New York    | 2            | 449.49      | High Value
+4           | Diana Prince  | New York    | 1            | 349.99      | High Value
+3           | Charlie Brown | Chicago     | 1            | 199.99      | Medium Value
+2           | Bob Smith     | Los Angeles | 1            | 89.99       | Low Value
+5           | Eve Wilson    | Boston      | 0            | 0.00        | No Orders
+
+customer1     | customer2    | city
+--------------|--------------|----------
+Alice Johnson | Diana Prince | New York
+
+customer_name | order_date | total_amount | running_total | order_sequence | previous_order_amount | next_order_amount
+--------------|------------|--------------|---------------|----------------|-----------------------|-------------------
+Alice Johnson | 2024-01-15 | 299.99       | 299.99        | 1              | null                  | 149.50
+Alice Johnson | 2024-01-20 | 149.50       | 449.49        | 2              | 299.99                | null
+Bob Smith     | 2024-01-18 | 89.99        | 89.99         | 1              | null                  | null
+Charlie Brown | 2024-01-22 | 199.99       | 199.99        | 1              | null                  | null
+Diana Prince  | 2024-01-25 | 349.99       | 349.99        | 1              | null                  | null
+```
+

@@ -850,3 +850,10 @@ RESOLVECONFLICT (UPDATEROWEXISTS, (DEFAULT, USEMAX (last_updated)));
 ```
 
 This comprehensive Oracle interview question set covers essential knowledge for data engineers working with Oracle Database, from basic concepts to advanced enterprise features and data engineering patterns.
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

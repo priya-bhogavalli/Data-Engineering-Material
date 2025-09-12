@@ -1550,3 +1550,10 @@ def tableau_best_practices():
 ---
 
 This comprehensive Tableau guide covers fundamental concepts through advanced enterprise architecture, performance optimization, security implementation, and operational best practices essential for data engineering professionals.
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

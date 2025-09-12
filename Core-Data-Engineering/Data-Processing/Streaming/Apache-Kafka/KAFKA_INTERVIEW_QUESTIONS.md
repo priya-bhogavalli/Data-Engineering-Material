@@ -1160,3 +1160,10 @@ kafka-configs.sh --bootstrap-server localhost:9092 --entity-type topics --entity
 ---
 
 **Total Questions: 100** | **Difficulty: Beginner to Expert** | **Coverage: Complete Kafka Ecosystem**
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

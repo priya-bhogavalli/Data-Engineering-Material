@@ -1,655 +1,742 @@
-# Snowflake Key Concepts for Data Engineers
+# Snowflake Key Concepts for Data Engineering
 
 ## 📋 Table of Contents
 
-1. [Platform Overview](#platform-overview)
-2. [Architecture Deep Dive](#architecture-deep-dive)
-3. [Virtual Warehouses](#virtual-warehouses)
-4. [Data Types and Storage](#data-types-and-storage)
-5. [Data Loading and Integration](#data-loading-and-integration)
-6. [Performance Optimization](#performance-optimization)
-7. [Security and Governance](#security-and-governance)
-8. [Advanced Features](#advanced-features)
+1. [Overview](#-overview)
+2. [Architecture](#-architecture)
+3. [Core Features](#-core-features)
+4. [Data Loading & ETL](#-data-loading--etl)
+5. [Performance Optimization](#-performance-optimization)
+6. [Security & Governance](#-security--governance)
+7. [Time Travel & Data Recovery](#-time-travel--data-recovery)
+8. [Streams & Tasks](#-streams--tasks)
+9. [Data Sharing & Marketplace](#-data-sharing--marketplace)
+10. [Cost Optimization](#-cost-optimization)
+11. [Integration Capabilities](#-integration-capabilities)
+12. [Version Highlights](#-version-highlights)
+13. [When to Use Snowflake](#-when-to-use-snowflake)
+14. [Interview Focus Areas](#-interview-focus-areas)
+15. [Quick References](#-quick-references)
 
 ---
 
-## Platform Overview
+## 🎯 Overview
 
-### What is Snowflake?
+Snowflake is a cloud-native data warehouse built for the cloud, offering a unique multi-cluster, shared data architecture that separates compute from storage. It provides ANSI SQL support, automatic scaling, and zero-maintenance operations.
 
-**Snowflake** is a cloud-native data warehouse built from the ground up for the cloud, offering elastic scalability, zero maintenance, and secure data sharing.
+**Key Benefits:**
+- **Separation of Storage and Compute**: Scale independently based on workload needs
+- **Multi-Cluster Architecture**: Concurrent workloads without resource contention
+- **Zero-Copy Cloning**: Instant data copies without storage duplication
+- **Time Travel**: Query historical data and recover from changes
+- **Automatic Scaling**: Elastic compute resources that scale up/down automatically
+- **Data Sharing**: Secure, real-time data sharing across organizations
 
-#### 🎯 **Core Advantages**
-- **Separation of Compute and Storage**: Scale independently
-- **Multi-cluster Architecture**: Handle concurrent workloads
-- **Zero Maintenance**: Fully managed service
-- **Instant Elasticity**: Scale up/down in seconds
-- **Secure Data Sharing**: Share data without copying
+## 🏗️ Architecture
+
+### Multi-Cluster, Shared Data Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            SNOWFLAKE ARCHITECTURE                               │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                           SERVICES LAYER                                    │ │
+│  │                                                                             │ │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │ │
+│  │  │  Authentication │  │    Metadata     │  │ Query Optimizer │             │ │
+│  │  │   & Security    │  │   Management    │  │   & Planner     │             │ │
+│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘             │ │
+│  │                                                                             │ │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │ │
+│  │  │ Infrastructure  │  │ Transaction Mgmt│  │ Access Control  │             │ │
+│  │  │   Management    │  │ & Concurrency   │  │  & Governance   │             │ │
+│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘             │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                       │                                         │
+│                                       ▼                                         │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                          COMPUTE LAYER                                      │ │
+│  │                      (Virtual Warehouses)                                   │ │
+│  │                                                                             │ │
+│  │ ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │ │
+│  │ │   WAREHOUSE 1   │  │   WAREHOUSE 2   │  │   WAREHOUSE N   │             │ │
+│  │ │                 │  │                 │  │                 │             │ │
+│  │ │ ┌─────────────┐ │  │ ┌─────────────┐ │  │ ┌─────────────┐ │             │ │
+│  │ │ │  Cluster 1  │ │  │ │  Cluster 1  │ │  │ │  Cluster 1  │ │             │ │
+│  │ │ │  Cluster 2  │ │  │ │  Cluster 2  │ │  │ │  Cluster 2  │ │             │ │
+│  │ │ │  Cluster N  │ │  │ │  Cluster N  │ │  │ │  Cluster N  │ │             │ │
+│  │ │ └─────────────┘ │  │ └─────────────┘ │  │ └─────────────┘ │             │ │
+│  │ │                 │  │                 │  │                 │             │ │
+│  │ │ Auto-Suspend    │  │ Auto-Resume     │  │ Multi-Cluster   │             │ │
+│  │ │ Auto-Resume     │  │ Auto-Scale      │  │ Auto-Scale      │             │ │
+│  │ └─────────────────┘  └─────────────────┘  └─────────────────┘             │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                       │                                         │
+│                                       ▼                                         │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                          STORAGE LAYER                                      │ │
+│  │                      (Cloud Storage)                                        │ │
+│  │                                                                             │ │
+│  │ ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │ │
+│  │ │ Micro-Partitions│  │   Compression   │  │   Encryption    │             │ │
+│  │ │   (50-500MB)    │  │   & Columnar    │  │   (AES-256)     │             │ │
+│  │ └─────────────────┘  └─────────────────┘  └─────────────────┘             │ │
+│  │                                                                             │ │
+│  │ ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │ │
+│  │ │   Metadata      │  │ Time Travel     │  │ Zero-Copy Clone │             │ │
+│  │ │   Statistics    │  │   History       │  │   References    │             │ │
+│  │ │ └─────────────────┘  └─────────────────┘  └─────────────────┘             │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                                DATA FLOW
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                 │
+│  1. Client connects through Services Layer (authentication, authorization)     │
+│  2. Query submitted to Services Layer for parsing and optimization             │
+│  3. Services Layer creates execution plan and allocates Virtual Warehouse      │
+│  4. Virtual Warehouse executes query against Storage Layer                     │
+│  5. Storage Layer returns data through micro-partitions                        │
+│  6. Results processed and returned to client                                   │
+│  7. Virtual Warehouse can auto-suspend when idle                               │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Architecture Components
+
+**1. Services Layer (Cloud Services)**
+- **Authentication & Authorization**: User management and access control
+- **Metadata Management**: Schema, statistics, and query history
+- **Query Optimization**: Cost-based optimizer and execution planning
+- **Infrastructure Management**: Resource allocation and monitoring
+- **Transaction Management**: ACID compliance and concurrency control
+
+**2. Compute Layer (Virtual Warehouses)**
+- **Independent Scaling**: Each warehouse scales independently
+- **Multi-Cluster**: Automatic scaling with multiple clusters
+- **Auto-Suspend/Resume**: Automatic resource management
+- **Workload Isolation**: Separate warehouses for different workloads
+
+**3. Storage Layer**
+- **Micro-Partitions**: Immutable, compressed data files (50-500MB)
+- **Columnar Storage**: Optimized for analytical queries
+- **Automatic Compression**: Built-in compression algorithms
+- **Encryption**: AES-256 encryption at rest and in transit
+
+## 📦 Core Features
+
+### 1. Virtual Warehouses
+
+**Definition**: Compute clusters that execute queries and DML operations. They can be created, resized, suspended, and resumed independently.
 
 ```sql
--- Demonstrate Snowflake's unique capabilities
--- Create database and schema
-CREATE DATABASE IF NOT EXISTS ANALYTICS_DB;
-CREATE SCHEMA IF NOT EXISTS ANALYTICS_DB.DEMO;
+-- Create virtual warehouse
+CREATE WAREHOUSE analytics_warehouse WITH
+    WAREHOUSE_SIZE = 'LARGE'
+    AUTO_SUSPEND = 300          -- Suspend after 5 minutes of inactivity
+    AUTO_RESUME = TRUE          -- Resume automatically when queries submitted
+    MIN_CLUSTER_COUNT = 1       -- Minimum clusters for multi-cluster warehouse
+    MAX_CLUSTER_COUNT = 3       -- Maximum clusters for auto-scaling
+    SCALING_POLICY = 'STANDARD' -- STANDARD or ECONOMY scaling
+    INITIALLY_SUSPENDED = TRUE; -- Start in suspended state
 
--- Show Snowflake's automatic features
-SELECT 
-    CURRENT_DATABASE() AS CURRENT_DB,
-    CURRENT_SCHEMA() AS CURRENT_SCHEMA,
-    CURRENT_WAREHOUSE() AS CURRENT_WH,
-    CURRENT_USER() AS CURRENT_USER,
-    CURRENT_TIMESTAMP() AS CURRENT_TIME;
+-- Use warehouse
+USE WAREHOUSE analytics_warehouse;
 
--- Demonstrate instant table creation with data generation
-CREATE TABLE ANALYTICS_DB.DEMO.SALES_DATA AS
-SELECT 
-    ROW_NUMBER() OVER (ORDER BY RANDOM()) AS SALE_ID,
-    DATEADD(DAY, -UNIFORM(1, 365, RANDOM()), CURRENT_DATE()) AS SALE_DATE,
-    UNIFORM(1, 1000, RANDOM()) AS CUSTOMER_ID,
-    UNIFORM(10, 1000, RANDOM()) AS AMOUNT,
-    ARRAY_CONSTRUCT('Online', 'Store', 'Phone', 'Mobile App')[UNIFORM(1, 4, RANDOM())] AS CHANNEL,
-    OBJECT_CONSTRUCT(
-        'region', ARRAY_CONSTRUCT('North', 'South', 'East', 'West')[UNIFORM(1, 4, RANDOM())],
-        'product_category', ARRAY_CONSTRUCT('Electronics', 'Clothing', 'Books', 'Home')[UNIFORM(1, 4, RANDOM())],
-        'discount_applied', UNIFORM(0, 30, RANDOM()) / 100.0
-    ) AS METADATA
-FROM TABLE(GENERATOR(ROWCOUNT => 10000));
+-- Resize warehouse dynamically
+ALTER WAREHOUSE analytics_warehouse SET WAREHOUSE_SIZE = 'X-LARGE';
 
--- Show table statistics
+-- Monitor warehouse usage
 SELECT 
-    COUNT(*) AS TOTAL_RECORDS,
-    MIN(SALE_DATE) AS EARLIEST_SALE,
-    MAX(SALE_DATE) AS LATEST_SALE,
-    AVG(AMOUNT) AS AVG_AMOUNT,
-    COUNT(DISTINCT CHANNEL) AS UNIQUE_CHANNELS
-FROM ANALYTICS_DB.DEMO.SALES_DATA;
-
--- Demonstrate JSON querying
-SELECT 
-    CHANNEL,
-    METADATA:region::STRING AS REGION,
-    METADATA:product_category::STRING AS CATEGORY,
-    COUNT(*) AS SALES_COUNT,
-    AVG(AMOUNT) AS AVG_AMOUNT
-FROM ANALYTICS_DB.DEMO.SALES_DATA
-GROUP BY CHANNEL, REGION, CATEGORY
-ORDER BY SALES_COUNT DESC
-LIMIT 10;
+    warehouse_name,
+    start_time,
+    end_time,
+    credits_used,
+    credits_used_compute,
+    credits_used_cloud_services
+FROM snowflake.account_usage.warehouse_metering_history
+WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+ORDER BY start_time DESC;
 ```
 
-**Output:**
-```
-CURRENT_DB    | CURRENT_SCHEMA | CURRENT_WH | CURRENT_USER | CURRENT_TIME
---------------|----------------|------------|--------------|------------------
-ANALYTICS_DB  | DEMO           | COMPUTE_WH | DATA_ENGINEER| 2024-01-15 10:30:00
+### 2. Micro-Partitions
 
-TOTAL_RECORDS | EARLIEST_SALE | LATEST_SALE | AVG_AMOUNT | UNIQUE_CHANNELS
---------------|---------------|-------------|------------|----------------
-10000         | 2023-01-16    | 2024-01-15  | 505.23     | 4
-
-CHANNEL    | REGION | CATEGORY    | SALES_COUNT | AVG_AMOUNT
------------|--------|-------------|-------------|------------
-Online     | North  | Electronics | 156         | 498.45
-Store      | East   | Clothing    | 148         | 512.78
-Mobile App | West   | Books       | 142         | 487.92
-Phone      | South  | Home        | 139         | 523.15
-```
-
----
-
-## Architecture Deep Dive
-
-### Three-Layer Architecture
-
-#### 🎯 **Architecture Layers**
-- **Database Storage**: Compressed, encrypted, optimized storage
-- **Query Processing**: Virtual warehouses for compute
-- **Cloud Services**: Metadata, security, optimization
+**Definition**: Snowflake automatically partitions data into immutable micro-partitions (50-500MB each) with built-in compression and statistics.
 
 ```sql
--- Explore Snowflake's architecture through system views
--- 1. Storage Layer Information
+-- Clustering keys for better micro-partition pruning
+ALTER TABLE sales_data CLUSTER BY (sale_date, region);
+
+-- Check clustering information
+SELECT SYSTEM$CLUSTERING_INFORMATION('sales_data', '(sale_date, region)');
+
+-- Monitor clustering depth
+SELECT SYSTEM$CLUSTERING_DEPTH('sales_data', '(sale_date, region)');
+
+-- Automatic clustering (Enterprise edition)
+ALTER TABLE sales_data RESUME RECLUSTER;
+```
+
+### 3. Zero-Copy Cloning
+
+**Definition**: Create instant copies of databases, schemas, or tables without duplicating underlying data.
+
+```sql
+-- Clone database
+CREATE DATABASE dev_database CLONE prod_database;
+
+-- Clone table
+CREATE TABLE sales_backup CLONE sales_data;
+
+-- Clone with time travel
+CREATE TABLE sales_yesterday CLONE sales_data AT (TIMESTAMP => '2024-01-01 00:00:00');
+
+-- Clone from stream
+CREATE TABLE sales_stream_clone CLONE sales_stream;
+```
+
+## 🔄 Data Loading & ETL
+
+### Loading Methods Comparison
+
+| Method | Use Case | Latency | Throughput | Complexity |
+|--------|----------|---------|------------|------------|
+| **COPY Command** | Batch loading | Minutes | Very High | Low |
+| **Snowpipe** | Near real-time | Seconds | High | Medium |
+| **Kafka Connector** | Streaming | Sub-second | Medium | High |
+| **External Tables** | Query without loading | Real-time | Variable | Low |
+
+### 1. COPY Command (Batch Loading)
+
+```sql
+-- Create file format
+CREATE FILE FORMAT csv_format
+    TYPE = 'CSV'
+    FIELD_DELIMITER = ','
+    SKIP_HEADER = 1
+    NULL_IF = ('NULL', 'null', '')
+    EMPTY_FIELD_AS_NULL = TRUE
+    COMPRESSION = 'GZIP';
+
+-- Create stage
+CREATE STAGE my_s3_stage
+    URL = 's3://my-bucket/data/'
+    CREDENTIALS = (AWS_KEY_ID = 'your_key' AWS_SECRET_KEY = 'your_secret')
+    FILE_FORMAT = csv_format;
+
+-- Load data with COPY
+COPY INTO sales_data
+FROM @my_s3_stage/sales/
+FILE_FORMAT = csv_format
+ON_ERROR = 'CONTINUE'
+PURGE = TRUE;
+
+-- Monitor load history
 SELECT 
-    DATABASE_NAME,
-    SCHEMA_NAME,
-    TABLE_NAME,
-    BYTES,
-    ROWS,
-    COMPRESSED_BYTES,
-    COMPRESSION_RATIO
-FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
-WHERE DATABASE_NAME = 'ANALYTICS_DB'
-ORDER BY BYTES DESC
-LIMIT 10;
+    file_name,
+    status,
+    rows_parsed,
+    rows_loaded,
+    error_count,
+    first_error_message
+FROM table(information_schema.copy_history(
+    table_name => 'SALES_DATA',
+    start_time => dateadd(hours, -1, current_timestamp())
+));
+```
 
--- 2. Compute Layer (Virtual Warehouses)
-SHOW WAREHOUSES;
+### 2. Snowpipe (Continuous Loading)
 
--- Create different warehouse sizes to demonstrate scaling
-CREATE WAREHOUSE IF NOT EXISTS SMALL_ANALYTICS 
-WITH WAREHOUSE_SIZE = 'SMALL'
-     AUTO_SUSPEND = 60
-     AUTO_RESUME = TRUE
-     COMMENT = 'Small warehouse for light analytics';
+```sql
+-- Create pipe for automatic loading
+CREATE PIPE sales_pipe
+    AUTO_INGEST = TRUE
+    AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789012:snowpipe-topic'
+AS
+    COPY INTO sales_data
+    FROM @my_s3_stage/sales/
+    FILE_FORMAT = csv_format;
 
-CREATE WAREHOUSE IF NOT EXISTS LARGE_ETL 
-WITH WAREHOUSE_SIZE = 'LARGE'
-     AUTO_SUSPEND = 300
-     AUTO_RESUME = TRUE
-     COMMENT = 'Large warehouse for ETL operations';
+-- Show pipe status
+SELECT SYSTEM$PIPE_STATUS('sales_pipe');
 
--- 3. Services Layer - Query optimization
--- Enable query result caching
-ALTER SESSION SET USE_CACHED_RESULT = TRUE;
+-- Monitor pipe history
+SELECT 
+    pipe_name,
+    file_name,
+    status,
+    rows_inserted,
+    errors_seen
+FROM table(information_schema.pipe_usage_history(
+    date_range_start => dateadd(hours, -24, current_timestamp()),
+    date_range_end => current_timestamp(),
+    pipe_name => 'SALES_PIPE'
+));
+```
 
--- Run a complex query to see optimization
-USE WAREHOUSE SMALL_ANALYTICS;
+### 3. External Tables
 
-WITH monthly_sales AS (
-    SELECT 
-        DATE_TRUNC('MONTH', SALE_DATE) AS MONTH,
-        METADATA:region::STRING AS REGION,
-        SUM(AMOUNT) AS TOTAL_SALES,
-        COUNT(*) AS TRANSACTION_COUNT,
-        AVG(AMOUNT) AS AVG_TRANSACTION
-    FROM ANALYTICS_DB.DEMO.SALES_DATA
-    GROUP BY MONTH, REGION
-),
-regional_rankings AS (
-    SELECT 
-        *,
-        RANK() OVER (PARTITION BY MONTH ORDER BY TOTAL_SALES DESC) AS REGION_RANK
-    FROM monthly_sales
+```sql
+-- Create external table
+CREATE EXTERNAL TABLE sales_external (
+    sale_id NUMBER AS (value:c1::NUMBER),
+    customer_id NUMBER AS (value:c2::NUMBER),
+    sale_date DATE AS (value:c3::DATE),
+    amount DECIMAL(10,2) AS (value:c4::DECIMAL(10,2))
 )
-SELECT 
-    MONTH,
-    REGION,
-    TOTAL_SALES,
-    TRANSACTION_COUNT,
-    AVG_TRANSACTION,
-    REGION_RANK
-FROM regional_rankings
-WHERE REGION_RANK <= 2
-ORDER BY MONTH, REGION_RANK;
+LOCATION = @my_s3_stage/sales/
+FILE_FORMAT = csv_format
+AUTO_REFRESH = TRUE;
 
--- Show query history and performance
-SELECT 
-    QUERY_ID,
-    QUERY_TEXT,
-    WAREHOUSE_NAME,
-    WAREHOUSE_SIZE,
-    EXECUTION_TIME,
-    COMPILATION_TIME,
-    BYTES_SCANNED,
-    ROWS_PRODUCED
-FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
-WHERE START_TIME >= DATEADD(HOUR, -1, CURRENT_TIMESTAMP())
-    AND WAREHOUSE_NAME IN ('SMALL_ANALYTICS', 'LARGE_ETL')
-ORDER BY START_TIME DESC
-LIMIT 5;
+-- Query external table
+SELECT * FROM sales_external WHERE sale_date >= '2024-01-01';
 ```
 
-**Output:**
-```
-DATABASE_NAME | SCHEMA_NAME | TABLE_NAME  | BYTES    | ROWS  | COMPRESSED_BYTES | COMPRESSION_RATIO
---------------|-------------|-------------|----------|-------|------------------|------------------
-ANALYTICS_DB  | DEMO        | SALES_DATA  | 2,456,789| 10000 | 456,123          | 5.4
+## ⚡ Performance Optimization
 
-MONTH      | REGION | TOTAL_SALES | TRANSACTION_COUNT | AVG_TRANSACTION | REGION_RANK
------------|--------|-------------|-------------------|-----------------|------------
-2023-01-01 | North  | 127,845     | 253               | 505.49          | 1
-2023-01-01 | East   | 124,567     | 248               | 502.18          | 2
-2023-02-01 | West   | 132,456     | 261               | 507.49          | 1
-2023-02-01 | South  | 129,234     | 255               | 506.80          | 2
+### 1. Clustering Keys
 
-QUERY_ID | WAREHOUSE_NAME  | WAREHOUSE_SIZE | EXECUTION_TIME | COMPILATION_TIME | BYTES_SCANNED | ROWS_PRODUCED
----------|-----------------|----------------|----------------|------------------|---------------|---------------
-abc123   | SMALL_ANALYTICS | Small          | 1,234          | 456              | 2,456,789     | 24
-```
-
----
-
-## Virtual Warehouses
-
-### Warehouse Management and Scaling
-
-#### 🎯 **Warehouse Characteristics**
-- **Sizes**: XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL, 6XL
-- **Auto-suspend**: Automatic shutdown when idle
-- **Auto-resume**: Automatic startup on query
-- **Multi-cluster**: Scale out for concurrency
+**Definition**: Organize data within micro-partitions to improve query performance by reducing data scanning.
 
 ```sql
--- Comprehensive warehouse management
--- Create warehouses for different workloads
-CREATE WAREHOUSE IF NOT EXISTS DEV_WH 
-WITH WAREHOUSE_SIZE = 'XSMALL'
-     AUTO_SUSPEND = 60
-     AUTO_RESUME = TRUE
-     INITIALLY_SUSPENDED = TRUE
-     COMMENT = 'Development and testing';
+-- Add clustering key
+ALTER TABLE fact_sales CLUSTER BY (sale_date, region);
 
-CREATE WAREHOUSE IF NOT EXISTS PROD_ANALYTICS_WH 
-WITH WAREHOUSE_SIZE = 'MEDIUM'
-     AUTO_SUSPEND = 300
-     AUTO_RESUME = TRUE
-     MIN_CLUSTER_COUNT = 1
-     MAX_CLUSTER_COUNT = 3
-     SCALING_POLICY = 'STANDARD'
-     COMMENT = 'Production analytics with auto-scaling';
+-- Multi-column clustering
+ALTER TABLE customer_data CLUSTER BY (customer_segment, registration_date);
 
-CREATE WAREHOUSE IF NOT EXISTS ETL_WH 
-WITH WAREHOUSE_SIZE = 'LARGE'
-     AUTO_SUSPEND = 600
-     AUTO_RESUME = TRUE
-     COMMENT = 'ETL and batch processing';
-
--- Show all warehouses
+-- Check clustering effectiveness
 SELECT 
-    NAME,
-    SIZE,
-    MIN_CLUSTER_COUNT,
-    MAX_CLUSTER_COUNT,
-    AUTO_SUSPEND,
-    AUTO_RESUME,
-    STATE,
-    COMMENT
-FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSES
-ORDER BY SIZE;
+    table_name,
+    clustering_key,
+    total_partition_count,
+    total_constant_partition_count,
+    average_overlaps,
+    average_depth,
+    partition_depth_histogram
+FROM snowflake.information_schema.automatic_clustering_history
+WHERE table_name = 'FACT_SALES'
+ORDER BY start_time DESC;
 
--- Demonstrate warehouse switching and performance
--- Small warehouse performance test
-USE WAREHOUSE DEV_WH;
-ALTER WAREHOUSE DEV_WH RESUME;
-
-SET START_TIME = CURRENT_TIMESTAMP();
-
-SELECT 
-    METADATA:product_category::STRING AS CATEGORY,
-    COUNT(*) AS SALES_COUNT,
-    SUM(AMOUNT) AS TOTAL_REVENUE,
-    AVG(AMOUNT) AS AVG_SALE,
-    STDDEV(AMOUNT) AS STDDEV_SALE
-FROM ANALYTICS_DB.DEMO.SALES_DATA
-GROUP BY CATEGORY
-ORDER BY TOTAL_REVENUE DESC;
-
-SET SMALL_WH_TIME = DATEDIFF(MILLISECOND, $START_TIME, CURRENT_TIMESTAMP());
-
--- Large warehouse performance test
-USE WAREHOUSE ETL_WH;
-ALTER WAREHOUSE ETL_WH RESUME;
-
-SET START_TIME = CURRENT_TIMESTAMP();
-
-SELECT 
-    METADATA:product_category::STRING AS CATEGORY,
-    COUNT(*) AS SALES_COUNT,
-    SUM(AMOUNT) AS TOTAL_REVENUE,
-    AVG(AMOUNT) AS AVG_SALE,
-    STDDEV(AMOUNT) AS STDDEV_SALE
-FROM ANALYTICS_DB.DEMO.SALES_DATA
-GROUP BY CATEGORY
-ORDER BY TOTAL_REVENUE DESC;
-
-SET LARGE_WH_TIME = DATEDIFF(MILLISECOND, $START_TIME, CURRENT_TIMESTAMP());
-
--- Compare performance
-SELECT 
-    'XSmall Warehouse' AS WAREHOUSE_TYPE,
-    $SMALL_WH_TIME AS EXECUTION_TIME_MS,
-    'Lower cost, slower performance' AS NOTES
-UNION ALL
-SELECT 
-    'Large Warehouse' AS WAREHOUSE_TYPE,
-    $LARGE_WH_TIME AS EXECUTION_TIME_MS,
-    'Higher cost, faster performance' AS NOTES;
-
--- Monitor warehouse usage and costs
-SELECT 
-    WAREHOUSE_NAME,
-    SUM(CREDITS_USED) AS TOTAL_CREDITS,
-    SUM(CREDITS_USED_COMPUTE) AS COMPUTE_CREDITS,
-    SUM(CREDITS_USED_CLOUD_SERVICES) AS CLOUD_SERVICE_CREDITS,
-    COUNT(*) AS QUERY_COUNT
-FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
-WHERE START_TIME >= DATEADD(DAY, -1, CURRENT_TIMESTAMP())
-GROUP BY WAREHOUSE_NAME
-ORDER BY TOTAL_CREDITS DESC;
+-- Manual reclustering
+ALTER TABLE fact_sales RECLUSTER;
 ```
 
-**Output:**
-```
-NAME               | SIZE   | MIN_CLUSTER_COUNT | MAX_CLUSTER_COUNT | AUTO_SUSPEND | AUTO_RESUME | STATE     | COMMENT
--------------------|--------|-------------------|-------------------|--------------|-------------|-----------|------------------
-DEV_WH             | XSmall | 1                 | 1                 | 60           | TRUE        | SUSPENDED | Development and testing
-PROD_ANALYTICS_WH  | Medium | 1                 | 3                 | 300          | TRUE        | RUNNING   | Production analytics
-ETL_WH             | Large  | 1                 | 1                 | 600          | TRUE        | SUSPENDED | ETL and batch processing
+### 2. Result Caching
 
-CATEGORY    | SALES_COUNT | TOTAL_REVENUE | AVG_SALE | STDDEV_SALE
-------------|-------------|---------------|----------|-------------
-Electronics | 2,487       | 1,256,789     | 505.23   | 289.45
-Clothing    | 2,501       | 1,247,234     | 498.76   | 287.92
-Home        | 2,534       | 1,246,984     | 492.18   | 285.67
-Books       | 2,478       | 1,248,691     | 503.91   | 288.34
-
-WAREHOUSE_TYPE     | EXECUTION_TIME_MS | NOTES
--------------------|-------------------|--------------------------------
-XSmall Warehouse   | 2,345             | Lower cost, slower performance
-Large Warehouse    | 567               | Higher cost, faster performance
-
-WAREHOUSE_NAME     | TOTAL_CREDITS | COMPUTE_CREDITS | CLOUD_SERVICE_CREDITS | QUERY_COUNT
--------------------|---------------|-----------------|----------------------|-------------
-ETL_WH             | 0.0156        | 0.0142          | 0.0014               | 3
-PROD_ANALYTICS_WH  | 0.0089        | 0.0078          | 0.0011               | 12
-DEV_WH             | 0.0023        | 0.0019          | 0.0004               | 5
-```
-
----
-
-## Data Types and Storage
-
-### Advanced Data Type Handling
-
-#### 🎯 **Snowflake Data Types**
-- **Standard SQL Types**: NUMBER, VARCHAR, DATE, TIMESTAMP
-- **Semi-structured**: VARIANT, OBJECT, ARRAY
-- **Specialized**: GEOGRAPHY, GEOMETRY (for spatial data)
+**Definition**: Snowflake caches query results for 24 hours, providing instant responses for identical queries.
 
 ```sql
--- Comprehensive data type demonstration
-CREATE TABLE ANALYTICS_DB.DEMO.DATA_TYPE_SHOWCASE (
-    -- Numeric types
-    ID NUMBER AUTOINCREMENT,
-    PRICE NUMBER(10,2),
-    QUANTITY INTEGER,
-    RATE FLOAT,
-    
-    -- String types
-    PRODUCT_NAME VARCHAR(255),
-    DESCRIPTION TEXT,
-    PRODUCT_CODE CHAR(10),
-    
-    -- Date/Time types
-    CREATED_DATE DATE,
-    LAST_UPDATED TIMESTAMP_LTZ,
-    EVENT_TIME TIME,
-    
-    -- Semi-structured types
-    PRODUCT_DETAILS VARIANT,
-    ATTRIBUTES OBJECT,
-    TAGS ARRAY,
-    
-    -- Binary type
-    PRODUCT_IMAGE BINARY
-);
+-- Query result caching (automatic)
+SELECT customer_segment, COUNT(*) 
+FROM customers 
+GROUP BY customer_segment;
 
--- Insert comprehensive sample data
-INSERT INTO ANALYTICS_DB.DEMO.DATA_TYPE_SHOWCASE (
-    PRICE, QUANTITY, RATE, PRODUCT_NAME, DESCRIPTION, PRODUCT_CODE,
-    CREATED_DATE, LAST_UPDATED, EVENT_TIME,
-    PRODUCT_DETAILS, ATTRIBUTES, TAGS
-) VALUES (
-    299.99, 50, 4.5, 'Wireless Headphones', 'High-quality wireless headphones with noise cancellation', 'WH001',
-    '2024-01-15', CURRENT_TIMESTAMP(), '14:30:00',
-    PARSE_JSON('{"brand": "AudioTech", "model": "WT-500", "features": ["bluetooth", "noise-cancelling", "wireless"], "specs": {"battery_life": "30 hours", "range": "10 meters", "weight": "250g"}}'),
-    OBJECT_CONSTRUCT('color', 'black', 'warranty', '2 years', 'rating', 4.5),
-    ARRAY_CONSTRUCT('electronics', 'audio', 'wireless', 'premium')
-);
+-- Use cached results from previous query
+SELECT * FROM TABLE(RESULT_SCAN('01234567-89ab-cdef-0123-456789abcdef'));
 
--- Query with type-specific operations
+-- Disable result caching for specific query
+SELECT customer_segment, COUNT(*) 
+FROM customers 
+GROUP BY customer_segment
+OPTION (DISABLE_QUERY_RESULT_CACHE = TRUE);
+```
+
+### 3. Materialized Views
+
+```sql
+-- Create materialized view for common aggregations
+CREATE MATERIALIZED VIEW sales_summary AS
 SELECT 
-    ID,
-    PRODUCT_NAME,
-    PRICE,
-    
-    -- Date/Time operations
-    CREATED_DATE,
-    DAYOFWEEK(CREATED_DATE) AS DAY_OF_WEEK,
-    DATEDIFF(DAY, CREATED_DATE, CURRENT_DATE()) AS DAYS_SINCE_CREATED,
-    
-    -- JSON operations on VARIANT
-    PRODUCT_DETAILS:brand::STRING AS BRAND,
-    PRODUCT_DETAILS:specs.battery_life::STRING AS BATTERY_LIFE,
-    ARRAY_SIZE(PRODUCT_DETAILS:features) AS FEATURE_COUNT,
-    
-    -- OBJECT operations
-    ATTRIBUTES:color::STRING AS COLOR,
-    ATTRIBUTES:rating::FLOAT AS RATING,
-    
-    -- ARRAY operations
-    ARRAY_SIZE(TAGS) AS TAG_COUNT,
-    TAGS[0]::STRING AS PRIMARY_TAG
-FROM ANALYTICS_DB.DEMO.DATA_TYPE_SHOWCASE;
+    DATE_TRUNC('month', sale_date) AS month,
+    region,
+    product_category,
+    SUM(amount) AS total_sales,
+    COUNT(*) AS transaction_count,
+    AVG(amount) AS avg_transaction
+FROM fact_sales
+GROUP BY 1, 2, 3;
 
--- Advanced JSON path queries
-SELECT 
-    PRODUCT_NAME,
-    f.VALUE::STRING AS FEATURE
-FROM ANALYTICS_DB.DEMO.DATA_TYPE_SHOWCASE,
-LATERAL FLATTEN(INPUT => PRODUCT_DETAILS:features) f;
+-- Query uses materialized view automatically
+SELECT month, region, total_sales
+FROM sales_summary
+WHERE month >= '2024-01-01';
 
--- Type conversion and validation
-SELECT 
-    PRODUCT_NAME,
-    PRICE,
-    TRY_CAST(PRICE AS INTEGER) AS PRICE_INT,
+-- Monitor materialized view usage
+SHOW MATERIALIZED VIEWS;
+```
+
+## 🔒 Security & Governance
+
+### 1. Role-Based Access Control (RBAC)
+
+```sql
+-- Create roles
+CREATE ROLE data_analyst;
+CREATE ROLE data_engineer;
+CREATE ROLE data_admin;
+
+-- Grant privileges to roles
+GRANT USAGE ON WAREHOUSE analytics_warehouse TO ROLE data_analyst;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO ROLE data_analyst;
+GRANT ALL PRIVILEGES ON SCHEMA etl TO ROLE data_engineer;
+
+-- Create role hierarchy
+GRANT ROLE data_analyst TO ROLE data_engineer;
+GRANT ROLE data_engineer TO ROLE data_admin;
+
+-- Assign roles to users
+GRANT ROLE data_analyst TO USER john_doe;
+```
+
+### 2. Row-Level Security
+
+```sql
+-- Create row access policy
+CREATE ROW ACCESS POLICY customer_policy AS (region VARCHAR) RETURNS BOOLEAN ->
     CASE 
-        WHEN IS_DECIMAL(PRICE) THEN 'Valid Decimal'
-        ELSE 'Invalid Decimal'
-    END AS PRICE_VALIDATION,
-    
-    -- JSON validation
-    CASE 
-        WHEN IS_VALID_JSON(PRODUCT_DETAILS) THEN 'Valid JSON'
-        ELSE 'Invalid JSON'
-    END AS JSON_VALIDATION
-FROM ANALYTICS_DB.DEMO.DATA_TYPE_SHOWCASE;
+        WHEN CURRENT_ROLE() = 'ADMIN' THEN TRUE
+        WHEN CURRENT_ROLE() = 'SALES_MANAGER' AND region = 'NORTH_AMERICA' THEN TRUE
+        WHEN CURRENT_ROLE() = 'ANALYST' AND region IN ('EUROPE', 'ASIA') THEN TRUE
+        ELSE FALSE
+    END;
 
--- Semi-structured data aggregations
-SELECT 
-    PRODUCT_DETAILS:brand::STRING AS BRAND,
-    COUNT(*) AS PRODUCT_COUNT,
-    AVG(PRICE) AS AVG_PRICE,
-    AVG(ATTRIBUTES:rating::FLOAT) AS AVG_RATING
-FROM ANALYTICS_DB.DEMO.DATA_TYPE_SHOWCASE
-GROUP BY BRAND;
+-- Apply policy to table
+ALTER TABLE customers ADD ROW ACCESS POLICY customer_policy ON (region);
+
+-- Query respects row-level security
+SELECT * FROM customers; -- Only shows rows based on current role
 ```
 
-**Output:**
-```
-ID | PRODUCT_NAME        | PRICE  | CREATED_DATE | DAY_OF_WEEK | DAYS_SINCE_CREATED | BRAND     | BATTERY_LIFE | FEATURE_COUNT | COLOR | RATING | TAG_COUNT | PRIMARY_TAG
----|---------------------|--------|--------------|-------------|-------------------|-----------|--------------|---------------|-------|--------|-----------|-------------
-1  | Wireless Headphones | 299.99 | 2024-01-15   | 2           | 0                 | AudioTech | 30 hours     | 3             | black | 4.5    | 4         | electronics
-
-PRODUCT_NAME        | FEATURE
---------------------|----------------
-Wireless Headphones | bluetooth
-Wireless Headphones | noise-cancelling
-Wireless Headphones | wireless
-
-PRODUCT_NAME        | PRICE  | PRICE_INT | PRICE_VALIDATION | JSON_VALIDATION
---------------------|--------|-----------|------------------|----------------
-Wireless Headphones | 299.99 | 300       | Valid Decimal    | Valid JSON
-
-BRAND     | PRODUCT_COUNT | AVG_PRICE | AVG_RATING
-----------|---------------|-----------|------------
-AudioTech | 1             | 299.99    | 4.5
-```
-
----
-
-## Data Loading and Integration
-
-### Comprehensive Data Loading Strategies
-
-#### 🎯 **Loading Methods**
-- **COPY INTO**: Bulk loading from files
-- **Snowpipe**: Continuous, automated loading
-- **External Tables**: Query without loading
-- **Streams and Tasks**: Change data capture and automation
+### 3. Column-Level Security
 
 ```sql
--- Create comprehensive data loading infrastructure
--- 1. File Formats
-CREATE FILE FORMAT ANALYTICS_DB.DEMO.CSV_FORMAT
-TYPE = 'CSV'
-FIELD_DELIMITER = ','
-RECORD_DELIMITER = '\n'
-SKIP_HEADER = 1
-FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-TRIM_SPACE = TRUE
-ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
-REPLACE_INVALID_CHARACTERS = TRUE
-NULL_IF = ('NULL', 'null', '', 'N/A');
+-- Create masking policy
+CREATE MASKING POLICY ssn_mask AS (val STRING) RETURNS STRING ->
+    CASE
+        WHEN CURRENT_ROLE() IN ('ADMIN', 'HR_MANAGER') THEN val
+        ELSE '***-**-' || RIGHT(val, 4)
+    END;
 
-CREATE FILE FORMAT ANALYTICS_DB.DEMO.JSON_FORMAT
-TYPE = 'JSON'
-COMPRESSION = 'AUTO'
-ENABLE_OCTAL = FALSE
-ALLOW_DUPLICATE = FALSE
-STRIP_OUTER_ARRAY = TRUE
-STRIP_NULL_VALUES = FALSE;
+-- Apply masking policy
+ALTER TABLE employees MODIFY COLUMN ssn SET MASKING POLICY ssn_mask;
 
--- 2. Stages for different sources
-CREATE STAGE ANALYTICS_DB.DEMO.S3_STAGE
-URL = 's3://my-data-bucket/raw-data/'
-CREDENTIALS = (AWS_KEY_ID = 'your-key' AWS_SECRET_KEY = 'your-secret')
-FILE_FORMAT = ANALYTICS_DB.DEMO.CSV_FORMAT
-COMMENT = 'S3 stage for raw data files';
+-- Query shows masked data based on role
+SELECT employee_id, name, ssn FROM employees;
+```
 
-CREATE STAGE ANALYTICS_DB.DEMO.INTERNAL_STAGE
-FILE_FORMAT = ANALYTICS_DB.DEMO.JSON_FORMAT
-COMMENT = 'Internal stage for JSON data';
+## ⏰ Time Travel & Data Recovery
 
--- 3. Target tables for different loading scenarios
-CREATE TABLE ANALYTICS_DB.DEMO.CUSTOMER_DATA (
-    CUSTOMER_ID NUMBER,
-    FIRST_NAME VARCHAR(100),
-    LAST_NAME VARCHAR(100),
-    EMAIL VARCHAR(255),
-    PHONE VARCHAR(20),
-    REGISTRATION_DATE DATE,
-    LAST_LOGIN TIMESTAMP_LTZ,
-    PREFERENCES VARIANT,
-    LOAD_TIMESTAMP TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP()
-);
+### Time Travel Capabilities
 
--- 4. Demonstrate bulk loading with error handling
--- Simulate COPY INTO operation (normally from actual files)
-CREATE TABLE ANALYTICS_DB.DEMO.TEMP_CUSTOMER_SOURCE AS
+```sql
+-- Query data as of specific timestamp
+SELECT * FROM sales_data AT (TIMESTAMP => '2024-01-01 12:00:00');
+
+-- Query data as of specific offset
+SELECT * FROM sales_data AT (OFFSET => -3600); -- 1 hour ago
+
+-- Query data before specific statement
+SELECT * FROM sales_data BEFORE (STATEMENT => '01234567-89ab-cdef-0123-456789abcdef');
+
+-- Compare current vs historical data
 SELECT 
-    ROW_NUMBER() OVER (ORDER BY RANDOM()) AS CUSTOMER_ID,
-    ARRAY_CONSTRUCT('John', 'Jane', 'Bob', 'Alice', 'Charlie')[UNIFORM(1, 5, RANDOM())] AS FIRST_NAME,
-    ARRAY_CONSTRUCT('Smith', 'Johnson', 'Williams', 'Brown', 'Davis')[UNIFORM(1, 5, RANDOM())] AS LAST_NAME,
-    CONCAT(LOWER(FIRST_NAME), '.', LOWER(LAST_NAME), '@email.com') AS EMAIL,
-    CONCAT('+1-555-', LPAD(UNIFORM(1000000, 9999999, RANDOM()), 7, '0')) AS PHONE,
-    DATEADD(DAY, -UNIFORM(1, 1000, RANDOM()), CURRENT_DATE()) AS REGISTRATION_DATE,
-    DATEADD(HOUR, -UNIFORM(1, 168, RANDOM()), CURRENT_TIMESTAMP()) AS LAST_LOGIN,
-    OBJECT_CONSTRUCT(
-        'newsletter', UNIFORM(0, 1, RANDOM()) = 1,
-        'marketing_emails', UNIFORM(0, 1, RANDOM()) = 1,
-        'preferred_contact', ARRAY_CONSTRUCT('email', 'phone', 'sms')[UNIFORM(1, 3, RANDOM())]
-    ) AS PREFERENCES
-FROM TABLE(GENERATOR(ROWCOUNT => 1000));
+    current.customer_id,
+    current.status AS current_status,
+    historical.status AS previous_status
+FROM customers current
+JOIN customers AT (TIMESTAMP => '2024-01-01 00:00:00') historical
+    ON current.customer_id = historical.customer_id
+WHERE current.status != historical.status;
 
--- Bulk insert with validation
-INSERT INTO ANALYTICS_DB.DEMO.CUSTOMER_DATA (
-    CUSTOMER_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, 
-    REGISTRATION_DATE, LAST_LOGIN, PREFERENCES
-)
+-- Restore table to previous state
+CREATE OR REPLACE TABLE sales_data AS
+SELECT * FROM sales_data AT (TIMESTAMP => '2024-01-01 12:00:00');
+
+-- Undrop table
+UNDROP TABLE accidentally_dropped_table;
+
+-- Set retention period (1-90 days)
+ALTER TABLE important_data SET DATA_RETENTION_TIME_IN_DAYS = 30;
+```
+
+## 🌊 Streams & Tasks
+
+### 1. Streams (Change Data Capture)
+
+```sql
+-- Create stream on table
+CREATE STREAM sales_stream ON TABLE sales_data;
+
+-- Create stream on view
+CREATE STREAM sales_view_stream ON VIEW sales_summary;
+
+-- Query stream to see changes
 SELECT 
-    CUSTOMER_ID,
-    FIRST_NAME,
-    LAST_NAME,
-    EMAIL,
-    PHONE,
-    REGISTRATION_DATE,
-    LAST_LOGIN,
-    PREFERENCES
-FROM ANALYTICS_DB.DEMO.TEMP_CUSTOMER_SOURCE
-WHERE EMAIL IS NOT NULL 
-    AND FIRST_NAME IS NOT NULL 
-    AND LAST_NAME IS NOT NULL;
-
--- 5. Create stream for change data capture
-CREATE STREAM ANALYTICS_DB.DEMO.CUSTOMER_STREAM 
-ON TABLE ANALYTICS_DB.DEMO.CUSTOMER_DATA
-COMMENT = 'Stream to capture changes in customer data';
-
--- 6. Demonstrate incremental loading
--- Update some records to generate stream data
-UPDATE ANALYTICS_DB.DEMO.CUSTOMER_DATA 
-SET LAST_LOGIN = CURRENT_TIMESTAMP(),
-    PREFERENCES = OBJECT_INSERT(PREFERENCES, 'last_update', CURRENT_TIMESTAMP()::STRING)
-WHERE CUSTOMER_ID <= 10;
-
--- Insert new records
-INSERT INTO ANALYTICS_DB.DEMO.CUSTOMER_DATA (
-    CUSTOMER_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, 
-    REGISTRATION_DATE, LAST_LOGIN, PREFERENCES
-) VALUES 
-(1001, 'New', 'Customer', 'new.customer@email.com', '+1-555-0001', 
- CURRENT_DATE(), CURRENT_TIMESTAMP(), 
- OBJECT_CONSTRUCT('source', 'direct_signup', 'newsletter', true));
-
--- Check stream contents
-SELECT 
+    customer_id,
+    amount,
     METADATA$ACTION,
     METADATA$ISUPDATE,
-    CUSTOMER_ID,
-    FIRST_NAME,
-    LAST_NAME,
-    EMAIL
-FROM ANALYTICS_DB.DEMO.CUSTOMER_STREAM
-ORDER BY CUSTOMER_ID;
+    METADATA$ROW_ID
+FROM sales_stream;
 
--- 7. Loading statistics and monitoring
+-- Process stream data
+INSERT INTO sales_audit
 SELECT 
-    COUNT(*) AS TOTAL_CUSTOMERS,
-    COUNT(DISTINCT EMAIL) AS UNIQUE_EMAILS,
-    MIN(REGISTRATION_DATE) AS EARLIEST_REGISTRATION,
-    MAX(REGISTRATION_DATE) AS LATEST_REGISTRATION,
-    AVG(DATEDIFF(DAY, REGISTRATION_DATE, CURRENT_DATE())) AS AVG_DAYS_SINCE_REGISTRATION
-FROM ANALYTICS_DB.DEMO.CUSTOMER_DATA;
+    customer_id,
+    amount,
+    METADATA$ACTION AS change_type,
+    CURRENT_TIMESTAMP() AS processed_at
+FROM sales_stream
+WHERE METADATA$ACTION = 'INSERT';
 
--- Data quality checks
-SELECT 
-    'Email Validation' AS CHECK_TYPE,
-    COUNT(*) AS TOTAL_RECORDS,
-    SUM(CASE WHEN EMAIL LIKE '%@%.%' THEN 1 ELSE 0 END) AS VALID_RECORDS,
-    SUM(CASE WHEN EMAIL NOT LIKE '%@%.%' THEN 1 ELSE 0 END) AS INVALID_RECORDS
-FROM ANALYTICS_DB.DEMO.CUSTOMER_DATA
-
-UNION ALL
-
-SELECT 
-    'Phone Validation' AS CHECK_TYPE,
-    COUNT(*) AS TOTAL_RECORDS,
-    SUM(CASE WHEN PHONE LIKE '+1-555-%' THEN 1 ELSE 0 END) AS VALID_RECORDS,
-    SUM(CASE WHEN PHONE NOT LIKE '+1-555-%' THEN 1 ELSE 0 END) AS INVALID_RECORDS
-FROM ANALYTICS_DB.DEMO.CUSTOMER_DATA;
+-- Check stream status
+SHOW STREAMS;
 ```
 
-**Output:**
+### 2. Tasks (Scheduling)
+
+```sql
+-- Create task for data processing
+CREATE TASK daily_sales_summary
+    WAREHOUSE = analytics_warehouse
+    SCHEDULE = 'USING CRON 0 2 * * * UTC' -- Daily at 2 AM UTC
+AS
+    INSERT INTO daily_sales_summary
+    SELECT 
+        DATE(sale_date) AS sale_date,
+        region,
+        SUM(amount) AS total_sales,
+        COUNT(*) AS transaction_count
+    FROM sales_data
+    WHERE DATE(sale_date) = CURRENT_DATE() - 1
+    GROUP BY 1, 2;
+
+-- Create task with stream dependency
+CREATE TASK process_sales_changes
+    WAREHOUSE = analytics_warehouse
+    SCHEDULE = '5 MINUTE'
+    WHEN SYSTEM$STREAM_HAS_DATA('sales_stream')
+AS
+    CALL process_sales_stream_procedure();
+
+-- Start task
+ALTER TASK daily_sales_summary RESUME;
+
+-- Monitor task history
+SELECT 
+    name,
+    state,
+    scheduled_time,
+    completed_time,
+    return_value
+FROM table(information_schema.task_history())
+WHERE name = 'DAILY_SALES_SUMMARY'
+ORDER BY scheduled_time DESC;
 ```
-METADATA$ACTION | METADATA$ISUPDATE | CUSTOMER_ID | FIRST_NAME | LAST_NAME | EMAIL
-----------------|-------------------|-------------|------------|-----------|----------------------
-UPDATE          | TRUE              | 1           | John       | Smith     | john.smith@email.com
-UPDATE          | TRUE              | 2           | Jane       | Johnson   | jane.johnson@email.com
-...
-INSERT          | FALSE             | 1001        | New        | Customer  | new.customer@email.com
 
-TOTAL_CUSTOMERS | UNIQUE_EMAILS | EARLIEST_REGISTRATION | LATEST_REGISTRATION | AVG_DAYS_SINCE_REGISTRATION
-----------------|---------------|----------------------|--------------------|--------------------------
-1001            | 1001          | 2021-04-20           | 2024-01-15         | 456
+## 🤝 Data Sharing & Marketplace
 
-CHECK_TYPE       | TOTAL_RECORDS | VALID_RECORDS | INVALID_RECORDS
------------------|---------------|---------------|----------------
-Email Validation | 1001          | 1001          | 0
-Phone Validation | 1001          | 1001          | 0
+### 1. Secure Data Sharing
+
+```sql
+-- Create share
+CREATE SHARE customer_data_share;
+
+-- Grant access to database/schema
+GRANT USAGE ON DATABASE customer_db TO SHARE customer_data_share;
+GRANT USAGE ON SCHEMA customer_db.public TO SHARE customer_data_share;
+
+-- Grant access to specific tables
+GRANT SELECT ON TABLE customer_db.public.customers TO SHARE customer_data_share;
+GRANT SELECT ON TABLE customer_db.public.orders TO SHARE customer_data_share;
+
+-- Add accounts to share
+ALTER SHARE customer_data_share ADD ACCOUNTS = ('PARTNER_ACCOUNT_1', 'PARTNER_ACCOUNT_2');
+
+-- Create database from share (consumer side)
+CREATE DATABASE shared_customer_data FROM SHARE provider_account.customer_data_share;
+
+-- Monitor share usage
+SELECT 
+    share_name,
+    consumer_account,
+    credits_used,
+    bytes_transferred
+FROM snowflake.account_usage.data_transfer_history
+WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
 ```
 
-This comprehensive Snowflake documentation provides practical, executable SQL examples with expected outputs, following the same high-quality pattern as the previous tools. The examples cover all essential Snowflake concepts from basic operations to advanced data loading and semi-structured data handling.
+### 2. Snowflake Marketplace
 
-Would you like me to continue with **DBT** next, or would you prefer to see additional sections for Snowflake first?
+```sql
+-- List available data products
+SHOW SHARES IN ACCOUNT;
+
+-- Create database from marketplace listing
+CREATE DATABASE weather_data FROM SHARE SFC_SAMPLES.SAMPLE_DATA;
+
+-- Query marketplace data
+SELECT * FROM weather_data.weather.daily_14_total LIMIT 10;
+```
+
+## 💰 Cost Optimization
+
+### 1. Warehouse Management
+
+```sql
+-- Right-size warehouses based on workload
+CREATE WAREHOUSE small_etl WITH WAREHOUSE_SIZE = 'SMALL' AUTO_SUSPEND = 60;
+CREATE WAREHOUSE large_analytics WITH WAREHOUSE_SIZE = 'LARGE' AUTO_SUSPEND = 300;
+
+-- Use multi-cluster for concurrent workloads
+CREATE WAREHOUSE concurrent_warehouse WITH
+    WAREHOUSE_SIZE = 'MEDIUM'
+    MIN_CLUSTER_COUNT = 1
+    MAX_CLUSTER_COUNT = 5
+    SCALING_POLICY = 'ECONOMY'; -- Favor cost over performance
+
+-- Monitor credit usage
+SELECT 
+    warehouse_name,
+    SUM(credits_used) AS total_credits,
+    AVG(credits_used_compute) AS avg_compute_credits,
+    AVG(credits_used_cloud_services) AS avg_cloud_services_credits
+FROM snowflake.account_usage.warehouse_metering_history
+WHERE start_time >= DATEADD('month', -1, CURRENT_TIMESTAMP())
+GROUP BY warehouse_name
+ORDER BY total_credits DESC;
+```
+
+### 2. Storage Optimization
+
+```sql
+-- Monitor storage usage
+SELECT 
+    table_name,
+    active_bytes / (1024*1024*1024) AS active_gb,
+    time_travel_bytes / (1024*1024*1024) AS time_travel_gb,
+    failsafe_bytes / (1024*1024*1024) AS failsafe_gb,
+    retained_for_clone_bytes / (1024*1024*1024) AS clone_gb
+FROM snowflake.account_usage.table_storage_metrics
+WHERE deleted = FALSE
+ORDER BY active_bytes DESC;
+
+-- Optimize data retention
+ALTER TABLE temp_data SET DATA_RETENTION_TIME_IN_DAYS = 1;
+ALTER TABLE archive_data SET DATA_RETENTION_TIME_IN_DAYS = 7;
+
+-- Drop unused objects
+DROP TABLE IF EXISTS old_temp_table;
+DROP VIEW IF EXISTS unused_view;
+```
+
+## 🔗 Integration Capabilities
+
+### 1. Native Connectors
+
+```sql
+-- Kafka connector configuration
+CREATE PIPE kafka_sales_pipe
+    AUTO_INGEST = TRUE
+AS
+    COPY INTO sales_data
+    FROM @kafka_stage
+    FILE_FORMAT = (TYPE = 'JSON');
+
+-- Spark connector (via external tools)
+-- Configure Spark to write to Snowflake
+-- spark.write.format("snowflake")
+--   .options(sfOptions)
+--   .option("dbtable", "sales_data")
+--   .mode("append")
+--   .save()
+```
+
+### 2. REST API Integration
+
+```sql
+-- Create API integration
+CREATE API INTEGRATION my_api_integration
+    API_PROVIDER = 'aws_api_gateway'
+    API_AWS_ROLE_ARN = 'arn:aws:iam::123456789012:role/snowflake-api-role'
+    ENABLED = TRUE;
+
+-- Create external function
+CREATE EXTERNAL FUNCTION enrich_customer_data(customer_id NUMBER)
+RETURNS VARIANT
+LANGUAGE PYTHON
+API_INTEGRATION = my_api_integration
+HEADERS = ('content-type' = 'application/json')
+AS 'https://api.example.com/enrich';
+
+-- Use external function
+SELECT 
+    customer_id,
+    enrich_customer_data(customer_id) AS enriched_data
+FROM customers;
+```
+
+## 📈 Version Highlights
+
+### Recent Version Features
+
+**Snowflake 7.x (2024)**
+- **Iceberg Tables**: Native support for Apache Iceberg format
+- **Hybrid Tables**: OLTP capabilities with ACID transactions
+- **Cortex AI**: Built-in AI/ML functions and LLM integration
+- **Dynamic Tables**: Materialized views with automatic refresh
+- **Native Apps**: Custom applications within Snowflake
+
+**Snowflake 6.x (2023)**
+- **Snowpark**: Native support for Python, Java, and Scala
+- **Streamlit Integration**: Build and deploy apps directly in Snowflake
+- **External Functions**: Call external APIs from SQL
+- **Search Optimization**: Improved performance for point lookups
+
+**Key Capabilities by Edition**
+- **Standard**: Basic features, time travel (1 day)
+- **Enterprise**: Advanced security, time travel (90 days), multi-cluster
+- **Business Critical**: Enhanced security, customer-managed keys, tri-secret secure
+- **Virtual Private Snowflake**: Dedicated infrastructure, complete isolation
+
+## 🎯 When to Use Snowflake
+
+**Ideal Use Cases:**
+- **Data Warehousing**: OLAP workloads, business intelligence, reporting
+- **Data Lake Analytics**: Query structured and semi-structured data
+- **Real-time Analytics**: Stream processing with Snowpipe and streams
+- **Data Sharing**: Secure data exchange between organizations
+- **Machine Learning**: Feature engineering and model training with Snowpark
+- **Multi-cloud Strategy**: Consistent experience across AWS, Azure, GCP
+
+**Not Ideal For:**
+- **OLTP Workloads**: High-frequency transactional systems
+- **Real-time Streaming**: Sub-second latency requirements
+- **Small Datasets**: Cost may not justify benefits for small data volumes
+- **Complex ETL**: Heavy transformation workloads (better suited for Spark/Databricks)
+
+## 🎯 Interview Focus Areas
+
+1. **Architecture**: Multi-cluster, shared data architecture
+2. **Virtual Warehouses**: Sizing, scaling, and cost optimization
+3. **Data Loading**: COPY, Snowpipe, and external tables
+4. **Performance**: Clustering, caching, and query optimization
+5. **Security**: RBAC, row-level security, and data masking
+6. **Time Travel**: Data recovery and historical analysis
+7. **Streams & Tasks**: Change data capture and automation
+8. **Cost Management**: Credit usage and optimization strategies
+9. **Data Sharing**: Secure sharing and marketplace
+10. **Integration**: Connectors and external functions
+
+## 📚 Quick References
+
+- [Snowflake Documentation](https://docs.snowflake.com/)
+- [SQL Reference](https://docs.snowflake.com/en/sql-reference)
+- [Snowpark Developer Guide](https://docs.snowflake.com/en/developer-guide/snowpark/index)
+- [Data Loading Guide](https://docs.snowflake.com/en/user-guide/data-load-overview)
+- [Security Guide](https://docs.snowflake.com/en/user-guide/security)
+- [Cost Optimization](https://docs.snowflake.com/en/user-guide/cost-understanding)

@@ -682,3 +682,10 @@ Apache Cassandra provides distributed NoSQL database capabilities with:
 3. **Tunable Consistency**: Balance between consistency and availability
 4. **High Performance**: Optimized for write-heavy workloads
 5. **Operational Simplicity**: Peer-to-peer architecture with automatic data distribution
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

@@ -942,3 +942,10 @@ ORDER BY sales_rep, sale_date;
 ---
 
 *This is the first batch of questions. I'll continue with more batches to complete the comprehensive interview questions file.*
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

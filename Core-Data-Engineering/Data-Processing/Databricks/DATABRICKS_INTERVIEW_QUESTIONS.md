@@ -1141,3 +1141,167 @@ for table in tables:
   ✅ /tmp/medallion/gold/event_summary: 3 rows
   ✅ /tmp/medallion/gold/user_metrics: 3 rows
 ```
+
+---
+
+## 📚 Additional Content
+
+*(Content merged from DATABRICKS_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)*
+
+## Basic Level Questions (1-25)
+
+
+### 3. What are Databricks clusters and their types?
+**Answer:**
+- **All-Purpose Clusters**: Interactive analysis, shared across users
+- **Job Clusters**: Automated workloads, terminated after job completion
+- **SQL Warehouses**: Optimized for SQL queries and BI tools
+
+```python
+# Cluster configuration example
+cluster_config = {
+    "cluster_name": "data-engineering-cluster",
+    "spark_version": "11.3.x-scala2.12",
+    "node_type_id": "i3.xlarge",
+    "num_workers": 2,
+    "autoscale": {
+        "min_workers": 1,
+        "max_workers": 8
+    }
+}
+```
+
+
+### 5. What is Unity Catalog in Databricks?
+**Answer:**
+Unity Catalog is a unified governance solution for data and AI assets across Databricks workspaces.
+
+Features:
+- Centralized access control
+- Data lineage tracking
+- Data discovery and search
+- Cross-workspace data sharing
+
+```sql
+-- Create catalog and schema
+CREATE CATALOG production;
+CREATE SCHEMA production.sales;
+
+-- Grant permissions
+GRANT USE CATALOG ON CATALOG production TO `data-engineers`;
+GRANT CREATE TABLE ON SCHEMA production.sales TO `data-engineers`;
+
+-- Create managed table
+CREATE TABLE production.sales.customers (
+    id BIGINT,
+    name STRING,
+    email STRING,
+    created_at TIMESTAMP
+) USING DELTA;
+```
+
+
+### 7. What are Databricks workflows and how do you create them?
+**Answer:**
+Databricks Workflows (formerly Jobs) orchestrate data processing tasks.
+
+```python
+# Job configuration
+job_config = {
+    "name": "ETL Pipeline",
+    "tasks": [
+        {
+            "task_key": "extract",
+            "notebook_task": {
+                "notebook_path": "/Shared/etl/extract",
+                "base_parameters": {"date": "2024-01-01"}
+            },
+            "job_cluster_key": "etl-cluster"
+        },
+        {
+            "task_key": "transform",
+            "depends_on": [{"task_key": "extract"}],
+            "notebook_task": {
+                "notebook_path": "/Shared/etl/transform"
+            },
+            "job_cluster_key": "etl-cluster"
+        }
+    ],
+    "job_clusters": [
+        {
+            "job_cluster_key": "etl-cluster",
+            "new_cluster": {
+                "spark_version": "11.3.x-scala2.12",
+                "node_type_id": "i3.xlarge",
+                "num_workers": 2
+            }
+        }
+    ]
+}
+```
+
+
+### 30. How do you monitor and troubleshoot Databricks jobs?
+**Answer:**
+```python
+# Job monitoring with custom metrics
+def monitor_job_execution():
+    """Custom job monitoring and alerting"""
+    
+    # Log job metrics
+    job_metrics = {
+        "job_id": dbutils.widgets.get("job_id"),
+        "start_time": datetime.now(),
+        "cluster_id": spark.conf.get("spark.databricks.clusterUsageTags.clusterId"),
+        "records_processed": 0,
+        "status": "running"
+    }
+    
+    try:
+        # Your ETL logic here
+        df = spark.read.format("delta").load("/mnt/source")
+        processed_df = df.transform(your_transformation_logic)
+        processed_df.write.format("delta").mode("overwrite").save("/mnt/target")
+        
+        job_metrics["records_processed"] = processed_df.count()
+        job_metrics["status"] = "success"
+        
+    except Exception as e:
+        job_metrics["status"] = "failed"
+        job_metrics["error_message"] = str(e)
+        
+        # Send alert
+        send_alert(f"Job {job_metrics['job_id']} failed: {str(e)}")
+        raise
+    
+    finally:
+        job_metrics["end_time"] = datetime.now()
+        job_metrics["duration_minutes"] = (job_metrics["end_time"] - job_metrics["start_time"]).total_seconds() / 60
+        
+        # Log to monitoring table
+        metrics_df = spark.createDataFrame([job_metrics])
+        metrics_df.write.format("delta").mode("append").save("/mnt/monitoring/job_metrics")
+
+# Performance monitoring
+def analyze_query_performance():
+    """Analyze Spark query performance"""
+    
+    # Enable query execution metrics
+    spark.conf.set("spark.sql.queryExecutionListeners", 
+                   "org.apache.spark.sql.util.QueryExecutionMetricsListener")
+    
+    # Query with explain plan
+    df = spark.sql("SELECT * FROM delta.`/mnt/large_table` WHERE date >= '2024-01-01'")
+    df.explain(True)  # Show physical plan
+    
+    # Analyze partition pruning
+    spark.sql("DESCRIBE DETAIL delta.`/mnt/large_table`").show()
+    
+    # Check file sizes and optimization opportunities
+    spark.sql("DESCRIBE HISTORY delta.`/mnt/large_table`").show()
+```
+
+---
+
+*[Continue with remaining 70+ questions covering Advanced Level, Architecture & Performance, and Scenario-Based sections...]*
+

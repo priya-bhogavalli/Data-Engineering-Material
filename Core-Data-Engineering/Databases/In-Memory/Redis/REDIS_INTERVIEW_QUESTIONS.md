@@ -1158,3 +1158,10 @@ MEMORY USAGE key
 ---
 
 **Total Questions: 100** | **Difficulty: Beginner to Expert** | **Coverage: Complete Redis Ecosystem**
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

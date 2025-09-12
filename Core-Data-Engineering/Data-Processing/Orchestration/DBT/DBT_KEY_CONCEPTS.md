@@ -1,903 +1,884 @@
-# DBT Key Concepts for Data Engineers
+# dbt (Data Build Tool) Key Concepts for Data Engineering
 
 ## 📋 Table of Contents
 
-1. [Platform Overview](#platform-overview)
-2. [Project Structure](#project-structure)
-3. [Models and Materializations](#models-and-materializations)
-4. [Sources and References](#sources-and-references)
-5. [Testing and Documentation](#testing-and-documentation)
-6. [Macros and Jinja](#macros-and-jinja)
-7. [Deployment and Production](#deployment-and-production)
-8. [Best Practices](#best-practices)
+1. [Overview](#-overview)
+2. [Core Architecture](#-core-architecture)
+3. [Key Features](#-key-features)
+4. [Models & Materializations](#-models--materializations)
+5. [Testing & Documentation](#-testing--documentation)
+6. [Macros & Jinja](#-macros--jinja)
+7. [Sources & Seeds](#-sources--seeds)
+8. [Snapshots & Incremental Models](#-snapshots--incremental-models)
+9. [Packages & Dependencies](#-packages--dependencies)
+10. [Deployment & Environments](#-deployment--environments)
+11. [Use Cases & Integration](#-use-cases--integration)
+12. [Version Highlights](#-version-highlights)
+13. [Best Practices](#-best-practices)
+14. [Limitations](#-limitations)
+15. [Quick References](#-quick-references)
 
 ---
 
-## Platform Overview
+## 🎯 Overview
 
-### What is DBT?
+**dbt (Data Build Tool)** is a command-line tool that enables data analysts and engineers to transform data in their warehouse more effectively. It allows you to write modular SQL queries and automatically builds a dependency graph to execute transformations in the correct order.
 
-**DBT (Data Build Tool)** transforms data in your warehouse by writing SQL SELECT statements and compiling them into tables and views with proper dependencies, testing, and documentation.
+**Key Benefits:**
+- **SQL-First**: Write transformations in SQL with Jinja templating
+- **Version Control**: Git-based workflow for data transformations
+- **Testing**: Built-in data quality testing framework
+- **Documentation**: Auto-generated documentation and lineage
+- **Modularity**: Reusable models and macros
+- **Collaboration**: Team-based development with code reviews
 
-#### 🎯 **Core Philosophy**
-- **Analytics Engineering**: Bridge between data engineering and analytics
-- **SQL-First**: Transform data using familiar SQL
-- **Version Control**: Treat analytics code like software
-- **Testing**: Built-in data quality testing
-- **Documentation**: Self-documenting data models
+## 🏗️ Core Architecture
 
-```bash
-# DBT project initialization and basic commands
-dbt init my_analytics_project
-cd my_analytics_project
+### dbt Architecture Diagram
 
-# Install dependencies
-dbt deps
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                DBT ARCHITECTURE                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────────┐ │
+│  │   DBT PROJECT   │    │   DBT CORE      │    │     DATA WAREHOUSE          │ │
+│  │                 │    │                 │    │                             │ │
+│  │ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────────────────┐ │ │
+│  │ │   Models    │ │───►│ │   Parser    │ │───►│ │      Raw Tables         │ │ │
+│  │ │   Tests     │ │    │ │  Compiler   │ │    │ │   Staging Models        │ │ │
+│  │ │   Macros    │ │    │ │  Executor   │ │    │ │ Intermediate Models     │ │ │
+│  │ │   Seeds     │ │    │ │ Documenter  │ │    │ │     Mart Models         │ │ │
+│  │ │ Snapshots   │ │    │ └─────────────┘ │    │ └─────────────────────────┘ │ │
+│  │ └─────────────┘ │    └─────────────────┘    └─────────────────────────────┘ │
+│  └─────────────────┘                                                           │
+│           │                                                                     │
+│           ▼                                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                           WORKFLOW EXECUTION                                │ │
+│  │                                                                             │ │
+│  │  1. Parse dbt_project.yml and model files                                  │ │
+│  │  2. Build dependency graph (DAG)                                           │ │
+│  │  3. Compile Jinja templates to SQL                                         │ │
+│  │  4. Execute SQL in dependency order                                        │ │
+│  │  5. Run tests and generate documentation                                   │ │
+│  │                                                                             │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
 
-# Test database connection
-dbt debug
-
-# Compile models (generate SQL)
-dbt compile
-
-# Run models (execute transformations)
-dbt run
-
-# Test data quality
-dbt test
-
-# Generate documentation
-dbt docs generate
-dbt docs serve
+                              DATA TRANSFORMATION LAYERS
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                 │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
+│  │   SOURCES   │───►│   STAGING   │───►│INTERMEDIATE │───►│    MARTS    │     │
+│  │             │    │             │    │             │    │             │     │
+│  │ Raw Data    │    │ Cleaned &   │    │ Business    │    │ Final       │     │
+│  │ External    │    │ Standardized│    │ Logic       │    │ Aggregated  │     │
+│  │ Systems     │    │ Data        │    │ Applied     │    │ Models      │     │
+│  │             │    │             │    │             │    │             │     │
+│  │ • APIs      │    │ • stg_*     │    │ • int_*     │    │ • dim_*     │     │
+│  │ • Files     │    │ • Renamed   │    │ • Joined    │    │ • fct_*     │     │
+│  │ • Databases │    │ • Typed     │    │ • Calculated│    │ • mart_*    │     │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘     │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Output:**
+### Core Components
+
+**1. dbt Core Engine**
+- **Parser**: Reads and validates dbt project files
+- **Compiler**: Converts Jinja templates to executable SQL
+- **Executor**: Runs SQL against the data warehouse
+- **Graph Builder**: Creates dependency graph from model references
+
+**2. Project Structure**
 ```
-Running with dbt=1.7.0
-Found 5 models, 12 tests, 0 snapshots, 0 analyses, 3 macros, 0 operations, 1 seed file, 2 sources, 0 exposures, 0 metrics, 0 groups
-
-Completed successfully
-
-Done. PASS=5 WARN=0 ERROR=0 SKIP=0 TOTAL=5
-```
-
----
-
-## Project Structure
-
-### DBT Project Organization
-
-#### 🎯 **Standard Project Structure**
-```
-my_analytics_project/
+dbt_project/
 ├── dbt_project.yml          # Project configuration
-├── profiles.yml             # Database connection profiles
-├── packages.yml             # Package dependencies
+├── profiles.yml             # Connection profiles
 ├── models/                  # SQL model files
 │   ├── staging/            # Raw data cleaning
 │   ├── intermediate/       # Business logic
-│   └── marts/             # Final business tables
-├── tests/                  # Custom test files
-├── macros/                # Reusable SQL functions
-├── seeds/                 # CSV reference data
+│   └── marts/             # Final output models
+├── macros/                 # Reusable SQL functions
+├── tests/                  # Custom data tests
+├── seeds/                  # CSV reference data
 ├── snapshots/             # SCD Type 2 tables
-├── analyses/              # Ad-hoc analysis
-└── docs/                  # Additional documentation
+└── analyses/              # Ad-hoc queries
 ```
 
-```yaml
-# dbt_project.yml - Project configuration
-name: 'my_analytics_project'
-version: '1.0.0'
-config-version: 2
+## 🚀 Key Features
 
-# This setting configures which "profile" dbt uses for this project.
-profile: 'my_analytics_project'
-
-# These configurations specify where dbt should look for different types of files.
-model-paths: ["models"]
-analysis-paths: ["analyses"]
-test-paths: ["tests"]
-seed-paths: ["seeds"]
-macro-paths: ["macros"]
-snapshot-paths: ["snapshots"]
-
-target-path: "target"
-clean-targets:
-  - "target"
-  - "dbt_packages"
-
-# Model configurations
-models:
-  my_analytics_project:
-    # Staging models - views for fast development
-    staging:
-      +materialized: view
-      +schema: staging
-    
-    # Intermediate models - ephemeral for performance
-    intermediate:
-      +materialized: ephemeral
-    
-    # Marts models - tables for production use
-    marts:
-      +materialized: table
-      +schema: marts
-      
-    # Specific model configurations
-    marts:
-      finance:
-        +schema: finance
-        +tags: ["finance", "daily"]
-      marketing:
-        +schema: marketing
-        +tags: ["marketing", "hourly"]
-
-# Global variables
-vars:
-  # Date range for incremental models
-  start_date: '2023-01-01'
-  end_date: '2024-12-31'
-  
-  # Business logic variables
-  high_value_threshold: 1000
-  churn_days: 90
-
-# Seeds configuration
-seeds:
-  my_analytics_project:
-    +schema: reference_data
-    +quote_columns: false
-```
-
-```yaml
-# profiles.yml - Database connection configuration
-my_analytics_project:
-  outputs:
-    dev:
-      type: snowflake
-      account: my-account
-      user: "{{ env_var('DBT_USER') }}"
-      password: "{{ env_var('DBT_PASSWORD') }}"
-      role: transformer
-      database: analytics_dev
-      warehouse: transforming
-      schema: "{{ env_var('DBT_USER') }}_dev"
-      threads: 4
-      keepalives_idle: 240
-      search_path: "analytics_dev.public"
-      
-    prod:
-      type: snowflake
-      account: my-account
-      user: "{{ env_var('DBT_PROD_USER') }}"
-      password: "{{ env_var('DBT_PROD_PASSWORD') }}"
-      role: transformer_prod
-      database: analytics_prod
-      warehouse: transforming_prod
-      schema: public
-      threads: 8
-      keepalives_idle: 240
-      
-  target: dev
-```
-
-**Project Setup Output:**
-```bash
-$ dbt debug
-Running with dbt=1.7.0
-dbt version: 1.7.0
-python version: 3.9.16
-python path: /usr/local/bin/python
-os info: macOS-13.4.1-arm64-arm-64bit
-Using profiles.yml file at /Users/user/.dbt/profiles.yml
-Using dbt_project.yml file at /path/to/my_analytics_project/dbt_project.yml
-
-Configuration:
-  profiles.yml file [OK found and valid]
-  dbt_project.yml file [OK found and valid]
-
-Required dependencies:
- - git [OK found]
-
-Connection:
-  account: my-account
-  user: transformer_user
-  database: analytics_dev
-  schema: user_dev
-  warehouse: transforming
-  role: transformer
-  client_session_keep_alive: False
-  Connection test: [OK connection ok]
-
-All checks passed!
-```
-
----
-
-## Models and Materializations
-
-### Model Development Patterns
-
-#### 🎯 **Materialization Strategies**
-- **View**: Fast development, query-time computation
-- **Table**: Pre-computed, faster queries
-- **Incremental**: Efficient for large datasets
-- **Ephemeral**: CTE, no physical materialization
+### 1. SQL-First Approach
+**Definition**: Write transformations in SQL with Jinja templating for dynamic logic.
 
 ```sql
 -- models/staging/stg_orders.sql
-{{ config(
-    materialized='view',
-    tags=['staging', 'orders']
-) }}
+{{ config(materialized='view') }}
 
-WITH source_data AS (
-    SELECT 
-        order_id,
-        customer_id,
-        product_id,
-        order_date,
-        order_amount,
-        status,
-        created_at,
-        updated_at
-    FROM {{ source('ecommerce', 'orders') }}
-),
+select
+    order_id,
+    customer_id,
+    order_date,
+    -- Use macro for standardization
+    {{ standardize_currency('order_amount') }} as order_amount,
+    status,
+    -- Jinja for conditional logic
+    {% if var('include_tax', false) %}
+    tax_amount,
+    {% endif %}
+    created_at,
+    updated_at
+from {{ source('raw', 'orders') }}
+where order_date >= '{{ var("start_date") }}'
+```
 
-cleaned_data AS (
-    SELECT 
-        order_id,
-        customer_id,
-        product_id,
-        order_date,
-        order_amount,
-        UPPER(TRIM(status)) AS status,
-        created_at,
-        updated_at,
-        
-        -- Derived fields
-        EXTRACT(YEAR FROM order_date) AS order_year,
-        EXTRACT(MONTH FROM order_date) AS order_month,
-        EXTRACT(QUARTER FROM order_date) AS order_quarter,
-        EXTRACT(DOW FROM order_date) AS order_day_of_week,
-        
-        -- Business categorization
-        CASE 
-            WHEN order_amount >= 500 THEN 'High'
-            WHEN order_amount >= 100 THEN 'Medium'
-            ELSE 'Low'
-        END AS order_value_tier
-        
-    FROM source_data
-    WHERE order_id IS NOT NULL
-        AND customer_id IS NOT NULL
-        AND order_amount > 0
-        AND order_date >= '2020-01-01'
-)
+### 2. Dependency Management
+**Definition**: Automatic dependency resolution using `ref()` and `source()` functions.
 
-SELECT * FROM cleaned_data
+```sql
+-- models/intermediate/int_customer_orders.sql
+select
+    c.customer_id,
+    c.customer_name,
+    count(o.order_id) as total_orders,
+    sum(o.order_amount) as total_spent
+from {{ ref('stg_customers') }} c
+left join {{ ref('stg_orders') }} o
+    on c.customer_id = o.customer_id
+group by c.customer_id, c.customer_name
+```
 
--- models/intermediate/int_customer_order_metrics.sql
-{{ config(
-    materialized='ephemeral',
-    tags=['intermediate', 'metrics']
-) }}
+### 3. Built-in Testing Framework
+**Definition**: Data quality tests to ensure model reliability.
 
-WITH orders AS (
-    SELECT * FROM {{ ref('stg_orders') }}
-),
+```yaml
+# models/schema.yml
+version: 2
 
-customer_metrics AS (
-    SELECT 
-        customer_id,
-        
-        -- Order counts
-        COUNT(*) AS total_orders,
-        COUNT(CASE WHEN status = 'DELIVERED' THEN 1 END) AS delivered_orders,
-        COUNT(CASE WHEN status = 'CANCELLED' THEN 1 END) AS cancelled_orders,
-        
-        -- Financial metrics
-        SUM(order_amount) AS total_spent,
-        AVG(order_amount) AS avg_order_value,
-        MIN(order_amount) AS min_order_value,
-        MAX(order_amount) AS max_order_value,
-        
-        -- Temporal metrics
-        MIN(order_date) AS first_order_date,
-        MAX(order_date) AS last_order_date,
-        DATEDIFF('day', MIN(order_date), MAX(order_date)) AS customer_lifespan_days,
-        
-        -- Value tier distribution
-        COUNT(CASE WHEN order_value_tier = 'High' THEN 1 END) AS high_value_orders,
-        COUNT(CASE WHEN order_value_tier = 'Medium' THEN 1 END) AS medium_value_orders,
-        COUNT(CASE WHEN order_value_tier = 'Low' THEN 1 END) AS low_value_orders
-        
-    FROM orders
-    GROUP BY customer_id
-)
+models:
+  - name: dim_customers
+    description: "Customer dimension table"
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier"
+        tests:
+          - unique
+          - not_null
+      - name: email
+        tests:
+          - unique
+          - not_null
+      - name: total_orders
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+```
 
-SELECT * FROM customer_metrics
+### 4. Auto-Generated Documentation
+**Definition**: Automatically generates documentation and data lineage graphs.
 
--- models/marts/dim_customers.sql
+```bash
+# Generate documentation
+dbt docs generate
+
+# Serve documentation locally
+dbt docs serve --port 8080
+```
+
+## 📊 Models & Materializations
+
+### Model Types
+
+**1. Staging Models**
+- Clean and standardize raw data
+- One-to-one with source tables
+- Naming convention: `stg_<source>_<table>`
+
+```sql
+-- models/staging/stg_raw_customers.sql
+{{ config(materialized='view') }}
+
+select
+    customer_id,
+    lower(trim(first_name)) as first_name,
+    lower(trim(last_name)) as last_name,
+    lower(trim(email)) as email,
+    phone,
+    created_at,
+    updated_at
+from {{ source('raw', 'customers') }}
+```
+
+**2. Intermediate Models**
+- Business logic and complex joins
+- Not exposed to end users
+- Naming convention: `int_<description>`
+
+```sql
+-- models/intermediate/int_customer_metrics.sql
+{{ config(materialized='ephemeral') }}
+
+select
+    customer_id,
+    count(distinct order_id) as lifetime_orders,
+    sum(order_amount) as lifetime_value,
+    avg(order_amount) as avg_order_value,
+    max(order_date) as last_order_date
+from {{ ref('stg_orders') }}
+group by customer_id
+```
+
+**3. Mart Models**
+- Final business-ready models
+- Optimized for analytics and reporting
+- Naming convention: `dim_*`, `fct_*`, `mart_*`
+
+```sql
+-- models/marts/core/dim_customers.sql
 {{ config(
     materialized='table',
     indexes=[
-        {'columns': ['customer_id'], 'unique': True},
-        {'columns': ['customer_segment']}
-    ],
-    tags=['marts', 'dimensions']
+        {'columns': ['customer_id'], 'unique': True}
+    ]
 ) }}
 
-WITH customers AS (
-    SELECT * FROM {{ ref('stg_customers') }}
-),
-
-customer_metrics AS (
-    SELECT * FROM {{ ref('int_customer_order_metrics') }}
-),
-
-final AS (
-    SELECT 
-        c.customer_id,
-        c.first_name,
-        c.last_name,
-        c.email,
-        c.phone,
-        c.created_at AS customer_created_at,
-        
-        -- Order metrics (with defaults for customers with no orders)
-        COALESCE(m.total_orders, 0) AS total_orders,
-        COALESCE(m.delivered_orders, 0) AS delivered_orders,
-        COALESCE(m.cancelled_orders, 0) AS cancelled_orders,
-        COALESCE(m.total_spent, 0) AS lifetime_value,
-        COALESCE(m.avg_order_value, 0) AS avg_order_value,
-        m.first_order_date,
-        m.last_order_date,
-        COALESCE(m.customer_lifespan_days, 0) AS customer_lifespan_days,
-        
-        -- Recency calculation
-        CASE 
-            WHEN m.last_order_date IS NULL THEN NULL
-            ELSE DATEDIFF('day', m.last_order_date, CURRENT_DATE())
-        END AS days_since_last_order,
-        
-        -- Customer segmentation
-        CASE 
-            WHEN m.total_spent IS NULL THEN 'No Orders'
-            WHEN m.total_spent >= {{ var('high_value_threshold') }} THEN 'High Value'
-            WHEN m.total_spent >= 500 THEN 'Medium Value'
-            WHEN m.total_spent > 0 THEN 'Low Value'
-            ELSE 'No Orders'
-        END AS customer_segment,
-        
-        -- Churn prediction
-        CASE 
-            WHEN m.last_order_date IS NULL THEN 'Never Ordered'
-            WHEN DATEDIFF('day', m.last_order_date, CURRENT_DATE()) <= 30 THEN 'Active'
-            WHEN DATEDIFF('day', m.last_order_date, CURRENT_DATE()) <= {{ var('churn_days') }} THEN 'At Risk'
-            ELSE 'Churned'
-        END AS churn_status,
-        
-        CURRENT_TIMESTAMP() AS dbt_updated_at
-        
-    FROM customers c
-    LEFT JOIN customer_metrics m ON c.customer_id = m.customer_id
-)
-
-SELECT * FROM final
-
--- models/marts/fct_daily_orders.sql - Incremental model
-{{ config(
-    materialized='incremental',
-    unique_key='order_date',
-    on_schema_change='fail',
-    tags=['marts', 'facts', 'daily']
-) }}
-
-WITH orders AS (
-    SELECT * FROM {{ ref('stg_orders') }}
-    
-    {% if is_incremental() %}
-        -- Only process new data in incremental runs
-        WHERE order_date > (SELECT MAX(order_date) FROM {{ this }})
-    {% endif %}
-),
-
-daily_aggregates AS (
-    SELECT 
-        order_date,
-        
-        -- Order counts
-        COUNT(*) AS total_orders,
-        COUNT(CASE WHEN status = 'DELIVERED' THEN 1 END) AS delivered_orders,
-        COUNT(CASE WHEN status = 'CANCELLED' THEN 1 END) AS cancelled_orders,
-        COUNT(CASE WHEN status = 'PENDING' THEN 1 END) AS pending_orders,
-        
-        -- Customer metrics
-        COUNT(DISTINCT customer_id) AS unique_customers,
-        COUNT(DISTINCT CASE WHEN status = 'DELIVERED' THEN customer_id END) AS customers_with_delivered_orders,
-        
-        -- Financial metrics
-        SUM(order_amount) AS total_revenue,
-        SUM(CASE WHEN status = 'DELIVERED' THEN order_amount ELSE 0 END) AS delivered_revenue,
-        AVG(order_amount) AS avg_order_value,
-        MIN(order_amount) AS min_order_value,
-        MAX(order_amount) AS max_order_value,
-        
-        -- Value tier distribution
-        COUNT(CASE WHEN order_value_tier = 'High' THEN 1 END) AS high_value_orders,
-        COUNT(CASE WHEN order_value_tier = 'Medium' THEN 1 END) AS medium_value_orders,
-        COUNT(CASE WHEN order_value_tier = 'Low' THEN 1 END) AS low_value_orders,
-        
-        CURRENT_TIMESTAMP() AS dbt_updated_at
-        
-    FROM orders
-    GROUP BY order_date
-)
-
-SELECT * FROM daily_aggregates
+select
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    c.email,
+    c.phone,
+    m.lifetime_orders,
+    m.lifetime_value,
+    m.avg_order_value,
+    case
+        when m.lifetime_value > 1000 then 'high_value'
+        when m.lifetime_value > 100 then 'medium_value'
+        else 'low_value'
+    end as customer_segment,
+    c.created_at
+from {{ ref('stg_customers') }} c
+left join {{ ref('int_customer_metrics') }} m
+    on c.customer_id = m.customer_id
 ```
 
-**Model Execution Output:**
-```bash
-$ dbt run --models +dim_customers
+### Materializations
 
-Running with dbt=1.7.0
-Found 4 models, 0 tests, 0 snapshots, 0 analyses, 0 macros, 0 operations, 0 seed files, 1 source, 0 exposures, 0 metrics, 0 groups
-
-Completed successfully
-
-Done. PASS=4 WARN=0 ERROR=0 SKIP=0 TOTAL=4
-
-$ dbt run --models fct_daily_orders --full-refresh
-
-Running with dbt=1.7.0
-Found 1 model, 0 tests, 0 snapshots, 0 analyses, 0 macros, 0 operations, 0 seed files, 1 source, 0 exposures, 0 metrics, 0 groups
-
-14:30:15  Running 1 on-run-start hook
-14:30:15  1 of 1 START table model marts.fct_daily_orders ........................ [RUN]
-14:30:18  1 of 1 OK created table model marts.fct_daily_orders ................... [CREATE TABLE (365 rows, 0 processed) in 3.21s]
-
-Completed successfully
-
-Done. PASS=1 WARN=0 ERROR=0 SKIP=0 TOTAL=1
-```
-
----
-
-## Sources and References
-
-### Data Lineage and Dependencies
-
-#### 🎯 **Source Management**
-- **Sources**: External data tables
-- **Freshness**: Data recency monitoring
-- **References**: Model dependencies
-- **Lineage**: Automatic dependency tracking
-
-```yaml
-# models/staging/sources.yml
-version: 2
-
-sources:
-  - name: ecommerce
-    description: E-commerce operational database
-    database: raw_data
-    schema: public
-    tables:
-      - name: customers
-        description: Customer master data
-        columns:
-          - name: customer_id
-            description: Primary key for customers
-            tests:
-              - unique
-              - not_null
-          - name: email
-            description: Customer email address
-            tests:
-              - unique
-              - not_null
-        freshness:
-          warn_after: {count: 12, period: hour}
-          error_after: {count: 24, period: hour}
-        loaded_at_field: updated_at
-        
-      - name: orders
-        description: Order transaction data
-        columns:
-          - name: order_id
-            description: Primary key for orders
-            tests:
-              - unique
-              - not_null
-          - name: customer_id
-            description: Foreign key to customers table
-            tests:
-              - not_null
-              - relationships:
-                  to: source('ecommerce', 'customers')
-                  field: customer_id
-          - name: order_amount
-            description: Total order amount in USD
-            tests:
-              - not_null
-              - dbt_expectations.expect_column_values_to_be_between:
-                  min_value: 0
-                  max_value: 10000
-        freshness:
-          warn_after: {count: 6, period: hour}
-          error_after: {count: 12, period: hour}
-        loaded_at_field: created_at
-        
-      - name: products
-        description: Product catalog data
-        columns:
-          - name: product_id
-            tests:
-              - unique
-              - not_null
-          - name: product_name
-            tests:
-              - not_null
-          - name: category
-            tests:
-              - accepted_values:
-                  values: ['Electronics', 'Clothing', 'Books', 'Home', 'Sports']
-
-  - name: external_data
-    description: External data sources
-    database: external_db
-    schema: api_data
-    tables:
-      - name: weather_data
-        description: Daily weather information
-        freshness:
-          warn_after: {count: 1, period: day}
-          error_after: {count: 2, period: day}
-```
+**1. View (Default)**
+- Stored as database view
+- No additional storage cost
+- Query executed each time
 
 ```sql
--- models/staging/stg_customers.sql
 {{ config(materialized='view') }}
+select * from {{ ref('base_model') }}
+```
 
-WITH source_customers AS (
-    SELECT 
-        customer_id,
-        first_name,
-        last_name,
-        email,
-        phone,
-        address,
-        city,
-        state,
-        zip_code,
-        created_at,
-        updated_at
-    FROM {{ source('ecommerce', 'customers') }}
-),
+**2. Table**
+- Stored as physical table
+- Faster query performance
+- Requires storage space
 
-cleaned_customers AS (
-    SELECT 
-        customer_id,
-        TRIM(INITCAP(first_name)) AS first_name,
-        TRIM(INITCAP(last_name)) AS last_name,
-        LOWER(TRIM(email)) AS email,
-        REGEXP_REPLACE(phone, '[^0-9]', '') AS phone_clean,
-        TRIM(address) AS address,
-        TRIM(INITCAP(city)) AS city,
-        UPPER(TRIM(state)) AS state,
-        TRIM(zip_code) AS zip_code,
-        created_at,
-        updated_at,
-        
-        -- Derived fields
-        CONCAT(TRIM(INITCAP(first_name)), ' ', TRIM(INITCAP(last_name))) AS full_name,
-        SPLIT_PART(email, '@', 2) AS email_domain,
-        LENGTH(phone) = 10 AS is_valid_phone
-        
-    FROM source_customers
-    WHERE customer_id IS NOT NULL
-        AND email IS NOT NULL
-        AND email LIKE '%@%'
-)
+```sql
+{{ config(materialized='table') }}
+select * from {{ ref('base_model') }}
+```
 
-SELECT * FROM cleaned_customers
+**3. Incremental**
+- Only processes new/changed records
+- Efficient for large datasets
+- Requires unique key
 
--- models/intermediate/int_order_enrichment.sql
+```sql
+{{ config(
+    materialized='incremental',
+    unique_key='order_id',
+    on_schema_change='fail'
+) }}
+
+select * from {{ ref('stg_orders') }}
+
+{% if is_incremental() %}
+    where updated_at > (select max(updated_at) from {{ this }})
+{% endif %}
+```
+
+**4. Ephemeral**
+- Compiled as CTE in dependent models
+- No physical storage
+- Useful for intermediate transformations
+
+```sql
 {{ config(materialized='ephemeral') }}
-
-WITH orders AS (
-    SELECT * FROM {{ ref('stg_orders') }}
-),
-
-customers AS (
-    SELECT * FROM {{ ref('stg_customers') }}
-),
-
-products AS (
-    SELECT * FROM {{ ref('stg_products') }}
-),
-
-enriched_orders AS (
-    SELECT 
-        o.order_id,
-        o.customer_id,
-        o.product_id,
-        o.order_date,
-        o.order_amount,
-        o.status,
-        o.order_value_tier,
-        
-        -- Customer information
-        c.full_name AS customer_name,
-        c.email AS customer_email,
-        c.city AS customer_city,
-        c.state AS customer_state,
-        
-        -- Product information
-        p.product_name,
-        p.category AS product_category,
-        p.price AS product_price,
-        
-        -- Calculated fields
-        o.order_amount - p.price AS price_difference,
-        CASE 
-            WHEN o.order_amount > p.price THEN 'Above List Price'
-            WHEN o.order_amount < p.price THEN 'Below List Price'
-            ELSE 'At List Price'
-        END AS pricing_category,
-        
-        -- Time-based fields
-        DATEDIFF('day', c.created_at, o.order_date) AS days_since_customer_signup
-        
-    FROM orders o
-    LEFT JOIN customers c ON o.customer_id = c.customer_id
-    LEFT JOIN products p ON o.product_id = p.product_id
-)
-
-SELECT * FROM enriched_orders
-
--- Show lineage with dbt docs
--- This generates an interactive lineage graph
+select * from {{ ref('base_model') }}
 ```
 
-**Source Freshness Check Output:**
-```bash
-$ dbt source freshness
+## 🧪 Testing & Documentation
 
-Running with dbt=1.7.0
-Found 3 sources
+### Built-in Tests
 
-14:30:15  Checking freshness of ecommerce.customers
-14:30:15  Checking freshness of ecommerce.orders
-14:30:15  Checking freshness of ecommerce.products
-
-Completed successfully
-
-Sources:
-  PASS freshness of ecommerce.customers
-  WARN freshness of ecommerce.orders (warn after 6 hours, last update: 8 hours ago)
-  PASS freshness of ecommerce.products
-
-Done. PASS=2 WARN=1 ERROR=0 SKIP=0 TOTAL=3
-```
-
----
-
-## Testing and Documentation
-
-### Comprehensive Data Quality Framework
-
-#### 🎯 **Testing Strategy**
-- **Generic Tests**: Built-in validations
-- **Singular Tests**: Custom SQL assertions
-- **Data Tests**: Column-level checks
-- **Relationship Tests**: Cross-table validations
-
+**1. Schema Tests**
 ```yaml
-# models/marts/schema.yml
+version: 2
+
+models:
+  - name: customers
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['active', 'inactive', 'pending']
+```
+
+**2. Data Tests**
+```sql
+-- tests/assert_positive_order_amounts.sql
+select *
+from {{ ref('fct_orders') }}
+where order_amount <= 0
+```
+
+**3. Custom Generic Tests**
+```sql
+-- macros/test_not_empty_string.sql
+{% macro test_not_empty_string(model, column_name) %}
+    select *
+    from {{ model }}
+    where trim({{ column_name }}) = '' or {{ column_name }} is null
+{% endmacro %}
+```
+
+### Documentation
+
+**1. Model Documentation**
+```yaml
 version: 2
 
 models:
   - name: dim_customers
     description: |
       Customer dimension table containing all customer information
-      enriched with order metrics and segmentation.
-      
-      This table is updated daily and includes:
-      - Basic customer information (name, email, phone)
-      - Order metrics (total orders, lifetime value, etc.)
-      - Customer segmentation (High/Medium/Low value)
-      - Churn status prediction
-      
+      and calculated metrics for analytics and reporting.
     columns:
       - name: customer_id
-        description: Unique identifier for each customer
-        tests:
-          - unique
-          - not_null
-      
-      - name: email
-        description: Customer email address (primary contact method)
-        tests:
-          - unique
-          - not_null
-          - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-      
-      - name: lifetime_value
-        description: Total amount spent by customer across all orders
-        tests:
-          - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 50000
-      
+        description: "Primary key for customers"
       - name: customer_segment
-        description: Customer value segmentation
-        tests:
-          - accepted_values:
-              values: ['High Value', 'Medium Value', 'Low Value', 'No Orders']
-      
-      - name: churn_status
-        description: Customer activity status
-        tests:
-          - accepted_values:
-              values: ['Active', 'At Risk', 'Churned', 'Never Ordered']
-    
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          min_value: 1000
-          max_value: 100000
-      - dbt_utils.expression_is_true:
-          expression: "total_orders >= 0"
-      - dbt_utils.expression_is_true:
-          expression: "lifetime_value >= 0"
-
-  - name: fct_daily_orders
-    description: Daily aggregated order metrics
-    columns:
-      - name: order_date
-        description: Date of orders (primary key)
-        tests:
-          - unique
-          - not_null
-      - name: total_orders
-        description: Total number of orders for the day
-        tests:
-          - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 10000
-      - name: total_revenue
-        description: Total revenue for the day
-        tests:
-          - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1000000
+        description: |
+          Customer value segment based on lifetime value:
+          - high_value: >$1000
+          - medium_value: $100-$1000  
+          - low_value: <$100
 ```
 
+**2. Source Documentation**
+```yaml
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data from operational systems"
+    tables:
+      - name: customers
+        description: "Customer data from CRM system"
+        columns:
+          - name: customer_id
+            description: "Unique customer identifier"
+            tests:
+              - unique
+              - not_null
+```
+
+## 🔧 Macros & Jinja
+
+### Jinja Templating
+
+**1. Variables**
 ```sql
--- tests/assert_customer_email_uniqueness.sql
--- Custom test to ensure email uniqueness across active customers
-SELECT 
-    email,
-    COUNT(*) AS email_count
-FROM {{ ref('dim_customers') }}
-WHERE churn_status != 'Churned'
-GROUP BY email
-HAVING COUNT(*) > 1
+-- Use variables for dynamic values
+select * from orders
+where order_date >= '{{ var("start_date") }}'
+  and region = '{{ var("region", "US") }}'  -- Default value
+```
 
--- tests/assert_order_amount_consistency.sql
--- Test to ensure order amounts match between staging and marts
-WITH staging_totals AS (
-    SELECT 
-        DATE(order_date) AS order_date,
-        SUM(order_amount) AS staging_total
-    FROM {{ ref('stg_orders') }}
-    GROUP BY DATE(order_date)
-),
+**2. Conditional Logic**
+```sql
+select
+    order_id,
+    customer_id,
+    {% if var('include_pii', false) %}
+    customer_email,
+    customer_phone,
+    {% endif %}
+    order_amount
+from {{ ref('stg_orders') }}
+```
 
-marts_totals AS (
-    SELECT 
-        order_date,
-        total_revenue AS marts_total
-    FROM {{ ref('fct_daily_orders') }}
-),
+**3. Loops**
+```sql
+select
+    order_id,
+    {% for status in ['pending', 'shipped', 'delivered'] %}
+    sum(case when status = '{{ status }}' then 1 else 0 end) as {{ status }}_count
+    {%- if not loop.last -%},{%- endif %}
+    {% endfor %}
+from {{ ref('stg_orders') }}
+group by order_id
+```
 
-comparison AS (
-    SELECT 
-        s.order_date,
-        s.staging_total,
-        m.marts_total,
-        ABS(s.staging_total - m.marts_total) AS difference
-    FROM staging_totals s
-    JOIN marts_totals m ON s.order_date = m.order_date
-    WHERE ABS(s.staging_total - m.marts_total) > 0.01
-)
+### Custom Macros
 
-SELECT * FROM comparison
+**1. Utility Macros**
+```sql
+-- macros/cents_to_dollars.sql
+{% macro cents_to_dollars(column_name, precision=2) %}
+    round({{ column_name }} / 100.0, {{ precision }})
+{% endmacro %}
 
--- tests/assert_data_freshness.sql
--- Test to ensure data is fresh enough for business needs
-SELECT 
-    'stg_orders' AS table_name,
-    MAX(created_at) AS last_updated,
-    CURRENT_TIMESTAMP() AS check_time,
-    DATEDIFF('hour', MAX(created_at), CURRENT_TIMESTAMP()) AS hours_since_update
-FROM {{ ref('stg_orders') }}
-WHERE DATEDIFF('hour', MAX(created_at), CURRENT_TIMESTAMP()) > 6
+-- Usage in model
+select
+    order_id,
+    {{ cents_to_dollars('amount_cents') }} as amount_dollars
+from {{ ref('stg_orders') }}
+```
 
-UNION ALL
+**2. Advanced Macros**
+```sql
+-- macros/pivot.sql
+{% macro pivot(column, values, agg='sum', then_value=1) %}
+  {% for value in values %}
+    {{ agg }}(
+      case when {{ column }} = '{{ value }}' 
+           then {{ then_value }} 
+           else 0 
+      end
+    ) as {{ value }}
+    {%- if not loop.last -%},{%- endif %}
+  {% endfor %}
+{% endmacro %}
 
-SELECT 
-    'dim_customers' AS table_name,
-    MAX(dbt_updated_at) AS last_updated,
-    CURRENT_TIMESTAMP() AS check_time,
-    DATEDIFF('hour', MAX(dbt_updated_at), CURRENT_TIMESTAMP()) AS hours_since_update
-FROM {{ ref('dim_customers') }}
-WHERE DATEDIFF('hour', MAX(dbt_updated_at), CURRENT_TIMESTAMP()) > 24
+-- Usage
+select
+    customer_id,
+    {{ pivot('product_category', ['electronics', 'clothing', 'books']) }}
+from {{ ref('stg_orders') }}
+group by customer_id
+```
 
--- Macro for reusable testing
--- macros/test_not_empty_string.sql
-{% test not_empty_string(model, column_name) %}
-    SELECT *
-    FROM {{ model }}
-    WHERE {{ column_name }} IS NOT NULL
-        AND TRIM({{ column_name }}) = ''
-{% endtest %}
+## 📥 Sources & Seeds
 
--- macros/test_valid_date_range.sql
-{% test valid_date_range(model, column_name, start_date, end_date) %}
-    SELECT *
-    FROM {{ model }}
-    WHERE {{ column_name }} < '{{ start_date }}'
-        OR {{ column_name }} > '{{ end_date }}'
-{% endtest %}
+### Sources
+
+**Definition**: External data tables that dbt reads but doesn't create.
+
+```yaml
+# models/sources.yml
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data from operational systems"
+    database: production
+    schema: raw_data
+    tables:
+      - name: customers
+        description: "Customer data from CRM"
+        columns:
+          - name: customer_id
+            tests:
+              - unique
+              - not_null
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+      - name: orders
+        description: "Order data from e-commerce platform"
+        loaded_at_field: updated_at
+        freshness:
+          warn_after: {count: 6, period: hour}
+          error_after: {count: 12, period: hour}
+```
+
+### Seeds
+
+**Definition**: CSV files with reference data that dbt loads into the warehouse.
+
+```csv
+# seeds/product_categories.csv
+category_id,category_name,category_type
+1,Electronics,Physical
+2,Software,Digital
+3,Books,Physical
+4,Courses,Digital
 ```
 
 ```yaml
-# Using custom tests in schema.yml
-models:
-  - name: dim_customers
-    columns:
-      - name: full_name
-        tests:
-          - not_empty_string
-      - name: customer_created_at
-        tests:
-          - valid_date_range:
-              start_date: '2020-01-01'
-              end_date: '2025-12-31'
+# dbt_project.yml
+seeds:
+  my_project:
+    product_categories:
+      +column_types:
+        category_id: integer
+        category_name: varchar(50)
+        category_type: varchar(20)
 ```
 
-**Testing Output:**
+## 📸 Snapshots & Incremental Models
+
+### Snapshots (SCD Type 2)
+
+**Definition**: Capture changes in mutable source tables over time.
+
+```sql
+-- snapshots/customers_snapshot.sql
+{% snapshot customers_snapshot %}
+    {{
+        config(
+          target_database='analytics',
+          target_schema='snapshots',
+          unique_key='customer_id',
+          strategy='timestamp',
+          updated_at='updated_at',
+        )
+    }}
+    
+    select * from {{ source('raw', 'customers') }}
+{% endsnapshot %}
+```
+
+### Incremental Models
+
+**Definition**: Efficiently process only new or changed records.
+
+```sql
+-- models/fct_orders.sql
+{{ config(
+    materialized='incremental',
+    unique_key='order_id',
+    on_schema_change='fail'
+) }}
+
+select
+    order_id,
+    customer_id,
+    order_date,
+    order_amount,
+    status,
+    created_at,
+    updated_at
+from {{ source('raw', 'orders') }}
+
+{% if is_incremental() %}
+    -- Only process records newer than the latest in the target table
+    where updated_at > (select max(updated_at) from {{ this }})
+{% endif %}
+```
+
+## 📦 Packages & Dependencies
+
+### Package Management
+
+**1. Installing Packages**
+```yaml
+# packages.yml
+packages:
+  - package: dbt-labs/dbt_utils
+    version: 1.1.1
+  - package: calogica/dbt_expectations
+    version: 0.10.1
+  - git: "https://github.com/custom/dbt_package.git"
+    revision: v1.0.0
+```
+
+**2. Using Package Macros**
+```sql
+-- Using dbt_utils macros
+select
+    {{ dbt_utils.generate_surrogate_key(['customer_id', 'order_date']) }} as order_key,
+    customer_id,
+    order_date,
+    {{ dbt_utils.pivot('product_category', 
+                       dbt_utils.get_column_values(ref('stg_orders'), 'product_category')) }}
+from {{ ref('stg_orders') }}
+group by customer_id, order_date
+```
+
+## 🚀 Deployment & Environments
+
+### Environment Configuration
+
+**1. profiles.yml**
+```yaml
+my_project:
+  outputs:
+    dev:
+      type: snowflake
+      account: abc123.us-east-1
+      user: "{{ env_var('DBT_USER') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      role: transformer
+      database: dev_warehouse
+      warehouse: dev_wh
+      schema: dbt_{{ env_var('DBT_USER') }}
+      
+    prod:
+      type: snowflake
+      account: abc123.us-east-1
+      user: "{{ env_var('DBT_USER') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      role: transformer
+      database: prod_warehouse
+      warehouse: prod_wh
+      schema: analytics
+      
+  target: dev
+```
+
+**2. Environment Variables**
+```yaml
+# dbt_project.yml
+vars:
+  start_date: '2020-01-01'
+  timezone: 'UTC'
+  
+  # Environment-specific variables
+  dev:
+    batch_size: 1000
+  prod:
+    batch_size: 10000
+```
+
+### CI/CD Integration
+
+```yaml
+# .github/workflows/dbt.yml
+name: dbt CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          
+      - name: Install dbt
+        run: pip install dbt-snowflake
+        
+      - name: Run dbt debug
+        run: dbt debug
+        env:
+          DBT_PROFILES_DIR: .
+          
+      - name: Run dbt tests
+        run: dbt test
+        
+      - name: Run dbt docs generate
+        run: dbt docs generate
+        
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run dbt in production
+        run: dbt run --target prod
+```
+
+## 🎯 Use Cases & Integration
+
+### Primary Use Cases
+
+**1. Data Warehouse Transformation**
+- ELT pipeline orchestration
+- Data modeling and dimensional design
+- Business logic implementation
+
+**2. Analytics Engineering**
+- Self-service analytics preparation
+- Metric standardization
+- Data quality assurance
+
+**3. Data Governance**
+- Documentation and lineage
+- Testing and validation
+- Version control for transformations
+
+### Integration Patterns
+
+**1. Modern Data Stack**
+```
+Extraction → Loading → Transformation → Visualization
+(Fivetran) → (Snowflake) → (dbt) → (Looker/Tableau)
+```
+
+**2. Cloud Data Platforms**
+- **Snowflake**: Native integration with dbt Cloud
+- **BigQuery**: Optimized for BigQuery SQL dialect
+- **Redshift**: Supports Redshift-specific features
+- **Databricks**: Integration with Delta Lake
+
+**3. Orchestration Tools**
+- **Airflow**: Schedule dbt runs as DAG tasks
+- **Prefect**: Workflow orchestration with dbt
+- **GitHub Actions**: CI/CD automation
+- **dbt Cloud**: Native scheduling and monitoring
+
+## 📈 Version Highlights
+
+### dbt Core 1.7+ (Latest)
+- **Semantic Layer**: Centralized metric definitions
+- **Model Contracts**: Enforce model interfaces
+- **Python Models**: Support for Python transformations
+- **Microbatch**: Incremental processing improvements
+
+### dbt Core 1.6
+- **Model Governance**: Enhanced model contracts
+- **Advanced Incremental**: Better merge strategies
+- **Cross-Database Macros**: Improved portability
+
+### dbt Core 1.5
+- **Model Versions**: Semantic versioning for models
+- **Groups**: Organize models into logical groups
+- **Access Control**: Model-level permissions
+
+### dbt Core 1.4
+- **Python Models**: Native Python support
+- **Grants**: Automated privilege management
+- **Constraints**: Database constraint enforcement
+
+## ✅ Best Practices
+
+### 1. Project Structure
+- Follow layered approach: staging → intermediate → marts
+- Use consistent naming conventions
+- Organize models by business domain
+
+### 2. Model Design
+- Keep models focused and single-purpose
+- Use ephemeral models for complex intermediate logic
+- Implement proper error handling
+
+### 3. Performance
+- Use appropriate materializations
+- Implement incremental models for large datasets
+- Optimize SQL for your warehouse
+
+### 4. Testing
+- Test all primary keys and foreign keys
+- Implement business logic tests
+- Use data freshness tests for sources
+
+### 5. Documentation
+- Document all models and columns
+- Maintain up-to-date descriptions
+- Use meaningful model and column names
+
+## ⚠️ Limitations
+
+### 1. SQL-Only Transformations
+- Limited to SQL capabilities of target warehouse
+- Complex algorithms may require external tools
+- No native support for machine learning (except Python models)
+
+### 2. Runtime Dependencies
+- Requires active warehouse connection
+- No offline development mode
+- Warehouse costs for development and testing
+
+### 3. Large Dataset Challenges
+- Full refresh can be expensive
+- Limited streaming capabilities
+- Incremental model complexity
+
+### 4. Learning Curve
+- Jinja templating syntax
+- Understanding materialization strategies
+- Debugging compiled SQL
+
+### 5. Warehouse Limitations
+- Bound by warehouse SQL dialect
+- Performance depends on warehouse optimization
+- Feature availability varies by platform
+
+## 📚 Quick References
+
+### Essential Commands
 ```bash
-$ dbt test
+# Project setup
+dbt init my_project
+dbt debug
 
-Running with dbt=1.7.0
-Found 4 models, 15 tests, 0 snapshots, 0 analyses, 2 macros, 0 operations, 0 seed files, 3 sources, 0 exposures, 0 metrics, 0 groups
+# Development
+dbt run                    # Run all models
+dbt run --select model_name # Run specific model
+dbt test                   # Run all tests
+dbt test --select model_name # Test specific model
 
-14:30:15  Running 1 on-run-start hook
-14:30:15  1 of 15 START test accepted_values_dim_customers_churn_status__Active__At_Risk__Churned__Never_Ordered [RUN]
-14:30:15  2 of 15 START test accepted_values_dim_customers_customer_segment__High_Value__Medium_Value__Low_Value__No_Orders [RUN]
-14:30:16  1 of 15 PASS accepted_values_dim_customers_churn_status__Active__At_Risk__Churned__Never_Ordered [PASS in 0.89s]
-14:30:16  2 of 15 PASS accepted_values_dim_customers_customer_segment__High_Value__Medium_Value__Low_Value__No_Orders [PASS in 0.91s]
-14:30:16  3 of 15 START test assert_customer_email_uniqueness .................... [RUN]
-14:30:16  4 of 15 START test assert_order_amount_consistency .................... [RUN]
-14:30:17  3 of 15 PASS assert_customer_email_uniqueness ........................ [PASS in 0.67s]
-14:30:17  4 of 15 PASS assert_order_amount_consistency ......................... [PASS in 0.72s]
-14:30:17  5 of 15 START test not_null_dim_customers_customer_id ................. [RUN]
-14:30:17  5 of 15 PASS not_null_dim_customers_customer_id ....................... [PASS in 0.45s]
+# Documentation
+dbt docs generate          # Generate documentation
+dbt docs serve            # Serve documentation locally
 
-Completed successfully
+# Dependencies
+dbt deps                   # Install packages
+dbt seed                   # Load seed files
+dbt snapshot              # Run snapshots
 
-Done. PASS=15 WARN=0 ERROR=0 SKIP=0 TOTAL=15
+# Compilation
+dbt compile               # Compile without running
+dbt parse                 # Parse project files
 ```
 
-This comprehensive DBT documentation provides practical, executable examples with expected outputs, following the same high-quality pattern as the previous tools. The examples cover all essential DBT concepts from basic model development to advanced testing and production deployment patterns.
+### Useful Jinja Functions
+```sql
+-- Reference functions
+{{ ref('model_name') }}           -- Reference another model
+{{ source('source_name', 'table') }} -- Reference source table
+{{ var('variable_name') }}        -- Use variable
 
-Would you like me to continue with **PostgreSQL** next, or would you prefer to see additional sections for DBT first?
+-- Utility functions
+{{ this }}                        -- Current model
+{{ is_incremental() }}           -- Check if incremental run
+{{ target.name }}                -- Current target environment
+
+-- dbt_utils functions
+{{ dbt_utils.get_column_values(ref('model'), 'column') }}
+{{ dbt_utils.generate_surrogate_key(['col1', 'col2']) }}
+{{ dbt_utils.pivot('column', ['val1', 'val2']) }}
+```
+
+### Configuration Options
+```yaml
+# Model configuration
+{{ config(
+    materialized='table',
+    indexes=[{'columns': ['id'], 'unique': True}],
+    pre_hook="grant select on {{ this }} to role reporter",
+    post_hook="analyze table {{ this }}",
+    tags=['daily', 'core']
+) }}
+```
+
+---
+
+**Key Resources:**
+- [dbt Documentation](https://docs.getdbt.com/)
+- [dbt Discourse Community](https://discourse.getdbt.com/)
+- [dbt GitHub Repository](https://github.com/dbt-labs/dbt-core)
+- [dbt Learn](https://learn.getdbt.com/)
+- [dbt Packages Hub](https://hub.getdbt.com/)

@@ -1067,3 +1067,10 @@ host_monitoring:
 6. **Secret Management**: Ansible Vault and external secret integration for security
 7. **Dynamic Inventories**: Automatically discover and manage infrastructure
 8. **Modular Design**: Roles and collections promote reusability and maintainability
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+

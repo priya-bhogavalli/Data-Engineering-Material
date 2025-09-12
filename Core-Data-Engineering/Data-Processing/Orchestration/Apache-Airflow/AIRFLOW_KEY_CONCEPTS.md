@@ -1,940 +1,803 @@
-# Apache Airflow Key Concepts for Data Engineers
+# Apache Airflow Key Concepts for Data Engineering
 
 ## 📋 Table of Contents
 
-1. [Platform Overview](#platform-overview)
-2. [Core Architecture](#core-architecture)
-3. [DAGs and Tasks](#dags-and-tasks)
-4. [Operators and Hooks](#operators-and-hooks)
-5. [Scheduling and Execution](#scheduling-and-execution)
-6. [Data Sharing and Communication](#data-sharing-and-communication)
-7. [Monitoring and Logging](#monitoring-and-logging)
-8. [Production Best Practices](#production-best-practices)
+1. [Overview](#-overview)
+2. [Core Components](#-core-components)
+   - [DAGs (Directed Acyclic Graphs)](#dags-directed-acyclic-graphs)
+   - [Tasks and Operators](#tasks-and-operators)
+   - [Executors](#executors)
+3. [Airflow Architecture](#-airflow-architecture)
+4. [Scheduling & Execution](#-scheduling--execution)
+5. [Data Passing & Communication](#-data-passing--communication)
+   - [XCom](#1-xcom)
+   - [Variables](#2-variables)
+   - [Connections](#3-connections)
+6. [Performance Optimization](#-performance-optimization)
+   - [Parallelism](#1-parallelism)
+   - [Resource Management](#2-resource-management)
+   - [Task Dependencies](#3-task-dependencies)
+7. [Configuration](#️-configuration)
+8. [Monitoring & Logging](#-monitoring--logging)
+9. [When to Use Airflow](#-when-to-use-airflow)
+10. [Interview Focus Areas](#-interview-focus-areas)
+11. [Quick References](#-quick-references)
 
 ---
 
-## Platform Overview
+## 🎯 Overview
 
-### What is Apache Airflow?
+Apache Airflow is an open-source workflow orchestration platform for developing, scheduling, and monitoring batch-oriented workflows. It allows you to programmatically author, schedule, and monitor data pipelines using Python.
 
-**Apache Airflow** is an open-source platform for developing, scheduling, and monitoring workflows programmatically.
+**Key Benefits:**
+- **Dynamic Pipeline Generation**: Pipelines configured as code (Python)
+- **Extensible**: Rich ecosystem of operators and hooks
+- **Elegant UI**: Monitor, schedule, and troubleshoot pipelines
+- **Scalable**: Modular architecture with message queues
+- **Rich Scheduling**: Cron-based scheduling with backfill capabilities
 
-#### 🎯 **Core Capabilities**
-- **Workflow Orchestration**: Define complex data pipelines as code
-- **Scheduling**: Time-based and event-driven execution
-- **Monitoring**: Rich UI for tracking pipeline execution
-- **Extensibility**: Hundreds of pre-built operators and hooks
-- **Scalability**: Distributed execution across multiple workers
+## 📦 Core Components
+
+### DAGs (Directed Acyclic Graphs)
+
+**Definition**: A DAG is a collection of tasks organized to reflect their relationships and dependencies, with no cycles.
+
+**Key Properties**:
+- **Directed**: Clear upstream/downstream relationships
+- **Acyclic**: No circular dependencies preventing infinite loops
+- **Graph**: Collection of interconnected tasks
 
 ```python
-from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
-
-def airflow_overview_demo():
-    """Demonstrate core Airflow concepts"""
-    
-    # Define default arguments for all tasks
-    default_args = {
-        'owner': 'data-engineering-team',
-        'depends_on_past': False,
-        'start_date': datetime(2024, 1, 1),
-        'email_on_failure': True,
-        'email_on_retry': False,
-        'retries': 2,
-        'retry_delay': timedelta(minutes=5)
-    }
-    
-    # Create DAG
-    dag = DAG(
-        'airflow_overview_demo',
-        default_args=default_args,
-        description='Demonstrates core Airflow concepts',
-        schedule_interval='@daily',
-        catchup=False,
-        max_active_runs=1,
-        tags=['demo', 'overview', 'data-engineering']
-    )
-    
-    def extract_data(**context):
-        """Simulate data extraction"""
-        print(f"🔄 Extracting data for {context['ds']}")
-        
-        # Simulate API call or database query
-        import random
-        import time
-        
-        time.sleep(2)  # Simulate processing time
-        
-        data = {
-            'extraction_date': context['ds'],
-            'records_found': random.randint(1000, 5000),
-            'source_systems': ['CRM', 'ERP', 'Web Analytics'],
-            'data_quality_score': round(random.uniform(0.85, 0.99), 2)
-        }
-        
-        print(f"✅ Extracted {data['records_found']} records")
-        print(f"📊 Data quality score: {data['data_quality_score']}")
-        
-        return data
-    
-    def transform_data(**context):
-        """Transform extracted data"""
-        ti = context['ti']
-        extracted_data = ti.xcom_pull(task_ids='extract_data')
-        
-        print(f"🔄 Transforming data from {extracted_data['extraction_date']}")
-        
-        # Simulate data transformations
-        transformed_data = {
-            'transformation_date': context['ds'],
-            'input_records': extracted_data['records_found'],
-            'output_records': int(extracted_data['records_found'] * extracted_data['data_quality_score']),
-            'transformations_applied': [
-                'data_cleansing',
-                'deduplication', 
-                'standardization',
-                'enrichment'
-            ]
-        }
-        
-        print(f"📈 Processed {transformed_data['input_records']} → {transformed_data['output_records']} records")
-        print(f"🔧 Applied transformations: {', '.join(transformed_data['transformations_applied'])}")
-        
-        return transformed_data
-    
-    def load_data(**context):
-        """Load transformed data"""
-        ti = context['ti']
-        transformed_data = ti.xcom_pull(task_ids='transform_data')
-        
-        print(f"🔄 Loading {transformed_data['output_records']} records")
-        
-        # Simulate data loading
-        import time
-        time.sleep(1)
-        
-        load_result = {
-            'load_date': context['ds'],
-            'records_loaded': transformed_data['output_records'],
-            'target_systems': ['Data Warehouse', 'Data Lake', 'Analytics DB'],
-            'load_duration_seconds': 45.2
-        }
-        
-        print(f"✅ Successfully loaded {load_result['records_loaded']} records")
-        print(f"🎯 Targets: {', '.join(load_result['target_systems'])}")
-        print(f"⏱️ Load duration: {load_result['load_duration_seconds']}s")
-        
-        return load_result
-    
-    # Define tasks
-    extract_task = PythonOperator(
-        task_id='extract_data',
-        python_callable=extract_data,
-        dag=dag
-    )
-    
-    transform_task = PythonOperator(
-        task_id='transform_data',
-        python_callable=transform_data,
-        dag=dag
-    )
-    
-    load_task = PythonOperator(
-        task_id='load_data',
-        python_callable=load_data,
-        dag=dag
-    )
-    
-    # Data quality check using BashOperator
-    quality_check = BashOperator(
-        task_id='data_quality_check',
-        bash_command='''
-        echo "🔍 Running data quality checks..."
-        
-        # Simulate quality checks
-        echo "✓ Schema validation: PASSED"
-        echo "✓ Null value check: PASSED"
-        echo "✓ Duplicate check: PASSED"
-        echo "✓ Business rule validation: PASSED"
-        
-        echo "✅ All quality checks passed"
-        ''',
-        dag=dag
-    )
-    
-    # Set task dependencies
-    extract_task >> transform_task >> load_task >> quality_check
-    
-    return dag
-
-# Create the demo DAG
-demo_dag = airflow_overview_demo()
-print(f"📋 Created DAG: {demo_dag.dag_id}")
-print(f"📅 Schedule: {demo_dag.schedule_interval}")
-print(f"🏷️ Tags: {demo_dag.tags}")
-print(f"📝 Tasks: {[task.task_id for task in demo_dag.tasks]}")
-```
-
-**Output:**
-```
-📋 Created DAG: airflow_overview_demo
-📅 Schedule: @daily
-🏷️ Tags: ['demo', 'overview', 'data-engineering']
-📝 Tasks: ['extract_data', 'transform_data', 'load_data', 'data_quality_check']
-
-# When executed:
-[2024-01-15 10:30:00] 🔄 Extracting data for 2024-01-15
-[2024-01-15 10:30:02] ✅ Extracted 3247 records
-[2024-01-15 10:30:03] 📊 Data quality score: 0.92
-[2024-01-15 10:30:04] 🔄 Transforming data from 2024-01-15
-[2024-01-15 10:30:05] 📈 Processed 3247 → 2987 records
-[2024-01-15 10:30:06] 🔧 Applied transformations: data_cleansing, deduplication, standardization, enrichment
-[2024-01-15 10:30:07] 🔄 Loading 2987 records
-[2024-01-15 10:30:08] ✅ Successfully loaded 2987 records
-[2024-01-15 10:30:09] 🎯 Targets: Data Warehouse, Data Lake, Analytics DB
-[2024-01-15 10:30:10] ⏱️ Load duration: 45.2s
-[2024-01-15 10:30:11] 🔍 Running data quality checks...
-[2024-01-15 10:30:12] ✓ Schema validation: PASSED
-[2024-01-15 10:30:13] ✓ Null value check: PASSED
-[2024-01-15 10:30:14] ✓ Duplicate check: PASSED
-[2024-01-15 10:30:15] ✓ Business rule validation: PASSED
-[2024-01-15 10:30:16] ✅ All quality checks passed
-```
-
----
-
-## Core Architecture
-
-### Airflow Components
-
-#### 🎯 **Architecture Overview**
-- **Web Server**: UI for monitoring and management
-- **Scheduler**: Triggers task execution based on schedule
-- **Executor**: Determines how tasks are executed
-- **Metadata Database**: Stores DAG and task state
-- **Workers**: Execute tasks (in distributed setups)
-
-```python
-from datetime import datetime, timedelta
-from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.configuration import conf
-import os
+from datetime import datetime, timedelta
 
-def explore_airflow_architecture():
-    """Explore Airflow architecture and configuration"""
-    
-    print("🏗️ Airflow Architecture Overview:")
-    print()
-    
-    # Get Airflow configuration
-    print("⚙️ Configuration:")
-    print(f"  Airflow Home: {os.environ.get('AIRFLOW_HOME', 'Not set')}")
-    print(f"  Executor: {conf.get('core', 'executor')}")
-    print(f"  SQL Alchemy Conn: {conf.get('core', 'sql_alchemy_conn')[:50]}...")
-    print(f"  Parallelism: {conf.get('core', 'parallelism')}")
-    print(f"  Max Active DAG Runs: {conf.get('core', 'max_active_runs_per_dag')}")
-    print()
-    
-    # Demonstrate different executor types
-    executor_info = {
-        'SequentialExecutor': {
-            'description': 'Single-threaded, for development only',
-            'use_case': 'Local development and testing',
-            'scalability': 'Not scalable'
-        },
-        'LocalExecutor': {
-            'description': 'Multi-process execution on single machine',
-            'use_case': 'Small to medium workloads',
-            'scalability': 'Limited by single machine resources'
-        },
-        'CeleryExecutor': {
-            'description': 'Distributed execution using Celery',
-            'use_case': 'Large-scale production deployments',
-            'scalability': 'Highly scalable across multiple machines'
-        },
-        'KubernetesExecutor': {
-            'description': 'Dynamic pod creation in Kubernetes',
-            'use_case': 'Cloud-native, containerized workloads',
-            'scalability': 'Auto-scaling based on workload'
-        }
-    }
-    
-    print("🚀 Executor Types:")
-    for executor, info in executor_info.items():
-        print(f"  {executor}:")
-        print(f"    Description: {info['description']}")
-        print(f"    Use Case: {info['use_case']}")
-        print(f"    Scalability: {info['scalability']}")
-        print()
-    
-    return executor_info
+# DAG definition
+default_args = {
+    'owner': 'data_team',
+    'depends_on_past': False,
+    'start_date': datetime(2024, 1, 1),
+    'email_on_failure': True,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5)
+}
 
-def demonstrate_task_execution_context(**context):
-    """Demonstrate task execution context and metadata"""
-    
-    print("📋 Task Execution Context:")
-    print(f"  DAG ID: {context['dag'].dag_id}")
-    print(f"  Task ID: {context['task'].task_id}")
-    print(f"  Execution Date: {context['ds']}")
-    print(f"  Run ID: {context['run_id']}")
-    print(f"  Try Number: {context['task_instance'].try_number}")
-    print(f"  Max Tries: {context['task_instance'].max_tries}")
-    print()
-    
-    # Access task instance for more details
-    ti = context['task_instance']
-    print("🔍 Task Instance Details:")
-    print(f"  State: {ti.state}")
-    print(f"  Start Date: {ti.start_date}")
-    print(f"  Hostname: {ti.hostname}")
-    print(f"  PID: {ti.pid}")
-    print()
-    
-    # Demonstrate accessing DAG run information
-    dag_run = context['dag_run']
-    print("📊 DAG Run Information:")
-    print(f"  DAG Run ID: {dag_run.run_id}")
-    print(f"  Execution Date: {dag_run.execution_date}")
-    print(f"  State: {dag_run.state}")
-    print(f"  External Trigger: {dag_run.external_trigger}")
-    print()
-    
-    return {
-        'task_id': context['task'].task_id,
-        'execution_date': context['ds'],
-        'state': ti.state
-    }
-
-def demonstrate_airflow_variables_and_connections(**context):
-    """Demonstrate Airflow Variables and Connections"""
-    from airflow.models import Variable
-    from airflow.hooks.base import BaseHook
-    
-    print("🔧 Airflow Variables and Connections:")
-    
-    # Set and get variables (in production, set via UI or CLI)
-    try:
-        # Set a variable (would normally be done via UI/CLI)
-        Variable.set("demo_environment", "development")
-        Variable.set("batch_size", "1000")
-        Variable.set("api_timeout", "30")
-        
-        # Get variables
-        environment = Variable.get("demo_environment", default_var="production")
-        batch_size = Variable.get("batch_size", default_var="500")
-        api_timeout = Variable.get("api_timeout", default_var="60")
-        
-        print("📝 Variables:")
-        print(f"  Environment: {environment}")
-        print(f"  Batch Size: {batch_size}")
-        print(f"  API Timeout: {api_timeout}s")
-        print()
-        
-    except Exception as e:
-        print(f"Variable operations: {e}")
-    
-    # Demonstrate connection usage (connections would be configured via UI/CLI)
-    print("🔗 Connection Management:")
-    print("  Connections are used to store credentials and connection details")
-    print("  Common connection types:")
-    print("    - postgres_default: PostgreSQL database")
-    print("    - aws_default: AWS credentials")
-    print("    - http_default: HTTP API endpoints")
-    print("    - smtp_default: Email server settings")
-    print()
-    
-    return {
-        'environment': environment,
-        'batch_size': batch_size,
-        'api_timeout': api_timeout
-    }
-
-# Create architecture exploration DAG
 dag = DAG(
-    'architecture_exploration',
-    start_date=datetime(2024, 1, 1),
+    'data_pipeline_example',
+    default_args=default_args,
+    description='Sample data processing pipeline',
     schedule_interval='@daily',
     catchup=False,
-    max_active_runs=1,
-    tags=['architecture', 'exploration']
+    tags=['data', 'etl', 'production']
 )
 
-# Tasks to explore architecture
-explore_task = PythonOperator(
-    task_id='explore_architecture',
-    python_callable=explore_airflow_architecture,
+# Task definition
+extract_task = BashOperator(
+    task_id='extract_data',
+    bash_command='python /scripts/extract.py',
     dag=dag
 )
 
-context_task = PythonOperator(
-    task_id='execution_context',
-    python_callable=demonstrate_task_execution_context,
+def transform_data(**context):
+    print(f"Transforming data for {context['ds']}")
+    return "transformation_complete"
+
+transform_task = PythonOperator(
+    task_id='transform_data',
+    python_callable=transform_data,
     dag=dag
 )
 
-variables_task = PythonOperator(
-    task_id='variables_and_connections',
-    python_callable=demonstrate_airflow_variables_and_connections,
+load_task = BashOperator(
+    task_id='load_data',
+    bash_command='python /scripts/load.py',
     dag=dag
 )
 
-# Set dependencies
-explore_task >> context_task >> variables_task
-
-print("🏗️ Architecture exploration DAG created")
+# Define dependencies
+extract_task >> transform_task >> load_task
 ```
 
-**Output:**
-```
-🏗️ Architecture exploration DAG created
+### Tasks and Operators
 
-# When executed:
-[2024-01-15 10:30:00] 🏗️ Airflow Architecture Overview:
-[2024-01-15 10:30:01] ⚙️ Configuration:
-[2024-01-15 10:30:02]   Airflow Home: /opt/airflow
-[2024-01-15 10:30:03]   Executor: LocalExecutor
-[2024-01-15 10:30:04]   SQL Alchemy Conn: postgresql+psycopg2://airflow:***@postgres:5432...
-[2024-01-15 10:30:05]   Parallelism: 32
-[2024-01-15 10:30:06]   Max Active DAG Runs: 16
+**Definition**: Tasks are the basic unit of execution in Airflow. Operators define what actually gets executed.
 
-[2024-01-15 10:30:07] 🚀 Executor Types:
-[2024-01-15 10:30:08]   SequentialExecutor:
-[2024-01-15 10:30:09]     Description: Single-threaded, for development only
-[2024-01-15 10:30:10]     Use Case: Local development and testing
-[2024-01-15 10:30:11]     Scalability: Not scalable
+#### 🔧 **Common Operator Types**
 
-[2024-01-15 10:30:12] 📋 Task Execution Context:
-[2024-01-15 10:30:13]   DAG ID: architecture_exploration
-[2024-01-15 10:30:14]   Task ID: execution_context
-[2024-01-15 10:30:15]   Execution Date: 2024-01-15
-[2024-01-15 10:30:16]   Run ID: scheduled__2024-01-15T00:00:00+00:00
-[2024-01-15 10:30:17]   Try Number: 1
-[2024-01-15 10:30:18]   Max Tries: 2
-
-[2024-01-15 10:30:19] 🔧 Airflow Variables and Connections:
-[2024-01-15 10:30:20] 📝 Variables:
-[2024-01-15 10:30:21]   Environment: development
-[2024-01-15 10:30:22]   Batch Size: 1000
-[2024-01-15 10:30:23]   API Timeout: 30s
-```
-
----
-
-## DAGs and Tasks
-
-### DAG Design Patterns
-
-#### 🎯 **Common DAG Patterns**
-- **Linear Pipeline**: Sequential task execution
-- **Fan-out/Fan-in**: Parallel processing with convergence
-- **Conditional Branching**: Dynamic task selection
-- **Sub-DAGs**: Reusable workflow components
-
+**1. Action Operators**
 ```python
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator, BranchPythonOperator
-from airflow.operators.dummy import DummyOperator
-from airflow.operators.bash import BashOperator
+# BashOperator - Execute bash commands
+bash_task = BashOperator(
+    task_id='run_script',
+    bash_command='echo "Processing data for {{ ds }}"',
+    dag=dag
+)
 
-def demonstrate_dag_patterns():
-    """Demonstrate common DAG design patterns"""
-    
-    dag = DAG(
-        'dag_design_patterns',
-        start_date=datetime(2024, 1, 1),
-        schedule_interval='@daily',
-        catchup=False,
-        tags=['patterns', 'design']
-    )
-    
-    # Pattern 1: Linear Pipeline
-    def create_linear_pipeline():
-        """Create a linear data processing pipeline"""
-        
-        def step_1(**context):
-            print("🔄 Step 1: Data Ingestion")
-            return {'records_ingested': 1000, 'source': 'API'}
-        
-        def step_2(**context):
-            ti = context['ti']
-            data = ti.xcom_pull(task_ids='linear_step_1')
-            print(f"🔄 Step 2: Data Validation - {data['records_ingested']} records")
-            return {'records_validated': data['records_ingested'] * 0.95}
-        
-        def step_3(**context):
-            ti = context['ti']
-            data = ti.xcom_pull(task_ids='linear_step_2')
-            print(f"🔄 Step 3: Data Processing - {data['records_validated']} records")
-            return {'records_processed': data['records_validated']}
-        
-        # Linear tasks
-        linear_1 = PythonOperator(task_id='linear_step_1', python_callable=step_1, dag=dag)
-        linear_2 = PythonOperator(task_id='linear_step_2', python_callable=step_2, dag=dag)
-        linear_3 = PythonOperator(task_id='linear_step_3', python_callable=step_3, dag=dag)
-        
-        # Linear dependency
-        linear_1 >> linear_2 >> linear_3
-        
-        return [linear_1, linear_2, linear_3]
-    
-    # Pattern 2: Fan-out/Fan-in
-    def create_fanout_fanin_pattern():
-        """Create fan-out/fan-in pattern for parallel processing"""
-        
-        def data_source(**context):
-            print("📊 Preparing data for parallel processing")
-            return {
-                'dataset_a': [1, 2, 3, 4, 5],
-                'dataset_b': [6, 7, 8, 9, 10],
-                'dataset_c': [11, 12, 13, 14, 15]
-            }
-        
-        def process_dataset_a(**context):
-            ti = context['ti']
-            data = ti.xcom_pull(task_ids='data_source')
-            dataset = data['dataset_a']
-            result = sum(dataset)
-            print(f"🔄 Processing Dataset A: {dataset} → Sum: {result}")
-            return result
-        
-        def process_dataset_b(**context):
-            ti = context['ti']
-            data = ti.xcom_pull(task_ids='data_source')
-            dataset = data['dataset_b']
-            result = sum(dataset)
-            print(f"🔄 Processing Dataset B: {dataset} → Sum: {result}")
-            return result
-        
-        def process_dataset_c(**context):
-            ti = context['ti']
-            data = ti.xcom_pull(task_ids='data_source')
-            dataset = data['dataset_c']
-            result = sum(dataset)
-            print(f"🔄 Processing Dataset C: {dataset} → Sum: {result}")
-            return result
-        
-        def combine_results(**context):
-            ti = context['ti']
-            result_a = ti.xcom_pull(task_ids='process_a')
-            result_b = ti.xcom_pull(task_ids='process_b')
-            result_c = ti.xcom_pull(task_ids='process_c')
-            
-            total = result_a + result_b + result_c
-            print(f"🔄 Combining results: {result_a} + {result_b} + {result_c} = {total}")
-            return total
-        
-        # Fan-out/Fan-in tasks
-        source = PythonOperator(task_id='data_source', python_callable=data_source, dag=dag)
-        process_a = PythonOperator(task_id='process_a', python_callable=process_dataset_a, dag=dag)
-        process_b = PythonOperator(task_id='process_b', python_callable=process_dataset_b, dag=dag)
-        process_c = PythonOperator(task_id='process_c', python_callable=process_dataset_c, dag=dag)
-        combine = PythonOperator(task_id='combine_results', python_callable=combine_results, dag=dag)
-        
-        # Fan-out/Fan-in dependencies
-        source >> [process_a, process_b, process_c] >> combine
-        
-        return [source, process_a, process_b, process_c, combine]
-    
-    # Pattern 3: Conditional Branching
-    def create_conditional_branching():
-        """Create conditional branching based on data conditions"""
-        
-        def check_data_quality(**context):
-            """Determine processing path based on data quality"""
-            import random
-            
-            quality_score = random.uniform(0.7, 1.0)
-            print(f"📊 Data quality score: {quality_score:.2f}")
-            
-            if quality_score >= 0.9:
-                print("✅ High quality data - using fast processing")
-                return 'high_quality_processing'
-            elif quality_score >= 0.8:
-                print("⚠️ Medium quality data - using standard processing")
-                return 'standard_processing'
-            else:
-                print("❌ Low quality data - using intensive processing")
-                return 'intensive_processing'
-        
-        def high_quality_processing(**context):
-            print("🚀 Fast processing for high quality data")
-            return "High quality processing completed"
-        
-        def standard_processing(**context):
-            print("🔄 Standard processing for medium quality data")
-            return "Standard processing completed"
-        
-        def intensive_processing(**context):
-            print("🔧 Intensive processing for low quality data")
-            return "Intensive processing completed"
-        
-        def join_processing(**context):
-            print("🔗 Joining processing results")
-            return "Processing joined"
-        
-        # Conditional branching tasks
-        branch_task = BranchPythonOperator(
-            task_id='check_data_quality',
-            python_callable=check_data_quality,
-            dag=dag
-        )
-        
-        high_quality = PythonOperator(
-            task_id='high_quality_processing',
-            python_callable=high_quality_processing,
-            dag=dag
-        )
-        
-        standard = PythonOperator(
-            task_id='standard_processing',
-            python_callable=standard_processing,
-            dag=dag
-        )
-        
-        intensive = PythonOperator(
-            task_id='intensive_processing',
-            python_callable=intensive_processing,
-            dag=dag
-        )
-        
-        join = DummyOperator(
-            task_id='join_processing',
-            trigger_rule='none_failed_or_skipped',  # Continue even if some branches are skipped
-            dag=dag
-        )
-        
-        # Conditional dependencies
-        branch_task >> [high_quality, standard, intensive] >> join
-        
-        return [branch_task, high_quality, standard, intensive, join]
-    
-    # Create all patterns
-    linear_tasks = create_linear_pipeline()
-    fanout_tasks = create_fanout_fanin_pattern()
-    conditional_tasks = create_conditional_branching()
-    
-    # Connect patterns with dummy operators
-    start = DummyOperator(task_id='start_patterns', dag=dag)
-    pattern_separator_1 = DummyOperator(task_id='pattern_separator_1', dag=dag)
-    pattern_separator_2 = DummyOperator(task_id='pattern_separator_2', dag=dag)
-    end = DummyOperator(task_id='end_patterns', dag=dag)
-    
-    # Connect all patterns
-    start >> linear_tasks[0]
-    linear_tasks[-1] >> pattern_separator_1 >> fanout_tasks[0]
-    fanout_tasks[-1] >> pattern_separator_2 >> conditional_tasks[0]
-    conditional_tasks[-1] >> end
-    
-    return dag
+# PythonOperator - Execute Python functions
+def process_data(**context):
+    execution_date = context['execution_date']
+    print(f"Processing data for {execution_date}")
+    return {"status": "success", "records": 1000}
 
-# Create the patterns demonstration DAG
-patterns_dag = demonstrate_dag_patterns()
-print(f"🎨 Created DAG with design patterns: {patterns_dag.dag_id}")
-print(f"📝 Total tasks: {len(patterns_dag.tasks)}")
+python_task = PythonOperator(
+    task_id='process_data',
+    python_callable=process_data,
+    dag=dag
+)
 
-# Show task structure
-print("\n📋 Task Structure:")
-for task in patterns_dag.tasks:
-    upstream = [t.task_id for t in task.upstream_list]
-    downstream = [t.task_id for t in task.downstream_list]
-    print(f"  {task.task_id}:")
-    if upstream:
-        print(f"    ⬅️ Upstream: {upstream}")
-    if downstream:
-        print(f"    ➡️ Downstream: {downstream}")
-```
-
-**Output:**
-```
-🎨 Created DAG with design patterns: dag_design_patterns
-📝 Total tasks: 17
-
-📋 Task Structure:
-  start_patterns:
-    ➡️ Downstream: ['linear_step_1']
-  linear_step_1:
-    ⬅️ Upstream: ['start_patterns']
-    ➡️ Downstream: ['linear_step_2']
-  linear_step_2:
-    ⬅️ Upstream: ['linear_step_1']
-    ➡️ Downstream: ['linear_step_3']
-  linear_step_3:
-    ⬅️ Upstream: ['linear_step_2']
-    ➡️ Downstream: ['pattern_separator_1']
-
-# When executed:
-[2024-01-15 10:30:00] 🔄 Step 1: Data Ingestion
-[2024-01-15 10:30:01] 🔄 Step 2: Data Validation - 1000 records
-[2024-01-15 10:30:02] 🔄 Step 3: Data Processing - 950.0 records
-[2024-01-15 10:30:03] 📊 Preparing data for parallel processing
-[2024-01-15 10:30:04] 🔄 Processing Dataset A: [1, 2, 3, 4, 5] → Sum: 15
-[2024-01-15 10:30:04] 🔄 Processing Dataset B: [6, 7, 8, 9, 10] → Sum: 40
-[2024-01-15 10:30:04] 🔄 Processing Dataset C: [11, 12, 13, 14, 15] → Sum: 65
-[2024-01-15 10:30:05] 🔄 Combining results: 15 + 40 + 65 = 120
-[2024-01-15 10:30:06] 📊 Data quality score: 0.87
-[2024-01-15 10:30:07] ⚠️ Medium quality data - using standard processing
-[2024-01-15 10:30:08] 🔄 Standard processing for medium quality data
-```
-
----
-
-## Operators and Hooks
-
-### Built-in Operators
-
-#### 🎯 **Operator Categories**
-- **Action Operators**: Execute specific tasks
-- **Transfer Operators**: Move data between systems
-- **Sensor Operators**: Wait for conditions
-- **Branch Operators**: Conditional execution
-
-```python
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.bash import BashOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
-from airflow.providers.http.operators.http import SimpleHttpOperator
-from airflow.sensors.filesystem import FileSensor
+# EmailOperator - Send emails
 from airflow.operators.email import EmailOperator
-from airflow.operators.dummy import DummyOperator
 
-def demonstrate_operators():
-    """Demonstrate various Airflow operators"""
-    
-    dag = DAG(
-        'operator_showcase',
-        start_date=datetime(2024, 1, 1),
-        schedule_interval='@daily',
-        catchup=False,
-        tags=['operators', 'showcase']
-    )
-    
-    # 1. PythonOperator - Execute Python functions
-    def python_task_example(**context):
-        """Example Python task with context usage"""
-        import json
-        import random
-        
-        # Access context variables
-        execution_date = context['ds']
-        task_id = context['task'].task_id
-        
-        # Generate sample data
-        data = {
-            'execution_date': execution_date,
-            'task_id': task_id,
-            'random_value': random.randint(1, 100),
-            'status': 'completed'
-        }
-        
-        print(f"🐍 Python task executed: {json.dumps(data, indent=2)}")
-        return data
-    
-    python_task = PythonOperator(
-        task_id='python_example',
-        python_callable=python_task_example,
-        dag=dag
-    )
-    
-    # 2. BashOperator - Execute shell commands
-    bash_task = BashOperator(
-        task_id='bash_example',
-        bash_command='''
-        echo "🐚 Bash operator example"
-        echo "Current date: $(date)"
-        echo "Working directory: $(pwd)"
-        
-        # Create temporary file with data
-        echo "sample,data,file" > /tmp/airflow_bash_output.csv
-        echo "1,test,value" >> /tmp/airflow_bash_output.csv
-        echo "2,demo,data" >> /tmp/airflow_bash_output.csv
-        
-        echo "Created file with $(wc -l < /tmp/airflow_bash_output.csv) lines"
-        cat /tmp/airflow_bash_output.csv
-        ''',
-        dag=dag
-    )
-    
-    # 3. PostgresOperator - Execute SQL queries
-    postgres_task = PostgresOperator(
-        task_id='postgres_example',
-        postgres_conn_id='postgres_default',
-        sql='''
-        -- Create temporary table for demo
-        CREATE TEMP TABLE airflow_demo (
-            id SERIAL PRIMARY KEY,
-            execution_date DATE,
-            task_name VARCHAR(100),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        -- Insert sample data
-        INSERT INTO airflow_demo (execution_date, task_name) VALUES
-        ('{{ ds }}', 'postgres_example'),
-        ('{{ ds }}', 'data_processing'),
-        ('{{ ds }}', 'quality_check');
-        
-        -- Query and display results
-        SELECT 
-            id,
-            execution_date,
-            task_name,
-            created_at
-        FROM airflow_demo
-        ORDER BY id;
-        ''',
-        dag=dag
-    )
-    
-    # 4. HttpOperator - Make HTTP requests
-    http_task = SimpleHttpOperator(
-        task_id='http_example',
-        http_conn_id='http_default',
-        endpoint='posts/1',
-        method='GET',
-        headers={'Content-Type': 'application/json'},
-        xcom_push=True,
-        dag=dag
-    )
-    
-    # 5. FileSensor - Wait for file to appear
-    file_sensor = FileSensor(
-        task_id='file_sensor_example',
-        filepath='/tmp/airflow_bash_output.csv',
-        poke_interval=10,  # Check every 10 seconds
-        timeout=60,  # Timeout after 60 seconds
-        dag=dag
-    )
-    
-    # 6. EmailOperator - Send emails
-    def prepare_email_content(**context):
-        """Prepare dynamic email content"""
-        ti = context['ti']
-        
-        # Get data from previous tasks
-        python_result = ti.xcom_pull(task_ids='python_example')
-        
-        email_content = f'''
-        <h2>Airflow Task Execution Report</h2>
-        <p><strong>Execution Date:</strong> {context['ds']}</p>
-        <p><strong>DAG:</strong> {context['dag'].dag_id}</p>
-        
-        <h3>Task Results:</h3>
-        <ul>
-            <li>Python Task: {python_result.get('status', 'Unknown') if python_result else 'No data'}</li>
-            <li>Bash Task: File created successfully</li>
-            <li>Postgres Task: Data inserted</li>
-            <li>HTTP Task: API call completed</li>
-        </ul>
-        
-        <p>All tasks completed successfully!</p>
-        '''
-        
-        return email_content
-    
-    email_prep_task = PythonOperator(
-        task_id='prepare_email',
-        python_callable=prepare_email_content,
-        dag=dag
-    )
-    
-    email_task = EmailOperator(
-        task_id='email_example',
-        to=['admin@example.com'],
-        subject='Airflow DAG Execution Complete - {{ ds }}',
-        html_content='{{ ti.xcom_pull(task_ids="prepare_email") }}',
-        dag=dag
-    )
-    
-    # 7. Custom Operator Example
-    def custom_data_processor(**context):
-        """Custom data processing logic"""
-        ti = context['ti']
-        
-        # Get data from multiple sources
-        python_data = ti.xcom_pull(task_ids='python_example')
-        
-        # Custom processing logic
-        processed_data = {
-            'source_task': 'python_example',
-            'original_value': python_data.get('random_value', 0) if python_data else 0,
-            'processed_value': (python_data.get('random_value', 0) * 2) if python_data else 0,
-            'processing_timestamp': context['ts'],
-            'processor': 'custom_data_processor'
-        }
-        
-        print(f"🔧 Custom processing completed: {processed_data}")
-        return processed_data
-    
-    custom_task = PythonOperator(
-        task_id='custom_processor',
-        python_callable=custom_data_processor,
-        dag=dag
-    )
-    
-    # Control flow operators
-    start = DummyOperator(task_id='start', dag=dag)
-    end = DummyOperator(task_id='end', dag=dag)
-    
-    # Define complex dependencies
-    start >> python_task >> bash_task >> file_sensor
-    start >> postgres_task
-    start >> http_task
-    
-    [file_sensor, postgres_task, http_task] >> custom_task >> email_prep_task >> email_task >> end
-    
-    return dag
-
-# Create operator showcase DAG
-showcase_dag = demonstrate_operators()
-print(f"🎭 Created operator showcase DAG: {showcase_dag.dag_id}")
-
-# Display operator types used
-operator_types = {}
-for task in showcase_dag.tasks:
-    operator_type = type(task).__name__
-    operator_types[operator_type] = operator_types.get(operator_type, 0) + 1
-
-print("\n🔧 Operators used:")
-for operator, count in operator_types.items():
-    print(f"  {operator}: {count} task(s)")
+email_task = EmailOperator(
+    task_id='send_notification',
+    to=['team@company.com'],
+    subject='Pipeline Completed - {{ ds }}',
+    html_content='<p>Data pipeline completed successfully</p>',
+    dag=dag
+)
 ```
 
-**Output:**
-```
-🎭 Created operator showcase DAG: operator_showcase
+**2. Transfer Operators**
+```python
+# S3ToRedshiftOperator - Transfer data between systems
+from airflow.providers.amazon.aws.transfers.s3_to_redshift import S3ToRedshiftOperator
 
-🔧 Operators used:
-  PythonOperator: 3 task(s)
-  BashOperator: 1 task(s)
-  PostgresOperator: 1 task(s)
-  SimpleHttpOperator: 1 task(s)
-  FileSensor: 1 task(s)
-  EmailOperator: 1 task(s)
-  DummyOperator: 2 task(s)
-
-# When executed:
-[2024-01-15 10:30:00] 🐍 Python task executed: {
-[2024-01-15 10:30:01]   "execution_date": "2024-01-15",
-[2024-01-15 10:30:02]   "task_id": "python_example",
-[2024-01-15 10:30:03]   "random_value": 42,
-[2024-01-15 10:30:04]   "status": "completed"
-[2024-01-15 10:30:05] }
-[2024-01-15 10:30:06] 🐚 Bash operator example
-[2024-01-15 10:30:07] Current date: Mon Jan 15 10:30:07 UTC 2024
-[2024-01-15 10:30:08] Working directory: /opt/airflow
-[2024-01-15 10:30:09] Created file with 3 lines
-[2024-01-15 10:30:10] sample,data,file
-[2024-01-15 10:30:11] 1,test,value
-[2024-01-15 10:30:12] 2,demo,data
-[2024-01-15 10:30:13] 🔧 Custom processing completed: {'source_task': 'python_example', 'original_value': 42, 'processed_value': 84, 'processing_timestamp': '2024-01-15T10:30:13+00:00', 'processor': 'custom_data_processor'}
+transfer_task = S3ToRedshiftOperator(
+    task_id='s3_to_redshift',
+    schema='public',
+    table='user_data',
+    s3_bucket='data-bucket',
+    s3_key='processed/user_data.csv',
+    copy_options=['CSV', 'IGNOREHEADER 1'],
+    dag=dag
+)
 ```
 
-This comprehensive Airflow documentation provides practical, executable examples with expected outputs, following the same pattern as the previous tools. The examples cover all essential Airflow concepts from basic DAG creation to advanced operator usage and architectural patterns.
+**3. Sensor Operators**
+```python
+# FileSensor - Wait for file to appear
+from airflow.sensors.filesystem import FileSensor
 
-Would you like me to continue with the next tool (Snowflake) or add more sections to the existing Airflow documentation?
+file_sensor = FileSensor(
+    task_id='wait_for_file',
+    filepath='/data/input/daily_data.csv',
+    fs_conn_id='fs_default',
+    poke_interval=30,  # Check every 30 seconds
+    timeout=300,       # Timeout after 5 minutes
+    dag=dag
+)
+
+# S3KeySensor - Wait for S3 object
+from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
+
+s3_sensor = S3KeySensor(
+    task_id='wait_for_s3_file',
+    bucket_name='data-bucket',
+    bucket_key='input/{{ ds }}/data.parquet',
+    aws_conn_id='aws_default',
+    timeout=600,
+    poke_interval=60,
+    dag=dag
+)
+```
+
+### Executors
+
+**Definition**: Executors determine how and where tasks are executed.
+
+#### 🚀 **Executor Types**
+
+**1. SequentialExecutor**
+- Single-threaded execution
+- Development/testing only
+- No parallelism
+
+**2. LocalExecutor**
+- Multi-process execution on single machine
+- Good for small to medium workloads
+- Limited by single machine resources
+
+**3. CeleryExecutor**
+- Distributed execution using Celery
+- Scales across multiple worker machines
+- Requires message broker (Redis/RabbitMQ)
+
+```python
+# Celery configuration
+AIRFLOW__CORE__EXECUTOR = CeleryExecutor
+AIRFLOW__CELERY__BROKER_URL = redis://localhost:6379/0
+AIRFLOW__CELERY__RESULT_BACKEND = db+postgresql://user:pass@localhost/airflow
+```
+
+**4. KubernetesExecutor**
+- Dynamic pod creation in Kubernetes
+- Excellent resource isolation
+- Auto-scaling capabilities
+
+```python
+# Kubernetes configuration
+AIRFLOW__CORE__EXECUTOR = KubernetesExecutor
+AIRFLOW__KUBERNETES__NAMESPACE = airflow
+AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY = apache/airflow
+AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG = 2.7.0
+```
+
+## 🏗️ Airflow Architecture
+
+**Definition**: Airflow follows a distributed architecture with multiple components working together.
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              AIRFLOW ARCHITECTURE                              │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────────┐  │
+│  │   WEB SERVER    │    │    SCHEDULER    │    │      METADATA DATABASE     │  │
+│  │                 │    │                 │    │                             │  │
+│  │ ┌─────────────┐ │    │ ┌─────────────┐ │    │  ┌─────────────────────────┐ │  │
+│  │ │   Flask     │ │    │ │DAG Processor│ │    │  │ • DAG Definitions       │ │  │
+│  │ │   Web UI    │ │◄──►│ │Task Scheduler│ │◄──►│  │ • Task Instances        │ │  │
+│  │ │   REST API  │ │    │ │Executor Mgmt│ │    │  │ • Task Logs             │ │  │
+│  │ └─────────────┘ │    │ └─────────────┘ │    │  │ • Variables & Connections│ │  │
+│  └─────────────────┘    └─────────────────┘    │  │ • User Management       │ │  │
+│           │                       │             │  └─────────────────────────┘ │  │
+│           │                       │             └─────────────────────────────┘  │
+│           │                       │                                              │
+│           │                       ▼                                              │
+│           │              ┌─────────────────┐                                     │
+│           │              │    EXECUTOR     │                                     │
+│           │              │                 │                                     │
+│           │              │ ┌─────────────┐ │                                     │
+│           │              │ │LocalExecutor│ │                                     │
+│           │              │ │CeleryExecutor│ │                                     │
+│           │              │ │K8sExecutor  │ │                                     │
+│           │              │ └─────────────┘ │                                     │
+│           │              └─────────────────┘                                     │
+│           │                       │                                              │
+│           │                       ▼                                              │
+│           │              ┌─────────────────────────────────────────────────────┐ │
+│           │              │                 WORKERS                             │ │
+│           │              │                                                     │ │
+│           │              │ ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │ │
+│           │              │ │  WORKER 1   │  │  WORKER 2   │  │  WORKER N   │ │ │
+│           │              │ │             │  │             │  │             │ │ │
+│           │              │ │ ┌─────────┐ │  │ ┌─────────┐ │  │ ┌─────────┐ │ │ │
+│           │              │ │ │ Task A  │ │  │ │ Task B  │ │  │ │ Task C  │ │ │ │
+│           │              │ │ │ Task D  │ │  │ │ Task E  │ │  │ │ Task F  │ │ │ │
+│           │              │ │ └─────────┘ │  │ └─────────┘ │  │ └─────────┘ │ │ │
+│           │              │ └─────────────┘  └─────────────┘  └─────────────┘ │ │
+│           │              └─────────────────────────────────────────────────────┘ │
+│           │                                                                      │
+│           ▼                                                                      │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                            MESSAGE BROKER                                   │ │
+│  │                         (Redis / RabbitMQ)                                 │ │
+│  │                                                                             │ │
+│  │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │ │
+│  │  │   Task Queue    │    │  Result Backend │    │    Celery Flower       │ │ │
+│  │  │                 │    │                 │    │    (Monitoring)         │ │ │
+│  │  │ • Pending Tasks │    │ • Task Results  │    │                         │ │ │
+│  │  │ • Task Routing  │    │ • Task States   │    │ • Worker Status         │ │ │
+│  │  │ • Priority Queue│    │ • Metadata      │    │ • Queue Monitoring      │ │ │
+│  │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                                DATA FLOW
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                 │
+│  1. Scheduler reads DAG files and creates DagRun instances                     │
+│  2. Scheduler creates TaskInstance objects for ready tasks                     │
+│  3. Executor receives tasks and distributes to Workers                         │
+│  4. Workers execute tasks and report status back                               │
+│  5. Web Server provides UI for monitoring and management                       │
+│  6. All metadata stored in Database for persistence                            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Core Components**:
+- **Web Server**: Flask-based UI and REST API
+- **Scheduler**: Orchestrates task execution and manages DAG runs
+- **Executor**: Determines how tasks are executed
+- **Workers**: Execute individual tasks
+- **Metadata Database**: Stores all Airflow metadata
+- **Message Broker**: Queues tasks for distributed execution (Celery only)
+
+## ⏰ Scheduling & Execution
+
+**Definition**: Airflow's scheduling system determines when and how DAGs and tasks are executed.
+
+### Scheduling Concepts
+
+```python
+from airflow import DAG
+from datetime import datetime, timedelta
+
+# Different scheduling intervals
+dag_daily = DAG(
+    'daily_pipeline',
+    schedule_interval='@daily',  # Run once per day at midnight
+    start_date=datetime(2024, 1, 1),
+    catchup=True  # Backfill historical runs
+)
+
+dag_hourly = DAG(
+    'hourly_pipeline',
+    schedule_interval='@hourly',  # Run every hour
+    start_date=datetime(2024, 1, 1),
+    catchup=False  # Don't backfill
+)
+
+dag_cron = DAG(
+    'custom_schedule',
+    schedule_interval='0 8 * * 1-5',  # 8 AM on weekdays
+    start_date=datetime(2024, 1, 1)
+)
+
+dag_manual = DAG(
+    'manual_pipeline',
+    schedule_interval=None,  # Manual trigger only
+    start_date=datetime(2024, 1, 1)
+)
+
+# Dynamic scheduling
+dag_conditional = DAG(
+    'conditional_pipeline',
+    schedule_interval=timedelta(hours=6),  # Every 6 hours
+    start_date=datetime(2024, 1, 1),
+    max_active_runs=1  # Only one run at a time
+)
+```
+
+### Task Dependencies and Trigger Rules
+
+```python
+from airflow.utils.trigger_rule import TriggerRule
+
+# Basic dependencies
+task_a >> task_b >> task_c  # Sequential
+task_a >> [task_b, task_c] >> task_d  # Parallel then join
+
+# Advanced trigger rules
+cleanup_task = BashOperator(
+    task_id='cleanup',
+    bash_command='rm -rf /tmp/processing/*',
+    trigger_rule=TriggerRule.ALL_DONE,  # Run regardless of upstream success/failure
+    dag=dag
+)
+
+notification_task = EmailOperator(
+    task_id='failure_notification',
+    to=['admin@company.com'],
+    subject='Pipeline Failed',
+    html_content='Pipeline failed, please investigate',
+    trigger_rule=TriggerRule.ONE_FAILED,  # Run only if upstream task failed
+    dag=dag
+)
+```
+
+## 📡 Data Passing & Communication
+
+### 1. XCom
+
+**Definition**: XCom (Cross-Communication) enables tasks to exchange small amounts of data.
+
+```python
+from airflow.operators.python import PythonOperator
+
+def extract_data(**context):
+    # Simulate data extraction
+    data = {
+        'records_processed': 1000,
+        'file_path': '/data/processed/output.csv',
+        'status': 'success'
+    }
+    
+    # Push to XCom (automatic return)
+    return data
+
+def process_data(**context):
+    # Pull from XCom
+    ti = context['task_instance']
+    extracted_data = ti.xcom_pull(task_ids='extract_data')
+    
+    print(f"Processing {extracted_data['records_processed']} records")
+    print(f"Input file: {extracted_data['file_path']}")
+    
+    # Process and return new data
+    return {
+        'processed_records': extracted_data['records_processed'],
+        'output_file': '/data/final/processed_output.csv'
+    }
+
+def load_data(**context):
+    # Pull from multiple tasks
+    ti = context['task_instance']
+    processed_data = ti.xcom_pull(task_ids='process_data')
+    
+    print(f"Loading {processed_data['processed_records']} records")
+    print(f"From file: {processed_data['output_file']}")
+
+# Define tasks
+extract_task = PythonOperator(
+    task_id='extract_data',
+    python_callable=extract_data,
+    dag=dag
+)
+
+process_task = PythonOperator(
+    task_id='process_data',
+    python_callable=process_data,
+    dag=dag
+)
+
+load_task = PythonOperator(
+    task_id='load_data',
+    python_callable=load_data,
+    dag=dag
+)
+
+extract_task >> process_task >> load_task
+```
+
+### 2. Variables
+
+**Definition**: Airflow Variables store global configuration values accessible across DAGs.
+
+```python
+from airflow.models import Variable
+
+# Set variables (via UI or programmatically)
+Variable.set("data_source_path", "/data/input")
+Variable.set("batch_size", "1000")
+Variable.set("notification_email", "team@company.com")
+
+# Use variables in tasks
+def process_with_config(**context):
+    data_path = Variable.get("data_source_path")
+    batch_size = int(Variable.get("batch_size"))
+    email = Variable.get("notification_email")
+    
+    print(f"Processing data from {data_path} in batches of {batch_size}")
+    return f"Processed data, notification sent to {email}"
+
+# Use in templates
+bash_task = BashOperator(
+    task_id='process_files',
+    bash_command='python process.py --path {{ var.value.data_source_path }} --batch {{ var.value.batch_size }}',
+    dag=dag
+)
+```
+
+### 3. Connections
+
+**Definition**: Connections store credentials and connection information for external systems.
+
+```python
+from airflow.hooks.postgres_hook import PostgresHook
+from airflow.hooks.S3_hook import S3Hook
+
+def database_operation(**context):
+    # Use connection defined in Airflow UI
+    postgres_hook = PostgresHook(postgres_conn_id='postgres_default')
+    
+    # Execute query
+    records = postgres_hook.get_records("""
+        SELECT COUNT(*) FROM users 
+        WHERE created_date = '{{ ds }}'
+    """)
+    
+    print(f"Found {records[0][0]} new users")
+    return records[0][0]
+
+def s3_operation(**context):
+    # Use S3 connection
+    s3_hook = S3Hook(aws_conn_id='aws_default')
+    
+    # Upload file
+    s3_hook.load_file(
+        filename='/tmp/processed_data.csv',
+        key='processed/{{ ds }}/data.csv',
+        bucket_name='data-bucket',
+        replace=True
+    )
+    
+    print("File uploaded to S3")
+```
+
+## ⚡ Performance Optimization
+
+### 1. Parallelism
+
+**Definition**: Configure parallelism at different levels to optimize resource utilization.
+
+```python
+# DAG-level parallelism
+dag = DAG(
+    'parallel_pipeline',
+    max_active_runs=3,  # Max concurrent DAG runs
+    max_active_tasks=10,  # Max concurrent tasks per DAG run
+    schedule_interval='@hourly'
+)
+
+# Task-level parallelism
+from airflow.operators.subdag import SubDagOperator
+
+def create_parallel_tasks(parent_dag_id, child_dag_id, start_date, schedule_interval):
+    subdag = DAG(
+        f"{parent_dag_id}.{child_dag_id}",
+        start_date=start_date,
+        schedule_interval=schedule_interval
+    )
+    
+    # Create multiple parallel tasks
+    for i in range(5):
+        task = BashOperator(
+            task_id=f'parallel_task_{i}',
+            bash_command=f'echo "Processing partition {i}"',
+            dag=subdag
+        )
+    
+    return subdag
+
+# Use SubDAG for parallel execution
+parallel_subdag = SubDagOperator(
+    task_id='parallel_processing',
+    subdag=create_parallel_tasks('main_dag', 'parallel_processing', 
+                                datetime(2024, 1, 1), '@daily'),
+    dag=dag
+)
+```
+
+### 2. Resource Management
+
+```python
+# Configure resource requirements
+resource_intensive_task = BashOperator(
+    task_id='heavy_computation',
+    bash_command='python heavy_processing.py',
+    pool='cpu_intensive_pool',  # Use specific resource pool
+    priority_weight=10,  # Higher priority
+    queue='high_memory',  # Specific queue for high-memory tasks
+    dag=dag
+)
+
+# Pool configuration (via UI or programmatically)
+from airflow.models import Pool
+
+# Create resource pools
+Pool.create_or_update_pool(
+    name='cpu_intensive_pool',
+    slots=4,  # Max 4 concurrent tasks
+    description='Pool for CPU-intensive tasks'
+)
+
+Pool.create_or_update_pool(
+    name='io_intensive_pool',
+    slots=10,  # Max 10 concurrent I/O tasks
+    description='Pool for I/O-intensive tasks'
+)
+```
+
+### 3. Task Dependencies
+
+```python
+# Optimize dependencies for better parallelism
+from airflow.utils.task_group import TaskGroup
+
+with TaskGroup("data_processing", dag=dag) as processing_group:
+    # Parallel data processing tasks
+    process_users = PythonOperator(
+        task_id='process_users',
+        python_callable=process_user_data
+    )
+    
+    process_orders = PythonOperator(
+        task_id='process_orders',
+        python_callable=process_order_data
+    )
+    
+    process_products = PythonOperator(
+        task_id='process_products',
+        python_callable=process_product_data
+    )
+
+# Sequential tasks
+extract_task >> processing_group >> load_task
+```
+
+## 🛠️ Configuration
+
+**Definition**: Airflow configuration controls behavior, performance, and integration settings.
+
+### Key Configuration Areas
+
+```python
+# airflow.cfg or environment variables
+
+# Core settings
+AIRFLOW__CORE__EXECUTOR = CeleryExecutor
+AIRFLOW__CORE__SQL_ALCHEMY_CONN = postgresql://user:pass@localhost/airflow
+AIRFLOW__CORE__DAGS_FOLDER = /opt/airflow/dags
+AIRFLOW__CORE__PARALLELISM = 32
+AIRFLOW__CORE__DAG_CONCURRENCY = 16
+AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG = 16
+
+# Scheduler settings
+AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL = 300
+AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT = False
+AIRFLOW__SCHEDULER__MAX_THREADS = 2
+
+# Webserver settings
+AIRFLOW__WEBSERVER__WEB_SERVER_PORT = 8080
+AIRFLOW__WEBSERVER__WORKERS = 4
+AIRFLOW__WEBSERVER__WORKER_TIMEOUT = 120
+
+# Email settings
+AIRFLOW__EMAIL__EMAIL_BACKEND = airflow.utils.email.send_email_smtp
+AIRFLOW__SMTP__SMTP_HOST = smtp.gmail.com
+AIRFLOW__SMTP__SMTP_PORT = 587
+AIRFLOW__SMTP__SMTP_USER = your-email@gmail.com
+AIRFLOW__SMTP__SMTP_PASSWORD = your-password
+AIRFLOW__SMTP__SMTP_MAIL_FROM = airflow@company.com
+
+# Celery settings (if using CeleryExecutor)
+AIRFLOW__CELERY__BROKER_URL = redis://localhost:6379/0
+AIRFLOW__CELERY__RESULT_BACKEND = db+postgresql://user:pass@localhost/airflow
+AIRFLOW__CELERY__WORKER_CONCURRENCY = 16
+```
+
+### Dynamic Configuration
+
+```python
+from airflow.configuration import conf
+
+def get_dynamic_config(**context):
+    # Read configuration values
+    parallelism = conf.getint('core', 'parallelism')
+    dag_concurrency = conf.getint('core', 'dag_concurrency')
+    
+    print(f"Current parallelism: {parallelism}")
+    print(f"DAG concurrency: {dag_concurrency}")
+    
+    # Adjust processing based on configuration
+    if parallelism > 16:
+        return "high_performance_processing"
+    else:
+        return "standard_processing"
+```
+
+## 📊 Monitoring & Logging
+
+**Definition**: Comprehensive monitoring and logging capabilities for pipeline observability.
+
+### Built-in Monitoring
+
+```python
+# Task-level monitoring
+def monitored_task(**context):
+    import logging
+    
+    # Get task logger
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Simulate processing
+        logger.info("Starting data processing")
+        
+        # Process data
+        records_processed = 1000
+        logger.info(f"Processed {records_processed} records")
+        
+        # Log metrics
+        context['task_instance'].log.info(f"METRIC: records_processed={records_processed}")
+        
+        return {"status": "success", "records": records_processed}
+        
+    except Exception as e:
+        logger.error(f"Task failed: {str(e)}")
+        raise
+
+# Custom metrics
+def send_custom_metrics(**context):
+    from airflow.providers.http.hooks.http import HttpHook
+    
+    # Send metrics to external system
+    http_hook = HttpHook(http_conn_id='metrics_api')
+    
+    metrics = {
+        'dag_id': context['dag'].dag_id,
+        'task_id': context['task'].task_id,
+        'execution_date': context['execution_date'].isoformat(),
+        'duration': context['task_instance'].duration,
+        'state': context['task_instance'].state
+    }
+    
+    response = http_hook.run(
+        endpoint='/metrics',
+        data=metrics,
+        headers={'Content-Type': 'application/json'}
+    )
+    
+    print(f"Metrics sent: {response.status_code}")
+```
+
+### Health Checks and Alerting
+
+```python
+# Health check task
+def health_check(**context):
+    from airflow.hooks.postgres_hook import PostgresHook
+    
+    try:
+        # Check database connectivity
+        postgres_hook = PostgresHook(postgres_conn_id='postgres_default')
+        result = postgres_hook.get_first("SELECT 1")
+        
+        if result[0] == 1:
+            print("Database health check passed")
+        else:
+            raise Exception("Database health check failed")
+            
+        # Check external API
+        http_hook = HttpHook(http_conn_id='external_api')
+        response = http_hook.run(endpoint='/health')
+        
+        if response.status_code == 200:
+            print("External API health check passed")
+        else:
+            raise Exception(f"External API health check failed: {response.status_code}")
+            
+        return "healthy"
+        
+    except Exception as e:
+        # Send alert
+        send_alert(f"Health check failed: {str(e)}")
+        raise
+
+def send_alert(message):
+    # Send to Slack, email, or monitoring system
+    print(f"ALERT: {message}")
+```
+
+## 🚀 When to Use Airflow
+
+**Use Airflow When:**
+- **Batch Processing**: ETL/ELT pipelines, data warehousing
+- **Complex Dependencies**: Multi-step workflows with conditional logic
+- **Scheduling**: Time-based or event-driven pipeline execution
+- **Monitoring**: Need visibility into pipeline execution and failures
+- **Scalability**: Distributed execution across multiple machines
+- **Integration**: Connecting multiple data systems and tools
+
+**Don't Use Airflow For:**
+- **Real-time Streaming**: Use Kafka, Spark Streaming, or Flink instead
+- **Simple Scripts**: Cron jobs might be sufficient
+- **Interactive Workflows**: Jupyter notebooks or similar tools
+- **Low-latency Requirements**: Airflow has inherent scheduling overhead
+
+## 🎯 Interview Focus Areas
+
+1. **Architecture**: Components, executors, scaling strategies
+2. **DAG Design**: Best practices, dependencies, trigger rules
+3. **Task Management**: Operators, XCom, error handling
+4. **Scheduling**: Cron expressions, backfill, catchup
+5. **Performance**: Parallelism, resource management, optimization
+6. **Monitoring**: Logging, alerting, troubleshooting
+7. **Integration**: Hooks, connections, external systems
+8. **Production**: Deployment, configuration, maintenance
+9. **Security**: Authentication, authorization, secrets management
+10. **Troubleshooting**: Common issues, debugging techniques
+
+## 📚 Quick References
+
+- [Airflow Documentation](https://airflow.apache.org/docs/)
+- [Airflow Operators](https://airflow.apache.org/docs/apache-airflow/stable/operators-and-hooks-ref.html)
+- [Airflow Configuration](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html)
+- [Best Practices](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html)
+- [Airflow Providers](https://airflow.apache.org/docs/apache-airflow-providers/)

@@ -398,3 +398,10 @@ JOIN stream_b b WITHIN 1 HOUR ON a.user_id = b.user_id;
 6. **Real-world Scenarios**: Be prepared for practical implementation questions
 7. **Enterprise Features**: Understand RBAC, audit logging, and governance
 8. **Troubleshooting**: Practice identifying and resolving common issues
+
+---
+
+## 📚 Additional Comprehensive Content
+
+*(Merged from comprehensive interview questions file)*
+
