@@ -4,11 +4,10 @@ import json
 def analyze_tool_structure():
     """Analyze repository structure and identify inconsistencies"""
     
-    # Expected structure based on Apache Spark pattern
+    # Expected structure based on Apache Spark pattern (without examples)
     expected_files = {
         'KEY_CONCEPTS': '*_KEY_CONCEPTS.md',
         'INTERVIEW_QUESTIONS': '*_INTERVIEW_QUESTIONS.md',
-        'examples': 'examples/',
         'ALL_FEATURES_REFERENCE': '*_ALL_FEATURES_REFERENCE.md',
         'COMPLETE_GUIDE': '*_COMPLETE_GUIDE.md',
         'BEST_PRACTICES': '*_BEST_PRACTICES.md'
@@ -20,10 +19,8 @@ def analyze_tool_structure():
     results = {
         'well_structured': [],
         'missing_core_files': [],
-        'missing_examples': [],
         'missing_advanced_files': [],
-        'inconsistent_naming': [],
-        'empty_directories': []
+        'inconsistent_naming': []
     }
     
     base_path = r"c:\Users\z00542ky\Data-Engineering-Material"
@@ -55,7 +52,6 @@ def analyze_tool_structure():
         # Check for core files
         has_key_concepts = any('KEY_CONCEPTS' in f.upper() for f in md_files)
         has_interview_questions = any('INTERVIEW_QUESTIONS' in f.upper() for f in md_files)
-        has_examples = 'examples' in subdirs
         
         # Check for advanced files
         has_all_features = any('ALL_FEATURES_REFERENCE' in f.upper() for f in md_files)
@@ -64,25 +60,17 @@ def analyze_tool_structure():
         
         # Categorize the tool
         if has_key_concepts and has_interview_questions:
-            if has_examples and (has_all_features or has_complete_guide):
+            if has_all_features or has_complete_guide:
                 results['well_structured'].append({
-                    'tool': tool_name,
-                    'path': relative_path,
-                    'files': md_files,
-                    'has_examples': has_examples
-                })
-            elif not has_examples:
-                results['missing_examples'].append({
                     'tool': tool_name,
                     'path': relative_path,
                     'files': md_files
                 })
-            elif not (has_all_features or has_complete_guide):
+            else:
                 results['missing_advanced_files'].append({
                     'tool': tool_name,
                     'path': relative_path,
-                    'files': md_files,
-                    'has_examples': has_examples
+                    'files': md_files
                 })
         else:
             missing = []
@@ -126,13 +114,11 @@ def generate_report(results):
     # Summary statistics
     total_tools = (len(results['well_structured']) + 
                   len(results['missing_core_files']) + 
-                  len(results['missing_examples']) + 
                   len(results['missing_advanced_files']))
     
     report.append(f"**Total Tools Analyzed:** {total_tools}")
     report.append(f"**Well Structured:** {len(results['well_structured'])}")
     report.append(f"**Missing Core Files:** {len(results['missing_core_files'])}")
-    report.append(f"**Missing Examples:** {len(results['missing_examples'])}")
     report.append(f"**Missing Advanced Files:** {len(results['missing_advanced_files'])}")
     report.append("")
     
@@ -147,14 +133,7 @@ def generate_report(results):
             report.append(f"**Current Files:** {', '.join(item['files'])}")
             report.append("")
     
-    if results['missing_examples']:
-        report.append("## 📁 Missing Examples Directory")
-        report.append("These tools lack practical code examples:\n")
-        for item in results['missing_examples']:
-            report.append(f"### {item['tool']}")
-            report.append(f"**Path:** `{item['path']}`")
-            report.append(f"**Files:** {', '.join(item['files'])}")
-            report.append("")
+
     
     if results['missing_advanced_files']:
         report.append("## 📚 Missing Advanced Documentation")
@@ -163,7 +142,7 @@ def generate_report(results):
             report.append(f"### {item['tool']}")
             report.append(f"**Path:** `{item['path']}`")
             report.append(f"**Files:** {', '.join(item['files'])}")
-            report.append(f"**Has Examples:** {'✅' if item['has_examples'] else '❌'}")
+
             report.append("")
     
     if results['inconsistent_naming']:
@@ -191,11 +170,7 @@ def generate_report(results):
     report.append("- Add missing KEY_CONCEPTS.md and INTERVIEW_QUESTIONS.md files")
     report.append("- Ensure consistent naming conventions")
     report.append("")
-    report.append("### Priority 2: Add Examples")
-    report.append("- Create examples/ directories with minimal code samples")
-    report.append("- Follow the pattern: minimal_[tool].py with outputs")
-    report.append("")
-    report.append("### Priority 3: Enhance Documentation")
+    report.append("### Priority 2: Enhance Documentation")
     report.append("- Add ALL_FEATURES_REFERENCE.md or COMPLETE_GUIDE.md")
     report.append("- Consider adding BEST_PRACTICES.md for major tools")
     
@@ -218,5 +193,5 @@ if __name__ == "__main__":
     print(f"\nSummary:")
     print(f"- Well structured: {len(results['well_structured'])}")
     print(f"- Missing core files: {len(results['missing_core_files'])}")
-    print(f"- Missing examples: {len(results['missing_examples'])}")
+
     print(f"- Missing advanced files: {len(results['missing_advanced_files'])}")
