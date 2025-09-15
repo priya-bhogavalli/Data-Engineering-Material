@@ -50,15 +50,15 @@ def main():
     missing_files = check_folder_structure(root_path)
     
     if not missing_files:
-        print("✅ All folders have the required KEY_CONCEPTS.md and INTERVIEW_QUESTIONS.md files!")
+        print("SUCCESS: All folders have the required KEY_CONCEPTS.md and INTERVIEW_QUESTIONS.md files!")
         return
     
     print(f"Found {len(missing_files)} folders missing required files:\n")
     
     for item in missing_files:
-        print(f"📁 Path: {item['path']}")
-        print(f"❌ Missing: {', '.join(item['missing'])}")
-        print(f"📄 Existing files: {', '.join(item['existing_files'][:3])}{'...' if len(item['existing_files']) > 3 else ''}")
+        print(f"Path: {item['path']}")
+        print(f"Missing: {', '.join(item['missing'])}")
+        print(f"Existing files: {', '.join(item['existing_files'][:3])}{'...' if len(item['existing_files']) > 3 else ''}")
         print("-" * 60)
 
 if __name__ == "__main__":
