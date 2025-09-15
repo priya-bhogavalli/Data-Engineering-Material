@@ -1143,6 +1143,662 @@ class CustomDataQualityChecks:
   continue-on-error: false
 ```
 
+### Q21: How do you implement feature flags in CI/CD pipelines?
+**Answer:**
+
+**Feature Flag Implementation:**
+```python
+class FeatureFlagManager:
+    def __init__(self, config_source):
+        self.config_source = config_source
+        self.flags = self.load_flags()
+    
+    def is_enabled(self, flag_name, user_context=None):
+        flag = self.flags.get(flag_name)
+        if not flag:
+            return False
+        
+        # Simple boolean flag
+        if isinstance(flag, bool):
+            return flag
+        
+        # Percentage rollout
+        if 'percentage' in flag:
+            return self.check_percentage_rollout(flag, user_context)
+        
+        # User-based targeting
+        if 'users' in flag:
+            return self.check_user_targeting(flag, user_context)
+        
+        return False
+    
+    def check_percentage_rollout(self, flag, user_context):
+        if not user_context or 'user_id' not in user_context:
+            return False
+        
+        # Consistent hash-based rollout
+        user_hash = hash(str(user_context['user_id'])) % 100
+        return user_hash < flag['percentage']
+```
+
+**CI/CD Integration:**
+```yaml
+# Feature flag deployment
+- name: Deploy Feature Flags
+  run: |
+    # Update feature flag configuration
+    python scripts/update_feature_flags.py \
+      --environment ${{ github.ref_name }} \
+      --config config/feature_flags.yml
+    
+    # Validate flag configuration
+    python scripts/validate_flags.py
+```
+
+### Q22: What are the challenges of implementing CI/CD for data pipelines?
+**Answer:**
+
+**Data Pipeline CI/CD Challenges:**
+
+**1. Data Dependencies:**
+```python
+# Challenge: Managing test data
+class TestDataManager:
+    def setup_test_environment(self):
+        # Create isolated test data
+        test_data = self.generate_synthetic_data()
+        
+        # Ensure data privacy compliance
+        anonymized_data = self.anonymize_pii(test_data)
+        
+        # Load into test environment
+        self.load_test_data(anonymized_data)
+    
+    def cleanup_test_environment(self):
+        # Clean up test data to prevent storage costs
+        self.delete_test_data()
+        self.cleanup_temp_resources()
+```
+
+**2. Long-Running Processes:**
+```python
+# Challenge: Testing long-running ETL jobs
+class ETLTestStrategy:
+    def test_etl_pipeline(self):
+        # Use smaller dataset for faster testing
+        sample_data = self.create_representative_sample()
+        
+        # Run pipeline with sample
+        result = self.run_pipeline(sample_data)
+        
+        # Validate output structure and quality
+        self.validate_output_schema(result)
+        self.validate_data_quality(result)
+        
+        # Extrapolate results for full dataset
+        self.estimate_full_pipeline_performance(result)
+```
+
+**3. Environment Consistency:**
+```yaml
+# Challenge: Maintaining data environment consistency
+environments:
+  development:
+    data_sources:
+      - type: "mock"
+        size: "1GB"
+  
+  staging:
+    data_sources:
+      - type: "production_subset"
+        size: "100GB"
+        anonymized: true
+  
+  production:
+    data_sources:
+      - type: "live"
+        size: "10TB"
+```
+
+### Q23: How do you handle cross-environment data synchronization?
+**Answer:**
+
+**Data Synchronization Strategies:**
+
+**1. Schema Synchronization:**
+```python
+class SchemaSynchronizer:
+    def __init__(self, source_env, target_env):
+        self.source = source_env
+        self.target = target_env
+    
+    def sync_schema(self):
+        # Get source schema
+        source_schema = self.get_schema(self.source)
+        target_schema = self.get_schema(self.target)
+        
+        # Calculate differences
+        differences = self.compare_schemas(source_schema, target_schema)
+        
+        # Generate migration scripts
+        migration_scripts = self.generate_migrations(differences)
+        
+        # Apply migrations
+        for script in migration_scripts:
+            self.execute_migration(script, self.target)
+```
+
+**2. Data Subset Synchronization:**
+```python
+class DataSubsetSync:
+    def sync_representative_data(self, table_name, sample_percentage=1):
+        # Extract representative sample
+        query = f"""
+        SELECT * FROM {table_name}
+        TABLESAMPLE SYSTEM ({sample_percentage})
+        WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+        """
+        
+        sample_data = self.extract_data(query)
+        
+        # Anonymize sensitive data
+        anonymized_data = self.anonymize_data(sample_data)
+        
+        # Load to target environment
+        self.load_data(anonymized_data, table_name)
+```
+
+### Q24: What is the role of observability in CI/CD?
+**Answer:**
+
+**Observability Components:**
+
+**1. Metrics Collection:**
+```python
+from prometheus_client import Counter, Histogram, Gauge
+import time
+
+# Pipeline metrics
+deployment_counter = Counter('deployments_total', 'Total deployments', ['environment', 'status'])
+deployment_duration = Histogram('deployment_duration_seconds', 'Deployment duration')
+pipeline_stage_duration = Histogram('pipeline_stage_duration_seconds', 'Stage duration', ['stage'])
+
+class ObservabilityCollector:
+    def __init__(self):
+        self.start_times = {}
+    
+    def start_stage(self, stage_name):
+        self.start_times[stage_name] = time.time()
+    
+    def end_stage(self, stage_name):
+        duration = time.time() - self.start_times[stage_name]
+        pipeline_stage_duration.labels(stage=stage_name).observe(duration)
+    
+    def record_deployment(self, environment, status):
+        deployment_counter.labels(environment=environment, status=status).inc()
+```
+
+**2. Distributed Tracing:**
+```python
+from opentelemetry import trace
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+
+class PipelineTracer:
+    def __init__(self):
+        self.tracer = trace.get_tracer(__name__)
+    
+    def trace_pipeline_execution(self, pipeline_id):
+        with self.tracer.start_as_current_span("pipeline_execution") as span:
+            span.set_attribute("pipeline.id", pipeline_id)
+            
+            # Trace individual stages
+            self.trace_build_stage(span)
+            self.trace_test_stage(span)
+            self.trace_deploy_stage(span)
+```
+
+**3. Log Aggregation:**
+```python
+import structlog
+
+class StructuredLogger:
+    def __init__(self, pipeline_id):
+        self.logger = structlog.get_logger()
+        self.pipeline_id = pipeline_id
+    
+    def log_pipeline_event(self, event_type, **kwargs):
+        self.logger.info(
+            "Pipeline event",
+            pipeline_id=self.pipeline_id,
+            event_type=event_type,
+            **kwargs
+        )
+```
+
+### Q25: How do you implement progressive delivery in CI/CD?
+**Answer:**
+
+**Progressive Delivery Strategies:**
+
+**1. Canary Releases:**
+```python
+class CanaryDeployment:
+    def __init__(self, traffic_manager):
+        self.traffic_manager = traffic_manager
+        self.stages = [5, 25, 50, 100]  # Traffic percentages
+    
+    def deploy_canary(self, new_version):
+        for percentage in self.stages:
+            # Route traffic to new version
+            self.traffic_manager.route_traffic(new_version, percentage)
+            
+            # Monitor metrics for 10 minutes
+            if self.monitor_metrics(duration=600):
+                self.logger.info(f"Canary at {percentage}% successful")
+            else:
+                self.rollback_canary()
+                raise DeploymentError(f"Canary failed at {percentage}%")
+    
+    def monitor_metrics(self, duration):
+        # Monitor error rate, latency, throughput
+        metrics = self.collect_metrics(duration)
+        
+        return (
+            metrics['error_rate'] < 0.01 and  # < 1% error rate
+            metrics['p95_latency'] < 500 and  # < 500ms P95 latency
+            metrics['throughput'] > 0.95      # > 95% of baseline throughput
+        )
+```
+
+**2. Feature Toggles:**
+```python
+class ProgressiveFeatureRollout:
+    def __init__(self, feature_flag_service):
+        self.flags = feature_flag_service
+    
+    def rollout_feature(self, feature_name):
+        # Start with internal users
+        self.flags.enable_for_group(feature_name, "internal_users")
+        self.monitor_and_wait(hours=24)
+        
+        # Expand to beta users
+        self.flags.enable_for_group(feature_name, "beta_users")
+        self.monitor_and_wait(hours=48)
+        
+        # Gradual percentage rollout
+        for percentage in [1, 5, 25, 50, 100]:
+            self.flags.set_percentage(feature_name, percentage)
+            self.monitor_and_wait(hours=12)
+```
+
+### Q26: What are the best practices for CI/CD in microservices architecture?
+**Answer:**
+
+**Microservices CI/CD Patterns:**
+
+**1. Independent Pipelines:**
+```yaml
+# Service-specific pipeline
+name: User Service CI/CD
+
+trigger:
+  paths:
+    - 'services/user-service/**'
+    - 'shared/common/**'
+
+jobs:
+  build-user-service:
+    steps:
+      - name: Build Service
+        run: |
+          cd services/user-service
+          docker build -t user-service:${{ github.sha }} .
+      
+      - name: Test Service
+        run: |
+          cd services/user-service
+          pytest tests/
+      
+      - name: Deploy Service
+        run: |
+          helm upgrade user-service ./charts/user-service \
+            --set image.tag=${{ github.sha }}
+```
+
+**2. Contract Testing:**
+```python
+# Consumer-driven contract testing
+class ContractTester:
+    def test_user_service_contract(self):
+        # Define expected contract
+        expected_contract = {
+            'endpoint': '/api/users/{user_id}',
+            'method': 'GET',
+            'response_schema': {
+                'user_id': 'integer',
+                'email': 'string',
+                'created_at': 'datetime'
+            }
+        }
+        
+        # Test against actual service
+        response = self.call_service('/api/users/123')
+        self.validate_contract(response, expected_contract)
+    
+    def validate_contract(self, response, contract):
+        # Validate response structure
+        assert response.status_code == 200
+        
+        # Validate schema
+        data = response.json()
+        for field, field_type in contract['response_schema'].items():
+            assert field in data
+            assert self.validate_type(data[field], field_type)
+```
+
+**3. Service Mesh Integration:**
+```yaml
+# Istio-based progressive deployment
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: user-service
+spec:
+  http:
+  - match:
+    - headers:
+        canary:
+          exact: "true"
+    route:
+    - destination:
+        host: user-service
+        subset: canary
+  - route:
+    - destination:
+        host: user-service
+        subset: stable
+      weight: 90
+    - destination:
+        host: user-service
+        subset: canary
+      weight: 10
+```
+
+### Q27: How do you handle CI/CD for machine learning models?
+**Answer:**
+
+**MLOps CI/CD Pipeline:**
+
+**1. Model Training Pipeline:**
+```python
+class MLModelPipeline:
+    def __init__(self, model_config):
+        self.config = model_config
+        self.mlflow_client = mlflow.tracking.MlflowClient()
+    
+    def train_and_validate_model(self):
+        with mlflow.start_run() as run:
+            # Load and prepare data
+            train_data, val_data = self.load_training_data()
+            
+            # Train model
+            model = self.train_model(train_data)
+            
+            # Validate model performance
+            metrics = self.validate_model(model, val_data)
+            
+            # Log metrics and model
+            mlflow.log_metrics(metrics)
+            mlflow.sklearn.log_model(model, "model")
+            
+            # Check if model meets quality gates
+            if metrics['accuracy'] > self.config['min_accuracy']:
+                self.promote_model(run.info.run_id)
+            else:
+                raise ModelQualityError(f"Model accuracy {metrics['accuracy']} below threshold")
+```
+
+**2. Model Deployment:**
+```python
+class ModelDeployment:
+    def deploy_model(self, model_uri, deployment_config):
+        # A/B test setup
+        if deployment_config['strategy'] == 'ab_test':
+            self.deploy_ab_test(model_uri, deployment_config)
+        
+        # Shadow deployment
+        elif deployment_config['strategy'] == 'shadow':
+            self.deploy_shadow_mode(model_uri)
+        
+        # Blue-green deployment
+        else:
+            self.deploy_blue_green(model_uri)
+    
+    def deploy_ab_test(self, model_uri, config):
+        # Deploy new model alongside existing
+        self.deploy_model_version(model_uri, 'candidate')
+        
+        # Configure traffic split
+        self.configure_traffic_split({
+            'champion': config['champion_traffic'],
+            'candidate': config['candidate_traffic']
+        })
+        
+        # Monitor performance
+        self.monitor_ab_test(config['test_duration'])
+```
+
+### Q28: What is the role of compliance and governance in CI/CD?
+**Answer:**
+
+**Compliance Integration:**
+
+**1. Automated Compliance Checks:**
+```python
+class ComplianceValidator:
+    def __init__(self, compliance_rules):
+        self.rules = compliance_rules
+    
+    def validate_deployment(self, deployment_config):
+        violations = []
+        
+        # Check data retention policies
+        if not self.check_data_retention(deployment_config):
+            violations.append("Data retention policy violation")
+        
+        # Validate encryption requirements
+        if not self.check_encryption_compliance(deployment_config):
+            violations.append("Encryption requirements not met")
+        
+        # Check access controls
+        if not self.validate_access_controls(deployment_config):
+            violations.append("Access control violations detected")
+        
+        if violations:
+            raise ComplianceError(f"Compliance violations: {violations}")
+    
+    def check_data_retention(self, config):
+        # Verify data retention settings
+        retention_days = config.get('data_retention_days', 0)
+        max_allowed = self.rules['max_retention_days']
+        
+        return retention_days <= max_allowed
+```
+
+**2. Audit Trail:**
+```python
+class AuditLogger:
+    def __init__(self, audit_store):
+        self.audit_store = audit_store
+    
+    def log_deployment_event(self, event_data):
+        audit_record = {
+            'timestamp': datetime.utcnow().isoformat(),
+            'event_type': 'deployment',
+            'user': event_data['user'],
+            'environment': event_data['environment'],
+            'changes': event_data['changes'],
+            'approval_chain': event_data['approvals'],
+            'compliance_checks': event_data['compliance_results']
+        }
+        
+        # Store in immutable audit log
+        self.audit_store.append(audit_record)
+        
+        # Send to compliance monitoring system
+        self.send_to_compliance_system(audit_record)
+```
+
+### Q29: How do you implement disaster recovery for CI/CD infrastructure?
+**Answer:**
+
+**Disaster Recovery Strategies:**
+
+**1. Multi-Region Setup:**
+```yaml
+# Disaster recovery configuration
+disaster_recovery:
+  primary_region: "us-east-1"
+  backup_regions: ["us-west-2", "eu-west-1"]
+  
+  replication:
+    artifacts:
+      strategy: "cross_region_sync"
+      frequency: "real_time"
+    
+    configurations:
+      strategy: "git_based"
+      backup_frequency: "hourly"
+    
+    secrets:
+      strategy: "encrypted_backup"
+      backup_frequency: "daily"
+```
+
+**2. Automated Failover:**
+```python
+class DisasterRecoveryManager:
+    def __init__(self, dr_config):
+        self.config = dr_config
+        self.health_checker = HealthChecker()
+    
+    def monitor_primary_region(self):
+        while True:
+            if not self.health_checker.check_primary_region():
+                self.initiate_failover()
+                break
+            time.sleep(30)
+    
+    def initiate_failover(self):
+        # Switch DNS to backup region
+        self.update_dns_records(self.config['backup_region'])
+        
+        # Restore CI/CD infrastructure
+        self.restore_cicd_infrastructure()
+        
+        # Sync latest configurations
+        self.sync_configurations()
+        
+        # Notify teams
+        self.send_failover_notification()
+```
+
+### Q30: What are the emerging trends in CI/CD?
+**Answer:**
+
+**Emerging CI/CD Trends:**
+
+**1. AI-Powered CI/CD:**
+```python
+class AIEnhancedPipeline:
+    def __init__(self, ai_service):
+        self.ai = ai_service
+    
+    def predict_deployment_risk(self, changes):
+        # Analyze code changes for risk factors
+        risk_factors = self.ai.analyze_changes(changes)
+        
+        # Predict deployment success probability
+        success_probability = self.ai.predict_success(risk_factors)
+        
+        # Recommend deployment strategy
+        if success_probability < 0.7:
+            return "canary_deployment"
+        elif success_probability < 0.9:
+            return "blue_green_deployment"
+        else:
+            return "direct_deployment"
+    
+    def auto_optimize_pipeline(self):
+        # Analyze pipeline performance
+        performance_data = self.collect_pipeline_metrics()
+        
+        # Generate optimization recommendations
+        optimizations = self.ai.recommend_optimizations(performance_data)
+        
+        # Apply safe optimizations automatically
+        for optimization in optimizations:
+            if optimization['risk_level'] == 'low':
+                self.apply_optimization(optimization)
+```
+
+**2. Serverless CI/CD:**
+```yaml
+# Serverless pipeline definition
+name: Serverless Data Pipeline
+
+trigger:
+  - s3_event
+  - schedule: "0 2 * * *"
+
+steps:
+  - name: "data_validation"
+    runtime: "lambda"
+    function: "validate_incoming_data"
+    timeout: "5m"
+  
+  - name: "data_transformation"
+    runtime: "fargate"
+    image: "data-processor:latest"
+    cpu: "2 vCPU"
+    memory: "4 GB"
+  
+  - name: "data_loading"
+    runtime: "glue"
+    job_name: "load_to_warehouse"
+```
+
+**3. GitOps Evolution:**
+```python
+class AdvancedGitOps:
+    def __init__(self, git_repo, k8s_cluster):
+        self.repo = git_repo
+        self.cluster = k8s_cluster
+    
+    def implement_progressive_gitops(self):
+        # Multi-environment promotion
+        environments = ['dev', 'staging', 'production']
+        
+        for env in environments:
+            # Automatic promotion based on success criteria
+            if self.check_promotion_criteria(env):
+                self.promote_to_next_environment(env)
+    
+    def self_healing_infrastructure(self):
+        # Detect configuration drift
+        drift = self.detect_configuration_drift()
+        
+        if drift:
+            # Auto-correct minor drifts
+            if drift['severity'] == 'minor':
+                self.auto_correct_drift(drift)
+            else:
+                # Alert for manual intervention
+                self.alert_operations_team(drift)
+```
+
 ---
 
-*[Questions 21-30 will be added in the next batch]*
+## Intermediate Level Questions
+
+*[Questions 31-70 will be added in the next batch]*
