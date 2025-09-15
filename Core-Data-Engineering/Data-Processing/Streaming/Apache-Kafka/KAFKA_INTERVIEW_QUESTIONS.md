@@ -1161,6 +1161,1461 @@ kafka-configs.sh --bootstrap-server localhost:9092 --entity-type topics --entity
 
 **Total Questions: 100** | **Difficulty: Beginner to Expert** | **Coverage: Complete Kafka Ecosystem**
 
+### 86. How do you implement Kafka Schema Registry integration?
+
+**Answer:** Schema Registry provides centralized schema management for Kafka.
+
+```java
+// Avro Producer with Schema Registry
+Properties props = new Properties();
+props.put("bootstrap.servers", "localhost:9092");
+props.put("key.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer");
+props.put("value.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer");
+props.put("schema.registry.url", "http://localhost:8081");
+
+Producer<String, GenericRecord> producer = new KafkaProducer<>(props);
+
+// Create Avro schema
+String userSchema = "{"
+    + "\"type\":\"record\","
+    + "\"name\":\"User\","
+    + "\"fields\":["
+    + "{\"name\":\"id\",\"type\":\"string\"},"
+    + "{\"name\":\"name\",\"type\":\"string\"},"
+    + "{\"name\":\"email\",\"type\":\"string\"}"
+    + "]}";
+
+Schema.Parser parser = new Schema.Parser();
+Schema schema = parser.parse(userSchema);
+
+// Create and send record
+GenericRecord user = new GenericData.Record(schema);
+user.put("id", "123");
+user.put("name", "John Doe");
+user.put("email", "john@example.com");
+
+producer.send(new ProducerRecord<>("users", "123", user));
+```
+
+### 87. How do you handle Kafka message compression?
+
+**Answer:** Compression reduces network bandwidth and storage requirements.
+
+```java
+// Producer compression configuration
+Properties props = new Properties();
+props.put("compression.type", "snappy");  // Options: none, gzip, snappy, lz4, zstd
+props.put("batch.size", 65536);  // Larger batches improve compression
+props.put("linger.ms", 10);     // Wait for batching
+
+// Compression comparison
+public class CompressionBenchmark {
+    public void testCompressionTypes() {
+        String[] compressionTypes = {"none", "gzip", "snappy", "lz4", "zstd"};
+        
+        for (String compression : compressionTypes) {
+            Properties props = getBaseProps();
+            props.put("compression.type", compression);
+            
+            long startTime = System.currentTimeMillis();
+            Producer<String, String> producer = new KafkaProducer<>(props);
+            
+            // Send test messages
+            for (int i = 0; i < 10000; i++) {
+                String message = generateLargeMessage(1024); // 1KB message
+                producer.send(new ProducerRecord<>("test-topic", String.valueOf(i), message));
+            }
+            
+            producer.flush();
+            long endTime = System.currentTimeMillis();
+            
+            System.out.printf("%s compression: %d ms%n", compression, endTime - startTime);
+            producer.close();
+        }
+    }
+}
+```
+
+### 88. How do you implement Kafka message deduplication?
+
+**Answer:** Implement deduplication using idempotent producers and consumer-side logic.
+
+```java
+// Idempotent Producer (prevents duplicates from producer retries)
+Properties props = new Properties();
+props.put("enable.idempotence", true);
+props.put("acks", "all");
+props.put("retries", Integer.MAX_VALUE);
+props.put("max.in.flight.requests.per.connection", 5);
+
+// Consumer-side deduplication
+public class DeduplicatingConsumer {
+    private final Set<String> processedMessages = new ConcurrentHashMap<>();
+    private final KafkaConsumer<String, String> consumer;
+    
+    public void processMessages() {
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                String messageId = generateMessageId(record);
+                
+                // Check if already processed
+                if (processedMessages.contains(messageId)) {
+                    System.out.println("Duplicate message detected: " + messageId);
+                    continue;
+                }
+                
+                // Process message
+                processMessage(record);
+                
+                // Mark as processed
+                processedMessages.add(messageId);
+                
+                // Cleanup old entries periodically
+                if (processedMessages.size() > 100000) {
+                    cleanupOldEntries();
+                }
+            }
+        }
+    }
+    
+    private String generateMessageId(ConsumerRecord<String, String> record) {
+        // Use combination of topic, partition, offset, and content hash
+        return String.format("%s-%d-%d-%d", 
+            record.topic(), record.partition(), record.offset(), 
+            record.value().hashCode());
+    }
+}
+```
+
+### 89. How do you implement Kafka message routing and filtering?
+
+**Answer:** Use headers, custom partitioners, and stream processing for routing.
+
+```java
+// Message routing with headers
+public class MessageRouter {
+    private final Producer<String, String> producer;
+    
+    public void routeMessage(String message, String routingKey) {
+        ProducerRecord<String, String> record = new ProducerRecord<>("events", message);
+        
+        // Add routing headers
+        record.headers().add("routing.key", routingKey.getBytes());
+        record.headers().add("priority", "high".getBytes());
+        record.headers().add("source.system", "web-app".getBytes());
+        
+        producer.send(record);
+    }
+}
+
+// Consumer with message filtering
+public class FilteringConsumer {
+    public void consumeWithFilter() {
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                // Filter by headers
+                Header routingHeader = record.headers().lastHeader("routing.key");
+                if (routingHeader != null) {
+                    String routingKey = new String(routingHeader.value());
+                    
+                    if (shouldProcessMessage(routingKey)) {
+                        processMessage(record);
+                    }
+                }
+            }
+        }
+    }
+    
+    private boolean shouldProcessMessage(String routingKey) {
+        return routingKey.startsWith("user.") || routingKey.startsWith("order.");
+    }
+}
+
+// Kafka Streams filtering
+StreamsBuilder builder = new StreamsBuilder();
+KStream<String, String> events = builder.stream("events");
+
+// Filter by message content
+KStream<String, String> userEvents = events
+    .filter((key, value) -> value.contains("user_id"))
+    .filter((key, value) -> !value.contains("test"));
+
+// Route to different topics based on content
+events.branch(
+    (key, value) -> value.contains("error"),
+    (key, value) -> value.contains("warning"),
+    (key, value) -> true  // default
+)[0].to("error-events");
+```
+
+### 90. How do you implement Kafka message transformation?
+
+**Answer:** Transform messages using Kafka Streams, Connect transforms, or custom processors.
+
+```java
+// Kafka Streams transformations
+public class MessageTransformer {
+    public void setupTransformations() {
+        StreamsBuilder builder = new StreamsBuilder();
+        KStream<String, String> rawEvents = builder.stream("raw-events");
+        
+        // JSON parsing and enrichment
+        KStream<String, JsonNode> parsedEvents = rawEvents
+            .mapValues(this::parseJson)
+            .filter((key, value) -> value != null);
+        
+        // Add timestamp and enrich with user data
+        KStream<String, JsonNode> enrichedEvents = parsedEvents
+            .mapValues(this::addTimestamp)
+            .leftJoin(userTable, this::enrichWithUserData);
+        
+        // Transform to different format
+        KStream<String, String> transformedEvents = enrichedEvents
+            .mapValues(this::transformToAvro)
+            .selectKey((key, value) -> extractUserId(value));
+        
+        transformedEvents.to("transformed-events");
+    }
+    
+    private JsonNode parseJson(String jsonString) {
+        try {
+            return objectMapper.readTree(jsonString);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    private JsonNode addTimestamp(JsonNode event) {
+        ((ObjectNode) event).put("processed_at", System.currentTimeMillis());
+        return event;
+    }
+}
+
+// Single Message Transform (SMT) for Kafka Connect
+public class CustomTransform<R extends ConnectRecord<R>> implements Transformation<R> {
+    @Override
+    public R apply(R record) {
+        if (record.value() instanceof Map) {
+            Map<String, Object> value = (Map<String, Object>) record.value();
+            
+            // Add metadata
+            value.put("transform_timestamp", System.currentTimeMillis());
+            value.put("source_topic", record.topic());
+            
+            // Mask sensitive data
+            if (value.containsKey("email")) {
+                String email = (String) value.get("email");
+                value.put("email", maskEmail(email));
+            }
+            
+            return record.newRecord(
+                record.topic(),
+                record.kafkaPartition(),
+                record.keySchema(),
+                record.key(),
+                record.valueSchema(),
+                value,
+                record.timestamp()
+            );
+        }
+        return record;
+    }
+    
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex > 0) {
+            return "***" + email.substring(atIndex);
+        }
+        return "***";
+    }
+}
+```
+
+### 91. How do you implement Kafka message versioning?
+
+**Answer:** Handle message evolution using schema versioning and compatibility strategies.
+
+```java
+// Schema evolution with Avro
+public class MessageVersioning {
+    
+    // Version 1 schema
+    private static final String USER_SCHEMA_V1 = "{"
+        + "\"type\":\"record\","
+        + "\"name\":\"User\","
+        + "\"namespace\":\"com.example.v1\","
+        + "\"fields\":["
+        + "{\"name\":\"id\",\"type\":\"string\"},"
+        + "{\"name\":\"name\",\"type\":\"string\"}"
+        + "]}";
+    
+    // Version 2 schema (backward compatible)
+    private static final String USER_SCHEMA_V2 = "{"
+        + "\"type\":\"record\","
+        + "\"name\":\"User\","
+        + "\"namespace\":\"com.example.v2\","
+        + "\"fields\":["
+        + "{\"name\":\"id\",\"type\":\"string\"},"
+        + "{\"name\":\"name\",\"type\":\"string\"},"
+        + "{\"name\":\"email\",\"type\":[\"null\",\"string\"],\"default\":null},"
+        + "{\"name\":\"created_at\",\"type\":[\"null\",\"long\"],\"default\":null}"
+        + "]}";
+    
+    public void handleVersionedMessages() {
+        // Consumer that handles multiple versions
+        while (true) {
+            ConsumerRecords<String, GenericRecord> records = consumer.poll(Duration.ofMillis(100));
+            
+            for (ConsumerRecord<String, GenericRecord> record : records) {
+                GenericRecord user = record.value();
+                String namespace = user.getSchema().getNamespace();
+                
+                switch (namespace) {
+                    case "com.example.v1":
+                        processUserV1(user);
+                        break;
+                    case "com.example.v2":
+                        processUserV2(user);
+                        break;
+                    default:
+                        System.err.println("Unknown schema version: " + namespace);
+                }
+            }
+        }
+    }
+    
+    private void processUserV1(GenericRecord user) {
+        String id = user.get("id").toString();
+        String name = user.get("name").toString();
+        // Process v1 user (no email field)
+        System.out.printf("V1 User: %s, %s%n", id, name);
+    }
+    
+    private void processUserV2(GenericRecord user) {
+        String id = user.get("id").toString();
+        String name = user.get("name").toString();
+        String email = user.get("email") != null ? user.get("email").toString() : "N/A";
+        Long createdAt = (Long) user.get("created_at");
+        
+        System.out.printf("V2 User: %s, %s, %s, %s%n", id, name, email, createdAt);
+    }
+}
+
+// JSON versioning approach
+public class JsonVersioning {
+    public void handleJsonVersions(String jsonMessage) {
+        JsonNode message = objectMapper.readTree(jsonMessage);
+        
+        // Check version field
+        int version = message.has("version") ? message.get("version").asInt() : 1;
+        
+        switch (version) {
+            case 1:
+                processV1Message(message);
+                break;
+            case 2:
+                processV2Message(message);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported version: " + version);
+        }
+    }
+}
+```
+
+### 92. How do you implement Kafka message batching and micro-batching?
+
+**Answer:** Optimize throughput using producer batching and consumer micro-batching.
+
+```java
+// Producer batching configuration
+Properties producerProps = new Properties();
+producerProps.put("batch.size", 65536);  // 64KB batches
+producerProps.put("linger.ms", 20);      // Wait 20ms for batching
+producerProps.put("buffer.memory", 134217728);  // 128MB buffer
+producerProps.put("compression.type", "lz4");   // Enable compression
+
+// Consumer micro-batching
+public class MicroBatchProcessor {
+    private final List<ConsumerRecord<String, String>> batch = new ArrayList<>();
+    private final int batchSize = 1000;
+    private final long batchTimeoutMs = 5000;
+    private long lastBatchTime = System.currentTimeMillis();
+    
+    public void processMicroBatches() {
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                batch.add(record);
+                
+                // Process batch when size or timeout reached
+                if (batch.size() >= batchSize || 
+                    System.currentTimeMillis() - lastBatchTime > batchTimeoutMs) {
+                    processBatch(new ArrayList<>(batch));
+                    batch.clear();
+                    lastBatchTime = System.currentTimeMillis();
+                }
+            }
+        }
+    }
+    
+    private void processBatch(List<ConsumerRecord<String, String>> batchRecords) {
+        System.out.printf("Processing batch of %d records%n", batchRecords.size());
+        
+        // Batch database operations
+        List<String> sqlStatements = new ArrayList<>();
+        for (ConsumerRecord<String, String> record : batchRecords) {
+            sqlStatements.add(generateSql(record));
+        }
+        
+        // Execute batch
+        executeBatchSql(sqlStatements);
+        
+        // Commit offsets after successful processing
+        consumer.commitSync();
+    }
+}
+
+// Async batch processing
+public class AsyncBatchProcessor {
+    private final ExecutorService executor = Executors.newFixedThreadPool(10);
+    private final BlockingQueue<List<ConsumerRecord<String, String>>> batchQueue = 
+        new LinkedBlockingQueue<>();
+    
+    public void startAsyncProcessing() {
+        // Start batch processors
+        for (int i = 0; i < 5; i++) {
+            executor.submit(this::processBatchesAsync);
+        }
+        
+        // Main consumer loop
+        List<ConsumerRecord<String, String>> currentBatch = new ArrayList<>();
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                currentBatch.add(record);
+                
+                if (currentBatch.size() >= 500) {
+                    batchQueue.offer(new ArrayList<>(currentBatch));
+                    currentBatch.clear();
+                }
+            }
+        }
+    }
+    
+    private void processBatchesAsync() {
+        while (true) {
+            try {
+                List<ConsumerRecord<String, String>> batch = batchQueue.take();
+                processRecordBatch(batch);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
+}
+```
+
+### 93. How do you implement Kafka message prioritization?
+
+**Answer:** Use multiple topics, custom partitioners, or priority queues for message prioritization.
+
+```java
+// Priority-based topic routing
+public class PriorityMessageProducer {
+    private final Producer<String, String> producer;
+    private final Map<String, String> priorityTopics = Map.of(
+        "HIGH", "high-priority-events",
+        "MEDIUM", "medium-priority-events",
+        "LOW", "low-priority-events"
+    );
+    
+    public void sendPriorityMessage(String message, String priority) {
+        String topic = priorityTopics.getOrDefault(priority, "low-priority-events");
+        
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, message);
+        record.headers().add("priority", priority.getBytes());
+        record.headers().add("timestamp", String.valueOf(System.currentTimeMillis()).getBytes());
+        
+        producer.send(record);
+    }
+}
+
+// Priority-aware consumer
+public class PriorityConsumer {
+    private final Map<String, KafkaConsumer<String, String>> consumers = new HashMap<>();
+    private final ExecutorService executor = Executors.newFixedThreadPool(3);
+    
+    public void startPriorityConsumption() {
+        // High priority consumer (more threads)
+        for (int i = 0; i < 3; i++) {
+            executor.submit(() -> consumeFromTopic("high-priority-events", 100));
+        }
+        
+        // Medium priority consumer
+        for (int i = 0; i < 2; i++) {
+            executor.submit(() -> consumeFromTopic("medium-priority-events", 500));
+        }
+        
+        // Low priority consumer
+        executor.submit(() -> consumeFromTopic("low-priority-events", 1000));
+    }
+    
+    private void consumeFromTopic(String topic, long pollTimeoutMs) {
+        KafkaConsumer<String, String> consumer = createConsumer(topic);
+        
+        while (true) {
+            ConsumerRecords<String, String> records = 
+                consumer.poll(Duration.ofMillis(pollTimeoutMs));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                processMessage(record, topic);
+            }
+        }
+    }
+}
+
+// Custom priority partitioner
+public class PriorityPartitioner implements Partitioner {
+    @Override
+    public int partition(String topic, Object key, byte[] keyBytes, 
+                        Object value, byte[] valueBytes, Cluster cluster) {
+        
+        List<PartitionInfo> partitions = cluster.partitionsForTopic(topic);
+        int numPartitions = partitions.size();
+        
+        // Extract priority from message
+        String priority = extractPriority(value.toString());
+        
+        switch (priority) {
+            case "HIGH":
+                // High priority messages go to first 30% of partitions
+                return Math.abs(key.hashCode()) % (numPartitions * 3 / 10);
+            case "MEDIUM":
+                // Medium priority messages go to middle partitions
+                int mediumStart = numPartitions * 3 / 10;
+                int mediumRange = numPartitions * 4 / 10;
+                return mediumStart + (Math.abs(key.hashCode()) % mediumRange);
+            default:
+                // Low priority messages go to remaining partitions
+                int lowStart = numPartitions * 7 / 10;
+                return lowStart + (Math.abs(key.hashCode()) % (numPartitions - lowStart));
+        }
+    }
+}
+```
+
+### 94. How do you implement Kafka message replay and reprocessing?
+
+**Answer:** Use offset management and consumer group strategies for message replay.
+
+```java
+// Message replay implementation
+public class MessageReplayService {
+    private final KafkaConsumer<String, String> consumer;
+    private final AdminClient adminClient;
+    
+    public void replayMessages(String topic, long fromTimestamp, long toTimestamp) {
+        // Get topic partitions
+        List<TopicPartition> partitions = getTopicPartitions(topic);
+        
+        // Find offsets for timestamp range
+        Map<TopicPartition, Long> startOffsets = getOffsetsForTimestamp(partitions, fromTimestamp);
+        Map<TopicPartition, Long> endOffsets = getOffsetsForTimestamp(partitions, toTimestamp);
+        
+        // Assign partitions and seek to start offsets
+        consumer.assign(partitions);
+        for (Map.Entry<TopicPartition, Long> entry : startOffsets.entrySet()) {
+            consumer.seek(entry.getKey(), entry.getValue());
+        }
+        
+        // Replay messages
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                // Check if we've reached end timestamp
+                if (record.timestamp() > toTimestamp) {
+                    return;
+                }
+                
+                // Reprocess message
+                reprocessMessage(record);
+            }
+            
+            if (records.isEmpty()) {
+                break;
+            }
+        }
+    }
+    
+    public void replayFromOffset(String topic, int partition, long startOffset, long endOffset) {
+        TopicPartition topicPartition = new TopicPartition(topic, partition);
+        consumer.assign(Collections.singletonList(topicPartition));
+        consumer.seek(topicPartition, startOffset);
+        
+        long processedCount = 0;
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                if (record.offset() >= endOffset) {
+                    System.out.printf("Replay completed. Processed %d messages%n", processedCount);
+                    return;
+                }
+                
+                reprocessMessage(record);
+                processedCount++;
+                
+                if (processedCount % 1000 == 0) {
+                    System.out.printf("Replayed %d messages%n", processedCount);
+                }
+            }
+        }
+    }
+    
+    private Map<TopicPartition, Long> getOffsetsForTimestamp(
+            List<TopicPartition> partitions, long timestamp) {
+        
+        Map<TopicPartition, Long> timestampMap = partitions.stream()
+            .collect(Collectors.toMap(tp -> tp, tp -> timestamp));
+        
+        Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes = 
+            consumer.offsetsForTimes(timestampMap);
+        
+        return offsetsForTimes.entrySet().stream()
+            .filter(entry -> entry.getValue() != null)
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().offset()
+            ));
+    }
+}
+
+// Reprocessing with error handling
+public class ReprocessingConsumer {
+    private final KafkaConsumer<String, String> consumer;
+    private final Producer<String, String> deadLetterProducer;
+    
+    public void reprocessWithErrorHandling(String consumerGroup) {
+        // Reset consumer group to beginning
+        resetConsumerGroup(consumerGroup);
+        
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                try {
+                    // Attempt reprocessing
+                    boolean success = reprocessMessage(record);
+                    
+                    if (!success) {
+                        sendToDeadLetter(record, "Reprocessing failed");
+                    }
+                    
+                } catch (Exception e) {
+                    System.err.printf("Error reprocessing message at offset %d: %s%n", 
+                        record.offset(), e.getMessage());
+                    sendToDeadLetter(record, e.getMessage());
+                }
+            }
+            
+            // Commit after successful batch processing
+            consumer.commitSync();
+        }
+    }
+    
+    private void sendToDeadLetter(ConsumerRecord<String, String> record, String error) {
+        ProducerRecord<String, String> deadLetterRecord = new ProducerRecord<>(
+            "dead-letter-topic", record.key(), record.value());
+        
+        deadLetterRecord.headers().add("original.topic", record.topic().getBytes());
+        deadLetterRecord.headers().add("original.partition", 
+            String.valueOf(record.partition()).getBytes());
+        deadLetterRecord.headers().add("original.offset", 
+            String.valueOf(record.offset()).getBytes());
+        deadLetterRecord.headers().add("error.message", error.getBytes());
+        deadLetterRecord.headers().add("error.timestamp", 
+            String.valueOf(System.currentTimeMillis()).getBytes());
+        
+        deadLetterProducer.send(deadLetterRecord);
+    }
+}
+```
+
+### 95. How do you implement Kafka message aggregation and windowing?
+
+**Answer:** Use Kafka Streams for time-based and session-based aggregations.
+
+```java
+// Time-based windowing with Kafka Streams
+public class MessageAggregator {
+    
+    public void setupTimeBasedAggregation() {
+        StreamsBuilder builder = new StreamsBuilder();
+        
+        KStream<String, String> events = builder.stream("user-events");
+        
+        // Parse JSON events
+        KStream<String, JsonNode> parsedEvents = events
+            .mapValues(this::parseJson)
+            .filter((key, value) -> value != null);
+        
+        // Tumbling window aggregation (5-minute windows)
+        KTable<Windowed<String>, Long> tumblingCounts = parsedEvents
+            .groupBy((key, value) -> value.get("user_id").asText())
+            .windowedBy(TimeWindows.of(Duration.ofMinutes(5)))
+            .count();
+        
+        // Hopping window aggregation (5-minute windows, 1-minute advance)
+        KTable<Windowed<String>, Double> hoppingAverages = parsedEvents
+            .groupBy((key, value) -> value.get("user_id").asText())
+            .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).advanceBy(Duration.ofMinutes(1)))
+            .aggregate(
+                () -> new AggregateValue(0.0, 0),
+                (key, value, aggregate) -> {
+                    double amount = value.get("amount").asDouble();
+                    return new AggregateValue(
+                        aggregate.sum + amount,
+                        aggregate.count + 1
+                    );
+                },
+                Materialized.with(Serdes.String(), aggregateValueSerde)
+            )
+            .mapValues(agg -> agg.count > 0 ? agg.sum / agg.count : 0.0);
+        
+        // Session window aggregation (30-minute inactivity gap)
+        KTable<Windowed<String>, String> sessionAggregates = parsedEvents
+            .groupBy((key, value) -> value.get("user_id").asText())
+            .windowedBy(SessionWindows.with(Duration.ofMinutes(30)))
+            .aggregate(
+                () -> "",
+                (key, value, aggregate) -> aggregate + value.get("event_type").asText() + ",",
+                (aggKey, leftAgg, rightAgg) -> leftAgg + rightAgg,
+                Materialized.with(Serdes.String(), Serdes.String())
+            );
+        
+        // Output results
+        tumblingCounts.toStream().to("tumbling-counts");
+        hoppingAverages.toStream().to("hopping-averages");
+        sessionAggregates.toStream().to("session-aggregates");
+    }
+    
+    // Custom aggregation with state store
+    public void setupCustomAggregation() {
+        StreamsBuilder builder = new StreamsBuilder();
+        
+        // Create state store
+        StoreBuilder<KeyValueStore<String, CustomAggregate>> storeBuilder = 
+            Stores.keyValueStoreBuilder(
+                Stores.persistentKeyValueStore("custom-aggregates"),
+                Serdes.String(),
+                customAggregateSerde
+            );
+        
+        builder.addStateStore(storeBuilder);
+        
+        KStream<String, String> events = builder.stream("events");
+        
+        // Custom aggregation processor
+        events.process(() -> new CustomAggregationProcessor(), "custom-aggregates");
+    }
+    
+    private static class AggregateValue {
+        public final double sum;
+        public final int count;
+        
+        public AggregateValue(double sum, int count) {
+            this.sum = sum;
+            this.count = count;
+        }
+    }
+}
+
+// Custom aggregation processor
+public class CustomAggregationProcessor implements Processor<String, String> {
+    private KeyValueStore<String, CustomAggregate> stateStore;
+    private ProcessorContext context;
+    
+    @Override
+    public void init(ProcessorContext context) {
+        this.context = context;
+        this.stateStore = (KeyValueStore<String, CustomAggregate>) 
+            context.getStateStore("custom-aggregates");
+        
+        // Schedule punctuation for periodic output
+        context.schedule(Duration.ofMinutes(1), PunctuationType.WALL_CLOCK_TIME, 
+            this::punctuate);
+    }
+    
+    @Override
+    public void process(String key, String value) {
+        JsonNode event = parseJson(value);
+        if (event == null) return;
+        
+        String userId = event.get("user_id").asText();
+        CustomAggregate current = stateStore.get(userId);
+        
+        if (current == null) {
+            current = new CustomAggregate();
+        }
+        
+        // Update aggregate
+        current.addEvent(event);
+        stateStore.put(userId, current);
+    }
+    
+    private void punctuate(long timestamp) {
+        // Output aggregated results periodically
+        try (KeyValueIterator<String, CustomAggregate> iterator = stateStore.all()) {
+            while (iterator.hasNext()) {
+                KeyValue<String, CustomAggregate> entry = iterator.next();
+                
+                // Forward aggregate result
+                context.forward(entry.key, entry.value.toJson());
+                
+                // Reset or update aggregate for next window
+                entry.value.reset();
+                stateStore.put(entry.key, entry.value);
+            }
+        }
+    }
+}
+```
+
+### 96. How do you implement Kafka multi-datacenter replication?
+
+**Answer:** Use MirrorMaker 2.0 for cross-datacenter replication with conflict resolution.
+
+```bash
+# MirrorMaker 2.0 configuration
+# mm2.properties
+clusters = us-west, us-east, eu-west
+us-west.bootstrap.servers = us-west-kafka:9092
+us-east.bootstrap.servers = us-east-kafka:9092
+eu-west.bootstrap.servers = eu-west-kafka:9092
+
+# Replication flows
+us-west->us-east.enabled = true
+us-west->eu-west.enabled = true
+us-east->us-west.enabled = true
+eu-west->us-west.enabled = true
+
+# Topic patterns
+us-west->us-east.topics = user-events, order-events
+us-west->us-east.topics.blacklist = internal-.*
+
+# Replication settings
+replication.factor = 3
+offset-syncs.topic.replication.factor = 3
+heartbeats.topic.replication.factor = 3
+checkpoints.topic.replication.factor = 3
+
+# Conflict resolution
+sync.topic.configs.enabled = true
+refresh.topics.enabled = true
+refresh.topics.interval.seconds = 600
+```
+
+```java
+// Custom replication monitoring
+public class ReplicationMonitor {
+    private final Map<String, AdminClient> clusterClients;
+    
+    public void monitorReplicationLag() {
+        for (String cluster : clusterClients.keySet()) {
+            AdminClient client = clusterClients.get(cluster);
+            
+            // Check consumer group lag for MirrorMaker
+            ListConsumerGroupsResult groups = client.listConsumerGroups();
+            
+            groups.all().get().forEach(group -> {
+                if (group.groupId().startsWith("mm2-")) {
+                    checkMirrorMakerLag(client, group.groupId());
+                }
+            });
+        }
+    }
+    
+    private void checkMirrorMakerLag(AdminClient client, String groupId) {
+        try {
+            DescribeConsumerGroupsResult result = client.describeConsumerGroups(
+                Collections.singletonList(groupId));
+            
+            ConsumerGroupDescription description = result.describedGroups().get(groupId).get();
+            
+            if (description.state() == ConsumerGroupState.STABLE) {
+                // Monitor lag metrics
+                ListConsumerGroupOffsetsResult offsets = 
+                    client.listConsumerGroupOffsets(groupId);
+                
+                offsets.partitionsToOffsetAndMetadata().get().forEach((partition, offset) -> {
+                    long lag = calculateLag(client, partition, offset.offset());
+                    if (lag > 10000) { // Alert if lag > 10k messages
+                        sendAlert("High replication lag", partition, lag);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            System.err.println("Error monitoring replication: " + e.getMessage());
+        }
+    }
+}
+```
+
+### 97. How do you implement Kafka message ordering guarantees?
+
+**Answer:** Ensure ordering through partition strategies and consumer configuration.
+
+```java
+// Strict ordering producer
+public class OrderedMessageProducer {
+    private final Producer<String, String> producer;
+    
+    public OrderedMessageProducer() {
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        
+        // Ensure ordering
+        props.put("max.in.flight.requests.per.connection", 1);  // Critical for ordering
+        props.put("retries", Integer.MAX_VALUE);
+        props.put("acks", "all");
+        props.put("enable.idempotence", true);
+        
+        this.producer = new KafkaProducer<>(props);
+    }
+    
+    public void sendOrderedMessages(String entityId, List<String> messages) {
+        // Use entity ID as partition key to ensure all messages for same entity
+        // go to same partition (maintaining order)
+        for (String message : messages) {
+            ProducerRecord<String, String> record = new ProducerRecord<>(
+                "ordered-events", entityId, message);
+            
+            // Add sequence number for additional ordering verification
+            record.headers().add("sequence", 
+                String.valueOf(System.nanoTime()).getBytes());
+            
+            producer.send(record, (metadata, exception) -> {
+                if (exception != null) {
+                    System.err.println("Failed to send message: " + exception.getMessage());
+                } else {
+                    System.out.printf("Sent to partition %d, offset %d%n", 
+                        metadata.partition(), metadata.offset());
+                }
+            });
+        }
+    }
+}
+
+// Ordered consumer with sequence validation
+public class OrderedMessageConsumer {
+    private final KafkaConsumer<String, String> consumer;
+    private final Map<String, Long> lastSequenceNumbers = new ConcurrentHashMap<>();
+    
+    public OrderedMessageConsumer() {
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("group.id", "ordered-consumer-group");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        
+        // Ensure single consumer per partition for ordering
+        props.put("max.poll.records", 1);  // Process one message at a time
+        props.put("enable.auto.commit", false);  // Manual commit for control
+        
+        this.consumer = new KafkaConsumer<>(props);
+    }
+    
+    public void consumeOrdered() {
+        consumer.subscribe(Collections.singletonList("ordered-events"));
+        
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            
+            for (ConsumerRecord<String, String> record : records) {
+                if (validateOrder(record)) {
+                    processMessage(record);
+                    consumer.commitSync();  // Commit after successful processing
+                } else {
+                    handleOrderingViolation(record);
+                }
+            }
+        }
+    }
+    
+    private boolean validateOrder(ConsumerRecord<String, String> record) {
+        Header sequenceHeader = record.headers().lastHeader("sequence");
+        if (sequenceHeader == null) return true;
+        
+        long sequence = Long.parseLong(new String(sequenceHeader.value()));
+        String entityId = record.key();
+        
+        Long lastSequence = lastSequenceNumbers.get(entityId);
+        if (lastSequence != null && sequence <= lastSequence) {
+            return false;  // Out of order
+        }
+        
+        lastSequenceNumbers.put(entityId, sequence);
+        return true;
+    }
+}
+```
+
+### 98. How do you implement Kafka message encryption and security?
+
+**Answer:** Implement end-to-end encryption with SSL/TLS and application-level encryption.
+
+```java
+// Application-level message encryption
+public class EncryptedMessageProducer {
+    private final Producer<String, String> producer;
+    private final Cipher encryptCipher;
+    private final Cipher decryptCipher;
+    
+    public EncryptedMessageProducer() throws Exception {
+        // Setup SSL producer
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9093");
+        props.put("security.protocol", "SSL");
+        props.put("ssl.truststore.location", "/path/to/truststore.jks");
+        props.put("ssl.truststore.password", "truststore-password");
+        props.put("ssl.keystore.location", "/path/to/keystore.jks");
+        props.put("ssl.keystore.password", "keystore-password");
+        props.put("ssl.key.password", "key-password");
+        
+        this.producer = new KafkaProducer<>(props);
+        
+        // Setup application-level encryption
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(256);
+        SecretKey secretKey = keyGen.generateKey();
+        
+        this.encryptCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        this.decryptCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        
+        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+    }
+    
+    public void sendEncryptedMessage(String topic, String key, String message) {
+        try {
+            // Encrypt message
+            byte[] encryptedMessage = encryptCipher.doFinal(message.getBytes());
+            String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessage);
+            
+            // Add encryption metadata
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, encodedMessage);
+            record.headers().add("encrypted", "true".getBytes());
+            record.headers().add("algorithm", "AES-256-GCM".getBytes());
+            record.headers().add("iv", encryptCipher.getIV());
+            
+            producer.send(record);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Encryption failed", e);
+        }
+    }
+}
+
+// Field-level encryption for sensitive data
+public class FieldLevelEncryption {
+    private final Map<String, Cipher> fieldCiphers = new HashMap<>();
+    
+    public String encryptSensitiveFields(String jsonMessage) {
+        try {
+            JsonNode root = objectMapper.readTree(jsonMessage);
+            ObjectNode mutableRoot = (ObjectNode) root;
+            
+            // Encrypt specific fields
+            if (root.has("ssn")) {
+                String encrypted = encryptField(root.get("ssn").asText(), "ssn");
+                mutableRoot.put("ssn", encrypted);
+            }
+            
+            if (root.has("credit_card")) {
+                String encrypted = encryptField(root.get("credit_card").asText(), "credit_card");
+                mutableRoot.put("credit_card", encrypted);
+            }
+            
+            return objectMapper.writeValueAsString(mutableRoot);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Field encryption failed", e);
+        }
+    }
+    
+    private String encryptField(String value, String fieldName) throws Exception {
+        Cipher cipher = fieldCiphers.get(fieldName);
+        if (cipher == null) {
+            // Initialize field-specific cipher
+            cipher = createFieldCipher(fieldName);
+            fieldCiphers.put(fieldName, cipher);
+        }
+        
+        byte[] encrypted = cipher.doFinal(value.getBytes());
+        return Base64.getEncoder().encodeToString(encrypted);
+    }
+}
+
+// Token-based authentication
+public class TokenAuthProducer {
+    public void setupOAuthProducer() {
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("security.protocol", "SASL_SSL");
+        props.put("sasl.mechanism", "OAUTHBEARER");
+        props.put("sasl.jaas.config", 
+            "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required "
+            + "oauth.client.id='client-id' "
+            + "oauth.client.secret='client-secret' "
+            + "oauth.token.endpoint.uri='https://auth.example.com/oauth/token';");
+        
+        Producer<String, String> producer = new KafkaProducer<>(props);
+    }
+}
+```
+
+### 99. How do you implement Kafka performance testing and benchmarking?
+
+**Answer:** Use built-in tools and custom benchmarks for comprehensive performance testing.
+
+```bash
+# Producer performance testing
+kafka-producer-perf-test.sh \
+  --topic performance-test \
+  --num-records 1000000 \
+  --record-size 1024 \
+  --throughput 50000 \
+  --producer-props bootstrap.servers=localhost:9092 \
+                   acks=all \
+                   compression.type=lz4 \
+                   batch.size=65536 \
+                   linger.ms=10
+
+# Consumer performance testing
+kafka-consumer-perf-test.sh \
+  --topic performance-test \
+  --messages 1000000 \
+  --bootstrap-server localhost:9092 \
+  --consumer-props group.id=perf-test-group \
+                   fetch.min.bytes=50000 \
+                   fetch.max.wait.ms=500
+
+# End-to-end latency testing
+kafka-run-class.sh kafka.tools.EndToEndLatency \
+  localhost:9092 performance-test 1000 1 1024
+```
+
+```java
+// Custom performance benchmark
+public class KafkaPerformanceBenchmark {
+    private final Producer<String, String> producer;
+    private final ExecutorService executorService;
+    
+    public void runThroughputBenchmark(int numMessages, int messageSize, int numThreads) {
+        CountDownLatch latch = new CountDownLatch(numThreads);
+        AtomicLong totalLatency = new AtomicLong(0);
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger errorCount = new AtomicInteger(0);
+        
+        long startTime = System.currentTimeMillis();
+        
+        for (int i = 0; i < numThreads; i++) {
+            final int threadId = i;
+            executorService.submit(() -> {
+                try {
+                    int messagesPerThread = numMessages / numThreads;
+                    String message = generateMessage(messageSize);
+                    
+                    for (int j = 0; j < messagesPerThread; j++) {
+                        long sendStart = System.nanoTime();
+                        
+                        producer.send(
+                            new ProducerRecord<>("benchmark-topic", 
+                                String.valueOf(threadId * messagesPerThread + j), message),
+                            (metadata, exception) -> {
+                                long sendEnd = System.nanoTime();
+                                
+                                if (exception == null) {
+                                    totalLatency.addAndGet(sendEnd - sendStart);
+                                    successCount.incrementAndGet();
+                                } else {
+                                    errorCount.incrementAndGet();
+                                }
+                            }
+                        );
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        
+        try {
+            latch.await();
+            producer.flush();
+            
+            long endTime = System.currentTimeMillis();
+            long totalTime = endTime - startTime;
+            
+            // Calculate metrics
+            double throughput = (double) successCount.get() / (totalTime / 1000.0);
+            double avgLatency = (double) totalLatency.get() / successCount.get() / 1_000_000.0; // ms
+            
+            System.out.printf("Benchmark Results:%n");
+            System.out.printf("Total time: %d ms%n", totalTime);
+            System.out.printf("Messages sent: %d%n", successCount.get());
+            System.out.printf("Errors: %d%n", errorCount.get());
+            System.out.printf("Throughput: %.2f messages/sec%n", throughput);
+            System.out.printf("Average latency: %.2f ms%n", avgLatency);
+            
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+    
+    public void runLatencyBenchmark(int numMessages) {
+        List<Long> latencies = new ArrayList<>();
+        String message = generateMessage(1024);
+        
+        for (int i = 0; i < numMessages; i++) {
+            long start = System.nanoTime();
+            
+            Future<RecordMetadata> future = producer.send(
+                new ProducerRecord<>("latency-test", String.valueOf(i), message));
+            
+            try {
+                future.get(); // Wait for completion
+                long end = System.nanoTime();
+                latencies.add(end - start);
+            } catch (Exception e) {
+                System.err.println("Send failed: " + e.getMessage());
+            }
+        }
+        
+        // Calculate percentiles
+        Collections.sort(latencies);
+        
+        double p50 = getPercentile(latencies, 0.5) / 1_000_000.0;
+        double p95 = getPercentile(latencies, 0.95) / 1_000_000.0;
+        double p99 = getPercentile(latencies, 0.99) / 1_000_000.0;
+        
+        System.out.printf("Latency Percentiles:%n");
+        System.out.printf("P50: %.2f ms%n", p50);
+        System.out.printf("P95: %.2f ms%n", p95);
+        System.out.printf("P99: %.2f ms%n", p99);
+    }
+    
+    private double getPercentile(List<Long> sortedList, double percentile) {
+        int index = (int) Math.ceil(percentile * sortedList.size()) - 1;
+        return sortedList.get(Math.max(0, index));
+    }
+}
+```
+
+### 100. How do you implement Kafka disaster recovery and business continuity?
+
+**Answer:** Implement comprehensive DR strategy with backup, replication, and failover procedures.
+
+```java
+// Disaster recovery coordinator
+public class KafkaDisasterRecovery {
+    private final Map<String, AdminClient> clusterClients;
+    private final Map<String, Producer<String, String>> producers;
+    private final ScheduledExecutorService scheduler;
+    
+    public void setupDisasterRecovery() {
+        // Monitor cluster health
+        scheduler.scheduleAtFixedRate(this::monitorClusterHealth, 0, 30, TimeUnit.SECONDS);
+        
+        // Backup metadata
+        scheduler.scheduleAtFixedRate(this::backupMetadata, 0, 1, TimeUnit.HOURS);
+        
+        // Test failover procedures
+        scheduler.scheduleAtFixedRate(this::testFailoverProcedures, 0, 24, TimeUnit.HOURS);
+    }
+    
+    private void monitorClusterHealth() {
+        for (Map.Entry<String, AdminClient> entry : clusterClients.entrySet()) {
+            String clusterName = entry.getKey();
+            AdminClient client = entry.getValue();
+            
+            try {
+                // Check broker health
+                DescribeClusterResult clusterResult = client.describeCluster();
+                Collection<Node> nodes = clusterResult.nodes().get(5, TimeUnit.SECONDS);
+                
+                if (nodes.size() < getMinimumBrokers(clusterName)) {
+                    triggerFailover(clusterName, "Insufficient brokers");
+                }
+                
+                // Check topic health
+                checkTopicHealth(client, clusterName);
+                
+            } catch (Exception e) {
+                System.err.printf("Cluster %s health check failed: %s%n", 
+                    clusterName, e.getMessage());
+                triggerFailover(clusterName, "Health check failed: " + e.getMessage());
+            }
+        }
+    }
+    
+    private void triggerFailover(String failedCluster, String reason) {
+        System.out.printf("Triggering failover from %s. Reason: %s%n", failedCluster, reason);
+        
+        // 1. Stop producers to failed cluster
+        stopProducersToCluster(failedCluster);
+        
+        // 2. Redirect traffic to backup cluster
+        String backupCluster = getBackupCluster(failedCluster);
+        redirectTraffic(failedCluster, backupCluster);
+        
+        // 3. Update DNS/load balancer
+        updateLoadBalancer(failedCluster, backupCluster);
+        
+        // 4. Notify operations team
+        sendFailoverAlert(failedCluster, backupCluster, reason);
+        
+        // 5. Start recovery procedures
+        startRecoveryProcedures(failedCluster);
+    }
+    
+    private void backupMetadata() {
+        for (Map.Entry<String, AdminClient> entry : clusterClients.entrySet()) {
+            String clusterName = entry.getKey();
+            AdminClient client = entry.getValue();
+            
+            try {
+                // Backup topic configurations
+                ListTopicsResult topicsResult = client.listTopics();
+                Set<String> topics = topicsResult.names().get();
+                
+                for (String topic : topics) {
+                    backupTopicConfiguration(client, clusterName, topic);
+                }
+                
+                // Backup ACLs
+                backupACLs(client, clusterName);
+                
+                // Backup consumer group offsets
+                backupConsumerGroupOffsets(client, clusterName);
+                
+            } catch (Exception e) {
+                System.err.printf("Metadata backup failed for %s: %s%n", 
+                    clusterName, e.getMessage());
+            }
+        }
+    }
+    
+    private void restoreFromBackup(String clusterName, String backupTimestamp) {
+        AdminClient client = clusterClients.get(clusterName);
+        
+        try {
+            // Restore topic configurations
+            restoreTopicConfigurations(client, clusterName, backupTimestamp);
+            
+            // Restore ACLs
+            restoreACLs(client, clusterName, backupTimestamp);
+            
+            // Restore consumer group offsets
+            restoreConsumerGroupOffsets(client, clusterName, backupTimestamp);
+            
+            System.out.printf("Restore completed for cluster %s from backup %s%n", 
+                clusterName, backupTimestamp);
+                
+        } catch (Exception e) {
+            System.err.printf("Restore failed for %s: %s%n", clusterName, e.getMessage());
+            throw new RuntimeException("Restore failed", e);
+        }
+    }
+}
+
+// Automated failover client
+public class FailoverKafkaClient {
+    private final List<String> clusterEndpoints;
+    private volatile int activeClusterIndex = 0;
+    private Producer<String, String> activeProducer;
+    
+    public void sendWithFailover(String topic, String key, String value) {
+        int attempts = 0;
+        int maxAttempts = clusterEndpoints.size();
+        
+        while (attempts < maxAttempts) {
+            try {
+                activeProducer.send(new ProducerRecord<>(topic, key, value)).get();
+                return; // Success
+                
+            } catch (Exception e) {
+                System.err.printf("Send failed to cluster %d: %s%n", 
+                    activeClusterIndex, e.getMessage());
+                
+                // Try next cluster
+                failoverToNextCluster();
+                attempts++;
+            }
+        }
+        
+        throw new RuntimeException("All clusters failed");
+    }
+    
+    private void failoverToNextCluster() {
+        activeClusterIndex = (activeClusterIndex + 1) % clusterEndpoints.size();
+        
+        // Close current producer
+        if (activeProducer != null) {
+            activeProducer.close();
+        }
+        
+        // Create new producer for next cluster
+        Properties props = createProducerProps(clusterEndpoints.get(activeClusterIndex));
+        activeProducer = new KafkaProducer<>(props);
+        
+        System.out.printf("Failed over to cluster %d: %s%n", 
+            activeClusterIndex, clusterEndpoints.get(activeClusterIndex));
+    }
+}
+```
+
+---
+
+## 🎆 **Summary**
+
+This comprehensive Apache Kafka interview questions collection now includes **100 detailed questions** covering:
+
+- **Core Concepts (1-20)**: Architecture, topics, partitions, brokers
+- **Producers & Consumers (21-40)**: Configuration, acknowledgments, exactly-once semantics
+- **Topics & Partitions (41-60)**: Partitioning strategies, scaling, key selection
+- **Performance & Scaling (61-80)**: Optimization, monitoring, disaster recovery
+- **Operations & Monitoring (81-100)**: Troubleshooting, security, advanced patterns
+
+**New Advanced Topics Added (86-100):**
+- Schema Registry integration
+- Message compression strategies
+- Deduplication techniques
+- Message routing and filtering
+- Data transformation patterns
+- Message versioning
+- Batching and micro-batching
+- Message prioritization
+- Replay and reprocessing
+- Aggregation and windowing
+- Multi-datacenter replication
+- Message ordering guarantees
+- Encryption and security
+- Performance testing
+- Disaster recovery
+
+Each question includes practical Java code examples, configuration snippets, and real-world implementation patterns to help you excel in Kafka-focused data engineering interviews.
+
 ---
 
 ## 📚 Additional Comprehensive Content
