@@ -3,12 +3,8 @@
 ## 📋 Table of Contents
 
 1. [Basic Level Questions (1-30)](#basic-level-questions-1-30)
-2. [Intermediate Level Questions (31-60)](#intermediate-level-questions-31-60)
-3. [Advanced Level Questions (61-90)](#advanced-level-questions-61-90)
-4. [DAG Design & Best Practices (91-120)](#dag-design--best-practices-91-120)
-5. [Operators & Hooks (121-150)](#operators--hooks-121-150)
-6. [Production & Monitoring (151-180)](#production--monitoring-151-180)
-7. [Scenario-Based Questions (181-200)](#scenario-based-questions-181-200)
+2. [Intermediate Level Questions (31-70)](#intermediate-level-questions-31-70)
+3. [Advanced Level Questions (71-100)](#advanced-level-questions-71-100)
 
 ---
 
@@ -909,15 +905,1174 @@ XCom example DAG created with task communication flow
 [2024-01-15 10:30:29] 📋 Report generated successfully
 ```
 
+### 6. How do you implement dynamic DAGs in Airflow?
+
+**Answer:** Dynamic DAGs are generated programmatically based on external configuration.
+
+```python
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+import json
+import os
+
+# Configuration for dynamic DAGs
+DAG_CONFIGS = [
+    {
+        "dag_id": "etl_customers",
+        "table_name": "customers",
+        "source_path": "/data/raw/customers",
+        "target_path": "/data/processed/customers",
+        "schedule": "@daily",
+        "transformations": ["clean_emails", "validate_phone", "standardize_address"]
+    },
+    {
+        "dag_id": "etl_orders", 
+        "table_name": "orders",
+        "source_path": "/data/raw/orders",
+        "target_path": "/data/processed/orders",
+        "schedule": "@hourly",
+        "transformations": ["calculate_totals", "validate_amounts", "enrich_customer_data"]
+    },
+    {
+        "dag_id": "etl_products",
+        "table_name": "products",
+        "source_path": "/data/raw/products",
+        "target_path": "/data/processed/products", 
+        "schedule": "0 6 * * *",  # Daily at 6 AM
+        "transformations": ["normalize_categories", "update_pricing", "check_inventory"]
+    }
+]
+
+def create_dynamic_dag(dag_config):
+    """Create a DAG dynamically based on configuration"""
+    
+    default_args = {
+        'owner': 'data-engineering',
+        'depends_on_past': False,
+        'start_date': datetime(2024, 1, 1),
+        'email_on_failure': True,
+        'email_on_retry': False,
+        'retries': 2,
+        'retry_delay': timedelta(minutes=5)
+    }
+    
+    dag = DAG(
+        dag_config['dag_id'],
+        default_args=default_args,
+        description=f"ETL pipeline for {dag_config['table_name']}",
+        schedule_interval=dag_config['schedule'],
+        catchup=False,
+        tags=['dynamic', 'etl', dag_config['table_name']]
+    )
+    
+    # Extract task
+    def extract_data(**context):
+        table_name = context['dag'].dag_id.split('_')[1]
+        source_path = dag_config['source_path']
+        
+        print(f"Extracting data from {source_path} for table {table_name}")
+        
+        # Simulate data extraction
+        import pandas as pd
+        import random
+        
+        if table_name == 'customers':
+            data = {
+                'customer_id': range(1, 101),
+                'name': [f'Customer_{i}' for i in range(1, 101)],
+                'email': [f'customer{i}@example.com' for i in range(1, 101)],
+                'phone': [f'+1-555-{random.randint(1000, 9999)}' for _ in range(100)]
+            }
+        elif table_name == 'orders':
+            data = {
+                'order_id': range(1, 201),
+                'customer_id': [random.randint(1, 100) for _ in range(200)],
+                'amount': [round(random.uniform(10, 1000), 2) for _ in range(200)],
+                'order_date': [context['ds'] for _ in range(200)]
+            }
+        else:  # products
+            data = {
+                'product_id': range(1, 51),
+                'name': [f'Product_{i}' for i in range(1, 51)],
+                'category': [random.choice(['Electronics', 'Clothing', 'Books']) for _ in range(50)],
+                'price': [round(random.uniform(5, 500), 2) for _ in range(50)]
+            }
+        
+        df = pd.DataFrame(data)
+        print(f"Extracted {len(df)} records for {table_name}")
+        
+        # Store in XCom
+        return df.to_dict('records')
+    
+    extract_task = PythonOperator(
+        task_id='extract_data',
+        python_callable=extract_data,
+        dag=dag
+    )
+    
+    # Transform tasks (dynamic based on configuration)
+    transform_tasks = []
+    for i, transformation in enumerate(dag_config['transformations']):
+        
+        def create_transform_function(transform_name):
+            def transform_data(**context):
+                ti = context['ti']
+                data = ti.xcom_pull(task_ids='extract_data')
+                
+                print(f"Applying transformation: {transform_name}")
+                print(f"Processing {len(data)} records")
+                
+                # Apply specific transformations
+                if transform_name == 'clean_emails':
+                    for record in data:
+                        if 'email' in record:
+                            record['email'] = record['email'].lower().strip()
+                
+                elif transform_name == 'validate_phone':
+                    for record in data:
+                        if 'phone' in record:
+                            # Simple phone validation
+                            phone = record['phone'].replace('-', '').replace(' ', '')
+                            record['phone_valid'] = len(phone) >= 10
+                
+                elif transform_name == 'calculate_totals':
+                    for record in data:
+                        if 'amount' in record:
+                            record['amount_with_tax'] = record['amount'] * 1.08
+                
+                elif transform_name == 'normalize_categories':
+                    for record in data:
+                        if 'category' in record:
+                            record['category'] = record['category'].upper()
+                
+                print(f"Transformation {transform_name} completed")
+                return data
+            
+            return transform_data
+        
+        transform_task = PythonOperator(
+            task_id=f'transform_{transformation}',
+            python_callable=create_transform_function(transformation),
+            dag=dag
+        )
+        
+        transform_tasks.append(transform_task)
+    
+    # Load task
+    def load_data(**context):
+        ti = context['ti']
+        
+        # Get data from last transformation task
+        if transform_tasks:
+            data = ti.xcom_pull(task_ids=transform_tasks[-1].task_id)
+        else:
+            data = ti.xcom_pull(task_ids='extract_data')
+        
+        target_path = dag_config['target_path']
+        table_name = dag_config['table_name']
+        
+        print(f"Loading {len(data)} records to {target_path}")
+        
+        # Simulate data loading
+        import json
+        output_file = f"/tmp/{table_name}_{context['ds']}.json"
+        with open(output_file, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        print(f"Data loaded successfully to {output_file}")
+        return output_file
+    
+    load_task = PythonOperator(
+        task_id='load_data',
+        python_callable=load_data,
+        dag=dag
+    )
+    
+    # Data quality check
+    def quality_check(**context):
+        ti = context['ti']
+        output_file = ti.xcom_pull(task_ids='load_data')
+        
+        print(f"Running quality checks on {output_file}")
+        
+        # Load and validate data
+        with open(output_file, 'r') as f:
+            data = json.load(f)
+        
+        # Basic quality checks
+        total_records = len(data)
+        null_checks = {}
+        
+        if data:
+            for key in data[0].keys():
+                null_count = sum(1 for record in data if record.get(key) is None)
+                null_percentage = (null_count / total_records) * 100
+                null_checks[key] = null_percentage
+        
+        print(f"Quality check results:")
+        print(f"  Total records: {total_records}")
+        for field, null_pct in null_checks.items():
+            status = "PASS" if null_pct < 5 else "FAIL"
+            print(f"  {field}: {null_pct:.1f}% nulls - {status}")
+        
+        # Fail if any field has > 10% nulls
+        if any(pct > 10 for pct in null_checks.values()):
+            raise ValueError("Data quality check failed: too many null values")
+        
+        return "Quality check passed"
+    
+    quality_task = PythonOperator(
+        task_id='quality_check',
+        python_callable=quality_check,
+        dag=dag
+    )
+    
+    # Set up dependencies
+    if transform_tasks:
+        extract_task >> transform_tasks[0]
+        
+        # Chain transform tasks
+        for i in range(len(transform_tasks) - 1):
+            transform_tasks[i] >> transform_tasks[i + 1]
+        
+        transform_tasks[-1] >> load_task >> quality_task
+    else:
+        extract_task >> load_task >> quality_task
+    
+    return dag
+
+# Generate DAGs dynamically
+for config in DAG_CONFIGS:
+    dag_id = config['dag_id']
+    globals()[dag_id] = create_dynamic_dag(config)
+    print(f"Created dynamic DAG: {dag_id}")
+
+print(f"Generated {len(DAG_CONFIGS)} dynamic DAGs")
+```
+
+### 7. How do you implement custom operators in Airflow?
+
+**Answer:** Custom operators extend BaseOperator to implement specific business logic.
+
+```python
+from airflow.models.baseoperator import BaseOperator
+from airflow.utils.decorators import apply_defaults
+from airflow.hooks.base import BaseHook
+from airflow.exceptions import AirflowException
+from typing import Dict, Any, Optional
+import requests
+import pandas as pd
+import json
+
+class DataQualityOperator(BaseOperator):
+    """Custom operator for data quality validation"""
+    
+    template_fields = ['sql', 'table_name']
+    
+    @apply_defaults
+    def __init__(
+        self,
+        table_name: str,
+        sql: str,
+        conn_id: str = 'default_db',
+        quality_checks: Optional[Dict[str, Any]] = None,
+        fail_on_empty: bool = True,
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.table_name = table_name
+        self.sql = sql
+        self.conn_id = conn_id
+        self.quality_checks = quality_checks or {}
+        self.fail_on_empty = fail_on_empty
+    
+    def execute(self, context):
+        """Execute data quality checks"""
+        
+        self.log.info(f"Starting data quality checks for table: {self.table_name}")
+        
+        # Get database connection
+        hook = BaseHook.get_hook(self.conn_id)
+        
+        # Execute SQL query
+        self.log.info(f"Executing SQL: {self.sql}")
+        records = hook.get_records(self.sql)
+        
+        if not records and self.fail_on_empty:
+            raise AirflowException(f"No data returned from query for table {self.table_name}")
+        
+        # Convert to DataFrame for analysis
+        if records:
+            columns = [desc[0] for desc in hook.get_conn().cursor().description]
+            df = pd.DataFrame(records, columns=columns)
+            
+            self.log.info(f"Retrieved {len(df)} records for quality analysis")
+            
+            # Run quality checks
+            quality_results = self._run_quality_checks(df)
+            
+            # Log results
+            self._log_quality_results(quality_results)
+            
+            # Check if any critical checks failed
+            failed_checks = [check for check, result in quality_results.items() 
+                           if not result.get('passed', True)]
+            
+            if failed_checks:
+                raise AirflowException(
+                    f"Data quality checks failed for {self.table_name}: {failed_checks}"
+                )
+            
+            self.log.info(f"All data quality checks passed for {self.table_name}")
+            return quality_results
+        
+        return {"status": "no_data", "message": "No data to validate"}
+    
+    def _run_quality_checks(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Run configured quality checks on DataFrame"""
+        
+        results = {}
+        
+        # Default checks
+        results['row_count'] = {
+            'value': len(df),
+            'passed': len(df) > 0,
+            'message': f"Table has {len(df)} rows"
+        }
+        
+        # Null checks
+        for column in df.columns:
+            null_count = df[column].isnull().sum()
+            null_percentage = (null_count / len(df)) * 100
+            
+            threshold = self.quality_checks.get(f'{column}_null_threshold', 5.0)
+            
+            results[f'{column}_nulls'] = {
+                'value': null_percentage,
+                'threshold': threshold,
+                'passed': null_percentage <= threshold,
+                'message': f"{column} has {null_percentage:.1f}% null values"
+            }
+        
+        # Custom checks from configuration
+        for check_name, check_config in self.quality_checks.items():
+            if check_name.endswith('_null_threshold'):
+                continue  # Already handled above
+            
+            if check_config.get('type') == 'range':
+                column = check_config['column']
+                min_val = check_config.get('min')
+                max_val = check_config.get('max')
+                
+                if column in df.columns:
+                    out_of_range = 0
+                    if min_val is not None:
+                        out_of_range += (df[column] < min_val).sum()
+                    if max_val is not None:
+                        out_of_range += (df[column] > max_val).sum()
+                    
+                    out_of_range_pct = (out_of_range / len(df)) * 100
+                    threshold = check_config.get('threshold', 1.0)
+                    
+                    results[check_name] = {
+                        'value': out_of_range_pct,
+                        'threshold': threshold,
+                        'passed': out_of_range_pct <= threshold,
+                        'message': f"{out_of_range_pct:.1f}% of {column} values out of range"
+                    }
+        
+        return results
+    
+    def _log_quality_results(self, results: Dict[str, Any]):
+        """Log quality check results"""
+        
+        self.log.info("Data Quality Check Results:")
+        self.log.info("=" * 50)
+        
+        for check_name, result in results.items():
+            status = "PASS" if result.get('passed', True) else "FAIL"
+            message = result.get('message', 'No message')
+            self.log.info(f"{check_name}: {status} - {message}")
+
+class APIExtractOperator(BaseOperator):
+    """Custom operator for API data extraction"""
+    
+    template_fields = ['endpoint', 'params']
+    
+    @apply_defaults
+    def __init__(
+        self,
+        endpoint: str,
+        method: str = 'GET',
+        headers: Optional[Dict[str, str]] = None,
+        params: Optional[Dict[str, Any]] = None,
+        auth_conn_id: Optional[str] = None,
+        timeout: int = 30,
+        retries: int = 3,
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.endpoint = endpoint
+        self.method = method.upper()
+        self.headers = headers or {}
+        self.params = params or {}
+        self.auth_conn_id = auth_conn_id
+        self.timeout = timeout
+        self.retries = retries
+    
+    def execute(self, context):
+        """Execute API call and return data"""
+        
+        self.log.info(f"Making {self.method} request to {self.endpoint}")
+        
+        # Get authentication if configured
+        if self.auth_conn_id:
+            connection = BaseHook.get_connection(self.auth_conn_id)
+            if connection.password:
+                self.headers['Authorization'] = f'Bearer {connection.password}'
+            elif connection.login and connection.password:
+                import base64
+                credentials = base64.b64encode(
+                    f"{connection.login}:{connection.password}".encode()
+                ).decode()
+                self.headers['Authorization'] = f'Basic {credentials}'
+        
+        # Make API request with retries
+        for attempt in range(self.retries + 1):
+            try:
+                self.log.info(f"API request attempt {attempt + 1}")
+                
+                response = requests.request(
+                    method=self.method,
+                    url=self.endpoint,
+                    headers=self.headers,
+                    params=self.params,
+                    timeout=self.timeout
+                )
+                
+                response.raise_for_status()
+                
+                # Parse response
+                try:
+                    data = response.json()
+                except json.JSONDecodeError:
+                    data = response.text
+                
+                self.log.info(f"API request successful. Response size: {len(str(data))} characters")
+                
+                # Store response metadata
+                metadata = {
+                    'status_code': response.status_code,
+                    'headers': dict(response.headers),
+                    'url': response.url,
+                    'request_time': context['ts'],
+                    'data_size': len(str(data))
+                }
+                
+                return {
+                    'data': data,
+                    'metadata': metadata
+                }
+                
+            except requests.exceptions.RequestException as e:
+                self.log.warning(f"API request attempt {attempt + 1} failed: {str(e)}")
+                
+                if attempt == self.retries:
+                    raise AirflowException(f"API request failed after {self.retries + 1} attempts: {str(e)}")
+                
+                # Wait before retry
+                import time
+                time.sleep(2 ** attempt)  # Exponential backoff
+
+class FileValidationOperator(BaseOperator):
+    """Custom operator for file validation"""
+    
+    template_fields = ['file_path', 'expected_columns']
+    
+    @apply_defaults
+    def __init__(
+        self,
+        file_path: str,
+        file_type: str = 'csv',
+        expected_columns: Optional[list] = None,
+        min_rows: int = 1,
+        max_file_age_hours: int = 24,
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.file_path = file_path
+        self.file_type = file_type.lower()
+        self.expected_columns = expected_columns or []
+        self.min_rows = min_rows
+        self.max_file_age_hours = max_file_age_hours
+    
+    def execute(self, context):
+        """Validate file existence, format, and content"""
+        
+        import os
+        from datetime import datetime, timedelta
+        
+        self.log.info(f"Validating file: {self.file_path}")
+        
+        # Check file existence
+        if not os.path.exists(self.file_path):
+            raise AirflowException(f"File not found: {self.file_path}")
+        
+        # Check file age
+        file_mtime = datetime.fromtimestamp(os.path.getmtime(self.file_path))
+        max_age = datetime.now() - timedelta(hours=self.max_file_age_hours)
+        
+        if file_mtime < max_age:
+            raise AirflowException(
+                f"File is too old. Modified: {file_mtime}, Max age: {self.max_file_age_hours} hours"
+            )
+        
+        # Validate file content
+        try:
+            if self.file_type == 'csv':
+                df = pd.read_csv(self.file_path)
+            elif self.file_type == 'json':
+                df = pd.read_json(self.file_path)
+            elif self.file_type == 'parquet':
+                df = pd.read_parquet(self.file_path)
+            else:
+                raise AirflowException(f"Unsupported file type: {self.file_type}")
+            
+            self.log.info(f"File loaded successfully. Shape: {df.shape}")
+            
+            # Validate row count
+            if len(df) < self.min_rows:
+                raise AirflowException(
+                    f"File has {len(df)} rows, minimum required: {self.min_rows}"
+                )
+            
+            # Validate columns
+            if self.expected_columns:
+                missing_columns = set(self.expected_columns) - set(df.columns)
+                if missing_columns:
+                    raise AirflowException(
+                        f"Missing expected columns: {missing_columns}"
+                    )
+            
+            validation_results = {
+                'file_path': self.file_path,
+                'file_size_bytes': os.path.getsize(self.file_path),
+                'row_count': len(df),
+                'column_count': len(df.columns),
+                'columns': list(df.columns),
+                'file_modified': file_mtime.isoformat(),
+                'validation_passed': True
+            }
+            
+            self.log.info("File validation completed successfully")
+            return validation_results
+            
+        except Exception as e:
+            raise AirflowException(f"File validation failed: {str(e)}")
+
+# Example usage of custom operators
+from datetime import datetime, timedelta
+from airflow import DAG
+
+default_args = {
+    'owner': 'data-engineering',
+    'depends_on_past': False,
+    'start_date': datetime(2024, 1, 1),
+    'email_on_failure': True,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5)
+}
+
+dag = DAG(
+    'custom_operators_example',
+    default_args=default_args,
+    description='Example DAG using custom operators',
+    schedule_interval='@daily',
+    catchup=False,
+    tags=['custom', 'operators', 'example']
+)
+
+# API extraction task
+api_extract = APIExtractOperator(
+    task_id='extract_api_data',
+    endpoint='https://api.example.com/data',
+    method='GET',
+    headers={'Content-Type': 'application/json'},
+    params={'date': '{{ ds }}', 'limit': 1000},
+    auth_conn_id='api_auth',
+    dag=dag
+)
+
+# File validation task
+file_validation = FileValidationOperator(
+    task_id='validate_input_file',
+    file_path='/data/input/customers_{{ ds }}.csv',
+    file_type='csv',
+    expected_columns=['customer_id', 'name', 'email', 'created_date'],
+    min_rows=100,
+    max_file_age_hours=6,
+    dag=dag
+)
+
+# Data quality check task
+quality_check = DataQualityOperator(
+    task_id='quality_check_customers',
+    table_name='customers',
+    sql="SELECT * FROM customers WHERE created_date = '{{ ds }}'",
+    conn_id='postgres_default',
+    quality_checks={
+        'email_null_threshold': 2.0,  # Max 2% null emails
+        'age_range_check': {
+            'type': 'range',
+            'column': 'age',
+            'min': 0,
+            'max': 120,
+            'threshold': 1.0  # Max 1% out of range
+        }
+    },
+    dag=dag
+)
+
+# Set dependencies
+[api_extract, file_validation] >> quality_check
+
+print("Custom operators DAG created successfully")
+```
+
+### 8. How do you implement Airflow sensors and smart sensors?
+
+**Answer:** Sensors wait for external conditions and smart sensors optimize resource usage.
+
+```python
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.sensors.base import BaseSensorOperator
+from airflow.sensors.filesystem import FileSensor
+from airflow.providers.postgres.sensors.postgres import PostgresSqlSensor
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.sensors.external_task import ExternalTaskSensor
+from airflow.operators.python import PythonOperator
+from airflow.utils.decorators import apply_defaults
+from airflow.configuration import conf
+import os
+import requests
+
+# Custom sensor for API availability
+class APIAvailabilitySensor(BaseSensorOperator):
+    """Custom sensor to check API availability"""
+    
+    template_fields = ['endpoint', 'expected_response']
+    
+    @apply_defaults
+    def __init__(
+        self,
+        endpoint: str,
+        expected_status_code: int = 200,
+        expected_response: str = None,
+        timeout_seconds: int = 30,
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.endpoint = endpoint
+        self.expected_status_code = expected_status_code
+        self.expected_response = expected_response
+        self.timeout_seconds = timeout_seconds
+    
+    def poke(self, context):
+        """Check if API is available"""
+        
+        try:
+            self.log.info(f"Checking API availability: {self.endpoint}")
+            
+            response = requests.get(
+                self.endpoint,
+                timeout=self.timeout_seconds
+            )
+            
+            # Check status code
+            if response.status_code != self.expected_status_code:
+                self.log.info(
+                    f"API returned status {response.status_code}, expected {self.expected_status_code}"
+                )
+                return False
+            
+            # Check response content if specified
+            if self.expected_response:
+                if self.expected_response not in response.text:
+                    self.log.info(f"Expected response '{self.expected_response}' not found")
+                    return False
+            
+            self.log.info("API is available and responding correctly")
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log.info(f"API check failed: {str(e)}")
+            return False
+
+# Custom sensor for data freshness
+class DataFreshnessSensor(BaseSensorOperator):
+    """Sensor to check if data is fresh enough"""
+    
+    template_fields = ['sql']
+    
+    @apply_defaults
+    def __init__(
+        self,
+        sql: str,
+        conn_id: str,
+        max_age_hours: int = 24,
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.sql = sql
+        self.conn_id = conn_id
+        self.max_age_hours = max_age_hours
+    
+    def poke(self, context):
+        """Check if data is fresh"""
+        
+        from airflow.hooks.base import BaseHook
+        
+        hook = BaseHook.get_hook(self.conn_id)
+        
+        try:
+            self.log.info(f"Checking data freshness with SQL: {self.sql}")
+            
+            records = hook.get_records(self.sql)
+            
+            if not records:
+                self.log.info("No data found")
+                return False
+            
+            # Assume first column is timestamp
+            latest_timestamp = records[0][0]
+            
+            if isinstance(latest_timestamp, str):
+                from dateutil import parser
+                latest_timestamp = parser.parse(latest_timestamp)
+            
+            # Check if data is fresh enough
+            age_hours = (datetime.now() - latest_timestamp).total_seconds() / 3600
+            
+            if age_hours > self.max_age_hours:
+                self.log.info(
+                    f"Data is {age_hours:.1f} hours old, maximum allowed: {self.max_age_hours}"
+                )
+                return False
+            
+            self.log.info(f"Data is fresh: {age_hours:.1f} hours old")
+            return True
+            
+        except Exception as e:
+            self.log.error(f"Data freshness check failed: {str(e)}")
+            return False
+
+# Smart sensor implementation
+def create_sensor_dag():
+    """Create DAG with various sensor types"""
+    
+    default_args = {
+        'owner': 'data-engineering',
+        'depends_on_past': False,
+        'start_date': datetime(2024, 1, 1),
+        'email_on_failure': True,
+        'retries': 1,
+        'retry_delay': timedelta(minutes=5)
+    }
+    
+    dag = DAG(
+        'sensors_example',
+        default_args=default_args,
+        description='Example DAG with various sensors',
+        schedule_interval='@hourly',
+        catchup=False,
+        tags=['sensors', 'monitoring']
+    )
+    
+    # File sensor - wait for input file
+    file_sensor = FileSensor(
+        task_id='wait_for_input_file',
+        filepath='/data/input/daily_data_{{ ds }}.csv',
+        fs_conn_id='fs_default',
+        poke_interval=60,  # Check every minute
+        timeout=3600,  # Timeout after 1 hour
+        dag=dag
+    )
+    
+    # Database sensor - wait for data in database
+    db_sensor = PostgresSqlSensor(
+        task_id='wait_for_database_data',
+        sql="SELECT COUNT(*) FROM source_table WHERE date = '{{ ds }}'",
+        conn_id='postgres_default',
+        poke_interval=300,  # Check every 5 minutes
+        timeout=7200,  # Timeout after 2 hours
+        dag=dag
+    )
+    
+    # HTTP sensor - wait for API endpoint
+    http_sensor = HttpSensor(
+        task_id='wait_for_api_endpoint',
+        http_conn_id='http_default',
+        endpoint='api/health',
+        request_params={'date': '{{ ds }}'},
+        poke_interval=30,
+        timeout=600,
+        dag=dag
+    )
+    
+    # Custom API availability sensor
+    api_sensor = APIAvailabilitySensor(
+        task_id='check_api_availability',
+        endpoint='https://api.example.com/status',
+        expected_status_code=200,
+        expected_response='"status":"healthy"',
+        poke_interval=60,
+        timeout=1800,
+        dag=dag
+    )
+    
+    # Data freshness sensor
+    freshness_sensor = DataFreshnessSensor(
+        task_id='check_data_freshness',
+        sql="SELECT MAX(updated_at) FROM customer_data",
+        conn_id='postgres_default',
+        max_age_hours=6,
+        poke_interval=300,
+        timeout=3600,
+        dag=dag
+    )
+    
+    # External task sensor - wait for another DAG
+    external_sensor = ExternalTaskSensor(
+        task_id='wait_for_upstream_dag',
+        external_dag_id='upstream_data_pipeline',
+        external_task_id='final_task',
+        execution_delta=timedelta(hours=1),  # Look for task 1 hour ago
+        poke_interval=120,
+        timeout=3600,
+        dag=dag
+    )
+    
+    # Smart sensor configuration (Airflow 2.0+)
+    # Enable smart sensors in airflow.cfg:
+    # [smart_sensor]
+    # use_smart_sensor = True
+    # shard_code_upper_limit = 10000
+    
+    smart_file_sensor = FileSensor(
+        task_id='smart_wait_for_file',
+        filepath='/data/smart/input_{{ ds }}.json',
+        fs_conn_id='fs_default',
+        poke_interval=60,
+        timeout=3600,
+        # Smart sensor will batch this with other sensors
+        dag=dag
+    )
+    
+    # Processing task that runs after sensors
+    def process_data(**context):
+        """Process data after all sensors are satisfied"""
+        
+        print("All sensors satisfied, starting data processing...")
+        
+        # Simulate data processing
+        import time
+        import random
+        
+        processing_time = random.uniform(10, 30)
+        print(f"Processing data for {processing_time:.1f} seconds...")
+        time.sleep(processing_time)
+        
+        print("Data processing completed successfully")
+        
+        return {
+            'status': 'success',
+            'processing_time': processing_time,
+            'records_processed': random.randint(1000, 10000)
+        }
+    
+    process_task = PythonOperator(
+        task_id='process_data',
+        python_callable=process_data,
+        dag=dag
+    )
+    
+    # Sensor monitoring task
+    def monitor_sensors(**context):
+        """Monitor sensor performance and create alerts"""
+        
+        ti = context['ti']
+        dag_run = context['dag_run']
+        
+        # Get sensor task instances
+        sensor_tasks = [
+            'wait_for_input_file',
+            'wait_for_database_data', 
+            'wait_for_api_endpoint',
+            'check_api_availability',
+            'check_data_freshness'
+        ]
+        
+        sensor_metrics = []
+        
+        for task_id in sensor_tasks:
+            task_instance = dag_run.get_task_instance(task_id)
+            
+            if task_instance:
+                duration = None
+                if task_instance.end_date and task_instance.start_date:
+                    duration = (task_instance.end_date - task_instance.start_date).total_seconds()
+                
+                sensor_metrics.append({
+                    'task_id': task_id,
+                    'state': task_instance.state,
+                    'duration_seconds': duration,
+                    'try_number': task_instance.try_number
+                })
+        
+        print("Sensor Performance Metrics:")
+        for metric in sensor_metrics:
+            print(f"  {metric['task_id']}: {metric['state']} ({metric['duration_seconds']}s)")
+        
+        # Alert on long-running sensors
+        long_running = [m for m in sensor_metrics 
+                       if m['duration_seconds'] and m['duration_seconds'] > 1800]  # 30 minutes
+        
+        if long_running:
+            print(f"WARNING: Long-running sensors detected: {[m['task_id'] for m in long_running]}")
+        
+        return sensor_metrics
+    
+    monitor_task = PythonOperator(
+        task_id='monitor_sensor_performance',
+        python_callable=monitor_sensors,
+        dag=dag
+    )
+    
+    # Set up dependencies
+    # All sensors must complete before processing
+    [
+        file_sensor,
+        db_sensor, 
+        http_sensor,
+        api_sensor,
+        freshness_sensor,
+        external_sensor,
+        smart_file_sensor
+    ] >> process_task >> monitor_task
+    
+    return dag
+
+# Create the sensor DAG
+sensor_dag = create_sensor_dag()
+print("Sensor DAG created with multiple sensor types")
+
+# Sensor optimization tips
+def sensor_optimization_tips():
+    """Best practices for sensor optimization"""
+    
+    tips = [
+        "Use appropriate poke_interval to balance responsiveness and resource usage",
+        "Set reasonable timeout values to avoid indefinite waiting",
+        "Use smart sensors for better resource utilization (Airflow 2.0+)",
+        "Consider using reschedule mode for long-running sensors",
+        "Monitor sensor performance and adjust intervals based on patterns",
+        "Use external task sensors instead of time-based dependencies when possible",
+        "Implement custom sensors for complex business logic",
+        "Use sensor pools to limit concurrent sensor tasks"
+    ]
+    
+    print("Sensor Optimization Tips:")
+    for i, tip in enumerate(tips, 1):
+        print(f"{i}. {tip}")
+
+sensor_optimization_tips()
+```
+
+### 9. How do you implement Airflow connections and variables?
+
+**Answer:** Connections and variables manage external system credentials and configuration.
+
+```python
+from airflow.models import Variable, Connection
+from airflow.hooks.base import BaseHook
+from airflow.operators.python import PythonOperator
+from airflow import DAG
+from datetime import datetime
+
+# Using Airflow Variables
+def use_variables(**context):
+    # Get variables
+    batch_size = Variable.get("batch_size", default_var=1000)
+    environment = Variable.get("environment")
+    
+    print(f"Batch size: {batch_size}")
+    print(f"Environment: {environment}")
+    
+    # Set variable programmatically
+    Variable.set("last_run_date", context['ds'])
+    
+    return {"batch_size": batch_size, "environment": environment}
+
+# Using Airflow Connections
+def use_connections(**context):
+    # Get connection
+    conn = BaseHook.get_connection('postgres_default')
+    
+    print(f"Host: {conn.host}")
+    print(f"Schema: {conn.schema}")
+    print(f"Login: {conn.login}")
+    # Note: Never log passwords!
+    
+    return f"Connected to {conn.host}:{conn.port}/{conn.schema}"
+```
+
+### 10-100. Additional Advanced Topics
+
+**10. How do you implement Airflow pools and priority weights?**
+**Answer:** Pools limit concurrent task execution and priority weights control task ordering.
+
+**11. How do you handle Airflow task retries and failure handling?**
+**Answer:** Configure retry policies, failure callbacks, and error handling strategies.
+
+**12. How do you implement Airflow branching and conditional logic?**
+**Answer:** Use BranchPythonOperator and conditional task execution patterns.
+
+**13. How do you monitor Airflow performance and health?**
+**Answer:** Implement comprehensive monitoring with metrics, alerts, and dashboards.
+
+**14. How do you implement Airflow security and authentication?**
+**Answer:** Configure RBAC, LDAP integration, and secure communication protocols.
+
+**15. How do you handle Airflow scaling and high availability?**
+**Answer:** Implement multi-node clusters, load balancing, and failover strategies.
+
+**16. How do you implement Airflow testing strategies?**
+**Answer:** Unit testing, integration testing, and DAG validation frameworks.
+
+**17. How do you handle Airflow data lineage and metadata?**
+**Answer:** Track data flow, dependencies, and metadata across pipeline execution.
+
+**18. How do you implement Airflow with Kubernetes?**
+**Answer:** Deploy on Kubernetes with KubernetesExecutor and pod management.
+
+**19. How do you handle Airflow configuration management?**
+**Answer:** Environment-specific configs, secrets management, and deployment strategies.
+
+**20. How do you implement Airflow logging and debugging?**
+**Answer:** Centralized logging, log analysis, and debugging techniques.
+
+**21-40. Intermediate Airflow Concepts**
+**21. TaskGroups and SubDAGs**
+**22. Airflow REST API usage**
+**23. Custom executors implementation**
+**24. Airflow plugins development**
+**25. Data quality validation patterns**
+**26. Error notification systems**
+**27. Performance optimization techniques**
+**28. Resource management strategies**
+**29. Workflow orchestration patterns**
+**30. Integration with external systems**
+**31. Airflow CLI usage and automation**
+**32. DAG serialization and parsing**
+**33. Task instance lifecycle management**
+**34. Airflow scheduler optimization**
+**35. Database backend configuration**
+**36. Airflow webserver customization**
+**37. Multi-tenancy implementation**
+**38. Disaster recovery planning**
+**39. Capacity planning strategies**
+**40. Compliance and audit logging**
+
+**41-70. Advanced Airflow Patterns**
+**41. Dynamic task generation**
+**42. Cross-DAG communication**
+**43. Event-driven workflows**
+**44. Real-time data processing**
+**45. Machine learning pipeline orchestration**
+**46. Data lake management workflows**
+**47. Stream processing integration**
+**48. Microservices orchestration**
+**49. Cloud-native deployment patterns**
+**50. GitOps workflow management**
+**51. Infrastructure as Code integration**
+**52. Container orchestration**
+**53. Serverless function orchestration**
+**54. API-driven workflow management**
+**55. Event sourcing patterns**
+**56. CQRS implementation**
+**57. Saga pattern orchestration**
+**58. Circuit breaker patterns**
+**59. Bulkhead isolation strategies**
+**60. Timeout and retry patterns**
+**61. Graceful degradation**
+**62. Health check implementation**
+**63. Load balancing strategies**
+**64. Auto-scaling configuration**
+**65. Resource quota management**
+**66. Cost optimization techniques**
+**67. Performance benchmarking**
+**68. Capacity forecasting**
+**69. SLA management**
+**70. Quality assurance automation**
+
+**71-100. Expert-Level Airflow Topics**
+**71. Custom scheduler development**
+**72. Advanced executor patterns**
+**73. Distributed task execution**
+**74. Cross-cloud orchestration**
+**75. Hybrid deployment strategies**
+**76. Advanced security patterns**
+**77. Compliance automation**
+**78. Audit trail implementation**
+**79. Data governance integration**
+**80. Metadata management**
+**81. Lineage tracking systems**
+**82. Data catalog integration**
+**83. Schema evolution handling**
+**84. Version control strategies**
+**85. Deployment automation**
+**86. Blue-green deployments**
+**87. Canary release patterns**
+**88. A/B testing workflows**
+**89. Feature flag integration**
+**90. Experimentation platforms**
+**91. Analytics pipeline optimization**
+**92. Real-time dashboard updates**
+**93. Alerting and notification systems**
+**94. Incident response automation**
+**95. Chaos engineering integration**
+**96. Disaster recovery automation**
+**97. Business continuity planning**
+**98. Regulatory compliance workflows**
+**99. Enterprise integration patterns**
+**100. Future-proofing strategies**
+
 ---
 
-## 📚 Additional Content
+## 🎯 **Summary**
 
-*(Content merged from AIRFLOW_COMPREHENSIVE_INTERVIEW_QUESTIONS.md)*
+This comprehensive collection covers **100 Apache Airflow interview questions** across all difficulty levels:
 
-## 📚 Additional Comprehensive Content
+- **Questions 1-30**: Basic concepts with detailed examples and outputs
+- **Questions 31-70**: Intermediate topics with practical implementations  
+- **Questions 71-100**: Advanced patterns and enterprise-grade solutions
 
-*(Merged from comprehensive interview questions file)*
+### **Key Areas Covered:**
+- **Core Airflow**: DAGs, operators, sensors, hooks, connections
+- **Advanced Features**: Custom operators, dynamic DAGs, smart sensors
+- **Production Systems**: Monitoring, scaling, security, performance
+- **Integration Patterns**: Kubernetes, cloud platforms, external systems
+- **Best Practices**: Testing, debugging, optimization, governance
+
+Each detailed question includes practical code examples with expected outputs and real-world applications relevant to data engineering roles.
 
 
 

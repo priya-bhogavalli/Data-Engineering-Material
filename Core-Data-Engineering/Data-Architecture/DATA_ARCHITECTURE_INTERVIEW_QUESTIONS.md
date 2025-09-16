@@ -1,5 +1,7 @@
 # Data Architecture Interview Questions
 
+> **📚 For Complete Coverage**: See [DATA_ARCHITECTURE_INTERVIEW_QUESTIONS_COMPLETE.md](./DATA_ARCHITECTURE_INTERVIEW_QUESTIONS_COMPLETE.md) for 120+ comprehensive questions
+
 ## Architecture Fundamentals
 
 ### Q1: What are the key principles of modern data architecture?

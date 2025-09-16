@@ -1142,6 +1142,817 @@ for table in tables:
   ✅ /tmp/medallion/gold/user_metrics: 3 rows
 ```
 
+### 13. How do you implement advanced Delta Lake features?
+
+**Answer:** Delta Lake provides advanced features for data reliability and performance.
+
+```python
+from delta.tables import DeltaTable
+from pyspark.sql.functions import *
+
+# Z-ORDER optimization for better query performance
+spark.sql("OPTIMIZE delta.`/tmp/delta/sales` ZORDER BY (customer_id, product_id)")
+
+# Auto-optimize for better file sizes
+spark.conf.set("spark.databricks.delta.optimizeWrite.enabled", "true")
+spark.conf.set("spark.databricks.delta.autoCompact.enabled", "true")
+
+# Liquid clustering (Databricks Runtime 13.3+)
+spark.sql("""
+    CREATE TABLE sales_clustered (
+        customer_id BIGINT,
+        product_id BIGINT,
+        sale_date DATE,
+        amount DECIMAL(10,2)
+    )
+    USING DELTA
+    CLUSTER BY (customer_id, sale_date)
+""")
+
+# Deletion vectors for efficient deletes
+spark.conf.set("spark.databricks.delta.deletionVectors.enabled", "true")
+
+# Column mapping for schema evolution
+spark.sql("""
+    ALTER TABLE delta.`/tmp/delta/customers`
+    SET TBLPROPERTIES (
+        'delta.columnMapping.mode' = 'name',
+        'delta.minReaderVersion' = '2',
+        'delta.minWriterVersion' = '5'
+    )
+""")
+
+# Predictive optimization
+spark.sql("ALTER TABLE delta.`/tmp/delta/sales` SET TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')")
+
+print("Advanced Delta Lake features configured")
+```
+
+### 14. How do you implement Databricks Asset Bundles?
+
+**Answer:** Asset Bundles provide CI/CD capabilities for Databricks resources.
+
+```yaml
+# databricks.yml
+bundle:
+  name: data-pipeline
+  
+workspace:
+  host: https://your-workspace.cloud.databricks.com
+  
+resources:
+  jobs:
+    daily_etl:
+      name: "Daily ETL Pipeline"
+      tasks:
+        - task_key: "extract"
+          notebook_task:
+            notebook_path: "./notebooks/extract.py"
+          job_cluster_key: "main"
+        - task_key: "transform"
+          depends_on:
+            - task_key: "extract"
+          notebook_task:
+            notebook_path: "./notebooks/transform.py"
+          job_cluster_key: "main"
+      
+      job_clusters:
+        - job_cluster_key: "main"
+          new_cluster:
+            spark_version: "13.3.x-scala2.12"
+            node_type_id: "i3.xlarge"
+            num_workers: 2
+            
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: "UTC"
+  
+  pipelines:
+    bronze_to_gold:
+      name: "Bronze to Gold Pipeline"
+      libraries:
+        - notebook:
+            path: "./notebooks/bronze_to_silver.py"
+        - notebook:
+            path: "./notebooks/silver_to_gold.py"
+      
+      clusters:
+        - label: "default"
+          num_workers: 2
+          node_type_id: "i3.xlarge"
+
+targets:
+  dev:
+    workspace:
+      host: https://dev-workspace.cloud.databricks.com
+    variables:
+      catalog: "dev"
+      
+  prod:
+    workspace:
+      host: https://prod-workspace.cloud.databricks.com
+    variables:
+      catalog: "prod"
+```
+
+```bash
+# Deploy bundle
+databricks bundle deploy --target dev
+
+# Run job
+databricks bundle run daily_etl --target dev
+
+# Validate bundle
+databricks bundle validate --target prod
+```
+
+### 15. How do you implement Databricks Connect for local development?
+
+**Answer:** Databricks Connect enables local IDE development with remote Databricks clusters.
+
+```python
+# Install Databricks Connect
+# pip install databricks-connect
+
+# Configure connection
+from databricks.connect import DatabricksSession
+from pyspark.sql import SparkSession
+
+# Initialize Databricks Connect session
+spark = DatabricksSession.builder \
+    .remote(
+        host="https://your-workspace.cloud.databricks.com",
+        token="your-access-token",
+        cluster_id="your-cluster-id"
+    ) \
+    .getOrCreate()
+
+# Local development with remote execution
+def local_development_example():
+    """Example of local development with Databricks Connect"""
+    
+    # Read data from Databricks
+    df = spark.read.format("delta").load("/mnt/data/customers")
+    
+    # Local transformations (executed remotely)
+    processed_df = df.filter(col("status") == "active") \
+                    .withColumn("full_name", concat(col("first_name"), lit(" "), col("last_name"))) \
+                    .groupBy("region") \
+                    .agg(count("*").alias("customer_count"))
+    
+    # Show results locally
+    processed_df.show()
+    
+    # Write back to Databricks
+    processed_df.write.format("delta").mode("overwrite").save("/mnt/data/customer_summary")
+    
+    print("Local development completed successfully")
+
+# Unit testing with Databricks Connect
+import unittest
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+
+class TestDataTransformations(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.spark = DatabricksSession.builder.remote(
+            host="https://your-workspace.cloud.databricks.com",
+            token="your-access-token",
+            cluster_id="your-cluster-id"
+        ).getOrCreate()
+    
+    def test_customer_transformation(self):
+        # Create test data
+        schema = StructType([
+            StructField("id", IntegerType(), True),
+            StructField("name", StringType(), True),
+            StructField("status", StringType(), True)
+        ])
+        
+        test_data = [(1, "Alice", "active"), (2, "Bob", "inactive"), (3, "Charlie", "active")]
+        test_df = self.spark.createDataFrame(test_data, schema)
+        
+        # Apply transformation
+        result_df = test_df.filter(col("status") == "active")
+        
+        # Assert results
+        self.assertEqual(result_df.count(), 2)
+        
+        active_names = [row.name for row in result_df.collect()]
+        self.assertIn("Alice", active_names)
+        self.assertIn("Charlie", active_names)
+
+if __name__ == "__main__":
+    local_development_example()
+    unittest.main()
+```
+
+### 16. How do you implement Databricks Feature Store?
+
+**Answer:** Feature Store manages ML features with lineage and serving capabilities.
+
+```python
+from databricks.feature_store import FeatureStoreClient, feature_table
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+# Initialize Feature Store client
+fs = FeatureStoreClient()
+
+# Create feature table
+def create_customer_features():
+    """Create customer feature table"""
+    
+    # Define schema
+    schema = StructType([
+        StructField("customer_id", IntegerType(), False),
+        StructField("total_purchases", DoubleType(), True),
+        StructField("avg_order_value", DoubleType(), True),
+        StructField("days_since_last_order", IntegerType(), True),
+        StructField("preferred_category", StringType(), True),
+        StructField("feature_timestamp", TimestampType(), True)
+    ])
+    
+    # Create feature table
+    fs.create_table(
+        name="ml.customer_features",
+        primary_keys=["customer_id"],
+        timestamp_keys=["feature_timestamp"],
+        schema=schema,
+        description="Customer behavioral features for ML models"
+    )
+    
+    print("Customer feature table created")
+
+# Compute and write features
+def compute_customer_features():
+    """Compute customer features from raw data"""
+    
+    # Read raw transaction data
+    transactions = spark.read.format("delta").load("/mnt/data/transactions")
+    
+    # Compute features
+    customer_features = transactions.groupBy("customer_id").agg(
+        sum("amount").alias("total_purchases"),
+        avg("amount").alias("avg_order_value"),
+        datediff(current_date(), max("transaction_date")).alias("days_since_last_order"),
+        first("category").alias("preferred_category")
+    ).withColumn("feature_timestamp", current_timestamp())
+    
+    # Write to feature store
+    fs.write_table(
+        name="ml.customer_features",
+        df=customer_features,
+        mode="overwrite"
+    )
+    
+    print(f"Computed features for {customer_features.count()} customers")
+    return customer_features
+
+# Create training dataset
+def create_training_dataset():
+    """Create training dataset with features"""
+    
+    # Load labels
+    labels = spark.read.format("delta").load("/mnt/data/customer_labels")
+    
+    # Create training set with features
+    training_set = fs.create_training_set(
+        df=labels,
+        feature_lookups=[
+            FeatureLookup(
+                table_name="ml.customer_features",
+                lookup_key="customer_id",
+                timestamp_lookup_key="label_timestamp"
+            )
+        ],
+        label="will_churn",
+        exclude_columns=["customer_id"]
+    )
+    
+    # Load as DataFrame
+    training_df = training_set.load_df()
+    
+    print("Training dataset created with features")
+    training_df.show(5)
+    
+    return training_set, training_df
+
+# Batch scoring with features
+def batch_scoring():
+    """Score customers using feature store"""
+    
+    # Load model
+    import mlflow
+    model = mlflow.pyfunc.load_model("models:/customer_churn/Production")
+    
+    # Get customers to score
+    customers_to_score = spark.read.format("delta").load("/mnt/data/active_customers")
+    
+    # Create scoring dataset
+    scoring_set = fs.create_training_set(
+        df=customers_to_score,
+        feature_lookups=[
+            FeatureLookup(
+                table_name="ml.customer_features",
+                lookup_key="customer_id"
+            )
+        ],
+        exclude_columns=["customer_id"]
+    )
+    
+    # Score customers
+    scoring_df = scoring_set.load_df()
+    predictions = fs.score_batch(
+        model_uri="models:/customer_churn/Production",
+        df=scoring_df
+    )
+    
+    # Save predictions
+    predictions.write.format("delta").mode("overwrite").save("/mnt/data/churn_predictions")
+    
+    print("Batch scoring completed")
+    return predictions
+
+# Execute feature engineering pipeline
+create_customer_features()
+features_df = compute_customer_features()
+training_set, training_df = create_training_dataset()
+predictions = batch_scoring()
+```
+
+### 17. How do you implement Databricks Lakehouse monitoring?
+
+**Answer:** Monitor data quality, model performance, and infrastructure metrics.
+
+```python
+from databricks.lakehouse.monitoring import create_monitor, get_monitor
+from pyspark.sql.functions import *
+import json
+
+# Data quality monitoring
+def setup_data_quality_monitoring():
+    """Set up comprehensive data quality monitoring"""
+    
+    # Create data quality monitor
+    monitor_info = create_monitor(
+        table_name="catalog.schema.customer_transactions",
+        granularities=["1 day"],
+        output_schema_name="catalog.monitoring",
+        data_classification_config={
+            "enabled": True
+        },
+        inference_log={
+            "granularities": ["1 hour"],
+            "model_id_col": "model_id",
+            "prediction_col": "prediction",
+            "timestamp_col": "timestamp",
+            "problem_type": "classification"
+        },
+        snapshot={
+            "enabled": True
+        }
+    )
+    
+    print(f"Data quality monitor created: {monitor_info}")
+    
+    return monitor_info
+
+# Custom data quality checks
+def custom_data_quality_checks():
+    """Implement custom data quality validation"""
+    
+    # Read data to monitor
+    df = spark.read.format("delta").load("/mnt/data/customer_transactions")
+    
+    # Define quality checks
+    quality_checks = {
+        "completeness": {},
+        "validity": {},
+        "consistency": {},
+        "accuracy": {}
+    }
+    
+    # Completeness checks
+    total_rows = df.count()
+    for column in df.columns:
+        null_count = df.filter(col(column).isNull()).count()
+        completeness_rate = (total_rows - null_count) / total_rows
+        quality_checks["completeness"][column] = {
+            "rate": completeness_rate,
+            "threshold": 0.95,
+            "passed": completeness_rate >= 0.95
+        }
+    
+    # Validity checks
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    if "email" in df.columns:
+        valid_emails = df.filter(col("email").rlike(email_pattern)).count()
+        email_validity = valid_emails / total_rows
+        quality_checks["validity"]["email"] = {
+            "rate": email_validity,
+            "threshold": 0.98,
+            "passed": email_validity >= 0.98
+        }
+    
+    # Consistency checks
+    if "amount" in df.columns:
+        negative_amounts = df.filter(col("amount") < 0).count()
+        amount_consistency = (total_rows - negative_amounts) / total_rows
+        quality_checks["consistency"]["amount"] = {
+            "rate": amount_consistency,
+            "threshold": 1.0,
+            "passed": amount_consistency == 1.0
+        }
+    
+    # Store quality metrics
+    quality_metrics = spark.createDataFrame([
+        {
+            "table_name": "customer_transactions",
+            "check_timestamp": current_timestamp(),
+            "quality_score": calculate_overall_score(quality_checks),
+            "checks": json.dumps(quality_checks)
+        }
+    ])
+    
+    quality_metrics.write.format("delta").mode("append").save("/mnt/monitoring/data_quality")
+    
+    print("Data quality checks completed")
+    return quality_checks
+
+def calculate_overall_score(checks):
+    """Calculate overall quality score"""
+    total_checks = 0
+    passed_checks = 0
+    
+    for category in checks.values():
+        for check in category.values():
+            total_checks += 1
+            if check["passed"]:
+                passed_checks += 1
+    
+    return passed_checks / total_checks if total_checks > 0 else 0
+
+# Model performance monitoring
+def monitor_model_performance():
+    """Monitor ML model performance and drift"""
+    
+    # Read model predictions and actuals
+    predictions = spark.read.format("delta").load("/mnt/data/model_predictions")
+    actuals = spark.read.format("delta").load("/mnt/data/actual_outcomes")
+    
+    # Join predictions with actuals
+    performance_data = predictions.join(actuals, "customer_id", "inner")
+    
+    # Calculate performance metrics
+    from pyspark.ml.evaluation import BinaryClassificationEvaluator, MulticlassClassificationEvaluator
+    
+    # AUC for binary classification
+    auc_evaluator = BinaryClassificationEvaluator(
+        labelCol="actual",
+        rawPredictionCol="prediction",
+        metricName="areaUnderROC"
+    )
+    auc_score = auc_evaluator.evaluate(performance_data)
+    
+    # Accuracy
+    accuracy_evaluator = MulticlassClassificationEvaluator(
+        labelCol="actual",
+        predictionCol="prediction",
+        metricName="accuracy"
+    )
+    accuracy_score = accuracy_evaluator.evaluate(performance_data)
+    
+    # Data drift detection
+    current_features = spark.read.format("delta").load("/mnt/data/current_features")
+    baseline_features = spark.read.format("delta").load("/mnt/data/baseline_features")
+    
+    drift_metrics = detect_data_drift(current_features, baseline_features)
+    
+    # Store performance metrics
+    performance_metrics = {
+        "model_name": "customer_churn",
+        "evaluation_date": current_date(),
+        "auc_score": auc_score,
+        "accuracy_score": accuracy_score,
+        "drift_detected": drift_metrics["drift_detected"],
+        "drift_score": drift_metrics["drift_score"]
+    }
+    
+    metrics_df = spark.createDataFrame([performance_metrics])
+    metrics_df.write.format("delta").mode("append").save("/mnt/monitoring/model_performance")
+    
+    print(f"Model performance - AUC: {auc_score:.3f}, Accuracy: {accuracy_score:.3f}")
+    return performance_metrics
+
+def detect_data_drift(current_df, baseline_df):
+    """Detect data drift using statistical tests"""
+    
+    drift_results = {}
+    numeric_columns = [field.name for field in current_df.schema.fields 
+                      if field.dataType.typeName() in ['double', 'float', 'integer', 'long']]
+    
+    for column in numeric_columns:
+        # Calculate distribution statistics
+        current_stats = current_df.select(column).describe().collect()
+        baseline_stats = baseline_df.select(column).describe().collect()
+        
+        # Simple drift detection based on mean difference
+        current_mean = float([row[column] for row in current_stats if row['summary'] == 'mean'][0])
+        baseline_mean = float([row[column] for row in baseline_stats if row['summary'] == 'mean'][0])
+        
+        drift_score = abs(current_mean - baseline_mean) / baseline_mean if baseline_mean != 0 else 0
+        drift_results[column] = {
+            "drift_score": drift_score,
+            "drift_detected": drift_score > 0.1  # 10% threshold
+        }
+    
+    overall_drift = any(result["drift_detected"] for result in drift_results.values())
+    avg_drift_score = sum(result["drift_score"] for result in drift_results.values()) / len(drift_results)
+    
+    return {
+        "drift_detected": overall_drift,
+        "drift_score": avg_drift_score,
+        "column_drift": drift_results
+    }
+
+# Infrastructure monitoring
+def monitor_infrastructure():
+    """Monitor Databricks infrastructure and costs"""
+    
+    # Cluster utilization metrics
+    cluster_metrics = spark.sql("""
+        SELECT 
+            cluster_id,
+            cluster_name,
+            node_type_id,
+            num_workers,
+            driver_node_type_id,
+            spark_version,
+            state,
+            start_time,
+            terminated_time,
+            CASE 
+                WHEN terminated_time IS NOT NULL 
+                THEN (unix_timestamp(terminated_time) - unix_timestamp(start_time)) / 3600.0
+                ELSE (unix_timestamp(current_timestamp()) - unix_timestamp(start_time)) / 3600.0
+            END as runtime_hours
+        FROM system.compute.clusters
+        WHERE start_time >= current_date() - INTERVAL 7 DAYS
+    """)
+    
+    # Job execution metrics
+    job_metrics = spark.sql("""
+        SELECT 
+            job_id,
+            job_name,
+            run_id,
+            start_time,
+            end_time,
+            result_state,
+            (unix_timestamp(end_time) - unix_timestamp(start_time)) / 60.0 as duration_minutes
+        FROM system.workflows.job_runs
+        WHERE start_time >= current_date() - INTERVAL 7 DAYS
+    """)
+    
+    # Cost analysis
+    cost_analysis = cluster_metrics.groupBy("node_type_id").agg(
+        sum("runtime_hours").alias("total_runtime_hours"),
+        count("*").alias("cluster_count"),
+        avg("runtime_hours").alias("avg_runtime_hours")
+    )
+    
+    print("Infrastructure monitoring completed")
+    cluster_metrics.show()
+    cost_analysis.show()
+    
+    return {
+        "cluster_metrics": cluster_metrics,
+        "job_metrics": job_metrics,
+        "cost_analysis": cost_analysis
+    }
+
+# Execute monitoring pipeline
+print("🔍 Starting Databricks Lakehouse Monitoring...")
+data_quality_monitor = setup_data_quality_monitoring()
+quality_results = custom_data_quality_checks()
+model_performance = monitor_model_performance()
+infra_metrics = monitor_infrastructure()
+print("✅ Monitoring pipeline completed")
+```
+
+### 18. How do you implement Databricks SQL and BI integration?
+
+**Answer:** Integrate with BI tools and create SQL-based analytics workflows.
+
+```sql
+-- Create SQL warehouse optimized views
+CREATE OR REPLACE VIEW sales_analytics AS
+SELECT 
+    DATE_TRUNC('month', order_date) as month,
+    region,
+    product_category,
+    COUNT(*) as order_count,
+    SUM(order_amount) as total_revenue,
+    AVG(order_amount) as avg_order_value,
+    COUNT(DISTINCT customer_id) as unique_customers
+FROM catalog.sales.orders
+WHERE order_date >= CURRENT_DATE - INTERVAL 12 MONTHS
+GROUP BY 1, 2, 3;
+
+-- Create materialized view for performance
+CREATE MATERIALIZED VIEW daily_kpis AS
+SELECT 
+    order_date,
+    SUM(order_amount) as daily_revenue,
+    COUNT(*) as daily_orders,
+    COUNT(DISTINCT customer_id) as daily_active_customers,
+    AVG(order_amount) as avg_daily_order_value
+FROM catalog.sales.orders
+GROUP BY order_date;
+
+-- Refresh materialized view
+REFRESH MATERIALIZED VIEW daily_kpis;
+
+-- Create dashboard queries
+-- Revenue trend
+SELECT 
+    month,
+    total_revenue,
+    LAG(total_revenue) OVER (ORDER BY month) as prev_month_revenue,
+    (total_revenue - LAG(total_revenue) OVER (ORDER BY month)) / 
+    LAG(total_revenue) OVER (ORDER BY month) * 100 as growth_rate
+FROM (
+    SELECT 
+        DATE_TRUNC('month', order_date) as month,
+        SUM(order_amount) as total_revenue
+    FROM catalog.sales.orders
+    GROUP BY 1
+)
+ORDER BY month;
+
+-- Customer segmentation
+WITH customer_metrics AS (
+    SELECT 
+        customer_id,
+        COUNT(*) as order_count,
+        SUM(order_amount) as total_spent,
+        AVG(order_amount) as avg_order_value,
+        MAX(order_date) as last_order_date,
+        DATEDIFF(CURRENT_DATE, MAX(order_date)) as days_since_last_order
+    FROM catalog.sales.orders
+    GROUP BY customer_id
+)
+SELECT 
+    CASE 
+        WHEN total_spent > 1000 AND days_since_last_order <= 30 THEN 'High Value Active'
+        WHEN total_spent > 1000 AND days_since_last_order > 30 THEN 'High Value At Risk'
+        WHEN total_spent <= 1000 AND days_since_last_order <= 30 THEN 'Regular Active'
+        ELSE 'Low Value/Inactive'
+    END as customer_segment,
+    COUNT(*) as customer_count,
+    AVG(total_spent) as avg_customer_value,
+    AVG(order_count) as avg_orders_per_customer
+FROM customer_metrics
+GROUP BY 1
+ORDER BY avg_customer_value DESC;
+```
+
+```python
+# BI tool integration
+def setup_bi_integration():
+    """Set up BI tool integration with Databricks SQL"""
+    
+    # Create connection parameters for BI tools
+    connection_params = {
+        "server_hostname": "your-workspace.cloud.databricks.com",
+        "http_path": "/sql/1.0/warehouses/your-warehouse-id",
+        "access_token": "your-access-token",
+        "catalog": "production",
+        "schema": "analytics"
+    }
+    
+    # Tableau connection string
+    tableau_connection = f"""
+    Server: {connection_params['server_hostname']}
+    Port: 443
+    HTTP Path: {connection_params['http_path']}
+    Authentication: Token
+    Token: {connection_params['access_token']}
+    """
+    
+    # Power BI connection
+    powerbi_connection = {
+        "data_source": "Databricks",
+        "server": connection_params['server_hostname'],
+        "http_path": connection_params['http_path'],
+        "authentication": "Token",
+        "token": connection_params['access_token']
+    }
+    
+    print("BI integration parameters configured")
+    return connection_params
+
+# Create semantic layer
+def create_semantic_layer():
+    """Create semantic layer for business users"""
+    
+    # Business-friendly column names and calculations
+    spark.sql("""
+        CREATE OR REPLACE VIEW business_metrics AS
+        SELECT 
+            customer_id as "Customer ID",
+            customer_name as "Customer Name",
+            order_date as "Order Date",
+            product_name as "Product",
+            category as "Category",
+            order_amount as "Revenue",
+            quantity as "Quantity Sold",
+            
+            -- Calculated fields
+            order_amount / quantity as "Unit Price",
+            
+            -- Time dimensions
+            YEAR(order_date) as "Year",
+            QUARTER(order_date) as "Quarter",
+            MONTH(order_date) as "Month",
+            DAYOFWEEK(order_date) as "Day of Week",
+            
+            -- Business logic
+            CASE 
+                WHEN order_amount > 500 THEN 'High Value'
+                WHEN order_amount > 100 THEN 'Medium Value'
+                ELSE 'Low Value'
+            END as "Order Value Tier",
+            
+            CASE 
+                WHEN DATEDIFF(CURRENT_DATE, order_date) <= 30 THEN 'Recent'
+                WHEN DATEDIFF(CURRENT_DATE, order_date) <= 90 THEN 'Moderate'
+                ELSE 'Old'
+            END as "Recency"
+            
+        FROM catalog.sales.orders o
+        JOIN catalog.sales.customers c ON o.customer_id = c.customer_id
+        JOIN catalog.sales.products p ON o.product_id = p.product_id
+    """)
+    
+    print("Semantic layer created for business users")
+
+# Automated report generation
+def generate_automated_reports():
+    """Generate automated business reports"""
+    
+    # Executive dashboard data
+    executive_summary = spark.sql("""
+        SELECT 
+            'Total Revenue' as metric,
+            CONCAT('$', FORMAT_NUMBER(SUM(order_amount), 2)) as current_month,
+            CONCAT('$', FORMAT_NUMBER(LAG(SUM(order_amount)) OVER (ORDER BY month), 2)) as previous_month
+        FROM (
+            SELECT 
+                DATE_TRUNC('month', order_date) as month,
+                SUM(order_amount) as order_amount
+            FROM catalog.sales.orders
+            WHERE order_date >= CURRENT_DATE - INTERVAL 2 MONTHS
+            GROUP BY 1
+        )
+        GROUP BY month
+        ORDER BY month DESC
+        LIMIT 1
+        
+        UNION ALL
+        
+        SELECT 
+            'Total Orders' as metric,
+            FORMAT_NUMBER(COUNT(*), 0) as current_month,
+            FORMAT_NUMBER(LAG(COUNT(*)) OVER (ORDER BY month), 0) as previous_month
+        FROM (
+            SELECT 
+                DATE_TRUNC('month', order_date) as month,
+                COUNT(*) as order_count
+            FROM catalog.sales.orders
+            WHERE order_date >= CURRENT_DATE - INTERVAL 2 MONTHS
+            GROUP BY 1
+        )
+        GROUP BY month
+        ORDER BY month DESC
+        LIMIT 1
+    """)
+    
+    # Save report data
+    executive_summary.write.format("delta").mode("overwrite").save("/mnt/reports/executive_summary")
+    
+    print("Automated reports generated")
+    return executive_summary
+
+# Execute BI integration setup
+connection_params = setup_bi_integration()
+create_semantic_layer()
+executive_data = generate_automated_reports()
+executive_data.show()
+```
+
 ---
 
 ## 📚 Additional Content

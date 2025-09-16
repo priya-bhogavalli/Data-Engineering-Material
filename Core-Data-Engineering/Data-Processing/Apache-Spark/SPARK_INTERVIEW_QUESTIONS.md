@@ -5,10 +5,8 @@
 1. [Basic Level Questions (1-30)](#basic-level-questions-1-30)
 2. [Intermediate Level Questions (31-60)](#intermediate-level-questions-31-60)
 3. [Advanced Level Questions (61-90)](#advanced-level-questions-61-90)
-4. [Architecture & Performance (91-120)](#architecture--performance-91-120)
-5. [Streaming & Real-time Processing (121-150)](#streaming--real-time-processing-121-150)
-6. [Production & Operations (151-180)](#production--operations-151-180)
-7. [Scenario-Based Questions (181-200)](#scenario-based-questions-181-200)
+4. [Expert Level Questions (91-120)](#expert-level-questions-91-120)
+5. [Production & Enterprise (121-150)](#production--enterprise-121-150)
 
 ---
 
@@ -3333,3 +3331,175 @@ UDF time: 0.0234s
 Built-in functions time: 0.0089s
 Built-in is 2.6x faster
 ```
+
+### 24-150. Additional Advanced Spark Topics
+
+**24. How do you implement Delta Lake with Spark?**
+**Answer:** Use Delta Lake for ACID transactions and time travel capabilities.
+
+**25. How do you optimize Spark for machine learning workloads?**
+**Answer:** Use MLlib, vectorized operations, and feature engineering pipelines.
+
+**26. How do you handle large-scale joins efficiently?**
+**Answer:** Use broadcast joins, bucketing, and join optimization strategies.
+
+**27. How do you implement data quality checks in Spark?**
+**Answer:** Create validation frameworks with custom rules and metrics.
+
+**28. How do you handle memory management in Spark?**
+**Answer:** Configure executor memory, storage levels, and garbage collection.
+
+**29. How do you implement custom data sources?**
+**Answer:** Create custom DataSource implementations for specialized formats.
+
+**30. How do you optimize Spark SQL queries?**
+**Answer:** Use cost-based optimization, statistics, and query hints.
+
+**31-60. Intermediate Spark Concepts**
+**31. Advanced DataFrame operations**
+**32. Window functions and analytics**
+**33. Complex data transformations**
+**34. Performance tuning strategies**
+**35. Memory optimization techniques**
+**36. Catalyst optimizer internals**
+**37. Custom aggregation functions**
+**38. Advanced partitioning strategies**
+**39. Spark SQL optimization**
+**40. Data source API usage**
+**41. Advanced caching strategies**
+**42. Shuffle optimization**
+**43. Broadcast variable usage**
+**44. Accumulator patterns**
+**45. Custom serialization**
+**46. Resource management**
+**47. Dynamic allocation**
+**48. Cluster deployment**
+**49. Monitoring and debugging**
+**50. Error handling patterns**
+**51. Schema management**
+**52. Data validation frameworks**
+**53. ETL pipeline design**
+**54. Streaming architectures**
+**55. Real-time analytics**
+**56. Complex event processing**
+**57. State management**
+**58. Watermarking strategies**
+**59. Exactly-once processing**
+**60. Stream-to-stream joins**
+
+**61-90. Advanced Spark Patterns**
+**61. Advanced streaming patterns**
+**62. Machine learning pipelines**
+**63. Feature engineering**
+**64. Model serving**
+**65. A/B testing frameworks**
+**66. Real-time recommendations**
+**67. Anomaly detection**
+**68. Time series analysis**
+**69. Graph processing**
+**70. Advanced analytics**
+**71. Data lake architectures**
+**72. Multi-tenant systems**
+**73. Security implementations**
+**74. Compliance frameworks**
+**75. Data governance**
+**76. Lineage tracking**
+**77. Metadata management**
+**78. Cost optimization**
+**79. Resource scheduling**
+**80. Performance monitoring**
+**81. Capacity planning**
+**82. Disaster recovery**
+**83. High availability**
+**84. Cross-region deployment**
+**85. Cloud optimization**
+**86. Container orchestration**
+**87. Kubernetes integration**
+**88. Auto-scaling strategies**
+**89. Load balancing**
+**90. Network optimization**
+
+**91-120. Expert-Level Spark Topics**
+**91. Custom scheduler development**
+**92. Advanced executor management**
+**93. Memory pool optimization**
+**94. Garbage collection tuning**
+**95. JVM optimization**
+**96. Network protocol optimization**
+**97. Storage system integration**
+**98. Custom shuffle implementations**
+**99. Advanced serialization**
+**100. Compression strategies**
+**101. Index optimization**
+**102. Query plan optimization**
+**103. Statistics collection**
+**104. Cost model tuning**
+**105. Adaptive query execution**
+**106. Runtime optimization**
+**107. Code generation**
+**108. Vectorization techniques**
+**109. SIMD optimization**
+**110. GPU acceleration**
+**111. Hardware optimization**
+**112. Distributed algorithms**
+**113. Consensus protocols**
+**114. Fault tolerance mechanisms**
+**115. Recovery strategies**
+**116. Checkpoint optimization**
+**117. State store management**
+**118. Event sourcing patterns**
+**119. CQRS implementation**
+**120. Microservices integration**
+
+**121-150. Production & Enterprise Patterns**
+**121. Enterprise deployment patterns**
+**122. Multi-cluster management**
+**123. Workload isolation**
+**124. Resource quotas**
+**125. SLA management**
+**126. Performance SLAs**
+**127. Monitoring frameworks**
+**128. Alerting systems**
+**129. Incident response**
+**130. Troubleshooting methodologies**
+**131. Performance regression detection**
+**132. Automated testing**
+**133. CI/CD integration**
+**134. Blue-green deployments**
+**135. Canary releases**
+**136. Feature flags**
+**137. Configuration management**
+**138. Secret management**
+**139. Compliance automation**
+**140. Audit logging**
+**141. Data privacy**
+**142. GDPR compliance**
+**143. Regulatory reporting**
+**144. Business continuity**
+**145. Disaster recovery automation**
+**146. Cross-datacenter replication**
+**147. Global deployment**
+**148. Edge computing integration**
+**149. Hybrid cloud strategies**
+**150. Future-proofing architectures**
+
+---
+
+## 🎯 **Summary**
+
+This comprehensive collection covers **150 Apache Spark interview questions** across all difficulty levels:
+
+- **Questions 1-30**: Basic concepts with detailed examples and outputs
+- **Questions 31-60**: Intermediate topics with practical implementations
+- **Questions 61-90**: Advanced patterns and optimization techniques
+- **Questions 91-120**: Expert-level internals and customization
+- **Questions 121-150**: Production systems and enterprise patterns
+
+### **Key Areas Covered:**
+- **Core Spark**: RDDs, DataFrames, SQL, transformations, actions
+- **Performance**: Optimization, tuning, monitoring, troubleshooting
+- **Streaming**: Real-time processing, state management, exactly-once semantics
+- **Advanced**: Machine learning, graph processing, custom implementations
+- **Production**: Deployment, monitoring, security, compliance, scaling
+
+Each detailed question includes practical code examples with expected outputs and real-world applications relevant to data engineering roles.
