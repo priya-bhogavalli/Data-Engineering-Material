@@ -186,11 +186,46 @@
 ## 📊 Interview Questions by Technology
 
 ### 🔥 **Most Asked Interview Topics**
+
+**Updated Question Counts (Based on Actual Files):**
+
 | Technology | Questions Available | Difficulty Levels | Company Focus |
 |------------|-------------------|------------------|---------------|
-| **Python** | [150+ Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | Beginner to Expert | All companies |
-| **SQL** | [200+ Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | Beginner to Expert | All companies |
-| **AWS** | [300+ Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE.md) | Intermediate to Expert | Cloud-first companies |
+| **Python** | [300+ Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md) | Beginner to Expert | All companies |
+| **SQL** | [240+ Questions](./Core-Data-Engineering/Programming-Languages/SQL/SQL_INTERVIEW_QUESTIONS.md) | Beginner to Expert | All companies |
+| **AWS** | [240+ Questions](./Core-Data-Engineering/Cloud/AWS/AWS_INTERVIEW_QUESTIONS_COMPLETE_240.md) | Beginner to Expert | All companies |
+| **Apache Spark** | [200+ Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS.md) | Beginner to Expert | Big Data companies |
+| **PySpark** | [150+ Questions](./Core-Data-Engineering/Programming-Languages/PySpark/PYSPARK_INTERVIEW_QUESTIONS.md) | Intermediate to Expert | Data-heavy companies |
+| **Databricks** | [120+ Questions](./Core-Data-Engineering/Data-Processing/Databricks/DATABRICKS_INTERVIEW_QUESTIONS.md) | Intermediate to Expert | Cloud-native companies |
+| **Kafka** | [100+ Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_INTERVIEW_QUESTIONS.md) | Intermediate to Expert | Real-time companies |
+| **Snowflake** | [80+ Questions](./Core-Data-Engineering/Data-Warehousing/Snowflake/SNOWFLAKE_INTERVIEW_QUESTIONS.md) | Intermediate to Expert | Analytics companies |
+| **Airflow** | [75+ Questions](./Core-Data-Engineering/Data-Processing/Orchestration/Apache-Airflow/AIRFLOW_INTERVIEW_QUESTIONS.md) | Intermediate to Expert | Pipeline-heavy companies |
+| **Docker** | [60+ Questions](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | Beginner to Advanced | Modern companies |
+| **Kubernetes** | [55+ Questions](./Supporting-Tools/DevOps-Automation/Kubernetes/KUBERNETES_INTERVIEW_QUESTIONS.md) | Advanced | Cloud-native companies |
+| **Terraform** | [50+ Questions](./Supporting-Tools/DevOps-Automation/Terraform/TERRAFORM_INTERVIEW_QUESTIONS.md) | Intermediate to Advanced | Infrastructure companies |
+| **Machine Learning** | [45+ Questions](./Supporting-Tools/AI/Machine-Learning/ML_INTERVIEW_QUESTIONS.md) | Intermediate to Expert | AI/ML companies |
+| **PostgreSQL** | [40+ Questions](./Core-Data-Engineering/Databases/PostgreSQL/POSTGRESQL_INTERVIEW_QUESTIONS.md) | Beginner to Advanced | Database-heavy companies |
+| **Redis** | [35+ Questions](./Core-Data-Engineering/Databases/In-Memory/Redis/REDIS_INTERVIEW_QUESTIONS.md) | Intermediate | Caching-heavy companies |
+| **MongoDB** | [35+ Questions](./Core-Data-Engineering/Databases/NoSQL/MongoDB/MONGODB_INTERVIEW_QUESTIONS.md) | Beginner to Advanced | Document-heavy companies |
+| **Elasticsearch** | [30+ Questions](./Core-Data-Engineering/Databases/Search-Engines/Elasticsearch/ELASTICSEARCH_INTERVIEW_QUESTIONS.md) | Intermediate | Search-heavy companies |
+| **Neo4j** | [25+ Questions](./Core-Data-Engineering/Databases/Graph-Databases/Neo4j/NEO4J_INTERVIEW_QUESTIONS.md) | Advanced | Graph-heavy companies |
+| **Tableau** | [40+ Questions](./Supporting-Tools/Visualization-Reporting/Tableau/TABLEAU_INTERVIEW_QUESTIONS.md) | Beginner to Advanced | BI-focused companies |
+| **Power BI** | [35+ Questions](./Supporting-Tools/Visualization-Reporting/Power-BI/POWERBI_INTERVIEW_QUESTIONS.md) | Beginner to Advanced | Microsoft-stack companies |
+
+### 📊 **Question Count Summary by Category**
+
+| Category | Total Questions | Top Technologies |
+|----------|----------------|------------------|
+| **Programming Languages** | 690+ | Python (300), SQL (240), PySpark (150) |
+| **Cloud Platforms** | 580+ | AWS (240), Azure (170), GCP (170) |
+| **Data Processing** | 520+ | Spark (200), Databricks (120), Kafka (100), Airflow (75) |
+| **Databases** | 400+ | PostgreSQL (40), MongoDB (35), Redis (35), Elasticsearch (30) |
+| **DevOps & Infrastructure** | 350+ | Docker (60), Kubernetes (55), Terraform (50) |
+| **Visualization & BI** | 200+ | Tableau (40), Power BI (35), Grafana (30) |
+| **AI/ML & Data Science** | 180+ | Machine Learning (45), MLOps (35), OpenAI API (25) |
+| **Systems & Networking** | 150+ | Linux (40), Security (35), System Design (30) |
+
+**Total Interview Questions Available: 3,000+**ERVIEW_QUESTIONS_COMPLETE.md) | Intermediate to Expert | Cloud-first companies |
 | **Spark** | [100+ Questions](./Core-Data-Engineering/Data-Processing/Apache-Spark/SPARK_INTERVIEW_QUESTIONS_COMPLETE.md) | Intermediate to Expert | Big data companies |
 | **Kafka** | [80+ Questions](./Core-Data-Engineering/Data-Processing/Streaming/Apache-Kafka/KAFKA_COMPREHENSIVE_INTERVIEW_QUESTIONS.md) | Intermediate to Advanced | Streaming companies |
 | **Docker/K8s** | [120+ Questions](./Supporting-Tools/DevOps-Automation/Docker/DOCKER_INTERVIEW_QUESTIONS.md) | Beginner to Advanced | Modern tech companies |
