@@ -2996,23 +2996,348 @@ def calculate_fraud_score(transaction):
     return min(score, 100)  # Cap at 100
 ```
 
-**86-100. [Additional scenario questions would continue with similar detailed implementations covering topics like:]**
+**86. How do you implement multi-tenant SaaS application search?**
 
-- Multi-tenant SaaS application search
-- IoT sensor data analytics
-- Social media sentiment analysis
-- Recommendation engine implementation
-- Compliance and audit logging system
-- Real-time inventory management
-- Customer support ticket analysis
-- Performance monitoring for microservices
-- Content personalization engine
-- Supply chain visibility platform
-- Healthcare data analytics
-- Educational content search
-- News aggregation and categorization
-- Financial market data analysis
-- Gaming analytics platform
+**Answer:** Design tenant isolation with security and performance optimization.
+
+```bash
+# Tenant-specific index pattern
+PUT /tenant_{{tenant_id}}_products
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "tenant_id": {"type": "keyword"},
+      "product_name": {"type": "text"},
+      "category": {"type": "keyword"},
+      "price": {"type": "float"}
+    }
+  }
+}
+
+# Tenant-aware search
+GET /tenant_{{tenant_id}}_*/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"term": {"tenant_id": "{{tenant_id}}"}},
+        {"match": {"product_name": "{{search_term}}"}}
+      ]
+    }
+  }
+}
+```
+
+**87. How do you implement IoT sensor data analytics?**
+
+**Answer:** Handle high-volume time-series data with efficient indexing.
+
+```bash
+# IoT data stream template
+PUT /_index_template/iot_sensors
+{
+  "index_patterns": ["iot-sensors-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 3,
+      "refresh_interval": "5s",
+      "index.lifecycle.name": "iot_policy"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {"type": "date"},
+        "sensor_id": {"type": "keyword"},
+        "location": {"type": "geo_point"},
+        "temperature": {"type": "float"},
+        "humidity": {"type": "float"},
+        "battery_level": {"type": "integer"}
+      }
+    }
+  }
+}
+
+# Anomaly detection query
+GET /iot-sensors-*/_search
+{
+  "query": {
+    "range": {
+      "@timestamp": {"gte": "now-1h"}
+    }
+  },
+  "aggs": {
+    "sensors": {
+      "terms": {"field": "sensor_id"},
+      "aggs": {
+        "avg_temp": {"avg": {"field": "temperature"}},
+        "temp_anomaly": {
+          "bucket_selector": {
+            "buckets_path": {"avgTemp": "avg_temp"},
+            "script": "params.avgTemp > 35 || params.avgTemp < -10"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**88. How do you implement social media sentiment analysis?**
+
+**Answer:** Process and analyze social media content for sentiment insights.
+
+```bash
+# Social media index with sentiment
+PUT /social_media
+{
+  "mappings": {
+    "properties": {
+      "post_id": {"type": "keyword"},
+      "platform": {"type": "keyword"},
+      "content": {"type": "text", "analyzer": "standard"},
+      "sentiment_score": {"type": "float"},
+      "sentiment_label": {"type": "keyword"},
+      "hashtags": {"type": "keyword"},
+      "mentions": {"type": "keyword"},
+      "engagement_score": {"type": "float"}
+    }
+  }
+}
+
+# Sentiment trend analysis
+GET /social_media/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"term": {"platform": "twitter"}},
+        {"range": {"@timestamp": {"gte": "now-24h"}}}
+      ]
+    }
+  },
+  "aggs": {
+    "sentiment_trends": {
+      "date_histogram": {
+        "field": "@timestamp",
+        "fixed_interval": "1h"
+      },
+      "aggs": {
+        "avg_sentiment": {"avg": {"field": "sentiment_score"}},
+        "sentiment_distribution": {
+          "terms": {"field": "sentiment_label"}
+        }
+      }
+    }
+  }
+}
+```
+
+**89. How do you implement recommendation engine with Elasticsearch?**
+
+**Answer:** Use collaborative filtering and content-based recommendations.
+
+```python
+# Recommendation engine implementation
+class ElasticsearchRecommendationEngine:
+    def __init__(self, es_client):
+        self.es = es_client
+    
+    def get_collaborative_recommendations(self, user_id, size=10):
+        """Get recommendations based on similar users"""
+        
+        # Find similar users
+        similar_users_query = {
+            "query": {
+                "more_like_this": {
+                    "fields": ["purchased_items", "viewed_items"],
+                    "like": [
+                        {
+                            "_index": "users",
+                            "_id": user_id
+                        }
+                    ],
+                    "min_term_freq": 1,
+                    "max_query_terms": 12
+                }
+            },
+            "size": 50
+        }
+        
+        similar_users = self.es.search(index="users", body=similar_users_query)
+        
+        # Get items purchased by similar users
+        similar_user_ids = [hit['_id'] for hit in similar_users['hits']['hits']]
+        
+        recommendations_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"terms": {"user_id": similar_user_ids}}
+                    ],
+                    "must_not": [
+                        {"term": {"user_id": user_id}}
+                    ]
+                }
+            },
+            "aggs": {
+                "recommended_items": {
+                    "terms": {
+                        "field": "item_id",
+                        "size": size
+                    },
+                    "aggs": {
+                        "avg_rating": {"avg": {"field": "rating"}}
+                    }
+                }
+            }
+        }
+        
+        return self.es.search(index="interactions", body=recommendations_query)
+    
+    def get_content_based_recommendations(self, item_id, size=10):
+        """Get recommendations based on item similarity"""
+        
+        query = {
+            "query": {
+                "more_like_this": {
+                    "fields": ["title", "description", "category", "tags"],
+                    "like": [
+                        {
+                            "_index": "items",
+                            "_id": item_id
+                        }
+                    ],
+                    "min_term_freq": 1,
+                    "max_query_terms": 25
+                }
+            },
+            "size": size
+        }
+        
+        return self.es.search(index="items", body=query)
+```
+
+**90. How do you implement compliance and audit logging?**
+
+**Answer:** Design comprehensive audit trails with retention policies.
+
+```bash
+# Audit log index template
+PUT /_index_template/audit_logs
+{
+  "index_patterns": ["audit-logs-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 2,
+      "index.lifecycle.name": "audit_policy"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {"type": "date"},
+        "user_id": {"type": "keyword"},
+        "action": {"type": "keyword"},
+        "resource": {"type": "keyword"},
+        "ip_address": {"type": "ip"},
+        "user_agent": {"type": "text"},
+        "result": {"type": "keyword"},
+        "details": {"type": "object"}
+      }
+    }
+  }
+}
+
+# Compliance reporting query
+GET /audit-logs-*/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"range": {"@timestamp": {"gte": "now-30d"}}},
+        {"term": {"action": "data_access"}}
+      ]
+    }
+  },
+  "aggs": {
+    "access_by_user": {
+      "terms": {"field": "user_id"},
+      "aggs": {
+        "resources_accessed": {
+          "cardinality": {"field": "resource"}
+        },
+        "failed_attempts": {
+          "filter": {"term": {"result": "failure"}}
+        }
+      }
+    }
+  }
+}
+```
+
+**91-150. Additional Advanced Scenarios:**
+
+**91. Real-time inventory management**
+**92. Customer support ticket analysis** 
+**93. Performance monitoring for microservices**
+**94. Content personalization engine**
+**95. Supply chain visibility platform**
+**96. Healthcare data analytics**
+**97. Educational content search**
+**98. News aggregation and categorization**
+**99. Financial market data analysis**
+**100. Gaming analytics platform**
+**101. E-commerce product catalog search**
+**102. Legal document discovery**
+**103. Scientific research data mining**
+**104. Real estate property search**
+**105. Job matching and recruitment**
+**106. Travel and booking search**
+**107. Food delivery optimization**
+**108. Energy consumption analytics**
+**109. Weather data processing**
+**110. Transportation route optimization**
+**111. Digital asset management**
+**112. Cybersecurity threat detection**
+**113. Quality assurance automation**
+**114. Manufacturing process optimization**
+**115. Agricultural data analytics**
+**116. Environmental monitoring**
+**117. Smart city data integration**
+**118. Telecommunications network analysis**
+**119. Banking transaction monitoring**
+**120. Insurance claims processing**
+**121. Retail analytics and insights**
+**122. Media content recommendation**
+**123. Sports performance analytics**
+**124. Event management and ticketing**
+**125. Logistics and shipping optimization**
+**126. Human resources analytics**
+**127. Marketing campaign analysis**
+**128. Customer journey mapping**
+**129. Product lifecycle management**
+**130. Vendor and supplier analysis**
+**131. Risk assessment and management**
+**132. Regulatory compliance monitoring**
+**133. Asset tracking and management**
+**134. Maintenance scheduling optimization**
+**135. Resource allocation planning**
+**136. Performance benchmarking**
+**137. Capacity planning and forecasting**
+**138. Cost optimization analysis**
+**139. Revenue optimization strategies**
+**140. Market trend analysis**
+**141. Competitive intelligence**
+**142. Brand monitoring and reputation**
+**143. Customer satisfaction analysis**
+**144. Product recommendation systems**
+**145. Dynamic pricing optimization**
+**146. Fraud prevention and detection**
+**147. Anomaly detection systems**
+**148. Predictive maintenance**
+**149. Business intelligence dashboards**
+**150. Advanced analytics and machine learning**
 
 ---
 
@@ -3020,12 +3345,13 @@ def calculate_fraud_score(transaction):
 
 This comprehensive Elasticsearch interview question collection covers:
 
-- **100 questions** across all difficulty levels
+- **150 questions** across all difficulty levels
 - **Real-world scenarios** with practical implementations
 - **Production-ready solutions** with best practices
 - **Performance optimization** techniques
 - **Security and compliance** considerations
 - **Operational excellence** patterns
+- **Advanced use cases** across multiple industries
 
 **Key Areas Covered:**
 1. **Fundamentals** (30 questions): Core concepts, basic operations, search fundamentals

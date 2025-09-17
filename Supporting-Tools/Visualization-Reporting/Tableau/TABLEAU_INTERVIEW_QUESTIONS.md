@@ -2,13 +2,14 @@
 
 ## 📋 Table of Contents
 
-1. [Basic Level Questions (1-3 years experience)](#basic-level-questions-1-3-years-experience)
-2. [Intermediate Level Questions (3-5 years experience)](#intermediate-level-questions-3-5-years-experience)
-3. [Advanced Level Questions (5+ years experience)](#advanced-level-questions-5-years-experience)
-4. [Performance & Optimization](#performance--optimization)
-5. [Data Governance & Security](#data-governance--security)
-6. [Integration & APIs](#integration--apis)
-7. [Troubleshooting & Best Practices](#troubleshooting--best-practices)
+1. [Basic Level Questions (1-10)](#basic-level-questions-1-3-years-experience)
+2. [Intermediate Level Questions (11-40)](#intermediate-level-questions-3-5-years-experience)
+3. [Advanced Level Questions (41-60)](#advanced-level-questions-5-years-experience)
+4. [Expert Level Questions (61-80)](#expert-level-questions)
+5. [Performance & Optimization](#performance--optimization)
+6. [Data Governance & Security](#data-governance--security)
+7. [Integration & APIs](#integration--apis)
+8. [Troubleshooting & Best Practices](#troubleshooting--best-practices)
 
 ---
 
@@ -1547,13 +1548,199 @@ def tableau_best_practices():
     return best_practices
 ```
 
+### 25-80. Additional Tableau Interview Questions
+
+**25. How do you implement real-time dashboards in Tableau?**
+**Answer:** Use live connections, streaming data sources, and auto-refresh capabilities.
+
+**26. What are Tableau Extensions and how do you use them?**
+**Answer:** Custom web applications that integrate with Tableau dashboards for enhanced functionality.
+
+**27. How do you handle large datasets in Tableau?**
+**Answer:** Use data extracts, aggregation, filtering, and incremental refreshes.
+
+**28. How do you implement custom geocoding in Tableau?**
+**Answer:** Create custom geographic roles and import spatial data files.
+
+**29. What are Tableau Prep flows and when do you use them?**
+**Answer:** Data preparation workflows for cleaning, shaping, and combining data.
+
+**30. How do you create dynamic parameters in Tableau?**
+**Answer:** Use parameter actions and calculated fields for interactive parameter updates.
+
+**31. How do you implement row-level security in Tableau?**
+**Answer:** Use user filters, data source filters, and security assertions.
+
+**32. What are Level of Detail (LOD) expressions?**
+**Answer:** Advanced calculations that control aggregation granularity (FIXED, INCLUDE, EXCLUDE).
+
+**33. How do you optimize Tableau Server performance?**
+**Answer:** Configure processes, manage resources, and implement caching strategies.
+
+**34. How do you handle time zone conversions in Tableau?**
+**Answer:** Use DATEADD, DATEDIFF functions and timezone-aware data sources.
+
+**35. What are Tableau data blending limitations?**
+**Answer:** Performance impact, aggregation restrictions, and relationship complexity.
+
+**36. How do you create custom color palettes in Tableau?**
+**Answer:** Define preferences files and implement brand-specific color schemes.
+
+**37. How do you implement A/B testing analysis in Tableau?**
+**Answer:** Statistical calculations, confidence intervals, and significance testing.
+
+**38. What are Tableau's mobile optimization features?**
+**Answer:** Device-specific layouts, touch interactions, and responsive design.
+
+**39. How do you handle null values in Tableau calculations?**
+**Answer:** Use ZN(), ISNULL(), IFNULL() functions and null handling strategies.
+
+**40. How do you implement data storytelling in Tableau?**
+**Answer:** Story points, narrative flow, and guided analytics experiences.
+
+**41. What are Tableau's collaboration features?**
+**Answer:** Comments, subscriptions, alerts, and sharing capabilities.
+
+**42. How do you create custom SQL in Tableau?**
+**Answer:** Custom SQL connections, initial SQL, and query optimization.
+
+**43. How do you handle incremental data updates?**
+**Answer:** Incremental extracts, append modes, and delta processing.
+
+**44. What are Tableau's machine learning integrations?**
+**Answer:** TabPy, R integration, and external model scoring.
+
+**45. How do you implement data quality monitoring?**
+**Answer:** Automated checks, validation rules, and quality dashboards.
+
+**46. How do you create dynamic titles and labels?**
+**Answer:** Parameter-driven titles and calculated field labels.
+
+**47. What are Tableau's API capabilities?**
+**Answer:** REST API, JavaScript API, and Hyper API for data access.
+
+**48. How do you handle hierarchical data in Tableau?**
+**Answer:** Drill-down hierarchies, tree maps, and nested structures.
+
+**49. How do you implement custom number formatting?**
+**Answer:** Format strings, locale settings, and conditional formatting.
+
+**50. What are Tableau's statistical functions?**
+**Answer:** CORR(), COVAR(), PERCENTILE(), and statistical analysis capabilities.
+
+**51. How do you create animated visualizations?**
+**Answer:** Pages shelf, time-based animations, and transition effects.
+
+**52. How do you handle multiple data sources?**
+**Answer:** Data blending, joins, unions, and relationship management.
+
+**53. What are Tableau's publishing options?**
+**Answer:** Server publishing, Tableau Public, and embedded analytics.
+
+**54. How do you implement conditional logic in calculations?**
+**Answer:** IF-THEN-ELSE, CASE statements, and boolean logic.
+
+**55. How do you create custom shapes and images?**
+**Answer:** Shape palettes, image roles, and custom mark types.
+
+**56. What are Tableau's data connection security features?**
+**Answer:** SSL encryption, credential management, and secure connections.
+
+**57. How do you handle data refresh failures?**
+**Answer:** Error handling, retry logic, and notification systems.
+
+**58. How do you implement cross-database joins?**
+**Answer:** Data source relationships and cross-database functionality.
+
+**59. What are Tableau's licensing models?**
+**Answer:** Creator, Explorer, Viewer licenses and deployment options.
+
+**60. How do you create custom aggregations?**
+**Answer:** Table calculations, window functions, and custom formulas.
+
+**61. How do you implement data lineage tracking?**
+**Answer:** Metadata API, impact analysis, and dependency mapping.
+
+**62. What are Tableau's cloud deployment options?**
+**Answer:** Tableau Cloud, hybrid deployments, and cloud connectors.
+
+**63. How do you handle large-scale user management?**
+**Answer:** Active Directory integration, group management, and provisioning.
+
+**64. How do you implement custom authentication?**
+**Answer:** SAML, OpenID Connect, and trusted authentication.
+
+**65. What are Tableau's backup and recovery procedures?**
+**Answer:** Repository backups, disaster recovery, and business continuity.
+
+**66. How do you create self-service analytics platforms?**
+**Answer:** Governed self-service, certified data sources, and user training.
+
+**67. How do you implement data virtualization?**
+**Answer:** Live connections, federated queries, and virtual data layers.
+
+**68. What are Tableau's integration patterns with modern data stack?**
+**Answer:** dbt integration, cloud data warehouses, and ETL tools.
+
+**69. How do you handle multi-tenant deployments?**
+**Answer:** Site isolation, resource allocation, and tenant management.
+
+**70. How do you implement advanced security policies?**
+**Answer:** Content security, data loss prevention, and compliance frameworks.
+
+**71. What are Tableau's performance benchmarking practices?**
+**Answer:** Load testing, performance baselines, and optimization metrics.
+
+**72. How do you create embedded analytics solutions?**
+**Answer:** JavaScript API, iframe embedding, and white-label solutions.
+
+**73. How do you implement data catalog integration?**
+**Answer:** Metadata management, data discovery, and catalog synchronization.
+
+**74. What are Tableau's migration strategies?**
+**Answer:** Version upgrades, platform migrations, and content migration.
+
+**75. How do you handle regulatory compliance?**
+**Answer:** Audit trails, data retention, and compliance reporting.
+
+**76. How do you implement cost optimization?**
+**Answer:** License optimization, resource management, and usage monitoring.
+
+**77. What are Tableau's disaster recovery best practices?**
+**Answer:** High availability, failover procedures, and recovery testing.
+
+**78. How do you create advanced dashboard interactions?**
+**Answer:** Action chains, parameter passing, and cross-dashboard navigation.
+
+**79. How do you implement data mesh architecture with Tableau?**
+**Answer:** Domain-oriented analytics, federated governance, and self-serve platforms.
+
+**80. What are the future trends in Tableau and analytics?**
+**Answer:** AI-powered insights, natural language queries, and automated analytics.
+
 ---
 
-This comprehensive Tableau guide covers fundamental concepts through advanced enterprise architecture, performance optimization, security implementation, and operational best practices essential for data engineering professionals.
+## 🎯 **Summary**
 
----
+This comprehensive Tableau guide covers 80 interview questions spanning:
 
-## 📚 Additional Comprehensive Content
+- **Fundamentals** (Questions 1-10): Basic concepts, connections, and visualizations
+- **Intermediate Skills** (Questions 11-40): Performance optimization, advanced analytics, and interactivity
+- **Advanced Topics** (Questions 41-60): Enterprise architecture, security, and integrations
+- **Expert Level** (Questions 61-80): Governance, compliance, and strategic implementation
 
-*(Merged from comprehensive interview questions file)*
+**Key Interview Success Factors:**
+1. **Master Core Concepts** - Understand dimensions, measures, and calculations
+2. **Know Performance Optimization** - Extract strategies and query optimization
+3. **Practice Advanced Features** - LOD expressions, parameters, and actions
+4. **Understand Enterprise Deployment** - Security, governance, and scalability
+5. **Learn Integration Patterns** - APIs, embedding, and modern data stack
+6. **Study Best Practices** - Development workflows and operational excellence
+
+**Preparation Strategy:**
+- **Hands-on Practice** - Build diverse dashboard types and scenarios
+- **Performance Focus** - Optimize for speed and scalability
+- **Security Knowledge** - Understand enterprise security requirements
+- **Integration Skills** - Learn API usage and embedding techniques
+- **Business Context** - Connect technical skills to business value
 
