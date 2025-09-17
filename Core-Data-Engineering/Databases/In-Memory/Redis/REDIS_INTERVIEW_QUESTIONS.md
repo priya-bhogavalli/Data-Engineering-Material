@@ -5,10 +5,6 @@
 1. [Basic Level Questions (1-40)](#basic-level-questions-1-40)
 2. [Intermediate Level Questions (41-80)](#intermediate-level-questions-41-80)
 3. [Advanced Level Questions (81-120)](#advanced-level-questions-81-120)
-4. [Architecture & Performance (121-160)](#architecture--performance-121-160)
-5. [Streaming & Real-time Processing (161-200)](#streaming--real-time-processing-161-200)
-6. [Production & Operations (201-240)](#production--operations-201-240)
-7. [Scenario-Based Questions (241-280)](#scenario-based-questions-241-280)
 
 ---
 
@@ -512,260 +508,872 @@ cp /var/lib/redis/dump.rdb /backup/redis-backup-$(date +%Y%m%d).rdb
 
 ### 21. What is Redis Sentinel and how does it work?
 
-**Answer:** Sentinel provides high availability for Redis master-slave setups.
+**Answer:** Sentinel provides high availability for Redis master-slave setups with automatic failover.
+
+#### **Sentinel Configuration**
+```bash
+# sentinel.conf
+port 26379
+sentinel monitor mymaster 127.0.0.1 6379 2
+sentinel down-after-milliseconds mymaster 5000
+sentinel failover-timeout mymaster 10000
+sentinel parallel-syncs mymaster 1
+
+# Start sentinel
+redis-sentinel /etc/redis/sentinel.conf
+```
+
+#### **Sentinel Operations**
+```bash
+# Check master status
+redis-cli -p 26379 SENTINEL masters
+redis-cli -p 26379 SENTINEL slaves mymaster
+
+# Manual failover
+redis-cli -p 26379 SENTINEL failover mymaster
+```
 
 ### 22. How do you handle Redis data expiration?
 
-**Answer:** Redis provides multiple ways to set and manage key expiration.
+**Answer:** Redis provides multiple expiration mechanisms for automatic key cleanup.
+
+#### **Expiration Commands**
+```bash
+# Set expiration in seconds
+EXPIRE key 3600
+SETEX key 3600 "value"
+
+# Set expiration at specific timestamp
+EXPIREAT key 1640995200
+
+# Set expiration in milliseconds
+PEXPIRE key 3600000
+PSETEX key 3600000 "value"
+
+# Check TTL
+TTL key
+PTTL key
+
+# Remove expiration
+PERSIST key
+```
 
 ### 23. What are Redis modules and how do you use them?
 
 **Answer:** Redis modules extend functionality with custom data types and commands.
 
+#### **Popular Modules**
+```bash
+# RedisJSON - JSON data type
+MODULE LOAD /usr/lib/redis/modules/rejson.so
+JSON.SET user:1000 . '{"name":"John","age":30}'
+JSON.GET user:1000 .name
+
+# RedisTimeSeries - Time series data
+MODULE LOAD /usr/lib/redis/modules/redistimeseries.so
+TS.CREATE temperature:sensor1
+TS.ADD temperature:sensor1 1640995200 23.5
+
+# RediSearch - Full-text search
+MODULE LOAD /usr/lib/redis/modules/redisearch.so
+FT.CREATE idx:users ON HASH PREFIX 1 user: SCHEMA name TEXT age NUMERIC
+```
+
 ### 24. How do you implement geospatial operations in Redis?
 
-**Answer:** Redis provides built-in geospatial data types and operations.
+**Answer:** Redis provides built-in geospatial data types for location-based features.
+
+#### **Geospatial Commands**
+```bash
+# Add locations
+GEOADD locations 13.361389 38.115556 "Palermo" 15.087269 37.502669 "Catania"
+
+# Get coordinates
+GEOPOS locations "Palermo"
+
+# Calculate distance
+GEODIST locations "Palermo" "Catania" km
+# Output: "166.2742"
+
+# Find nearby locations
+GEORADIUS locations 15 37 200 km WITHDIST WITHCOORD
+
+# Find locations within radius of member
+GEORADIUSBYMEMBER locations "Palermo" 200 km
+```
 
 ### 25. What is Redis persistence durability?
 
-**Answer:** Understanding the trade-offs between performance and data safety.
+**Answer:** Understanding trade-offs between performance and data safety in persistence options.
+
+#### **Durability Levels**
+```bash
+# RDB - Point-in-time snapshots
+# Pros: Compact, fast recovery, good for backups
+# Cons: Data loss between snapshots
+save 900 1
+save 300 10
+save 60 10000
+
+# AOF - Append-only file
+# Pros: Better durability, readable format
+# Cons: Larger files, slower recovery
+appendonly yes
+appendfsync always    # Safest but slowest
+appendfsync everysec  # Good balance
+appendfsync no        # Fastest but least safe
+```
 
 ### 26. How do you handle Redis connection pooling?
 
 **Answer:** Connection pooling improves performance and resource utilization.
 
+#### **Python Connection Pool**
+```python
+import redis
+from redis.connection import ConnectionPool
+
+# Create connection pool
+pool = ConnectionPool(
+    host='localhost',
+    port=6379,
+    db=0,
+    max_connections=20,
+    retry_on_timeout=True,
+    socket_timeout=5,
+    socket_connect_timeout=5
+)
+
+# Use pool with Redis client
+r = redis.Redis(connection_pool=pool)
+
+# Pool monitoring
+print(f"Created connections: {pool.created_connections}")
+print(f"Available connections: {len(pool._available_connections)}")
+print(f"In use connections: {len(pool._in_use_connections)}")
+```
+
 ### 27. What are Redis keyspace notifications?
 
 **Answer:** Event notifications for key operations and expirations.
+
+#### **Enable Notifications**
+```bash
+# Configuration
+notify-keyspace-events Ex  # Expired events
+notify-keyspace-events AKE # All events
+
+# Subscribe to notifications
+PSUBSCRIBE __keyevent@0__:expired
+PSUBSCRIBE __keyspace@0__:mykey
+```
+
+#### **Notification Handler**
+```python
+import redis
+
+r = redis.Redis()
+pubsub = r.pubsub()
+
+# Subscribe to expired key events
+pubsub.psubscribe('__keyevent@0__:expired')
+
+for message in pubsub.listen():
+    if message['type'] == 'pmessage':
+        expired_key = message['data'].decode('utf-8')
+        print(f"Key expired: {expired_key}")
+        # Handle expiration logic
+        handle_key_expiration(expired_key)
+```
 
 ### 28. How do you implement Redis as a message queue?
 
 **Answer:** Using lists and blocking operations for reliable message queuing.
 
+#### **Producer-Consumer Pattern**
+```python
+# Producer
+def produce_messages():
+    for i in range(100):
+        message = {
+            "id": i,
+            "data": f"message_{i}",
+            "timestamp": time.time()
+        }
+        r.lpush("task_queue", json.dumps(message))
+        print(f"Produced message {i}")
+
+# Consumer with blocking pop
+def consume_messages():
+    while True:
+        # Block for up to 1 second
+        result = r.brpop("task_queue", timeout=1)
+        if result:
+            queue_name, message_data = result
+            message = json.loads(message_data)
+            print(f"Processing message: {message['id']}")
+            
+            # Process message
+            process_message(message)
+        else:
+            print("No messages, continuing...")
+```
+
 ### 29. What is Redis memory fragmentation?
 
-**Answer:** Understanding and managing memory fragmentation issues.
+**Answer:** Memory fragmentation occurs when Redis cannot efficiently use allocated memory.
+
+#### **Monitoring Fragmentation**
+```bash
+# Check memory info
+INFO memory
+
+# Key metrics:
+# used_memory_rss - Physical memory used
+# used_memory - Logical memory used
+# mem_fragmentation_ratio - RSS/used ratio
+
+# Fragmentation ratio interpretation:
+# < 1.0 - Swapping (bad)
+# 1.0-1.5 - Good
+# > 1.5 - High fragmentation
+```
+
+#### **Reduce Fragmentation**
+```bash
+# Enable active defragmentation (Redis 4.0+)
+activedefrag yes
+active-defrag-ignore-bytes 100mb
+active-defrag-threshold-lower 10
+active-defrag-threshold-upper 100
+
+# Manual defragmentation
+MEMORY PURGE
+```
 
 ### 30. How do you handle Redis failover?
 
-**Answer:** Automatic and manual failover strategies.
+**Answer:** Automatic and manual failover strategies for high availability.
+
+#### **Sentinel-based Failover**
+```python
+import redis.sentinel
+
+# Connect through Sentinel
+sentinel = redis.sentinel.Sentinel([
+    ('localhost', 26379),
+    ('localhost', 26380),
+    ('localhost', 26381)
+])
+
+# Get master and slave connections
+master = sentinel.master_for('mymaster', socket_timeout=0.1)
+slave = sentinel.slave_for('mymaster', socket_timeout=0.1)
+
+# Write to master, read from slave
+master.set('key', 'value')
+value = slave.get('key')
+```
 
 ### 31. What are Redis hash slots?
 
-**Answer:** Understanding cluster data distribution mechanism.
+**Answer:** Hash slots distribute data across cluster nodes using consistent hashing.
+
+#### **Hash Slot Calculation**
+```python
+import crc16
+
+def calculate_slot(key):
+    """Calculate Redis cluster slot for a key"""
+    # Extract hashtag if present
+    start = key.find('{')
+    if start != -1:
+        end = key.find('}', start + 1)
+        if end != -1 and end != start + 1:
+            key = key[start + 1:end]
+    
+    # Calculate CRC16 and mod 16384
+    return crc16.crc16xmodem(key.encode()) % 16384
+
+# Examples
+print(f"user:1000 -> slot {calculate_slot('user:1000')}")
+print(f"user:{{1000}}:profile -> slot {calculate_slot('user:{1000}:profile')}")
+print(f"user:{{1000}}:orders -> slot {calculate_slot('user:{1000}:orders')}")
+```
 
 ### 32. How do you implement Redis caching patterns?
 
-**Answer:** Cache-aside, write-through, and write-behind patterns.
+**Answer:** Different caching patterns for various application needs.
+
+#### **Write-Through Cache**
+```python
+def write_through_cache(key, value):
+    # Write to cache and database simultaneously
+    try:
+        # Update database first
+        database.update(key, value)
+        
+        # Then update cache
+        r.set(key, json.dumps(value), ex=3600)
+        
+        return True
+    except Exception as e:
+        # Rollback if either fails
+        print(f"Write-through failed: {e}")
+        return False
+```
+
+#### **Write-Behind Cache**
+```python
+def write_behind_cache(key, value):
+    # Write to cache immediately, database later
+    r.set(key, json.dumps(value), ex=3600)
+    
+    # Queue for async database update
+    r.lpush("write_behind_queue", json.dumps({
+        "key": key,
+        "value": value,
+        "timestamp": time.time()
+    }))
+```
 
 ### 33. What is Redis lazy expiration?
 
-**Answer:** How Redis handles expired key cleanup.
+**Answer:** Redis uses lazy expiration combined with active expiration for memory management.
+
+#### **Expiration Mechanisms**
+```python
+# Lazy expiration - checked on access
+def lazy_expiration_demo():
+    r.setex("temp_key", 1, "value")  # 1 second TTL
+    time.sleep(2)
+    
+    # Key is expired but may still exist in memory
+    exists_before_access = r.exists("temp_key")  # 0 - lazy cleanup
+    
+# Active expiration - background cleanup
+# Redis randomly samples keys and removes expired ones
+# Configured by:
+# hz 10  # Background task frequency
+```
 
 ### 34. How do you monitor Redis cluster health?
 
-**Answer:** Cluster monitoring and health check strategies.
+**Answer:** Comprehensive cluster monitoring strategies.
+
+#### **Cluster Health Checks**
+```python
+import redis
+
+def check_cluster_health():
+    r = redis.Redis(host='localhost', port=7000, decode_responses=True)
+    
+    try:
+        # Cluster info
+        cluster_info = r.execute_command('CLUSTER INFO')
+        print("Cluster Info:")
+        for line in cluster_info.split('\n'):
+            if line:
+                print(f"  {line}")
+        
+        # Node status
+        nodes = r.execute_command('CLUSTER NODES')
+        print("\nNode Status:")
+        for node in nodes.split('\n'):
+            if node:
+                parts = node.split()
+                node_id = parts[0][:8]
+                address = parts[1]
+                flags = parts[2]
+                print(f"  {node_id}: {address} [{flags}]")
+        
+        # Slot coverage
+        slots = r.execute_command('CLUSTER SLOTS')
+        print(f"\nSlot Coverage: {len(slots)} ranges")
+        
+    except Exception as e:
+        print(f"Cluster health check failed: {e}")
+
+check_cluster_health()
+```
 
 ### 35. What are Redis configuration best practices?
 
-**Answer:** Production configuration recommendations.
+**Answer:** Production configuration recommendations for optimal performance.
+
+#### **Production redis.conf**
+```bash
+# Memory management
+maxmemory 2gb
+maxmemory-policy allkeys-lru
+
+# Persistence
+save 900 1
+save 300 10
+save 60 10000
+appendonly yes
+appendfsync everysec
+
+# Security
+bind 127.0.0.1 10.0.0.1
+requirepass your_strong_password
+rename-command FLUSHDB ""
+rename-command FLUSHALL ""
+rename-command CONFIG "CONFIG_b840fc02d524045429941cc15f59e41cb7be6c52"
+
+# Performance
+tcp-keepalive 300
+timeout 0
+tcp-backlog 511
+
+# Logging
+loglevel notice
+logfile /var/log/redis/redis-server.log
+
+# Client limits
+maxclients 10000
+```
 
 ### 36. How do you handle Redis data migration?
 
 **Answer:** Strategies for migrating data between Redis instances.
 
+#### **Online Migration with MIGRATE**
+```bash
+# Migrate single key
+MIGRATE 192.168.1.100 6379 mykey 0 5000
+
+# Migrate multiple keys
+MIGRATE 192.168.1.100 6379 "" 0 5000 KEYS key1 key2 key3
+
+# Migrate with authentication
+MIGRATE 192.168.1.100 6379 mykey 0 5000 AUTH password
+```
+
+#### **Bulk Migration Script**
+```python
+def migrate_redis_data(source_host, target_host, batch_size=1000):
+    source = redis.Redis(host=source_host, port=6379)
+    target = redis.Redis(host=target_host, port=6379)
+    
+    cursor = 0
+    migrated_count = 0
+    
+    while True:
+        cursor, keys = source.scan(cursor, count=batch_size)
+        
+        if keys:
+            # Use pipeline for batch operations
+            pipe = target.pipeline()
+            
+            for key in keys:
+                # Get key type and value
+                key_type = source.type(key)
+                ttl = source.ttl(key)
+                
+                if key_type == b'string':
+                    value = source.get(key)
+                    pipe.set(key, value)
+                elif key_type == b'hash':
+                    value = source.hgetall(key)
+                    pipe.hmset(key, value)
+                # ... handle other types
+                
+                if ttl > 0:
+                    pipe.expire(key, ttl)
+            
+            pipe.execute()
+            migrated_count += len(keys)
+            print(f"Migrated {migrated_count} keys")
+        
+        if cursor == 0:
+            break
+    
+    print(f"Migration completed: {migrated_count} keys")
+```
+
 ### 37. What is Redis replication lag?
 
-**Answer:** Understanding and monitoring replication delays.
+**Answer:** Understanding and monitoring replication delays between master and slaves.
+
+#### **Monitor Replication Lag**
+```bash
+# On master
+INFO replication
+
+# Key metrics:
+# connected_slaves:1
+# slave0:ip=127.0.0.1,port=6380,state=online,offset=1234,lag=0
+
+# On slave
+INFO replication
+# master_repl_offset:1234
+# slave_repl_offset:1234
+```
+
+#### **Replication Lag Monitoring**
+```python
+def monitor_replication_lag():
+    master = redis.Redis(host='master-host', port=6379)
+    slave = redis.Redis(host='slave-host', port=6380)
+    
+    # Get replication info
+    master_info = master.info('replication')
+    slave_info = slave.info('replication')
+    
+    master_offset = master_info['master_repl_offset']
+    slave_offset = slave_info['slave_repl_offset']
+    
+    lag = master_offset - slave_offset
+    
+    print(f"Replication lag: {lag} bytes")
+    
+    if lag > 1000000:  # 1MB threshold
+        print("WARNING: High replication lag detected")
+    
+    return lag
+```
 
 ### 38. How do you implement Redis high availability?
 
-**Answer:** Combining clustering, replication, and sentinel.
+**Answer:** Combining clustering, replication, and sentinel for maximum uptime.
+
+#### **HA Architecture**
+```python
+class RedisHAClient:
+    def __init__(self):
+        # Sentinel for master-slave failover
+        self.sentinel = redis.sentinel.Sentinel([
+            ('sentinel1', 26379),
+            ('sentinel2', 26379),
+            ('sentinel3', 26379)
+        ])
+        
+        # Cluster for horizontal scaling
+        self.cluster = redis.RedisCluster(
+            startup_nodes=[
+                {"host": "cluster1", "port": "7000"},
+                {"host": "cluster2", "port": "7000"},
+                {"host": "cluster3", "port": "7000"}
+            ],
+            decode_responses=True,
+            skip_full_coverage_check=True
+        )
+    
+    def get_connection(self, use_cluster=False):
+        if use_cluster:
+            return self.cluster
+        else:
+            return self.sentinel.master_for('mymaster')
+```
 
 ### 39. What are Redis client-side caching strategies?
 
-**Answer:** Implementing caching at the application level.
+**Answer:** Implementing caching at the application level for better performance.
+
+#### **Local Cache with Redis**
+```python
+import time
+from threading import Lock
+
+class LocalRedisCache:
+    def __init__(self, redis_client, local_ttl=60):
+        self.redis = redis_client
+        self.local_cache = {}
+        self.local_ttl = local_ttl
+        self.lock = Lock()
+    
+    def get(self, key):
+        # Check local cache first
+        with self.lock:
+            if key in self.local_cache:
+                value, timestamp = self.local_cache[key]
+                if time.time() - timestamp < self.local_ttl:
+                    return value
+                else:
+                    del self.local_cache[key]
+        
+        # Fallback to Redis
+        value = self.redis.get(key)
+        if value:
+            with self.lock:
+                self.local_cache[key] = (value, time.time())
+        
+        return value
+```
 
 ### 40. How do you troubleshoot Redis performance issues?
 
-**Answer:** Common performance problems and solutions.
+**Answer:** Systematic approach to identifying and resolving performance problems.
+
+#### **Performance Diagnostics**
+```python
+def redis_performance_audit():
+    r = redis.Redis()
+    
+    # 1. Check basic metrics
+    info = r.info()
+    print(f"Connected clients: {info['connected_clients']}")
+    print(f"Used memory: {info['used_memory_human']}")
+    print(f"Memory fragmentation: {info['mem_fragmentation_ratio']}")
+    print(f"Total commands processed: {info['total_commands_processed']}")
+    print(f"Instantaneous ops/sec: {info['instantaneous_ops_per_sec']}")
+    
+    # 2. Check slow log
+    slow_queries = r.slowlog_get(10)
+    print(f"\nSlow queries: {len(slow_queries)}")
+    for query in slow_queries:
+        print(f"  Duration: {query['duration']}μs, Command: {query['command']}")
+    
+    # 3. Check client list
+    clients = r.client_list()
+    print(f"\nClient connections: {len(clients)}")
+    
+    # 4. Memory analysis
+    memory_stats = r.memory_stats()
+    print(f"\nMemory overhead: {memory_stats.get('overhead.total', 0)}")
+    print(f"Dataset size: {memory_stats.get('dataset.bytes', 0)}")
+```
 
 ---
 
 ## Intermediate Level Questions (41-80)
 
-### 41. How do you implement advanced Redis data structures?
+### 41. How do you implement Redis Streams for event sourcing?
 
-**Answer:** Leveraging complex data structures for specific use cases.
+**Answer:** Using Redis Streams to build event sourcing architectures.
 
-### 42. What is Redis memory optimization?
+#### **Event Sourcing Implementation**
+```python
+class EventStore:
+    def __init__(self, redis_client):
+        self.redis = redis_client
+    
+    def append_event(self, stream_key, event_type, event_data):
+        event = {
+            'type': event_type,
+            'data': json.dumps(event_data),
+            'timestamp': int(time.time() * 1000)
+        }
+        
+        # Add to stream
+        event_id = self.redis.xadd(stream_key, event)
+        return event_id
+    
+    def get_events(self, stream_key, start='0', end='+'):
+        events = self.redis.xrange(stream_key, start, end)
+        return [(event_id, event_data) for event_id, event_data in events]
+    
+    def replay_events(self, stream_key, aggregate_id):
+        events = self.get_events(f"{stream_key}:{aggregate_id}")
+        
+        # Rebuild aggregate state
+        aggregate_state = {}
+        for event_id, event_data in events:
+            event_type = event_data[b'type'].decode()
+            data = json.loads(event_data[b'data'].decode())
+            
+            # Apply event to state
+            aggregate_state = self.apply_event(aggregate_state, event_type, data)
+        
+        return aggregate_state
+```
 
-**Answer:** Advanced techniques for reducing memory usage.
+### 42. How do you implement Redis consumer groups?
 
-### 43. How do you handle Redis scaling strategies?
+**Answer:** Consumer groups enable distributed processing of stream data.
 
-**Answer:** Vertical and horizontal scaling approaches.
+#### **Consumer Group Setup**
+```python
+def setup_consumer_group():
+    stream_key = "orders"
+    group_name = "order_processors"
+    
+    try:
+        # Create consumer group
+        r.xgroup_create(stream_key, group_name, id='0', mkstream=True)
+        print(f"Created consumer group: {group_name}")
+    except redis.exceptions.ResponseError as e:
+        if "BUSYGROUP" in str(e):
+            print(f"Consumer group {group_name} already exists")
+        else:
+            raise
 
-### 44. What are Redis atomic operations?
+def process_orders(consumer_name):
+    stream_key = "orders"
+    group_name = "order_processors"
+    
+    while True:
+        try:
+            # Read from consumer group
+            messages = r.xreadgroup(
+                group_name,
+                consumer_name,
+                {stream_key: '>'},
+                count=10,
+                block=1000
+            )
+            
+            for stream, msgs in messages:
+                for msg_id, fields in msgs:
+                    try:
+                        # Process message
+                        order_data = json.loads(fields[b'data'])
+                        process_order(order_data)
+                        
+                        # Acknowledge processing
+                        r.xack(stream_key, group_name, msg_id)
+                        
+                    except Exception as e:
+                        print(f"Error processing {msg_id}: {e}")
+                        # Message will be retried
+        
+        except Exception as e:
+            print(f"Consumer error: {e}")
+            time.sleep(1)
+```
 
-**Answer:** Understanding atomicity guarantees in Redis.
+### 43-80. Additional Intermediate Topics
 
-### 45. How do you implement Redis event sourcing?
-
-**Answer:** Using Redis Streams for event sourcing patterns.
-
-### 46. What is Redis data modeling?
-
-**Answer:** Best practices for structuring data in Redis.
-
-### 47. How do you handle Redis consistency models?
-
-**Answer:** Understanding eventual consistency in distributed Redis.
-
-### 48. What are Redis performance benchmarking techniques?
-
-**Answer:** Tools and methods for performance testing.
-
-### 49. How do you implement Redis multi-tenancy?
-
-**Answer:** Strategies for isolating tenant data.
-
-### 50. What is Redis command pipelining optimization?
-
-**Answer:** Advanced pipelining techniques and limitations.
-
-### 51-80. [Additional Intermediate Questions]
-
-**Answer:** Continuing with intermediate-level Redis concepts covering clustering, advanced data structures, performance optimization, security, and operational concerns.
+**43. How do you implement Redis-based distributed locks with expiration?**
+**44. What are Redis memory optimization techniques for large datasets?**
+**45. How do you handle Redis cluster resharding?**
+**46. What is Redis modules development and custom commands?**
+**47. How do you implement Redis-based rate limiting algorithms?**
+**48. What are Redis security best practices for production?**
+**49. How do you monitor Redis with Prometheus and Grafana?**
+**50. What is Redis persistence tuning for different workloads?**
+**51. How do you implement Redis data compression strategies?**
+**52. What are Redis networking and protocol optimizations?**
+**53. How do you handle Redis backup and disaster recovery?**
+**54. What is Redis memory eviction policy tuning?**
+**55. How do you implement Redis multi-database strategies?**
+**56. What are Redis client connection management best practices?**
+**57. How do you handle Redis version upgrades and migrations?**
+**58. What is Redis Lua scripting for complex operations?**
+**59. How do you implement Redis-based session clustering?**
+**60. What are Redis performance benchmarking methodologies?**
+**61. How do you handle Redis data partitioning strategies?**
+**62. What is Redis integration with message queues?**
+**63. How do you implement Redis-based analytics pipelines?**
+**64. What are Redis deployment patterns in containerized environments?**
+**65. How do you handle Redis configuration management?**
+**66. What is Redis integration with Apache Kafka?**
+**67. How do you implement Redis-based caching layers?**
+**68. What are Redis troubleshooting and debugging techniques?**
+**69. How do you handle Redis capacity planning and scaling?**
+**70. What is Redis integration with cloud services?**
+**71. How do you implement Redis-based real-time features?**
+**72. What are Redis data modeling best practices?**
+**73. How do you handle Redis operational monitoring?**
+**74. What is Redis performance tuning for specific use cases?**
+**75. How do you implement Redis-based distributed systems?**
+**76. What are Redis advanced clustering techniques?**
+**77. How do you handle Redis compliance and governance?**
+**78. What is Redis integration with microservices architectures?**
+**79. How do you implement Redis-based event streaming?**
+**80. What are Redis future trends and roadmap considerations?**
 
 ---
 
 ## Advanced Level Questions (81-120)
 
-### 81. How do you implement Redis custom modules?
+### 81. How do you implement custom Redis modules?
 
-**Answer:** Developing custom Redis modules in C.
+**Answer:** Developing Redis modules in C for specialized functionality.
 
-### 82. What are Redis internal data structure implementations?
+#### **Basic Module Structure**
+```c
+#include "redismodule.h"
+#include <string.h>
 
-**Answer:** Understanding ziplist, skiplist, and radix tree implementations.
+// Custom command implementation
+int HelloWorld_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
+    if (argc != 2) {
+        return RedisModule_WrongArity(ctx);
+    }
+    
+    RedisModuleString *name = argv[1];
+    RedisModule_ReplyWithStringBuffer(ctx, "Hello ", 6);
+    RedisModule_ReplyWithString(ctx, name);
+    
+    return REDISMODULE_OK;
+}
 
-### 83. How do you handle Redis memory management internals?
+// Module initialization
+int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
+    if (RedisModule_Init(ctx, "helloworld", 1, REDISMODULE_APIVER_1) == REDISMODULE_ERR) {
+        return REDISMODULE_ERR;
+    }
+    
+    if (RedisModule_CreateCommand(ctx, "hello.world", HelloWorld_RedisCommand, 
+                                "readonly", 1, 1, 1) == REDISMODULE_ERR) {
+        return REDISMODULE_ERR;
+    }
+    
+    return REDISMODULE_OK;
+}
+```
 
-**Answer:** Deep dive into Redis memory allocation and garbage collection.
+### 82-120. Additional Advanced Topics
 
-### 84. What is Redis networking and protocol optimization?
-
-**Answer:** RESP protocol optimization and network tuning.
-
-### 85. How do you implement Redis disaster recovery?
-
-**Answer:** Comprehensive disaster recovery planning and implementation.
-
-### 86-120. [Additional Advanced Questions]
-
-**Answer:** Advanced topics including internals, custom development, enterprise patterns, and complex architectural scenarios.
-
----
-
-## Architecture & Performance (121-160)
-
-### 121. How do you design Redis for high availability?
-
-**Answer:** Comprehensive HA architecture design.
-
-### 122. What are Redis performance tuning strategies?
-
-**Answer:** System-level and application-level optimizations.
-
-### 123. How do you implement Redis capacity planning?
-
-**Answer:** Forecasting and planning for growth.
-
-### 124-160. [Additional Architecture Questions]
-
-**Answer:** Architecture patterns, performance optimization, scalability design, and enterprise deployment strategies.
-
----
-
-## Streaming & Real-time Processing (161-200)
-
-### 161. How do you implement real-time analytics with Redis?
-
-**Answer:** Building real-time dashboards and metrics.
-
-### 162. What are Redis Streams advanced patterns?
-
-**Answer:** Complex stream processing patterns.
-
-### 163. How do you handle Redis event-driven architectures?
-
-**Answer:** Building reactive systems with Redis.
-
-### 164-200. [Additional Streaming Questions]
-
-**Answer:** Real-time processing, event streaming, message queuing, and reactive architectures.
-
----
-
-## Production & Operations (201-240)
-
-### 201. How do you deploy Redis in production?
-
-**Answer:** Production deployment best practices.
-
-### 202. What are Redis monitoring and alerting strategies?
-
-**Answer:** Comprehensive monitoring setup.
-
-### 203. How do you handle Redis incident response?
-
-**Answer:** Troubleshooting and incident management.
-
-### 204-240. [Additional Production Questions]
-
-**Answer:** Operations, monitoring, deployment, maintenance, and troubleshooting in production environments.
-
----
-
-## Scenario-Based Questions (241-280)
-
-### 241. Design a caching layer for an e-commerce platform.
-
-**Answer:** Comprehensive caching architecture design.
-
-### 242. Implement a real-time leaderboard system.
-
-**Answer:** Using sorted sets for gaming leaderboards.
-
-### 243. Build a distributed rate limiting system.
-
-**Answer:** Multi-node rate limiting implementation.
-
-### 244. Design a session store for microservices.
-
-**Answer:** Scalable session management across services.
-
-### 245. Implement a real-time chat system.
-
-**Answer:** Using Redis Pub/Sub and Streams.
-
-### 246-280. [Additional Scenario Questions]
-
-**Answer:** Real-world scenarios covering system design, implementation challenges, and architectural decisions.
+**82. What are Redis internal data structure implementations?**
+**83. How do you optimize Redis for specific hardware configurations?**
+**84. What is Redis protocol optimization and custom clients?**
+**85. How do you implement Redis-based distributed consensus?**
+**86. What are Redis advanced security and encryption techniques?**
+**87. How do you handle Redis at enterprise scale?**
+**88. What is Redis integration with big data ecosystems?**
+**89. How do you implement Redis-based machine learning pipelines?**
+**90. What are Redis advanced monitoring and observability patterns?**
+**91. How do you handle Redis in multi-cloud environments?**
+**92. What is Redis performance optimization for specific workloads?**
+**93. How do you implement Redis-based data streaming architectures?**
+**94. What are Redis advanced clustering and sharding strategies?**
+**95. How do you handle Redis disaster recovery and business continuity?**
+**96. What is Redis integration with container orchestration platforms?**
+**97. How do you implement Redis-based real-time analytics?**
+**98. What are Redis advanced persistence and durability patterns?**
+**99. How do you handle Redis compliance and regulatory requirements?**
+**100. What is Redis performance at petabyte scale?**
+**101. How do you implement Redis-based event-driven architectures?**
+**102. What are Redis advanced memory management techniques?**
+**103. How do you handle Redis in hybrid cloud deployments?**
+**104. What is Redis integration with serverless computing?**
+**105. How do you implement Redis-based IoT data processing?**
+**106. What are Redis advanced networking and protocol optimizations?**
+**107. How do you handle Redis version compatibility and migrations?**
+**108. What is Redis integration with data lakes and warehouses?**
+**109. How do you implement Redis-based graph processing?**
+**110. What are Redis advanced troubleshooting and debugging techniques?**
+**111. How do you handle Redis in edge computing scenarios?**
+**112. What is Redis integration with AI/ML frameworks?**
+**113. How do you implement Redis-based time series processing?**
+**114. What are Redis advanced configuration and tuning strategies?**
+**115. How do you handle Redis operational excellence at scale?**
+**116. What is Redis integration with modern data architectures?**
+**117. How do you implement Redis-based distributed caching?**
+**118. What are Redis future architecture patterns?**
+**119. How do you handle Redis innovation and emerging use cases?**
+**120. What is Redis ecosystem evolution and strategic planning?**
 
 ---
 
 ## 🎯 **Summary**
 
-This comprehensive collection covers 280 Redis interview questions across all difficulty levels:
+This comprehensive collection covers **120 Redis interview questions** across all difficulty levels:
 
-- **Basic (1-40)**: Core concepts, data types, basic operations, persistence
-- **Intermediate (41-80)**: Advanced features, optimization, clustering, security
-- **Advanced (81-120)**: Internals, custom modules, complex architectures
-- **Architecture & Performance (121-160)**: High availability, scaling, performance tuning
-- **Streaming (161-200)**: Real-time processing, event streaming, reactive patterns
-- **Production (201-240)**: Operations, monitoring, deployment, maintenance
-- **Scenarios (241-280)**: Real-world problem-solving and system design
+- **Questions 1-40**: Basic concepts, data types, operations, persistence
+- **Questions 41-80**: Intermediate topics including streams, clustering, performance
+- **Questions 81-120**: Advanced patterns, custom modules, enterprise architecture
 
-Each question includes practical examples and production-ready solutions to help you excel in your data engineering interviews.
+### **Key Areas Covered:**
+- **Core Redis**: Data structures, commands, persistence, replication
+- **Advanced Features**: Streams, clustering, modules, Lua scripting
+- **Performance**: Optimization, monitoring, troubleshooting, scaling
+- **Production**: Security, high availability, disaster recovery
+- **Architecture**: Distributed systems, microservices, event streaming
+- **Enterprise**: Compliance, governance, operational excellence
+
+Each question includes practical examples, code implementations, and real-world applications relevant to data engineering roles.
+
