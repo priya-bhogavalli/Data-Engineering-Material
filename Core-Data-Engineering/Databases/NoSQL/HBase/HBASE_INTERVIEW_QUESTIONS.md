@@ -1,1144 +1,726 @@
-# HBase Interview Questions for Data Engineers
+# 🗄️ Apache HBase Interview Questions & Answers
 
 ## 📋 Table of Contents
-
-1. [Basic Level Questions](#-basic-level-questions)
-2. [Intermediate Level Questions](#-intermediate-level-questions)
-3. [Advanced Level Questions](#-advanced-level-questions)
-4. [Architecture & Performance](#-architecture--performance)
-5. [Streaming & Real-time Processing](#-streaming--real-time-processing)
-6. [Production & Operations](#-production--operations)
-7. [Scenario-Based Questions](#-scenario-based-questions)
+- [Basic Concepts](#basic-concepts)
+- [Architecture](#architecture)
+- [Data Model](#data-model)
+- [Operations](#operations)
+- [Performance](#performance)
+- [Advanced Topics](#advanced-topics)
 
 ---
 
-## 🟢 Basic Level Questions
+## Basic Concepts
 
-### 1. What is Apache HBase and when should you use it?
-**Answer**: Apache HBase is a distributed, scalable, NoSQL database built on top of Hadoop HDFS, modeled after Google's Bigtable. It provides real-time read/write access to large datasets.
+### 1. What is Apache HBase and its key features?
+**Answer:**
+HBase is a distributed, column-oriented NoSQL database built on Hadoop HDFS.
 
-**When to Use HBase:**
-- Large datasets requiring random access (TB/PB scale)
-- Real-time analytics with low-latency requirements
-- Sparse data with varying column structures
-- Time-series data storage (IoT, logs, metrics)
-- Applications needing strong consistency
+**Key Features:**
+- **Column-family storage**: Data organized in column families
+- **Horizontal scalability**: Scales across commodity hardware
+- **Strong consistency**: ACID properties for single-row operations
+- **Automatic sharding**: Data automatically partitioned
+- **Hadoop integration**: Built on HDFS
 
-**Example Use Case:**
-```java
-// IoT sensor data storage
-Put sensorData = new Put(Bytes.toBytes("sensor123_" + timestamp));
-sensorData.addColumn(Bytes.toBytes("readings"), Bytes.toBytes("temperature"), 
-                    Bytes.toBytes("23.5"));
-sensorData.addColumn(Bytes.toBytes("readings"), Bytes.toBytes("humidity"), 
-                    Bytes.toBytes("65.2"));
-table.put(sensorData);
+### 2. What is the HBase data model?
+**Answer:**
+HBase uses a sparse, distributed, persistent multi-dimensional sorted map.
+
+**Structure:**
+```
+Table
+├── Row Key (Primary Key)
+├── Column Family 1
+│   ├── Column Qualifier 1
+│   └── Column Qualifier 2
+└── Column Family 2
+    ├── Column Qualifier 1
+    └── Column Qualifier 2
 ```
 
-### 2. Explain HBase data model and key components
-**Answer**: HBase uses a column-family data model with the following components:
-
-**Data Model Structure:**
-- **Table**: Collection of rows
-- **Row Key**: Unique identifier (byte array)
-- **Column Family**: Group of related columns
-- **Column Qualifier**: Specific column within family
-- **Cell**: Intersection of row and column (value + timestamp)
-- **Timestamp**: Version identifier for cell values
-
-```java
-// Data model example
-Table: user_profiles
-Row Key: "user123"
-Column Families: personal_info, preferences
-Columns: personal_info:name, personal_info:email, preferences:theme
-
-Put put = new Put(Bytes.toBytes("user123"));
-put.addColumn(Bytes.toBytes("personal_info"), Bytes.toBytes("name"), 
-              Bytes.toBytes("John Doe"));
-put.addColumn(Bytes.toBytes("personal_info"), Bytes.toBytes("email"), 
-              Bytes.toBytes("john@example.com"));
-put.addColumn(Bytes.toBytes("preferences"), Bytes.toBytes("theme"), 
-              Bytes.toBytes("dark"));
+**Example:**
+```
+Row: user123
+CF: personal
+  name: "John Doe"
+  age: "30"
+CF: contact
+  email: "john@example.com"
+  phone: "555-1234"
 ```
 
-### 3. What are the main differences between HBase and RDBMS?
-**Answer**: Key differences between HBase and traditional relational databases:
+### 3. Explain HBase architecture components.
+**Answer:**
+**Master Components:**
+- **HMaster**: Coordinates cluster, manages regions
+- **ZooKeeper**: Coordination service, configuration management
 
-| Aspect | HBase | RDBMS |
-|--------|-------|-------|
-| **Data Model** | Column-family, sparse | Relational, structured |
-| **Schema** | Schema-less, flexible | Fixed schema |
-| **ACID** | Row-level ACID only | Full ACID compliance |
-| **Scalability** | Horizontal scaling | Vertical scaling |
-| **Joins** | No joins | Complex joins supported |
-| **Indexes** | Row key only | Multiple indexes |
-| **Query Language** | API-based | SQL |
-| **Consistency** | Strong consistency | ACID consistency |
+**Region Components:**
+- **RegionServer**: Serves data for regions
+- **Region**: Contiguous range of rows
+- **Store**: Column family within region
+- **MemStore**: In-memory write buffer
+- **HFile**: Persistent storage on HDFS
 
-**When to Choose HBase:**
-- Large datasets (TB/PB scale)
-- High write throughput
-- Sparse data structures
-- Real-time random access patterns
+### 4. What is a Region in HBase?
+**Answer:**
+A Region is a contiguous range of rows stored together.
 
-### 4. Describe HBase architecture components
-**Answer**: HBase architecture consists of several key components:
-
-**Core Components:**
-1. **HMaster**: Cluster coordinator and metadata manager
-2. **RegionServer**: Handles data storage and retrieval
-3. **ZooKeeper**: Coordination and configuration management
-4. **HDFS**: Underlying distributed storage
-
-```java
-// Architecture flow
-Client → ZooKeeper (metadata) → RegionServer (data) → HDFS (storage)
-
-// Configuration example
-Configuration conf = HBaseConfiguration.create();
-conf.set("hbase.zookeeper.quorum", "zk1,zk2,zk3");
-conf.set("hbase.master", "master1:16000");
-```
-
-### 5. How do you create tables and perform basic operations in HBase?
-**Answer**: Basic HBase operations using Java API:
-
-```java
-// Create connection
-Configuration conf = HBaseConfiguration.create();
-Connection connection = ConnectionFactory.createConnection(conf);
-Admin admin = connection.getAdmin();
-
-// Create table
-TableDescriptor tableDesc = TableDescriptorBuilder
-    .newBuilder(TableName.valueOf("users"))
-    .setColumnFamily(ColumnFamilyDescriptorBuilder.of("personal"))
-    .setColumnFamily(ColumnFamilyDescriptorBuilder.of("preferences"))
-    .build();
-admin.createTable(tableDesc);
-
-// Get table reference
-Table table = connection.getTable(TableName.valueOf("users"));
-
-// Put operation
-Put put = new Put(Bytes.toBytes("user123"));
-put.addColumn(Bytes.toBytes("personal"), Bytes.toBytes("name"), 
-              Bytes.toBytes("John Doe"));
-table.put(put);
-
-// Get operation
-Get get = new Get(Bytes.toBytes("user123"));
-Result result = table.get(get);
-String name = Bytes.toString(result.getValue(Bytes.toBytes("personal"), 
-                                           Bytes.toBytes("name")));
-
-// Scan operation
-Scan scan = new Scan();
-ResultScanner scanner = table.getScanner(scan);
-for (Result r : scanner) {
-    // Process results
-}
-scanner.close();
-```
-
-### 6. What are HBase regions and how do they work?
-**Answer**: Regions are horizontal partitions of HBase tables that contain a contiguous range of rows.
-
-**Region Characteristics:**
-- Contains rows from start key to end key
-- Default size: 10GB (configurable)
-- Automatically split when size threshold reached
+**Characteristics:**
+- Contains subset of table's rows
 - Served by single RegionServer
+- Split when size threshold reached
+- Basic unit of scalability
 
-```java
-// Region management
-Configuration conf = HBaseConfiguration.create();
-conf.setLong("hbase.hregion.max.filesize", 10737418240L); // 10GB
-
-// Pre-split table to avoid hotspotting
-byte[][] splits = new byte[10][];
-for (int i = 0; i < 10; i++) {
-    splits[i] = Bytes.toBytes(String.format("%02d", i));
-}
-admin.createTable(tableDescriptor, splits);
-
-// Manual region operations
-admin.split(TableName.valueOf("users"), Bytes.toBytes("split_point"));
-admin.majorCompact(TableName.valueOf("users"));
+**Region Split:**
+```
+Original Region: [A-Z]
+After Split:
+├── Region 1: [A-M]
+└── Region 2: [N-Z]
 ```
 
-### 7. How do you design effective row keys in HBase?
-**Answer**: Row key design is crucial for HBase performance and avoiding hotspotting.
+### 5. What are Column Families in HBase?
+**Answer:**
+Column Families group related columns together.
 
-**Design Principles:**
-1. **Avoid Sequential Keys**: Prevent hotspotting
-2. **Distribute Load**: Use salting or hashing
-3. **Optimize for Access Patterns**: Consider query requirements
-4. **Keep Keys Short**: Reduce storage overhead
+**Properties:**
+- Defined at table creation
+- All columns in family stored together
+- Different storage properties per family
+- Optimized for access patterns
 
-```java
-// Bad: Sequential keys (causes hotspotting)
-String badKey = timestamp + "_" + userId; // All recent data in one region
-
-// Good: Salted keys for distribution
-public class RowKeyDesign {
-    public static String createSaltedKey(String userId, long timestamp) {
-        int salt = Math.abs(userId.hashCode()) % 100;
-        return String.format("%02d_%s_%019d", salt, userId, 
-                           Long.MAX_VALUE - timestamp);
-    }
-    
-    // Composite key for range queries
-    public static String createCompositeKey(String deviceId, long timestamp, String eventType) {
-        return deviceId + "_" + (Long.MAX_VALUE - timestamp) + "_" + eventType;
-    }
-}
+**Example:**
+```bash
+create 'users', 'personal', 'contact', 'preferences'
 ```
 
-### 8. What are column families and how should they be designed?
-**Answer**: Column families are groups of related columns that are stored together and have similar access patterns.
+---
 
+## Architecture
+
+### 6. How does HBase handle reads and writes?
+**Answer:**
+**Write Path:**
+1. Write to WAL (Write-Ahead Log)
+2. Write to MemStore
+3. Flush to HFile when MemStore full
+4. Compaction merges HFiles
+
+**Read Path:**
+1. Check MemStore
+2. Check HFiles
+3. Merge results
+4. Return latest version
+
+### 7. What is the role of ZooKeeper in HBase?
+**Answer:**
+ZooKeeper provides coordination services:
+
+**Functions:**
+- **Configuration management**: Cluster configuration
+- **Leader election**: HMaster election
+- **Region assignment**: Track region locations
+- **Synchronization**: Distributed coordination
+
+### 8. Explain HBase compaction process.
+**Answer:**
+**Minor Compaction:**
+- Merges smaller HFiles
+- Removes deleted cells
+- Automatic process
+
+**Major Compaction:**
+- Merges all HFiles in store
+- Removes all deleted/expired data
+- Resource intensive
+
+**Configuration:**
+```xml
+<property>
+  <name>hbase.hstore.compaction.min</name>
+  <value>3</value>
+</property>
+```
+
+### 9. What is WAL in HBase?
+**Answer:**
+Write-Ahead Log ensures durability.
+
+**Process:**
+1. Write operation logged to WAL
+2. Data written to MemStore
+3. WAL provides recovery mechanism
+4. Replayed during crash recovery
+
+### 10. How does HBase achieve fault tolerance?
+**Answer:**
+**Mechanisms:**
+- **HDFS replication**: Data replicated across nodes
+- **WAL recovery**: Replay logs after failure
+- **Region reassignment**: Failed regions moved to healthy servers
+- **ZooKeeper coordination**: Failure detection and recovery
+
+---
+
+## Data Model
+
+### 11. How do you design row keys in HBase?
+**Answer:**
 **Best Practices:**
-- Keep number of column families small (2-3 per table)
-- Group frequently accessed columns together
-- Configure different properties per family
+- **Avoid hotspotting**: Don't use sequential keys
+- **Salt prefixes**: Add random prefix for distribution
+- **Reverse timestamps**: For time-series data
+- **Composite keys**: Combine multiple attributes
 
-```java
-// Good column family design
-TableDescriptor tableDesc = TableDescriptorBuilder
-    .newBuilder(TableName.valueOf("user_data"))
-    .setColumnFamily(ColumnFamilyDescriptorBuilder
-        .newBuilder(Bytes.toBytes("profile")) // Frequently accessed
-        .setMaxVersions(1)
-        .setCompressionType(Compression.Algorithm.SNAPPY)
-        .setBloomFilterType(BloomType.ROW)
-        .build())
-    .setColumnFamily(ColumnFamilyDescriptorBuilder
-        .newBuilder(Bytes.toBytes("activity")) // Different access pattern
-        .setMaxVersions(10)
-        .setTimeToLive(2592000) // 30 days TTL
-        .build())
-    .build();
+**Examples:**
+```bash
+# Bad: Sequential
+user001, user002, user003
+
+# Good: Salted
+a_user001, b_user002, c_user003
+
+# Good: Reverse timestamp
+user123_9999999999-timestamp
 ```
 
-### 9. How does HBase handle versioning?
-**Answer**: HBase supports multiple versions of data for each cell, identified by timestamps.
+### 12. What are HBase filters and how to use them?
+**Answer:**
+Filters reduce data transferred from server to client.
 
+**Common Filters:**
 ```java
-// Configure versioning
-ColumnFamilyDescriptor cfDesc = ColumnFamilyDescriptorBuilder
-    .newBuilder(Bytes.toBytes("cf1"))
-    .setMaxVersions(5) // Keep 5 versions
-    .setMinVersions(1) // Keep at least 1 version
-    .build();
+// Row key filter
+Filter rowFilter = new PrefixFilter(Bytes.toBytes("user"));
 
-// Write multiple versions
-Put put1 = new Put(Bytes.toBytes("row1"));
-put1.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col1"), 
-              Bytes.toBytes("version1"));
-table.put(put1);
+// Column value filter
+Filter valueFilter = new SingleColumnValueFilter(
+    Bytes.toBytes("cf"), 
+    Bytes.toBytes("age"),
+    CompareOp.GREATER, 
+    Bytes.toBytes("25")
+);
 
-Thread.sleep(1000);
-
-Put put2 = new Put(Bytes.toBytes("row1"));
-put2.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col1"), 
-              Bytes.toBytes("version2"));
-table.put(put2);
-
-// Read all versions
-Get get = new Get(Bytes.toBytes("row1"));
-get.setMaxVersions(); // Get all versions
-Result result = table.get(get);
-
-// Iterate through versions
-NavigableMap<Long, byte[]> versions = result.getMap()
-    .get(Bytes.toBytes("cf1"))
-    .get(Bytes.toBytes("col1"));
-    
-for (Map.Entry<Long, byte[]> entry : versions.entrySet()) {
-    long timestamp = entry.getKey();
-    String value = Bytes.toString(entry.getValue());
-    System.out.println("Timestamp: " + timestamp + ", Value: " + value);
-}
+// Combine filters
+FilterList filterList = new FilterList(
+    FilterList.Operator.MUST_PASS_ALL,
+    rowFilter, valueFilter
+);
 ```
 
-### 10. What is the difference between Put and Get operations?
-**Answer**: Put and Get are fundamental HBase operations for writing and reading data.
+### 13. How do you handle versioning in HBase?
+**Answer:**
+HBase maintains multiple versions of each cell.
 
-```java
-// Put operation - Write data
-Put put = new Put(Bytes.toBytes("row1"));
-put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col1"), 
-              Bytes.toBytes("value1"));
-put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col2"), 
-              Bytes.toBytes("value2"));
-table.put(put);
+**Configuration:**
+```bash
+# Set max versions
+alter 'users', {NAME => 'personal', VERSIONS => 5}
 
-// Batch puts for better performance
-List<Put> puts = new ArrayList<>();
-for (int i = 0; i < 1000; i++) {
-    Put batchPut = new Put(Bytes.toBytes("row" + i));
-    batchPut.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("data"), 
-                      Bytes.toBytes("value" + i));
-    puts.add(batchPut);
-}
-table.put(puts);
-
-// Get operation - Read data
-Get get = new Get(Bytes.toBytes("row1"));
-get.addFamily(Bytes.toBytes("cf1")); // Specify column family
-Result result = table.get(get);
-
-// Extract values
-byte[] value1 = result.getValue(Bytes.toBytes("cf1"), Bytes.toBytes("col1"));
-String stringValue = Bytes.toString(value1);
-
-// Check if row exists
-boolean exists = !result.isEmpty();
+# Get specific version
+get 'users', 'user123', {COLUMN => 'personal:name', VERSIONS => 3}
 ```
 
----
+**Version Management:**
+- Latest version returned by default
+- Older versions garbage collected
+- TTL can be set for automatic cleanup
 
-## 🟡 Intermediate Level Questions
+### 14. What are HBase coprocessors?
+**Answer:**
+Coprocessors enable server-side processing.
 
-### 11. How do you implement efficient scanning in HBase?
-**Answer**: Efficient scanning requires proper configuration and filtering to minimize data transfer and processing.
+**Types:**
+- **Observer**: Triggered by events (like triggers)
+- **Endpoint**: Custom RPC services
 
+**Example Observer:**
 ```java
-public class EfficientScanning {
-    public List<Result> optimizedScan(String startKey, String endKey, 
-                                     String columnFamily) throws IOException {
-        Scan scan = new Scan();
-        
-        // Set row range
-        scan.setStartRow(Bytes.toBytes(startKey));
-        scan.setStopRow(Bytes.toBytes(endKey));
-        
-        // Optimize performance
-        scan.setCaching(1000); // Cache 1000 rows
-        scan.setBatch(100); // Batch size for columns
-        scan.addFamily(Bytes.toBytes(columnFamily)); // Specify column family
-        
-        // Use filters to reduce data transfer
-        FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-        filters.addFilter(new PageFilter(10000)); // Limit results
-        filters.addFilter(new SingleColumnValueFilter(
-            Bytes.toBytes(columnFamily), 
-            Bytes.toBytes("status"),
-            CompareOperator.EQUAL, 
-            Bytes.toBytes("active")
-        ));
-        scan.setFilter(filters);
-        
-        List<Result> results = new ArrayList<>();
-        ResultScanner scanner = table.getScanner(scan);
-        
-        try {
-            for (Result result : scanner) {
-                results.add(result);
-            }
-        } finally {
-            scanner.close(); // Always close scanner
-        }
-        
-        return results;
-    }
-}
-```
-
-### 12. Explain HBase filters and their usage
-**Answer**: HBase filters allow server-side data filtering to reduce network traffic and improve performance.
-
-```java
-public class HBaseFilters {
-    
-    // Single column value filter
-    public void singleColumnValueFilter() throws IOException {
-        Scan scan = new Scan();
-        Filter filter = new SingleColumnValueFilter(
-            Bytes.toBytes("cf1"),
-            Bytes.toBytes("age"),
-            CompareOperator.GREATER,
-            Bytes.toBytes("25")
-        );
-        scan.setFilter(filter);
-    }
-    
-    // Prefix filter
-    public void prefixFilter() throws IOException {
-        Scan scan = new Scan();
-        Filter filter = new PrefixFilter(Bytes.toBytes("user_"));
-        scan.setFilter(filter);
-    }
-    
-    // Multiple filters
-    public void multipleFilters() throws IOException {
-        Scan scan = new Scan();
-        
-        FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-        filterList.addFilter(new PrefixFilter(Bytes.toBytes("user_")));
-        filterList.addFilter(new SingleColumnValueFilter(
-            Bytes.toBytes("cf1"), Bytes.toBytes("status"),
-            CompareOperator.EQUAL, Bytes.toBytes("active")
-        ));
-        filterList.addFilter(new PageFilter(1000));
-        
-        scan.setFilter(filterList);
-    }
-}
-```
-
-### 13. How do you handle bulk loading in HBase?
-**Answer**: Bulk loading is the most efficient way to load large amounts of data into HBase.
-
-```java
-public class BulkLoading {
-    
-    // Programmatic bulk loading
-    public void programmaticBulkLoad(List<DataRecord> records) throws IOException {
-        Configuration conf = HBaseConfiguration.create();
-        Connection connection = ConnectionFactory.createConnection(conf);
-        Table table = connection.getTable(TableName.valueOf("my_table"));
-        
-        // Prepare puts
-        List<Put> puts = new ArrayList<>();
-        for (DataRecord record : records) {
-            Put put = new Put(Bytes.toBytes(record.getRowKey()));
-            put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col1"), 
-                         Bytes.toBytes(record.getValue1()));
-            puts.add(put);
-            
-            // Batch every 10000 records
-            if (puts.size() >= 10000) {
-                table.put(puts);
-                puts.clear();
-            }
-        }
-        
-        // Insert remaining records
-        if (!puts.isEmpty()) {
-            table.put(puts);
-        }
-        
-        table.close();
-        connection.close();
-    }
-}
-```
-
-### 14. What are coprocessors and how do you use them?
-**Answer**: Coprocessors are server-side processing extensions that allow custom code execution within RegionServers.
-
-```java
-// Observer coprocessor example
-public class AuditCoprocessor implements RegionObserver {
-    
+public class AuditCoprocessor extends BaseRegionObserver {
     @Override
-    public void prePut(ObserverContext<RegionCoprocessorEnvironment> c, 
-                      Put put, WALEdit edit, Durability durability) throws IOException {
-        // Audit logging before put operation
-        String rowKey = Bytes.toString(put.getRow());
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        
-        // Add audit column
-        put.addColumn(Bytes.toBytes("audit"), Bytes.toBytes("modified_time"), 
-                     Bytes.toBytes(timestamp));
-        put.addColumn(Bytes.toBytes("audit"), Bytes.toBytes("modified_by"), 
-                     Bytes.toBytes("system"));
-    }
-    
-    @Override
-    public void postPut(ObserverContext<RegionCoprocessorEnvironment> c, 
-                       Put put, WALEdit edit, Durability durability) throws IOException {
-        // Post-processing after put operation
-        logAuditEvent("PUT", Bytes.toString(put.getRow()));
-    }
-    
-    private void logAuditEvent(String operation, String rowKey) {
-        // Log to external audit system
-        System.out.println("Audit: " + operation + " on row " + rowKey);
+    public void prePut(ObserverContext<RegionCoprocessorEnvironment> e,
+                       Put put, WALEdit edit, Durability durability) {
+        // Log all puts
+        LOG.info("Put operation: " + put.toString());
     }
 }
 ```
 
-### 15. How do you implement atomic operations in HBase?
-**Answer**: HBase provides several mechanisms for atomic operations within single rows.
+### 15. How do you implement secondary indexes in HBase?
+**Answer:**
+**Approaches:**
+1. **Manual indexing**: Create separate index tables
+2. **Phoenix**: SQL layer with automatic indexing
+3. **Coprocessors**: Custom indexing logic
 
-```java
-public class AtomicOperations {
-    
-    // Check and Put
-    public boolean conditionalUpdate(String rowKey, String expectedValue, 
-                                   String newValue) throws IOException {
-        return table.checkAndPut(
-            Bytes.toBytes(rowKey),
-            Bytes.toBytes("cf1"),
-            Bytes.toBytes("status"),
-            Bytes.toBytes(expectedValue),
-            createPut(rowKey, newValue)
-        );
-    }
-    
-    // Increment operation
-    public long incrementCounter(String rowKey, String column, long delta) throws IOException {
-        return table.incrementColumnValue(
-            Bytes.toBytes(rowKey),
-            Bytes.toBytes("counters"),
-            Bytes.toBytes(column),
-            delta
-        );
-    }
-    
-    // Append operation
-    public void appendToColumn(String rowKey, String column, String value) throws IOException {
-        Append append = new Append(Bytes.toBytes(rowKey));
-        append.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes(column), 
-                        Bytes.toBytes(value));
-        table.append(append);
-    }
-    
-    private Put createPut(String rowKey, String value) {
-        Put put = new Put(Bytes.toBytes(rowKey));
-        put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("data"), 
-                     Bytes.toBytes(value));
-        return put;
-    }
-}
-```
+**Manual Index Example:**
+```bash
+# Main table
+create 'users', 'data'
 
-### 16. How do you handle data compression in HBase?
-**Answer**: HBase supports multiple compression algorithms to reduce storage space and I/O.
+# Index table (email -> rowkey)
+create 'users_email_index', 'ref'
 
-```java
-public class CompressionConfiguration {
-    
-    // Configure compression for column family
-    public void configureCompression() throws IOException {
-        Admin admin = connection.getAdmin();
-        TableName tableName = TableName.valueOf("compressed_table");
-        
-        // Create table with compression
-        TableDescriptor tableDesc = TableDescriptorBuilder
-            .newBuilder(tableName)
-            .setColumnFamily(ColumnFamilyDescriptorBuilder
-                .newBuilder(Bytes.toBytes("cf1"))
-                .setCompressionType(Compression.Algorithm.SNAPPY) // Fast compression
-                .build())
-            .setColumnFamily(ColumnFamilyDescriptorBuilder
-                .newBuilder(Bytes.toBytes("cf2"))
-                .setCompressionType(Compression.Algorithm.LZ4) // Faster compression
-                .build())
-            .build();
-            
-        admin.createTable(tableDesc);
-    }
-}
-```
-
-### 17. What is Write-Ahead Log (WAL) and how does it work?
-**Answer**: WAL ensures data durability by logging all changes before they're applied to the data store.
-
-```java
-public class WALConfiguration {
-    
-    // Configure WAL settings
-    public void configureWAL() {
-        Configuration conf = HBaseConfiguration.create();
-        
-        // WAL configuration
-        conf.set("hbase.wal.provider", "filesystem"); // WAL provider
-        conf.setLong("hbase.regionserver.hlog.blocksize", 134217728L); // 128MB blocks
-        conf.setInt("hbase.regionserver.maxlogs", 32); // Max WAL files
-        
-        // WAL compression
-        conf.setBoolean("hbase.regionserver.wal.enablecompression", true);
-        conf.set("hbase.regionserver.wal.compression", "snappy");
-    }
-    
-    // WAL durability levels
-    public void walDurabilityLevels() throws IOException {
-        // SKIP_WAL: Skip WAL entirely (fastest, no durability)
-        Put putSkipWAL = new Put(Bytes.toBytes("row1"));
-        putSkipWAL.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col1"), 
-                            Bytes.toBytes("value1"));
-        putSkipWAL.setDurability(Durability.SKIP_WAL);
-        
-        // SYNC_WAL: Synchronous WAL write (slower, immediate durability)
-        Put putSyncWAL = new Put(Bytes.toBytes("row3"));
-        putSyncWAL.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col1"), 
-                            Bytes.toBytes("value3"));
-        putSyncWAL.setDurability(Durability.SYNC_WAL);
-    }
-}
-```
-
-### 18. How do you implement time-to-live (TTL) in HBase?
-**Answer**: TTL automatically expires data after a specified time period.
-
-```java
-public class TTLConfiguration {
-    
-    // Configure TTL for column family
-    public void configureTTL() throws IOException {
-        Admin admin = connection.getAdmin();
-        TableName tableName = TableName.valueOf("ttl_table");
-        
-        // Create table with TTL
-        TableDescriptor tableDesc = TableDescriptorBuilder
-            .newBuilder(tableName)
-            .setColumnFamily(ColumnFamilyDescriptorBuilder
-                .newBuilder(Bytes.toBytes("session_data"))
-                .setTimeToLive(3600) // 1 hour TTL
-                .setMaxVersions(1)
-                .build())
-            .setColumnFamily(ColumnFamilyDescriptorBuilder
-                .newBuilder(Bytes.toBytes("permanent_data"))
-                .setTimeToLive(HConstants.FOREVER) // No TTL
-                .setMaxVersions(5)
-                .build())
-            .build();
-            
-        admin.createTable(tableDesc);
-    }
-    
-    // Custom TTL per cell
-    public void customCellTTL() throws IOException {
-        // Set custom TTL for specific cells
-        long customTTL = System.currentTimeMillis() + (2 * 3600 * 1000); // 2 hours from now
-        
-        Put put = new Put(Bytes.toBytes("row1"));
-        put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("col1"), 
-                     customTTL, Bytes.toBytes("value_with_custom_ttl"));
-        
-        table.put(put);
-    }
-}
-```
-
-### 19. How do you implement secondary indexes in HBase?
-**Answer**: HBase doesn't have native secondary indexes, but several approaches can provide similar functionality.
-
-```java
-public class SecondaryIndexes {
-    
-    // Manual secondary index implementation
-    public class ManualSecondaryIndex {
-        private Table mainTable;
-        private Table indexTable;
-        
-        public ManualSecondaryIndex(Connection connection) throws IOException {
-            this.mainTable = connection.getTable(TableName.valueOf("users"));
-            this.indexTable = connection.getTable(TableName.valueOf("users_email_index"));
-        }
-        
-        // Insert with index maintenance
-        public void insertUser(String userId, String email, String name) throws IOException {
-            // Insert into main table
-            Put mainPut = new Put(Bytes.toBytes(userId));
-            mainPut.addColumn(Bytes.toBytes("profile"), Bytes.toBytes("email"), 
-                             Bytes.toBytes(email));
-            mainPut.addColumn(Bytes.toBytes("profile"), Bytes.toBytes("name"), 
-                             Bytes.toBytes(name));
-            mainTable.put(mainPut);
-            
-            // Insert into index table (email -> userId)
-            Put indexPut = new Put(Bytes.toBytes(email));
-            indexPut.addColumn(Bytes.toBytes("index"), Bytes.toBytes("user_id"), 
-                              Bytes.toBytes(userId));
-            indexTable.put(indexPut);
-        }
-        
-        // Query by email using index
-        public String findUserByEmail(String email) throws IOException {
-            // Look up userId in index table
-            Get indexGet = new Get(Bytes.toBytes(email));
-            Result indexResult = indexTable.get(indexGet);
-            
-            if (indexResult.isEmpty()) {
-                return null;
-            }
-            
-            String userId = Bytes.toString(
-                indexResult.getValue(Bytes.toBytes("index"), Bytes.toBytes("user_id"))
-            );
-            
-            // Get full user data from main table
-            Get mainGet = new Get(Bytes.toBytes(userId));
-            Result mainResult = mainTable.get(mainGet);
-            
-            return Bytes.toString(
-                mainResult.getValue(Bytes.toBytes("profile"), Bytes.toBytes("name"))
-            );
-        }
-    }
-}
-```
-
-### 20. How do you handle HBase security and authentication?
-**Answer**: HBase provides multiple security mechanisms including authentication, authorization, and encryption.
-
-```java
-public class HBaseSecurity {
-    
-    // Kerberos authentication configuration
-    public void configureKerberos() {
-        Configuration conf = HBaseConfiguration.create();
-        
-        // Enable Kerberos authentication
-        conf.set("hbase.security.authentication", "kerberos");
-        conf.set("hbase.security.authorization", "true");
-        
-        // Kerberos principals
-        conf.set("hbase.master.kerberos.principal", "hbase/_HOST@REALM.COM");
-        conf.set("hbase.regionserver.kerberos.principal", "hbase/_HOST@REALM.COM");
-        
-        // Keytab files
-        conf.set("hbase.master.keytab.file", "/etc/hbase/conf/hbase.keytab");
-        conf.set("hbase.regionserver.keytab.file", "/etc/hbase/conf/hbase.keytab");
-        
-        try {
-            // Login using keytab
-            UserGroupInformation.setConfiguration(conf);
-            UserGroupInformation.loginUserFromKeytab("hbase-client@REALM.COM", 
-                                                    "/etc/hbase/conf/client.keytab");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    // Cell-level security (visibility labels)
-    public void cellLevelSecurity() throws IOException {
-        // Write data with visibility labels
-        Table table = connection.getTable(TableName.valueOf("secure_table"));
-        
-        Put secretPut = new Put(Bytes.toBytes("row1"));
-        secretPut.addColumn(Bytes.toBytes("data"), Bytes.toBytes("secret_col"), 
-                           Bytes.toBytes("secret_value"));
-        secretPut.setCellVisibility(new CellVisibility("SECRET"));
-        table.put(secretPut);
-        
-        // Read with authorizations
-        Scan scan = new Scan();
-        scan.setAuthorizations(new Authorizations("SECRET", "PUBLIC"));
-        ResultScanner scanner = table.getScanner(scan);
-        
-        for (Result result : scanner) {
-            // Process authorized results
-        }
-        scanner.close();
-    }
-}
+# Application maintains both tables
+put 'users', 'user123', 'data:email', 'john@example.com'
+put 'users_email_index', 'john@example.com', 'ref:rowkey', 'user123'
 ```
 
 ---
 
-## 🔴 Advanced Level Questions
+## Operations
 
-### 21. How do you design and implement a distributed counter system in HBase?
-**Answer**: Distributed counters require careful design to avoid hotspotting while maintaining accuracy.
+### 16. How do you create and manage tables in HBase?
+**Answer:**
+**Table Operations:**
+```bash
+# Create table
+create 'users', 'personal', 'contact'
 
-```java
-public class DistributedCounter {
-    
-    // Sharded counter implementation
-    public class ShardedCounter {
-        private final int numShards;
-        private final String counterName;
-        private final Table counterTable;
-        
-        public ShardedCounter(String counterName, int numShards, Table counterTable) {
-            this.counterName = counterName;
-            this.numShards = numShards;
-            this.counterTable = counterTable;
-        }
-        
-        // Increment counter with random sharding
-        public void increment(long delta) throws IOException {
-            int shard = ThreadLocalRandom.current().nextInt(numShards);
-            String rowKey = counterName + "_shard_" + String.format("%03d", shard);
-            
-            counterTable.incrementColumnValue(
-                Bytes.toBytes(rowKey),
-                Bytes.toBytes("counters"),
-                Bytes.toBytes("value"),
-                delta
-            );
-        }
-        
-        // Get total counter value
-        public long getValue() throws IOException {
-            long total = 0;
-            
-            // Scan all shards
-            Scan scan = new Scan();
-            scan.setStartRow(Bytes.toBytes(counterName + "_shard_"));
-            scan.setStopRow(Bytes.toBytes(counterName + "_shard_" + "~"));
-            scan.addFamily(Bytes.toBytes("counters"));
-            
-            ResultScanner scanner = counterTable.getScanner(scan);
-            
-            try {
-                for (Result result : scanner) {
-                    byte[] value = result.getValue(Bytes.toBytes("counters"), 
-                                                 Bytes.toBytes("value"));
-                    if (value != null) {
-                        total += Bytes.toLong(value);
-                    }
-                }
-            } finally {
-                scanner.close();
-            }
-            
-            return total;
-        }
-    }
-}
+# List tables
+list
+
+# Describe table
+describe 'users'
+
+# Alter table
+alter 'users', {NAME => 'personal', TTL => 86400}
+
+# Drop table
+disable 'users'
+drop 'users'
 ```
 
-### 22. How do you implement cross-datacenter replication in HBase?
-**Answer**: HBase supports cross-datacenter replication for disaster recovery and geographic distribution.
+### 17. How do you perform CRUD operations in HBase?
+**Answer:**
+**Basic Operations:**
+```bash
+# Create/Update (Put)
+put 'users', 'user123', 'personal:name', 'John Doe'
+put 'users', 'user123', 'personal:age', '30'
 
-```java
-public class CrossDatacenterReplication {
-    
-    // Setup replication between clusters
-    public void setupReplication() throws IOException {
-        Admin admin = connection.getAdmin();
-        
-        // Add replication peer
-        ReplicationPeerConfig peerConfig = ReplicationPeerConfig.newBuilder()
-            .setClusterKey("zk1,zk2,zk3:2181:/hbase") // Remote cluster ZK
-            .setReplicateAllUserTables(false) // Selective replication
-            .build();
-        
-        admin.addReplicationPeer("peer1", peerConfig);
-        
-        // Enable replication for specific table
-        TableName tableName = TableName.valueOf("replicated_table");
-        admin.enableTableReplication(tableName);
-    }
-}
+# Read (Get)
+get 'users', 'user123'
+get 'users', 'user123', 'personal:name'
+
+# Scan
+scan 'users'
+scan 'users', {STARTROW => 'user100', ENDROW => 'user200'}
+
+# Delete
+delete 'users', 'user123', 'personal:age'
+deleteall 'users', 'user123'
 ```
 
----
+### 18. How do you bulk load data into HBase?
+**Answer:**
+**Methods:**
+1. **Put operations**: Direct API calls
+2. **Bulk load**: Generate HFiles and load
+3. **Import tools**: CSV/TSV import utilities
 
-## 🏗️ Architecture & Performance
+**Bulk Load Process:**
+```bash
+# Generate HFiles using MapReduce
+hadoop jar hbase-server.jar importtsv \
+  -Dimporttsv.columns=HBASE_ROW_KEY,personal:name,personal:age \
+  -Dimporttsv.bulk.output=/tmp/hfiles \
+  users /input/data.tsv
 
-### 26. How do you optimize HBase performance for different workloads?
-**Answer**: Performance optimization requires understanding workload patterns and tuning accordingly.
-
-```java
-public class PerformanceOptimization {
-    
-    // Read-heavy workload optimization
-    public void optimizeForReads() {
-        Configuration conf = HBaseConfiguration.create();
-        
-        // Increase block cache size
-        conf.setFloat("hfile.block.cache.size", 0.4f); // 40% of heap
-        
-        // Enable bloom filters
-        ColumnFamilyDescriptor cfDesc = ColumnFamilyDescriptorBuilder
-            .newBuilder(Bytes.toBytes("cf1"))
-            .setBloomFilterType(BloomType.ROW)
-            .setBlockCacheEnabled(true)
-            .build();
-        
-        // Optimize scan caching
-        conf.setInt("hbase.client.scanner.caching", 1000);
-        conf.setInt("hbase.client.scanner.max.result.size", 2097152); // 2MB
-    }
-    
-    // Write-heavy workload optimization
-    public void optimizeForWrites() {
-        Configuration conf = HBaseConfiguration.create();
-        
-        // Increase MemStore size
-        conf.setFloat("hbase.regionserver.global.memstore.size", 0.5f); // 50% of heap
-        conf.setLong("hbase.hregion.memstore.flush.size", 268435456L); // 256MB
-        
-        // Optimize WAL
-        conf.set("hbase.wal.provider", "asyncfs");
-        conf.setBoolean("hbase.regionserver.wal.enablecompression", true);
-        
-        // Batch writes
-        conf.setInt("hbase.client.write.buffer", 4194304); // 4MB buffer
-    }
-}
+# Load HFiles into HBase
+hadoop jar hbase-server.jar completebulkload /tmp/hfiles users
 ```
 
-### 27. How do you handle HBase compaction strategies?
-**Answer**: Compaction strategies significantly impact performance and should be tuned based on workload.
+### 19. How do you backup and restore HBase data?
+**Answer:**
+**Backup Methods:**
+1. **Export/Import**: Table-level backup
+2. **Snapshots**: Point-in-time copies
+3. **Replication**: Live backup to another cluster
 
-```java
-public class CompactionStrategies {
-    
-    // Configure compaction policies
-    public void configureCompactionPolicy() throws IOException {
-        Admin admin = connection.getAdmin();
-        TableName tableName = TableName.valueOf("my_table");
-        
-        TableDescriptor tableDesc = TableDescriptorBuilder
-            .newBuilder(tableName)
-            .setColumnFamily(ColumnFamilyDescriptorBuilder
-                .newBuilder(Bytes.toBytes("cf1"))
-                .setConfiguration("hbase.hstore.defaultengine.compactionpolicy.class", 
-                                "org.apache.hadoop.hbase.regionserver.compactions.ExploringCompactionPolicy")
-                .setConfiguration("hbase.hstore.compaction.min", "3")
-                .setConfiguration("hbase.hstore.compaction.max", "10")
-                .setConfiguration("hbase.hstore.compaction.ratio", "1.2")
-                .build())
-            .build();
-        
-        admin.modifyTable(tableDesc);
-    }
-    
-    // Date-tiered compaction for time-series data
-    public void configureDateTieredCompaction() throws IOException {
-        Admin admin = connection.getAdmin();
-        
-        ColumnFamilyDescriptor cfDesc = ColumnFamilyDescriptorBuilder
-            .newBuilder(Bytes.toBytes("timeseries"))
-            .setConfiguration("hbase.hstore.defaultengine.compactionpolicy.class",
-                            "org.apache.hadoop.hbase.regionserver.DateTieredStoreEngine")
-            .setConfiguration("hbase.hstore.compaction.date.tiered.max.storefile.age.millis",
-                            String.valueOf(7 * 24 * 60 * 60 * 1000L)) // 7 days
-            .build();
-    }
-}
+**Snapshot Operations:**
+```bash
+# Create snapshot
+snapshot 'users', 'users_backup_20240301'
+
+# List snapshots
+list_snapshots
+
+# Restore from snapshot
+disable 'users'
+restore_snapshot 'users_backup_20240301'
+enable 'users'
+
+# Clone from snapshot
+clone_snapshot 'users_backup_20240301', 'users_restored'
+```
+
+### 20. How do you monitor HBase performance?
+**Answer:**
+**Monitoring Tools:**
+- **HBase Master UI**: Web interface
+- **RegionServer UI**: Region-level metrics
+- **Ganglia/Nagios**: External monitoring
+- **JMX metrics**: Programmatic access
+
+**Key Metrics:**
+```bash
+# Region server metrics
+hbase hbck
+hbase regionserver
+
+# Table statistics
+hbase org.apache.hadoop.hbase.util.HBaseConfTool
+
+# Performance counters
+- Read/Write request rates
+- Region split/compaction rates
+- Memory usage
+- GC performance
 ```
 
 ---
 
-## 🌊 Streaming & Real-time Processing
+## Performance
 
-### 28. How do you integrate HBase with Apache Kafka for real-time data ingestion?
-**Answer**: Kafka-HBase integration enables real-time data streaming and storage.
+### 21. How do you optimize HBase performance?
+**Answer:**
+**Optimization Strategies:**
 
-```java
-public class KafkaHBaseIntegration {
-    
-    // Kafka consumer writing to HBase
-    public class KafkaToHBaseConsumer {
-        private KafkaConsumer<String, String> consumer;
-        private Table hbaseTable;
-        
-        public void processMessages() {
-            Properties props = new Properties();
-            props.put("bootstrap.servers", "localhost:9092");
-            props.put("group.id", "hbase-consumer");
-            props.put("key.deserializer", StringDeserializer.class.getName());
-            props.put("value.deserializer", StringDeserializer.class.getName());
-            
-            consumer = new KafkaConsumer<>(props);
-            consumer.subscribe(Arrays.asList("sensor-data"));
-            
-            while (true) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
-                List<Put> puts = new ArrayList<>();
-                
-                for (ConsumerRecord<String, String> record : records) {
-                    Put put = createPutFromRecord(record);
-                    puts.add(put);
-                    
-                    // Batch every 1000 records
-                    if (puts.size() >= 1000) {
-                        hbaseTable.put(puts);
-                        puts.clear();
-                    }
-                }
-                
-                // Insert remaining records
-                if (!puts.isEmpty()) {
-                    hbaseTable.put(puts);
-                }
-            }
-        }
-        
-        private Put createPutFromRecord(ConsumerRecord<String, String> record) {
-            // Parse JSON message and create Put
-            String deviceId = extractDeviceId(record.value());
-            long timestamp = extractTimestamp(record.value());
-            
-            String rowKey = deviceId + "_" + (Long.MAX_VALUE - timestamp);
-            Put put = new Put(Bytes.toBytes(rowKey));
-            
-            // Add sensor readings from JSON
-            return put;
-        }
-    }
-}
+**1. Schema Design:**
+- Proper row key design
+- Appropriate column families
+- Optimal block size
+
+**2. Configuration Tuning:**
+```xml
+<!-- Increase heap size -->
+<property>
+  <name>hbase.regionserver.global.memstore.size</name>
+  <value>0.4</value>
+</property>
+
+<!-- Optimize compaction -->
+<property>
+  <name>hbase.hstore.compaction.throughput.lower.bound</name>
+  <value>50000000</value>
+</property>
 ```
+
+**3. Hardware Optimization:**
+- SSD for WAL
+- Sufficient RAM for MemStore
+- Network bandwidth
+
+### 22. What causes hotspotting in HBase and how to avoid it?
+**Answer:**
+**Causes:**
+- Sequential row keys
+- Timestamp-based keys
+- Uneven data distribution
+
+**Solutions:**
+```bash
+# Salt row keys
+Original: user_20240301_001
+Salted: a_user_20240301_001
+
+# Reverse timestamps
+Original: user_1709251200_data
+Reversed: user_8290748800_data
+
+# Hash prefixes
+Original: user123
+Hashed: md5(user123)[0:2]_user123
+```
+
+### 23. How do you tune HBase for write-heavy workloads?
+**Answer:**
+**Write Optimizations:**
+
+**1. MemStore Configuration:**
+```xml
+<property>
+  <name>hbase.regionserver.global.memstore.size</name>
+  <value>0.6</value>
+</property>
+```
+
+**2. WAL Configuration:**
+```xml
+<property>
+  <name>hbase.regionserver.hlog.blocksize</name>
+  <value>134217728</value>
+</property>
+```
+
+**3. Compaction Settings:**
+```xml
+<property>
+  <name>hbase.hstore.compaction.min</name>
+  <value>5</value>
+</property>
+```
+
+### 24. How do you optimize HBase for read performance?
+**Answer:**
+**Read Optimizations:**
+
+**1. Block Cache:**
+```xml
+<property>
+  <name>hfile.block.cache.size</name>
+  <value>0.25</value>
+</property>
+```
+
+**2. Bloom Filters:**
+```bash
+alter 'users', {NAME => 'personal', BLOOMFILTER => 'ROW'}
+```
+
+**3. Compression:**
+```bash
+alter 'users', {NAME => 'personal', COMPRESSION => 'SNAPPY'}
+```
+
+### 25. What are HBase best practices for production?
+**Answer:**
+**Production Guidelines:**
+
+**1. Hardware:**
+- Dedicated RegionServer nodes
+- SSD for WAL storage
+- Sufficient RAM (64GB+)
+
+**2. Configuration:**
+- Tune GC settings
+- Optimize heap sizes
+- Configure proper timeouts
+
+**3. Monitoring:**
+- Set up alerting
+- Monitor key metrics
+- Regular health checks
 
 ---
 
-## 🔧 Production & Operations
+## Advanced Topics
 
-### 29. How do you monitor and troubleshoot HBase in production?
-**Answer**: Comprehensive monitoring and troubleshooting strategies for production HBase clusters.
+### 26. How does HBase replication work?
+**Answer:**
+**Replication Types:**
+- **Master-Slave**: One-way replication
+- **Master-Master**: Bi-directional replication
 
-```java
-public class ProductionMonitoring {
-    
-    // JMX metrics collection
-    public class HBaseMetricsCollector {
-        
-        public void collectRegionServerMetrics() throws IOException {
-            Admin admin = connection.getAdmin();
-            ClusterMetrics metrics = admin.getClusterMetrics();
-            
-            for (ServerMetrics serverMetrics : metrics.getLiveServerMetrics().values()) {
-                System.out.println("Server: " + serverMetrics.getServerName());
-                System.out.println("Request count: " + serverMetrics.getRequestCount());
-                System.out.println("Read requests: " + serverMetrics.getReadRequestsCount());
-                System.out.println("Write requests: " + serverMetrics.getWriteRequestsCount());
-                
-                // Region metrics
-                for (RegionMetrics regionMetric : serverMetrics.getRegionMetrics().values()) {
-                    System.out.println("Region: " + Bytes.toString(regionMetric.getRegionName()));
-                    System.out.println("Store file size: " + regionMetric.getStoreFileSize());
-                    System.out.println("Memstore size: " + regionMetric.getMemStoreSize());
-                }
-            }
-        }
-    }
-    
-    // Health checks
-    public class HealthChecker {
-        
-        public boolean performHealthCheck() {
-            try {
-                // Check HMaster connectivity
-                Admin admin = connection.getAdmin();
-                admin.getClusterMetrics();
-                
-                // Check table availability
-                TableName testTable = TableName.valueOf("health_check");
-                if (admin.tableExists(testTable)) {
-                    Table table = connection.getTable(testTable);
-                    
-                    // Perform read/write test
-                    Put put = new Put(Bytes.toBytes("health_check_" + System.currentTimeMillis()));
-                    put.addColumn(Bytes.toBytes("test"), Bytes.toBytes("status"), 
-                                 Bytes.toBytes("ok"));
-                    table.put(put);
-                    
-                    Get get = new Get(put.getRow());
-                    Result result = table.get(get);
-                    
-                    return !result.isEmpty();
-                }
-                
-                return true;
-            } catch (Exception e) {
-                System.err.println("Health check failed: " + e.getMessage());
-                return false;
-            }
-        }
-    }
-}
+**Setup:**
+```bash
+# Enable replication
+add_peer '1', 'zk1,zk2,zk3:2181:/hbase'
+
+# Enable table replication
+alter 'users', {REPLICATION_SCOPE => 1}
+
+# Check replication status
+status 'replication'
 ```
+
+### 27. What is Phoenix and how does it integrate with HBase?
+**Answer:**
+Phoenix provides SQL interface over HBase.
+
+**Features:**
+- **SQL queries**: Standard SQL syntax
+- **Secondary indexes**: Automatic index management
+- **Views**: Logical table abstractions
+- **JDBC driver**: Standard database connectivity
+
+**Example:**
+```sql
+-- Create Phoenix table
+CREATE TABLE users (
+    id VARCHAR PRIMARY KEY,
+    name VARCHAR,
+    age INTEGER
+);
+
+-- Query with SQL
+SELECT name, age FROM users WHERE age > 25;
+```
+
+### 28. How do you implement time-series data in HBase?
+**Answer:**
+**Design Pattern:**
+```bash
+# Row key: metric_name + reverse_timestamp
+# Example: cpu_usage_9999999999999-1709251200
+
+create 'metrics', 'data'
+
+# Put time-series data
+put 'metrics', 'cpu_usage_9999998290748800', 'data:value', '85.5'
+put 'metrics', 'cpu_usage_9999998290748801', 'data:value', '87.2'
+
+# Scan recent data (reverse timestamp ensures latest first)
+scan 'metrics', {STARTROW => 'cpu_usage_9999998290748000'}
+```
+
+### 29. How do you handle large objects in HBase?
+**Answer:**
+**Strategies:**
+1. **MOB (Medium Object)**: Built-in support for objects 100KB-10MB
+2. **External storage**: Store references, data in HDFS/S3
+3. **Chunking**: Split large objects into smaller pieces
+
+**MOB Configuration:**
+```bash
+# Enable MOB for column family
+alter 'documents', {NAME => 'content', IS_MOB => true, MOB_THRESHOLD => 102400}
+```
+
+### 30. What are the differences between HBase and Cassandra?
+**Answer:**
+| Feature | HBase | Cassandra |
+|---------|-------|-----------|
+| **Consistency** | Strong | Tunable |
+| **Architecture** | Master-slave | Peer-to-peer |
+| **Data Model** | Column-family | Wide-column |
+| **Query Language** | API/Phoenix | CQL |
+| **Hadoop Integration** | Native | Limited |
+
+### 31. How do you migrate data from RDBMS to HBase?
+**Answer:**
+**Migration Steps:**
+1. **Schema mapping**: RDBMS tables to HBase tables
+2. **Row key design**: Convert primary keys
+3. **Data extraction**: Export from RDBMS
+4. **Data transformation**: Format for HBase
+5. **Bulk load**: Import into HBase
+
+**Example:**
+```bash
+# Export from MySQL
+mysqldump --tab=/tmp/export database_name table_name
+
+# Transform to HBase format
+# Convert CSV to HBase puts or bulk load format
+
+# Bulk load into HBase
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv \
+  -Dimporttsv.columns=HBASE_ROW_KEY,cf:col1,cf:col2 \
+  table_name /input/data
+```
+
+### 32. How do you implement security in HBase?
+**Answer:**
+**Security Features:**
+1. **Authentication**: Kerberos integration
+2. **Authorization**: ACL-based permissions
+3. **Encryption**: Data at rest and in transit
+
+**Configuration:**
+```xml
+<!-- Enable security -->
+<property>
+  <name>hbase.security.authentication</name>
+  <value>kerberos</value>
+</property>
+
+<property>
+  <name>hbase.security.authorization</name>
+  <value>true</value>
+</property>
+```
+
+**ACL Management:**
+```bash
+# Grant permissions
+grant 'user1', 'RW', 'users'
+grant 'user2', 'R', 'users', 'personal'
+
+# Revoke permissions
+revoke 'user1', 'users'
+```
+
+### 33. How do you troubleshoot HBase performance issues?
+**Answer:**
+**Common Issues:**
+
+**1. Slow Reads:**
+- Check block cache hit ratio
+- Verify bloom filter usage
+- Monitor compaction status
+
+**2. Slow Writes:**
+- Check MemStore flush frequency
+- Monitor WAL sync times
+- Verify region distribution
+
+**3. RegionServer Issues:**
+- Monitor GC performance
+- Check memory usage
+- Verify network connectivity
+
+**Diagnostic Commands:**
+```bash
+# Check cluster health
+hbase hbck
+
+# Monitor region distribution
+hbase org.apache.hadoop.hbase.util.HRegionsMover
+
+# Check table statistics
+hbase org.apache.hadoop.hbase.util.HBaseConfTool
+```
+
+### 34. What are HBase anti-patterns to avoid?
+**Answer:**
+**Anti-patterns:**
+
+**1. Poor Row Key Design:**
+- Sequential keys causing hotspots
+- Keys too long or too short
+- Non-uniform distribution
+
+**2. Schema Issues:**
+- Too many column families
+- Inappropriate data types
+- Missing compression
+
+**3. Operational Mistakes:**
+- Running major compaction during peak hours
+- Insufficient monitoring
+- Poor capacity planning
+
+### 35. How do you scale HBase clusters?
+**Answer:**
+**Scaling Strategies:**
+
+**1. Horizontal Scaling:**
+```bash
+# Add RegionServer nodes
+# Regions automatically redistributed
+# Linear scalability for most workloads
+```
+
+**2. Vertical Scaling:**
+- Increase memory per node
+- Add more CPU cores
+- Upgrade to faster storage
+
+**3. Pre-splitting:**
+```bash
+# Pre-split table for better distribution
+create 'users', 'data', {SPLITS => ['row10', 'row20', 'row30']}
+```
+
+**Monitoring Scale:**
+- Track region count per server
+- Monitor request distribution
+- Watch for hotspotting
 
 ---
 
-## 🎯 Scenario-Based Questions
-
-### 30. Design a real-time analytics system for IoT data using HBase
-**Answer**: Complete IoT analytics system design with HBase as the storage layer.
-
-```java
-public class IoTAnalyticsSystem {
-    
-    // Data model for IoT sensors
-    public class IoTDataModel {
-        
-        // Raw sensor data table
-        // Row key: deviceId_reverseTimestamp_sensorType
-        public void storeRawSensorData(String deviceId, String sensorType, 
-                                     double value, long timestamp, 
-                                     Map<String, String> metadata) throws IOException {
-            
-            String rowKey = deviceId + "_" + 
-                          String.format("%019d", Long.MAX_VALUE - timestamp) + "_" + 
-                          sensorType;
-            
-            Put put = new Put(Bytes.toBytes(rowKey));
-            put.addColumn(Bytes.toBytes("readings"), Bytes.toBytes("value"), 
-                         Bytes.toBytes(Double.toString(value)));
-            put.addColumn(Bytes.toBytes("readings"), Bytes.toBytes("timestamp"), 
-                         Bytes.toBytes(Long.toString(timestamp)));
-            
-            // Add metadata
-            for (Map.Entry<String, String> entry : metadata.entrySet()) {
-                put.addColumn(Bytes.toBytes("metadata"), Bytes.toBytes(entry.getKey()), 
-                             Bytes.toBytes(entry.getValue()));
-            }
-            
-            rawDataTable.put(put);
-        }
-        
-        // Aggregated data table for analytics
-        // Row key: deviceId_timeBucket_aggregationType
-        public void storeAggregatedData(String deviceId, String aggregationType, 
-                                      long timeBucket, Map<String, Double> aggregates) 
-                                      throws IOException {
-            
-            String rowKey = deviceId + "_" + timeBucket + "_" + aggregationType;
-            
-            Put put = new Put(Bytes.toBytes(rowKey));
-            
-            for (Map.Entry<String, Double> entry : aggregates.entrySet()) {
-                put.addColumn(Bytes.toBytes("aggregates"), Bytes.toBytes(entry.getKey()), 
-                             Bytes.toBytes(entry.getValue().toString()));
-            }
-            
-            put.addColumn(Bytes.toBytes("meta"), Bytes.toBytes("bucket_start"), 
-                         Bytes.toBytes(Long.toString(timeBucket)));
-            
-            aggregatedDataTable.put(put);
-        }
-    }
-    
-    // Real-time query service
-    public class RealTimeQueryService {
-        
-        public List<SensorReading> getRecentReadings(String deviceId, int minutes) 
-                throws IOException {
-            
-            long endTime = System.currentTimeMillis();
-            long startTime = endTime - (minutes * 60 * 1000);
-            
-            return getReadingsInTimeRange(deviceId, startTime, endTime);
-        }
-        
-        public Map<String, Double> getAggregatedMetrics(String deviceId, 
-                                                       String aggregationType, 
-                                                       long timeBucket) throws IOException {
-            
-            String rowKey = deviceId + "_" + timeBucket + "_" + aggregationType;
-            Get get = new Get(Bytes.toBytes(rowKey));
-            Result result = aggregatedDataTable.get(get);
-            
-            Map<String, Double> metrics = new HashMap<>();
-            
-            if (!result.isEmpty()) {
-                NavigableMap<byte[], byte[]> familyMap = 
-                    result.getFamilyMap(Bytes.toBytes("aggregates"));
-                
-                for (Map.Entry<byte[], byte[]> entry : familyMap.entrySet()) {
-                    String metricName = Bytes.toString(entry.getKey());
-                    Double value = Double.parseDouble(Bytes.toString(entry.getValue()));
-                    metrics.put(metricName, value);
-                }
-            }
-            
-            return metrics;
-        }
-    }
-}
-```
-
----
-
-This comprehensive HBase interview questions guide covers essential concepts from basic to advanced levels, providing practical examples and real-world scenarios that data engineers encounter in production environments.
+*This comprehensive guide covers 35+ essential Apache HBase interview questions with detailed answers and practical examples for data engineering interviews.*
