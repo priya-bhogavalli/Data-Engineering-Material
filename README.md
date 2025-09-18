@@ -341,10 +341,17 @@ Each topic folder contains:
 - [Jira](./Supporting-Tools/Project-Management/Jira/) & [Confluence](./Supporting-Tools/Project-Management/Confluence/)
 - [Kanban](./Supporting-Tools/Project-Management/Kanban/)
 - [ServiceNow](./Supporting-Tools/Project-Management/ServiceNow/)
+- [Strategic Thinking](./Supporting-Tools/Project-Management/Strategic-Thinking/)
+- [Change Management](./Supporting-Tools/Project-Management/Change-Management/)
+- [Business Strategy](./Supporting-Tools/Project-Management/Business-Strategy/)
+- [Management Consulting](./Supporting-Tools/Project-Management/Management-Consulting/)
+- [Business Development](./Supporting-Tools/Project-Management/Business-Development/)
+- [Leadership](./Supporting-Tools/Project-Management/Leadership/)
 - [Team Leadership](./Supporting-Tools/Project-Management/Team-Leadership/)
 - [Team Building & Mentorship](./Supporting-Tools/Project-Management/Team-Building-Mentorship/)
 - [Stakeholder Communication](./Supporting-Tools/Project-Management/Stakeholder-Communication/)
 - [Cross-functional Collaboration](./Supporting-Tools/Project-Management/Cross-functional-Collaboration/)
+- [Client Relationship Strengthening](./Supporting-Tools/Project-Management/Client-Relationship-Strengthening/)
 
 ## 🚀 How to Use This Repository
 
