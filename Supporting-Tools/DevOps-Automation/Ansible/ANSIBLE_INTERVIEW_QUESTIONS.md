@@ -1055,6 +1055,1306 @@ host_monitoring:
           runtime_var: {{ runtime_var }}
 ```
 
+### Q7: How do you create and use Ansible roles for data engineering infrastructure?
+**Answer**: Roles provide reusable, modular automation for complex infrastructure components.
+
+```yaml
+# roles/kafka/tasks/main.yml
+---
+- name: Create kafka user
+  user:
+    name: kafka
+    system: yes
+    shell: /bin/bash
+    home: /opt/kafka
+    create_home: yes
+
+- name: Install Java
+  package:
+    name: openjdk-11-jdk
+    state: present
+
+- name: Download Kafka
+  get_url:
+    url: "https://downloads.apache.org/kafka/{{ kafka_version }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    dest: "/tmp/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    timeout: 300
+
+- name: Extract Kafka
+  unarchive:
+    src: "/tmp/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    dest: /opt
+    remote_src: yes
+    owner: kafka
+    group: kafka
+    creates: "/opt/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+
+- name: Create Kafka symlink
+  file:
+    src: "/opt/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+    dest: /opt/kafka/current
+    state: link
+    owner: kafka
+    group: kafka
+
+- name: Create Kafka directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: kafka
+    group: kafka
+    mode: '0755'
+  loop:
+    - /opt/kafka/logs
+    - /opt/kafka/config
+    - "{{ kafka_log_dirs | join(' ') }}"
+
+- name: Configure Kafka server properties
+  template:
+    src: server.properties.j2
+    dest: /opt/kafka/config/server.properties
+    owner: kafka
+    group: kafka
+    mode: '0644'
+  notify: restart kafka
+
+- name: Create Kafka systemd service
+  template:
+    src: kafka.service.j2
+    dest: /etc/systemd/system/kafka.service
+    mode: '0644'
+  notify:
+    - reload systemd
+    - restart kafka
+
+- name: Start and enable Kafka
+  systemd:
+    name: kafka
+    state: started
+    enabled: yes
+    daemon_reload: yes
+```
+
+```yaml
+# roles/spark/tasks/main.yml
+---
+- name: Create spark user
+  user:
+    name: spark
+    system: yes
+    shell: /bin/bash
+    home: /opt/spark
+    create_home: yes
+
+- name: Download Spark
+  get_url:
+    url: "https://downloads.apache.org/spark/spark-{{ spark_version }}/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
+    dest: "/tmp/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
+
+- name: Extract Spark
+  unarchive:
+    src: "/tmp/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
+    dest: /opt
+    remote_src: yes
+    owner: spark
+    group: spark
+
+- name: Create Spark symlink
+  file:
+    src: "/opt/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}"
+    dest: /opt/spark/current
+    state: link
+
+- name: Configure Spark defaults
+  template:
+    src: spark-defaults.conf.j2
+    dest: /opt/spark/current/conf/spark-defaults.conf
+    owner: spark
+    group: spark
+  notify: restart spark
+
+- name: Configure Spark environment
+  template:
+    src: spark-env.sh.j2
+    dest: /opt/spark/current/conf/spark-env.sh
+    owner: spark
+    group: spark
+    mode: '0755'
+  notify: restart spark
+
+- name: Create Spark master service
+  template:
+    src: spark-master.service.j2
+    dest: /etc/systemd/system/spark-master.service
+  when: spark_role == 'master'
+  notify:
+    - reload systemd
+    - restart spark master
+
+- name: Create Spark worker service
+  template:
+    src: spark-worker.service.j2
+    dest: /etc/systemd/system/spark-worker.service
+  when: spark_role == 'worker'
+  notify:
+    - reload systemd
+    - restart spark worker
+```
+
+### Q8: How do you implement Ansible Galaxy and collections for data engineering?
+**Answer**: Galaxy provides community roles and collections for reusable automation components.
+
+```yaml
+# requirements.yml
+---
+roles:
+  - name: geerlingguy.docker
+    version: 4.2.0
+  - name: geerlingguy.postgresql
+    version: 3.3.0
+  - name: elastic.elasticsearch
+    version: 7.17.0
+
+collections:
+  - name: community.general
+    version: ">=4.0.0"
+  - name: ansible.posix
+    version: ">=1.3.0"
+  - name: community.docker
+    version: ">=2.0.0"
+  - name: kubernetes.core
+    version: ">=2.2.0"
+  - name: amazon.aws
+    version: ">=3.0.0"
+  - name: community.postgresql
+    version: ">=2.0.0"
+```
+
+```yaml
+# data-platform-playbook.yml
+---
+- name: Deploy Data Engineering Platform
+  hosts: data_platform
+  become: yes
+  
+  pre_tasks:
+    - name: Install required collections
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install -r requirements.yml
+      delegate_to: localhost
+      run_once: true
+  
+  roles:
+    - role: geerlingguy.docker
+      vars:
+        docker_users:
+          - "{{ ansible_user }}"
+          - dataeng
+    
+    - role: geerlingguy.postgresql
+      vars:
+        postgresql_version: "13"
+        postgresql_databases:
+          - name: datawarehouse
+            owner: dataeng
+        postgresql_users:
+          - name: dataeng
+            password: "{{ vault_postgres_password }}"
+            priv: "datawarehouse:ALL"
+  
+  tasks:
+    - name: Deploy Kafka using community collection
+      community.docker.docker_compose:
+        project_src: /opt/kafka-cluster
+        definition:
+          version: '3.8'
+          services:
+            zookeeper:
+              image: confluentinc/cp-zookeeper:7.0.0
+              environment:
+                ZOOKEEPER_CLIENT_PORT: 2181
+                ZOOKEEPER_TICK_TIME: 2000
+            
+            kafka:
+              image: confluentinc/cp-kafka:7.0.0
+              depends_on:
+                - zookeeper
+              ports:
+                - "9092:9092"
+              environment:
+                KAFKA_BROKER_ID: 1
+                KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+                KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+                KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    
+    - name: Create Kubernetes namespace for Spark
+      kubernetes.core.k8s:
+        name: spark-cluster
+        api_version: v1
+        kind: Namespace
+        state: present
+    
+    - name: Deploy Spark on Kubernetes
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: spark-master
+            namespace: spark-cluster
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: spark-master
+            template:
+              metadata:
+                labels:
+                  app: spark-master
+              spec:
+                containers:
+                - name: spark-master
+                  image: bitnami/spark:3.2.0
+                  env:
+                  - name: SPARK_MODE
+                    value: master
+                  ports:
+                  - containerPort: 7077
+                  - containerPort: 8080
+```
+
+### Q9: How do you implement Ansible Vault for secure data engineering deployments?
+**Answer**: Vault encrypts sensitive data like database passwords, API keys, and certificates.
+
+```yaml
+# Create encrypted variables file
+# ansible-vault create group_vars/production/vault.yml
+
+# vault.yml (encrypted content)
+vault_database_passwords:
+  postgres_admin: "P@ssw0rd123!"
+  postgres_dataeng: "DataEng2023!"
+  mysql_root: "MySQL_R00t!"
+
+vault_api_keys:
+  aws_access_key: "AKIAIOSFODNN7EXAMPLE"
+  aws_secret_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  datadog_api_key: "1234567890abcdef1234567890abcdef"
+  slack_webhook: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+
+vault_ssl_certificates:
+  private_key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
+    -----END PRIVATE KEY-----
+  certificate: |
+    -----BEGIN CERTIFICATE-----
+    MIIDXTCCAkWgAwIBAgIJAKoK/heBjcOuMA0GCSqGSIb3DQEBCwUA...
+    -----END CERTIFICATE-----
+```
+
+```yaml
+# group_vars/production/main.yml (unencrypted references)
+---
+# Database configuration
+database_passwords:
+  postgres_admin: "{{ vault_database_passwords.postgres_admin }}"
+  postgres_dataeng: "{{ vault_database_passwords.postgres_dataeng }}"
+  mysql_root: "{{ vault_database_passwords.mysql_root }}"
+
+# API configuration
+api_keys:
+  aws_access_key: "{{ vault_api_keys.aws_access_key }}"
+  aws_secret_key: "{{ vault_api_keys.aws_secret_key }}"
+  datadog_api_key: "{{ vault_api_keys.datadog_api_key }}"
+  slack_webhook: "{{ vault_api_keys.slack_webhook }}"
+
+# SSL configuration
+ssl_certificates:
+  private_key: "{{ vault_ssl_certificates.private_key }}"
+  certificate: "{{ vault_ssl_certificates.certificate }}"
+```
+
+```yaml
+# secure-deployment.yml
+---
+- name: Secure Data Engineering Deployment
+  hosts: production
+  become: yes
+  vars_files:
+    - group_vars/production/vault.yml
+  
+  tasks:
+    - name: Configure PostgreSQL with encrypted password
+      postgresql_user:
+        name: dataeng
+        password: "{{ database_passwords.postgres_dataeng }}"
+        priv: "datawarehouse:ALL"
+        state: present
+      no_log: true  # Prevent password logging
+    
+    - name: Create AWS credentials file
+      template:
+        src: aws_credentials.j2
+        dest: /home/dataeng/.aws/credentials
+        owner: dataeng
+        group: dataeng
+        mode: '0600'
+      vars:
+        aws_access_key_id: "{{ api_keys.aws_access_key }}"
+        aws_secret_access_key: "{{ api_keys.aws_secret_key }}"
+      no_log: true
+    
+    - name: Install SSL certificate
+      copy:
+        content: "{{ ssl_certificates.certificate }}"
+        dest: /etc/ssl/certs/data-platform.crt
+        mode: '0644'
+    
+    - name: Install SSL private key
+      copy:
+        content: "{{ ssl_certificates.private_key }}"
+        dest: /etc/ssl/private/data-platform.key
+        mode: '0600'
+        owner: root
+        group: root
+      no_log: true
+    
+    - name: Configure monitoring with API key
+      template:
+        src: datadog.conf.j2
+        dest: /etc/datadog-agent/datadog.yaml
+        mode: '0640'
+        owner: dd-agent
+        group: dd-agent
+      vars:
+        datadog_api_key: "{{ api_keys.datadog_api_key }}"
+      notify: restart datadog-agent
+      no_log: true
+```
+
+### Q10: How do you implement Ansible for container orchestration and Kubernetes?
+**Answer**: Ansible integrates with Docker and Kubernetes for container-based data engineering platforms.
+
+```yaml
+# docker-data-platform.yml
+---
+- name: Deploy Containerized Data Platform
+  hosts: docker_hosts
+  become: yes
+  
+  tasks:
+    - name: Create data platform network
+      community.docker.docker_network:
+        name: data-platform
+        driver: bridge
+        ipam_config:
+          - subnet: 172.20.0.0/16
+    
+    - name: Deploy PostgreSQL container
+      community.docker.docker_container:
+        name: postgres-db
+        image: postgres:13
+        state: started
+        restart_policy: unless-stopped
+        networks:
+          - name: data-platform
+        env:
+          POSTGRES_DB: datawarehouse
+          POSTGRES_USER: dataeng
+          POSTGRES_PASSWORD: "{{ vault_postgres_password }}"
+        volumes:
+          - postgres_data:/var/lib/postgresql/data
+          - /opt/postgres/init:/docker-entrypoint-initdb.d:ro
+        ports:
+          - "5432:5432"
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U dataeng"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+    
+    - name: Deploy Redis container
+      community.docker.docker_container:
+        name: redis-cache
+        image: redis:7-alpine
+        state: started
+        restart_policy: unless-stopped
+        networks:
+          - name: data-platform
+        command: redis-server --appendonly yes
+        volumes:
+          - redis_data:/data
+        ports:
+          - "6379:6379"
+    
+    - name: Deploy Kafka cluster
+      community.docker.docker_compose:
+        project_name: kafka-cluster
+        definition:
+          version: '3.8'
+          services:
+            zookeeper:
+              image: confluentinc/cp-zookeeper:7.0.0
+              environment:
+                ZOOKEEPER_CLIENT_PORT: 2181
+                ZOOKEEPER_TICK_TIME: 2000
+              volumes:
+                - zk_data:/var/lib/zookeeper/data
+                - zk_logs:/var/lib/zookeeper/log
+            
+            kafka-1:
+              image: confluentinc/cp-kafka:7.0.0
+              depends_on:
+                - zookeeper
+              environment:
+                KAFKA_BROKER_ID: 1
+                KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+                KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092
+                KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+                KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+                KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+                KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+              volumes:
+                - kafka1_data:/var/lib/kafka/data
+            
+            kafka-2:
+              image: confluentinc/cp-kafka:7.0.0
+              depends_on:
+                - zookeeper
+              environment:
+                KAFKA_BROKER_ID: 2
+                KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+                KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+                KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+              volumes:
+                - kafka2_data:/var/lib/kafka/data
+          
+          volumes:
+            zk_data:
+            zk_logs:
+            kafka1_data:
+            kafka2_data:
+          
+          networks:
+            default:
+              external:
+                name: data-platform
+```
+
+```yaml
+# kubernetes-spark-cluster.yml
+---
+- name: Deploy Spark Cluster on Kubernetes
+  hosts: localhost
+  connection: local
+  
+  tasks:
+    - name: Create Spark namespace
+      kubernetes.core.k8s:
+        name: spark-cluster
+        api_version: v1
+        kind: Namespace
+        state: present
+    
+    - name: Create Spark ConfigMap
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: spark-config
+            namespace: spark-cluster
+          data:
+            spark-defaults.conf: |
+              spark.master                     spark://spark-master:7077
+              spark.eventLog.enabled           true
+              spark.eventLog.dir               /tmp/spark-events
+              spark.history.fs.logDirectory    /tmp/spark-events
+              spark.sql.adaptive.enabled       true
+              spark.sql.adaptive.coalescePartitions.enabled true
+    
+    - name: Deploy Spark Master
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: spark-master
+            namespace: spark-cluster
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: spark-master
+            template:
+              metadata:
+                labels:
+                  app: spark-master
+              spec:
+                containers:
+                - name: spark-master
+                  image: bitnami/spark:3.3.0
+                  env:
+                  - name: SPARK_MODE
+                    value: master
+                  - name: SPARK_MASTER_HOST
+                    value: "0.0.0.0"
+                  - name: SPARK_MASTER_PORT
+                    value: "7077"
+                  - name: SPARK_MASTER_WEBUI_PORT
+                    value: "8080"
+                  ports:
+                  - containerPort: 7077
+                    name: spark
+                  - containerPort: 8080
+                    name: web-ui
+                  volumeMounts:
+                  - name: spark-config
+                    mountPath: /opt/bitnami/spark/conf/spark-defaults.conf
+                    subPath: spark-defaults.conf
+                volumes:
+                - name: spark-config
+                  configMap:
+                    name: spark-config
+    
+    - name: Create Spark Master Service
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: spark-master
+            namespace: spark-cluster
+          spec:
+            selector:
+              app: spark-master
+            ports:
+            - name: spark
+              port: 7077
+              targetPort: 7077
+            - name: web-ui
+              port: 8080
+              targetPort: 8080
+            type: ClusterIP
+    
+    - name: Deploy Spark Workers
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: spark-worker
+            namespace: spark-cluster
+          spec:
+            replicas: 3
+            selector:
+              matchLabels:
+                app: spark-worker
+            template:
+              metadata:
+                labels:
+                  app: spark-worker
+              spec:
+                containers:
+                - name: spark-worker
+                  image: bitnami/spark:3.3.0
+                  env:
+                  - name: SPARK_MODE
+                    value: worker
+                  - name: SPARK_MASTER_URL
+                    value: spark://spark-master:7077
+                  - name: SPARK_WORKER_MEMORY
+                    value: "2g"
+                  - name: SPARK_WORKER_CORES
+                    value: "2"
+                  resources:
+                    requests:
+                      memory: "2Gi"
+                      cpu: "1"
+                    limits:
+                      memory: "4Gi"
+                      cpu: "2"
+```
+
+### Q11: How do you implement Ansible for AWS data engineering infrastructure?
+**Answer**: Ansible AWS modules automate cloud infrastructure provisioning and management.
+
+```yaml
+# aws-data-infrastructure.yml
+---
+- name: Provision AWS Data Engineering Infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  
+  vars:
+    aws_region: us-west-2
+    environment: production
+    project_name: data-platform
+  
+  tasks:
+    - name: Create VPC for data platform
+      amazon.aws.ec2_vpc_net:
+        name: "{{ project_name }}-vpc"
+        cidr_block: 10.0.0.0/16
+        region: "{{ aws_region }}"
+        tags:
+          Environment: "{{ environment }}"
+          Project: "{{ project_name }}"
+        state: present
+      register: vpc
+    
+    - name: Create public subnet
+      amazon.aws.ec2_vpc_subnet:
+        vpc_id: "{{ vpc.vpc.id }}"
+        cidr: 10.0.1.0/24
+        region: "{{ aws_region }}"
+        az: "{{ aws_region }}a"
+        tags:
+          Name: "{{ project_name }}-public-subnet"
+          Type: public
+        state: present
+      register: public_subnet
+    
+    - name: Create private subnets
+      amazon.aws.ec2_vpc_subnet:
+        vpc_id: "{{ vpc.vpc.id }}"
+        cidr: "{{ item.cidr }}"
+        region: "{{ aws_region }}"
+        az: "{{ item.az }}"
+        tags:
+          Name: "{{ item.name }}"
+          Type: private
+        state: present
+      loop:
+        - { cidr: "10.0.2.0/24", az: "{{ aws_region }}a", name: "{{ project_name }}-private-subnet-a" }
+        - { cidr: "10.0.3.0/24", az: "{{ aws_region }}b", name: "{{ project_name }}-private-subnet-b" }
+      register: private_subnets
+    
+    - name: Create Internet Gateway
+      amazon.aws.ec2_vpc_igw:
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        tags:
+          Name: "{{ project_name }}-igw"
+        state: present
+      register: igw
+    
+    - name: Create security group for data services
+      amazon.aws.ec2_security_group:
+        name: "{{ project_name }}-data-services"
+        description: Security group for data engineering services
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp
+            ports:
+              - 22
+            cidr_ip: 10.0.0.0/16
+            rule_desc: SSH access
+          - proto: tcp
+            ports:
+              - 5432
+            cidr_ip: 10.0.0.0/16
+            rule_desc: PostgreSQL
+          - proto: tcp
+            ports:
+              - 9092
+            cidr_ip: 10.0.0.0/16
+            rule_desc: Kafka
+          - proto: tcp
+            ports:
+              - 7077
+              - 8080
+            cidr_ip: 10.0.0.0/16
+            rule_desc: Spark
+        tags:
+          Environment: "{{ environment }}"
+      register: security_group
+    
+    - name: Create RDS subnet group
+      amazon.aws.rds_subnet_group:
+        name: "{{ project_name }}-db-subnet-group"
+        description: Subnet group for RDS instances
+        subnets:
+          - "{{ private_subnets.results[0].subnet.id }}"
+          - "{{ private_subnets.results[1].subnet.id }}"
+        region: "{{ aws_region }}"
+        tags:
+          Environment: "{{ environment }}"
+      register: db_subnet_group
+    
+    - name: Create RDS PostgreSQL instance
+      amazon.aws.rds_instance:
+        db_instance_identifier: "{{ project_name }}-postgres"
+        db_instance_class: db.t3.medium
+        engine: postgres
+        engine_version: "13.7"
+        master_username: postgres
+        master_user_password: "{{ vault_rds_password }}"
+        allocated_storage: 100
+        storage_type: gp2
+        storage_encrypted: yes
+        vpc_security_group_ids:
+          - "{{ security_group.group_id }}"
+        db_subnet_group_name: "{{ db_subnet_group.subnet_group.name }}"
+        backup_retention_period: 7
+        multi_az: yes
+        region: "{{ aws_region }}"
+        tags:
+          Environment: "{{ environment }}"
+          Service: database
+      register: rds_instance
+    
+    - name: Create S3 bucket for data lake
+      amazon.aws.s3_bucket:
+        name: "{{ project_name }}-data-lake-{{ environment }}"
+        region: "{{ aws_region }}"
+        versioning: yes
+        encryption: AES256
+        tags:
+          Environment: "{{ environment }}"
+          Purpose: data-lake
+      register: s3_bucket
+    
+    - name: Create EMR cluster
+      amazon.aws.emr_cluster:
+        name: "{{ project_name }}-emr-cluster"
+        release_label: emr-6.4.0
+        applications:
+          - Name: Spark
+          - Name: Hadoop
+          - Name: Hive
+          - Name: Zeppelin
+        instance_groups:
+          - Name: Master
+            Market: ON_DEMAND
+            InstanceRole: MASTER
+            InstanceType: m5.xlarge
+            InstanceCount: 1
+          - Name: Core
+            Market: ON_DEMAND
+            InstanceRole: CORE
+            InstanceType: m5.xlarge
+            InstanceCount: 2
+        ec2_attributes:
+          KeyName: "{{ aws_key_name }}"
+          InstanceProfile: EMR_EC2_DefaultRole
+          SubnetId: "{{ private_subnets.results[0].subnet.id }}"
+          EmrManagedMasterSecurityGroup: "{{ security_group.group_id }}"
+          EmrManagedSlaveSecurityGroup: "{{ security_group.group_id }}"
+        service_role: EMR_DefaultRole
+        region: "{{ aws_region }}"
+        tags:
+          Environment: "{{ environment }}"
+          Service: emr
+      register: emr_cluster
+    
+    - name: Create Kinesis stream
+      amazon.aws.kinesis_stream:
+        name: "{{ project_name }}-data-stream"
+        shards: 3
+        retention_period: 168  # 7 days
+        region: "{{ aws_region }}"
+        tags:
+          Environment: "{{ environment }}"
+          Service: streaming
+      register: kinesis_stream
+```
+
+### Q12: How do you implement Ansible testing and validation?
+**Answer**: Ansible testing ensures playbook reliability through multiple testing approaches.
+
+```yaml
+# molecule/default/molecule.yml
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: ubuntu-20.04
+    image: ubuntu:20.04
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    command: "/lib/systemd/systemd"
+  - name: centos-8
+    image: centos:8
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    command: "/usr/sbin/init"
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      callback_whitelist: profile_tasks, timer, yaml
+    ssh_connection:
+      pipelining: false
+verifier:
+  name: ansible
+scenarios:
+  - name: default
+  - name: kafka-cluster
+    platforms:
+      - name: kafka-1
+        groups:
+          - kafka_cluster
+      - name: kafka-2
+        groups:
+          - kafka_cluster
+      - name: kafka-3
+        groups:
+          - kafka_cluster
+```
+
+```yaml
+# molecule/default/converge.yml
+---
+- name: Converge
+  hosts: all
+  become: true
+  
+  pre_tasks:
+    - name: Update package cache (Ubuntu)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: Update package cache (CentOS)
+      yum:
+        update_cache: yes
+      when: ansible_os_family == "RedHat"
+  
+  roles:
+    - role: kafka
+      vars:
+        kafka_version: "2.8.1"
+        kafka_scala_version: "2.13"
+        kafka_broker_id: "{{ groups['kafka_cluster'].index(inventory_hostname) + 1 }}"
+```
+
+```yaml
+# molecule/default/verify.yml
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  
+  tasks:
+    - name: Check if Kafka service is running
+      systemd:
+        name: kafka
+      register: kafka_service
+    
+    - name: Verify Kafka service is active
+      assert:
+        that:
+          - kafka_service.status.ActiveState == "active"
+        fail_msg: "Kafka service is not running"
+    
+    - name: Check Kafka port is listening
+      wait_for:
+        port: 9092
+        host: "{{ ansible_default_ipv4.address }}"
+        timeout: 30
+    
+    - name: Test Kafka broker connectivity
+      uri:
+        url: "http://{{ ansible_default_ipv4.address }}:9092"
+        method: GET
+      register: kafka_health
+      failed_when: false
+    
+    - name: Verify Kafka configuration
+      lineinfile:
+        path: /opt/kafka/config/server.properties
+        line: "broker.id={{ kafka_broker_id }}"
+      check_mode: yes
+      register: config_check
+    
+    - name: Assert configuration is correct
+      assert:
+        that:
+          - not config_check.changed
+        fail_msg: "Kafka configuration is incorrect"
+```
+
+```python
+# tests/test_ansible_playbook.py
+import pytest
+import testinfra
+
+@pytest.fixture(scope="module")
+def host(request):
+    return testinfra.get_host("ansible://kafka-1")
+
+def test_kafka_user_exists(host):
+    user = host.user("kafka")
+    assert user.exists
+    assert user.home == "/opt/kafka"
+
+def test_kafka_service_running(host):
+    service = host.service("kafka")
+    assert service.is_running
+    assert service.is_enabled
+
+def test_kafka_port_listening(host):
+    socket = host.socket("tcp://0.0.0.0:9092")
+    assert socket.is_listening
+
+def test_kafka_config_file(host):
+    config = host.file("/opt/kafka/config/server.properties")
+    assert config.exists
+    assert config.user == "kafka"
+    assert config.group == "kafka"
+    assert config.mode == 0o644
+
+def test_java_installed(host):
+    java = host.run("java -version")
+    assert java.rc == 0
+    assert "openjdk" in java.stderr.lower()
+
+def test_kafka_topics_command(host):
+    cmd = host.run("/opt/kafka/current/bin/kafka-topics.sh --version")
+    assert cmd.rc == 0
+```
+
+### Q13: How do you implement Ansible for monitoring and logging infrastructure?
+**Answer**: Ansible automates deployment of monitoring stacks like ELK, Prometheus, and Grafana.
+
+```yaml
+# monitoring-stack.yml
+---
+- name: Deploy Monitoring and Logging Stack
+  hosts: monitoring
+  become: yes
+  
+  vars:
+    elasticsearch_version: "7.17.0"
+    kibana_version: "7.17.0"
+    logstash_version: "7.17.0"
+    prometheus_version: "2.35.0"
+    grafana_version: "8.5.0"
+  
+  tasks:
+    - name: Install Docker and Docker Compose
+      include_role:
+        name: geerlingguy.docker
+      vars:
+        docker_compose_version: "2.6.0"
+    
+    - name: Create monitoring directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /opt/monitoring
+        - /opt/monitoring/elasticsearch/data
+        - /opt/monitoring/prometheus/data
+        - /opt/monitoring/grafana/data
+        - /opt/monitoring/config
+    
+    - name: Create Elasticsearch configuration
+      copy:
+        content: |
+          cluster.name: data-platform-logs
+          node.name: elasticsearch-01
+          path.data: /usr/share/elasticsearch/data
+          network.host: 0.0.0.0
+          discovery.type: single-node
+          xpack.security.enabled: false
+        dest: /opt/monitoring/config/elasticsearch.yml
+    
+    - name: Create Prometheus configuration
+      template:
+        src: prometheus.yml.j2
+        dest: /opt/monitoring/config/prometheus.yml
+      vars:
+        scrape_configs:
+          - job_name: 'prometheus'
+            static_configs:
+              - targets: ['localhost:9090']
+          - job_name: 'node-exporter'
+            static_configs:
+              - targets: "{{ groups['data_servers'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^(.*)$', '\\1:9100') | list }}"
+          - job_name: 'kafka-exporter'
+            static_configs:
+              - targets: "{{ groups['kafka_cluster'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^(.*)$', '\\1:9308') | list }}"
+    
+    - name: Create Grafana datasources configuration
+      copy:
+        content: |
+          apiVersion: 1
+          datasources:
+            - name: Prometheus
+              type: prometheus
+              access: proxy
+              url: http://prometheus:9090
+              isDefault: true
+            - name: Elasticsearch
+              type: elasticsearch
+              access: proxy
+              url: http://elasticsearch:9200
+              database: "logstash-*"
+              timeField: "@timestamp"
+        dest: /opt/monitoring/config/grafana-datasources.yml
+    
+    - name: Deploy monitoring stack with Docker Compose
+      community.docker.docker_compose:
+        project_name: monitoring
+        project_src: /opt/monitoring
+        definition:
+          version: '3.8'
+          
+          services:
+            elasticsearch:
+              image: "docker.elastic.co/elasticsearch/elasticsearch:{{ elasticsearch_version }}"
+              container_name: elasticsearch
+              environment:
+                - discovery.type=single-node
+                - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+              volumes:
+                - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+                - ./elasticsearch/data:/usr/share/elasticsearch/data
+              ports:
+                - "9200:9200"
+              networks:
+                - monitoring
+            
+            kibana:
+              image: "docker.elastic.co/kibana/kibana:{{ kibana_version }}"
+              container_name: kibana
+              environment:
+                - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+              ports:
+                - "5601:5601"
+              depends_on:
+                - elasticsearch
+              networks:
+                - monitoring
+            
+            logstash:
+              image: "docker.elastic.co/logstash/logstash:{{ logstash_version }}"
+              container_name: logstash
+              volumes:
+                - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+              ports:
+                - "5044:5044"
+                - "9600:9600"
+              depends_on:
+                - elasticsearch
+              networks:
+                - monitoring
+            
+            prometheus:
+              image: "prom/prometheus:v{{ prometheus_version }}"
+              container_name: prometheus
+              command:
+                - '--config.file=/etc/prometheus/prometheus.yml'
+                - '--storage.tsdb.path=/prometheus'
+                - '--web.console.libraries=/etc/prometheus/console_libraries'
+                - '--web.console.templates=/etc/prometheus/consoles'
+                - '--storage.tsdb.retention.time=200h'
+                - '--web.enable-lifecycle'
+              volumes:
+                - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+                - ./prometheus/data:/prometheus
+              ports:
+                - "9090:9090"
+              networks:
+                - monitoring
+            
+            grafana:
+              image: "grafana/grafana:{{ grafana_version }}"
+              container_name: grafana
+              environment:
+                - GF_SECURITY_ADMIN_PASSWORD={{ vault_grafana_password }}
+                - GF_USERS_ALLOW_SIGN_UP=false
+              volumes:
+                - ./grafana/data:/var/lib/grafana
+                - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+              ports:
+                - "3000:3000"
+              depends_on:
+                - prometheus
+                - elasticsearch
+              networks:
+                - monitoring
+          
+          networks:
+            monitoring:
+              driver: bridge
+          
+          volumes:
+            elasticsearch_data:
+            prometheus_data:
+            grafana_data:
+```
+
+### Q14: How do you implement Ansible for backup and disaster recovery?
+**Answer**: Ansible automates backup procedures and disaster recovery workflows.
+
+```yaml
+# backup-strategy.yml
+---
+- name: Implement Backup and Disaster Recovery
+  hosts: data_servers
+  become: yes
+  
+  vars:
+    backup_retention_days: 30
+    backup_s3_bucket: "{{ project_name }}-backups-{{ environment }}"
+    backup_schedule:
+      databases: "0 2 * * *"  # Daily at 2 AM
+      configs: "0 3 * * 0"   # Weekly on Sunday at 3 AM
+      logs: "0 1 * * *"      # Daily at 1 AM
+  
+  tasks:
+    - name: Install backup tools
+      package:
+        name:
+          - postgresql-client
+          - awscli
+          - rsync
+          - gzip
+          - tar
+        state: present
+    
+    - name: Create backup directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: backup
+        group: backup
+        mode: '0750'
+      loop:
+        - /opt/backups
+        - /opt/backups/databases
+        - /opt/backups/configs
+        - /opt/backups/logs
+        - /opt/backups/scripts
+    
+    - name: Create backup user
+      user:
+        name: backup
+        system: yes
+        shell: /bin/bash
+        home: /opt/backups
+        create_home: yes
+    
+    - name: Create database backup script
+      template:
+        src: backup_databases.sh.j2
+        dest: /opt/backups/scripts/backup_databases.sh
+        owner: backup
+        group: backup
+        mode: '0750'
+      vars:
+        databases:
+          - name: datawarehouse
+            host: "{{ rds_endpoint }}"
+            port: 5432
+            user: postgres
+          - name: analytics
+            host: localhost
+            port: 5432
+            user: postgres
+    
+    - name: Create configuration backup script
+      copy:
+        content: |
+          #!/bin/bash
+          set -euo pipefail
+          
+          BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+          BACKUP_DIR="/opt/backups/configs"
+          S3_BUCKET="{{ backup_s3_bucket }}"
+          
+          # Create backup archive
+          tar -czf "${BACKUP_DIR}/config_backup_${BACKUP_DATE}.tar.gz" \
+              /etc/kafka \
+              /etc/spark \
+              /etc/postgresql \
+              /opt/*/config \
+              --exclude='*.log' \
+              --exclude='*.pid'
+          
+          # Upload to S3
+          aws s3 cp "${BACKUP_DIR}/config_backup_${BACKUP_DATE}.tar.gz" \
+              "s3://${S3_BUCKET}/configs/config_backup_${BACKUP_DATE}.tar.gz"
+          
+          # Clean up old local backups
+          find "${BACKUP_DIR}" -name "config_backup_*.tar.gz" -mtime +7 -delete
+          
+          echo "Configuration backup completed: config_backup_${BACKUP_DATE}.tar.gz"
+        dest: /opt/backups/scripts/backup_configs.sh
+        owner: backup
+        group: backup
+        mode: '0750'
+    
+    - name: Create disaster recovery script
+      template:
+        src: disaster_recovery.sh.j2
+        dest: /opt/backups/scripts/disaster_recovery.sh
+        owner: backup
+        group: backup
+        mode: '0750'
+    
+    - name: Schedule backup jobs
+      cron:
+        name: "{{ item.name }}"
+        job: "{{ item.job }}"
+        minute: "{{ item.minute }}"
+        hour: "{{ item.hour }}"
+        day: "{{ item.day | default('*') }}"
+        weekday: "{{ item.weekday | default('*') }}"
+        user: backup
+      loop:
+        - name: "Database backup"
+          job: "/opt/backups/scripts/backup_databases.sh"
+          minute: "0"
+          hour: "2"
+        - name: "Configuration backup"
+          job: "/opt/backups/scripts/backup_configs.sh"
+          minute: "0"
+          hour: "3"
+          weekday: "0"
+        - name: "Log backup"
+          job: "/opt/backups/scripts/backup_logs.sh"
+          minute: "0"
+          hour: "1"
+    
+    - name: Create backup monitoring script
+      copy:
+        content: |
+          #!/bin/bash
+          # Monitor backup job status and send alerts
+          
+          BACKUP_LOG="/var/log/backup.log"
+          ALERT_EMAIL="ops-team@company.com"
+          
+          # Check if backups completed successfully
+          if ! grep -q "backup completed" "$BACKUP_LOG"; then
+              echo "Backup failure detected" | mail -s "ALERT: Backup Failed on $(hostname)" "$ALERT_EMAIL"
+          fi
+          
+          # Check backup file sizes
+          find /opt/backups -name "*.gz" -mtime -1 -size -1M -exec \
+              echo "Small backup file detected: {}" \; | \
+              mail -s "WARNING: Small backup files on $(hostname)" "$ALERT_EMAIL"
+        dest: /opt/backups/scripts/monitor_backups.sh
+        owner: backup
+        group: backup
+        mode: '0750'
+```
+
 ---
 
 ## Key Takeaways

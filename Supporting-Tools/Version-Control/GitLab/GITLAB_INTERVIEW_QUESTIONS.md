@@ -731,4 +731,93 @@ security:
     - template: Security/Container-Scanning.gitlab-ci.yml
 ```
 
+### 21. How do you implement GitLab CI/CD for data engineering pipelines?
+**Answer**: Data engineering pipelines require specialized CI/CD configurations for ETL processes, data validation, and deployment.
+
+```yaml
+# .gitlab-ci.yml for data engineering pipeline
+stages:
+  - validate
+  - test
+  - build
+  - deploy-dev
+  - deploy-staging
+  - deploy-prod
+
+variables:
+  DOCKER_DRIVER: overlay2
+  SPARK_VERSION: "3.3.0"
+  PYTHON_VERSION: "3.9"
+
+# Data validation stage
+validate-data-schema:
+  stage: validate
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install great-expectations pandas
+    - python scripts/validate_schema.py
+    - great_expectations checkpoint run data_quality_checkpoint
+  artifacts:
+    reports:
+      junit: validation-results.xml
+    paths:
+      - validation-reports/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# SQL linting and testing
+sql-lint:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install sqlfluff dbt-core dbt-postgres
+    - sqlfluff lint sql/ --dialect postgres
+    - dbt parse --profiles-dir profiles/
+    - dbt test --profiles-dir profiles/ --target ci
+  artifacts:
+    reports:
+      junit: dbt-test-results.xml
+
+# Python code quality
+code-quality:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install pylint black isort mypy pytest pytest-cov
+    - black --check .
+    - isort --check-only .
+    - pylint src/
+    - mypy src/
+    - pytest --cov=src/ --cov-report=xml --junitxml=pytest-results.xml
+  artifacts:
+    reports:
+      junit: pytest-results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+```
+
+### 22. How do you implement GitLab Container Registry for data engineering?
+**Answer**: GitLab Container Registry stores Docker images for data processing applications.
+
+```yaml
+# Build and push data processing images
+build-base-image:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -f Dockerfile.base -t $CI_REGISTRY_IMAGE/base:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE/base:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/base:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE/base:latest
+    - docker push $CI_REGISTRY_IMAGE/base:latest
+```
+
 This comprehensive set of interview questions covers all major aspects of GitLab, from basic concepts to advanced administration and best practices. The questions progress from fundamental understanding to practical implementation scenarios that data engineers would encounter in real-world environments.

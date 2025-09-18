@@ -1539,3 +1539,1137 @@ class BiasVarianceAnalysis:
         }
         
         results = {}\n        \n        for name, model in models.items():\n            print(f\"Analyzing {name}...\")\n            result = self.bias_variance_decomposition(model, X, y, y_true)\n            results[name] = result\n        \n        return results\n    \n    def plot_bias_variance_tradeoff(self, results, X, y_true):\n        \"\"\"Visualize bias-variance tradeoff.\"\"\"\n        \n        # Extract metrics\n        model_names = list(results.keys())\n        bias_squared = [results[name]['bias_squared'] for name in model_names]\n        variance = [results[name]['variance'] for name in model_names]\n        total_error = [results[name]['total_error'] for name in model_names]\n        \n        # Create plots\n        fig, axes = plt.subplots(2, 2, figsize=(15, 12))\n        \n        # Bias-Variance tradeoff plot\n        axes[0, 0].bar(range(len(model_names)), bias_squared, alpha=0.7, label='Bias²', color='red')\n        axes[0, 0].bar(range(len(model_names)), variance, bottom=bias_squared, alpha=0.7, label='Variance', color='blue')\n        axes[0, 0].set_xlabel('Model')\n        axes[0, 0].set_ylabel('Error')\n        axes[0, 0].set_title('Bias-Variance Decomposition')\n        axes[0, 0].set_xticks(range(len(model_names)))\n        axes[0, 0].set_xticklabels(model_names, rotation=45, ha='right')\n        axes[0, 0].legend()\n        axes[0, 0].grid(True, alpha=0.3)\n        \n        # Total error comparison\n        axes[0, 1].plot(range(len(model_names)), total_error, 'o-', color='green', linewidth=2, markersize=8)\n        axes[0, 1].set_xlabel('Model')\n        axes[0, 1].set_ylabel('Total Error')\n        axes[0, 1].set_title('Total Error by Model Complexity')\n        axes[0, 1].set_xticks(range(len(model_names)))\n        axes[0, 1].set_xticklabels(model_names, rotation=45, ha='right')\n        axes[0, 1].grid(True, alpha=0.3)\n        \n        # Bias vs Variance scatter plot\n        axes[1, 0].scatter(bias_squared, variance, s=100, alpha=0.7)\n        for i, name in enumerate(model_names):\n            axes[1, 0].annotate(name, (bias_squared[i], variance[i]), \n                              xytext=(5, 5), textcoords='offset points', fontsize=8)\n        axes[1, 0].set_xlabel('Bias²')\n        axes[1, 0].set_ylabel('Variance')\n        axes[1, 0].set_title('Bias² vs Variance')\n        axes[1, 0].grid(True, alpha=0.3)\n        \n        # Example predictions for a few models\n        axes[1, 1].plot(X.ravel(), y_true, 'k-', linewidth=2, label='True Function')\n        \n        # Show predictions from a few representative models\n        representative_models = ['Linear', 'Polynomial_5', 'Decision_Tree_None']\n        colors = ['red', 'blue', 'orange']\n        \n        for i, model_name in enumerate(representative_models):\n            if model_name in results:\n                mean_pred = results[model_name]['mean_prediction']\n                axes[1, 1].plot(X.ravel(), mean_pred, '--', color=colors[i], \n                              linewidth=2, label=f'{model_name} (Mean)')\n                \n                # Show prediction uncertainty\n                predictions = results[model_name]['predictions']\n                pred_std = np.std(predictions, axis=0)\n                axes[1, 1].fill_between(X.ravel(), \n                                       mean_pred - pred_std, \n                                       mean_pred + pred_std, \n                                       alpha=0.2, color=colors[i])\n        \n        axes[1, 1].set_xlabel('X')\n        axes[1, 1].set_ylabel('Y')\n        axes[1, 1].set_title('Model Predictions with Uncertainty')\n        axes[1, 1].legend()\n        axes[1, 1].grid(True, alpha=0.3)\n        \n        plt.tight_layout()\n        plt.show()\n    \n    def analyze_sample_size_effect(self, X, y, y_true, model):\n        \"\"\"Analyze how sample size affects bias-variance tradeoff.\"\"\"\n        \n        sample_sizes = [20, 50, 100, 200, 500]\n        results = {}\n        \n        for n_samples in sample_sizes:\n            if n_samples <= len(X):\n                X_subset = X[:n_samples]\n                y_subset = y[:n_samples]\n                y_true_subset = y_true[:n_samples]\n                \n                result = self.bias_variance_decomposition(model, X_subset, y_subset, y_true_subset)\n                results[n_samples] = result\n        \n        # Plot results\n        sample_sizes_list = list(results.keys())\n        bias_squared = [results[n]['bias_squared'] for n in sample_sizes_list]\n        variance = [results[n]['variance'] for n in sample_sizes_list]\n        total_error = [results[n]['total_error'] for n in sample_sizes_list]\n        \n        plt.figure(figsize=(12, 4))\n        \n        plt.subplot(1, 2, 1)\n        plt.plot(sample_sizes_list, bias_squared, 'o-', label='Bias²', color='red')\n        plt.plot(sample_sizes_list, variance, 'o-', label='Variance', color='blue')\n        plt.plot(sample_sizes_list, total_error, 'o-', label='Total Error', color='green')\n        plt.xlabel('Sample Size')\n        plt.ylabel('Error')\n        plt.title('Bias-Variance vs Sample Size')\n        plt.legend()\n        plt.grid(True, alpha=0.3)\n        \n        plt.subplot(1, 2, 2)\n        plt.loglog(sample_sizes_list, variance, 'o-', label='Variance', color='blue')\n        plt.loglog(sample_sizes_list, [1/n for n in sample_sizes_list], '--', label='1/n', color='gray')\n        plt.xlabel('Sample Size')\n        plt.ylabel('Variance (log scale)')\n        plt.title('Variance Decay with Sample Size')\n        plt.legend()\n        plt.grid(True, alpha=0.3)\n        \n        plt.tight_layout()\n        plt.show()\n        \n        return results\n\n# Example usage\ndef bias_variance_example():\n    \"\"\"Complete bias-variance analysis example.\"\"\"\n    from sklearn.base import clone\n    \n    # Initialize analysis\n    bv_analysis = BiasVarianceAnalysis()\n    \n    # Generate data\n    X, y, y_true = bv_analysis.generate_data(n_samples=200, noise_level=0.3)\n    \n    print(\"=== BIAS-VARIANCE DECOMPOSITION ===\")\n    \n    # Compare different model complexities\n    results = bv_analysis.compare_model_complexity(X, y, y_true)\n    \n    # Display numerical results\n    print(\"\\nBias-Variance Decomposition Results:\")\n    print(f\"{'Model':<20} {'Bias²':<10} {'Variance':<10} {'Noise':<10} {'Total Error':<12}\")\n    print(\"-\" * 65)\n    \n    for name, result in results.items():\n        print(f\"{name:<20} {result['bias_squared']:<10.4f} {result['variance']:<10.4f} \"\n              f\"{result['noise']:<10.4f} {result['total_error']:<12.4f}\")\n    \n    # Visualize results\n    bv_analysis.plot_bias_variance_tradeoff(results, X, y_true)\n    \n    # Analyze sample size effect\n    print(\"\\n=== SAMPLE SIZE EFFECT ===\")\n    sample_size_results = bv_analysis.analyze_sample_size_effect(\n        X, y, y_true, DecisionTreeRegressor(max_depth=5, random_state=42)\n    )\n    \n    return {\n        'model_comparison': results,\n        'sample_size_effect': sample_size_results\n    }\n```\n\n### 15. How do you handle time series data in ML?\n**Answer**: Time series requires special considerations for temporal dependencies and data leakage prevention.\n\n```python\nimport pandas as pd\nimport numpy as np\nfrom sklearn.model_selection import TimeSeriesSplit\nfrom sklearn.ensemble import RandomForestRegressor\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import mean_squared_error, mean_absolute_error\nimport matplotlib.pyplot as plt\nfrom statsmodels.tsa.seasonal import seasonal_decompose\nfrom statsmodels.tsa.arima.model import ARIMA\n\n# Time Series ML Methods\nclass TimeSeriesML:\n    def __init__(self):\n        self.models = {}\n        self.feature_importance = {}\n    \n    def create_time_features(self, df, date_column):\n        \"\"\"Create time-based features from datetime column.\"\"\"\n        \n        df = df.copy()\n        df[date_column] = pd.to_datetime(df[date_column])\n        \n        # Basic time features\n        df['year'] = df[date_column].dt.year\n        df['month'] = df[date_column].dt.month\n        df['day'] = df[date_column].dt.day\n        df['dayofweek'] = df[date_column].dt.dayofweek\n        df['hour'] = df[date_column].dt.hour\n        df['quarter'] = df[date_column].dt.quarter\n        df['week'] = df[date_column].dt.isocalendar().week\n        \n        # Cyclical features\n        df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)\n        df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12)\n        df['day_sin'] = np.sin(2 * np.pi * df['day'] / 31)\n        df['day_cos'] = np.cos(2 * np.pi * df['day'] / 31)\n        df['hour_sin'] = np.sin(2 * np.pi * df['hour'] / 24)\n        df['hour_cos'] = np.cos(2 * np.pi * df['hour'] / 24)\n        \n        # Business features\n        df['is_weekend'] = (df['dayofweek'] >= 5).astype(int)\n        df['is_month_start'] = (df[date_column].dt.is_month_start).astype(int)\n        df['is_month_end'] = (df[date_column].dt.is_month_end).astype(int)\n        df['is_quarter_start'] = (df[date_column].dt.is_quarter_start).astype(int)\n        df['is_quarter_end'] = (df[date_column].dt.is_quarter_end).astype(int)\n        \n        return df\n    \n    def create_lag_features(self, df, target_column, lags=[1, 2, 3, 7, 14, 30]):\n        \"\"\"Create lagged features for time series.\"\"\"\n        \n        df = df.copy()\n        \n        for lag in lags:\n            df[f'{target_column}_lag_{lag}'] = df[target_column].shift(lag)\n        \n        return df\n    \n    def create_rolling_features(self, df, target_column, windows=[3, 7, 14, 30]):\n        \"\"\"Create rolling window features.\"\"\"\n        \n        df = df.copy()\n        \n        for window in windows:\n            # Rolling statistics\n            df[f'{target_column}_rolling_mean_{window}'] = df[target_column].rolling(window=window).mean()\n            df[f'{target_column}_rolling_std_{window}'] = df[target_column].rolling(window=window).std()\n            df[f'{target_column}_rolling_min_{window}'] = df[target_column].rolling(window=window).min()\n            df[f'{target_column}_rolling_max_{window}'] = df[target_column].rolling(window=window).max()\n            \n            # Rolling differences\n            df[f'{target_column}_rolling_diff_{window}'] = (df[target_column] - \n                                                           df[target_column].rolling(window=window).mean())\n        \n        return df\n    \n    def create_seasonal_features(self, df, target_column, date_column, periods=[7, 30, 365]):\n        \"\"\"Create seasonal decomposition features.\"\"\"\n        \n        df = df.copy()\n        df = df.set_index(date_column)\n        \n        for period in periods:\n            if len(df) >= 2 * period:\n                try:\n                    # Seasonal decomposition\n                    decomposition = seasonal_decompose(df[target_column], \n                                                     model='additive', \n                                                     period=period)\n                    \n                    df[f'{target_column}_trend_{period}'] = decomposition.trend\n                    df[f'{target_column}_seasonal_{period}'] = decomposition.seasonal\n                    df[f'{target_column}_residual_{period}'] = decomposition.resid\n                    \n                except Exception as e:\n                    print(f\"Could not create seasonal features for period {period}: {e}\")\n        \n        return df.reset_index()\n    \n    def time_series_cross_validation(self, X, y, model, n_splits=5):\n        \"\"\"Perform time series cross-validation.\"\"\"\n        \n        tscv = TimeSeriesSplit(n_splits=n_splits)\n        \n        scores = []\n        predictions = []\n        \n        for fold, (train_idx, val_idx) in enumerate(tscv.split(X)):\n            X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]\n            y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]\n            \n            # Train model\n            model_copy = clone(model)\n            model_copy.fit(X_train, y_train)\n            \n            # Predict\n            y_pred = model_copy.predict(X_val)\n            \n            # Calculate metrics\n            mse = mean_squared_error(y_val, y_pred)\n            mae = mean_absolute_error(y_val, y_pred)\n            \n            scores.append({'fold': fold, 'mse': mse, 'mae': mae, 'rmse': np.sqrt(mse)})\n            predictions.append({\n                'fold': fold,\n                'val_idx': val_idx,\n                'y_true': y_val,\n                'y_pred': y_pred\n            })\n        \n        return scores, predictions\n    \n    def walk_forward_validation(self, df, target_column, feature_columns, \n                               model, initial_train_size=100, step_size=1):\n        \"\"\"Perform walk-forward validation.\"\"\"\n        \n        results = []\n        \n        for i in range(initial_train_size, len(df) - step_size, step_size):\n            # Define train and test sets\n            train_data = df.iloc[:i]\n            test_data = df.iloc[i:i+step_size]\n            \n            X_train = train_data[feature_columns]\n            y_train = train_data[target_column]\n            X_test = test_data[feature_columns]\n            y_test = test_data[target_column]\n            \n            # Handle missing values (common with lag features)\n            X_train = X_train.dropna()\n            y_train = y_train[X_train.index]\n            \n            if len(X_train) > 0 and len(X_test) > 0:\n                # Train model\n                model_copy = clone(model)\n                model_copy.fit(X_train, y_train)\n                \n                # Predict\n                y_pred = model_copy.predict(X_test)\n                \n                # Store results\n                results.append({\n                    'train_end': i,\n                    'test_start': i,\n                    'test_end': i + step_size,\n                    'y_true': y_test.values,\n                    'y_pred': y_pred,\n                    'mse': mean_squared_error(y_test, y_pred),\n                    'mae': mean_absolute_error(y_test, y_pred)\n                })\n        \n        return results\n    \n    def detect_concept_drift(self, results):\n        \"\"\"Detect concept drift in time series predictions.\"\"\"\n        \n        # Extract performance metrics over time\n        mse_values = [r['mse'] for r in results]\n        mae_values = [r['mae'] for r in results]\n        \n        # Calculate rolling performance\n        window_size = min(10, len(mse_values) // 4)\n        \n        rolling_mse = pd.Series(mse_values).rolling(window=window_size).mean()\n        rolling_mae = pd.Series(mae_values).rolling(window=window_size).mean()\n        \n        # Detect significant changes\n        mse_threshold = np.mean(mse_values) + 2 * np.std(mse_values)\n        mae_threshold = np.mean(mae_values) + 2 * np.std(mae_values)\n        \n        drift_points = []\n        for i, (mse, mae) in enumerate(zip(rolling_mse, rolling_mae)):\n            if mse > mse_threshold or mae > mae_threshold:\n                drift_points.append(i)\n        \n        # Plot performance over time\n        plt.figure(figsize=(15, 6))\n        \n        plt.subplot(1, 2, 1)\n        plt.plot(mse_values, label='MSE', alpha=0.7)\n        plt.plot(rolling_mse, label='Rolling MSE', linewidth=2)\n        plt.axhline(y=mse_threshold, color='red', linestyle='--', label='Threshold')\n        for dp in drift_points:\n            plt.axvline(x=dp, color='red', alpha=0.5)\n        plt.xlabel('Time Step')\n        plt.ylabel('MSE')\n        plt.title('Model Performance Over Time (MSE)')\n        plt.legend()\n        plt.grid(True, alpha=0.3)\n        \n        plt.subplot(1, 2, 2)\n        plt.plot(mae_values, label='MAE', alpha=0.7)\n        plt.plot(rolling_mae, label='Rolling MAE', linewidth=2)\n        plt.axhline(y=mae_threshold, color='red', linestyle='--', label='Threshold')\n        for dp in drift_points:\n            plt.axvline(x=dp, color='red', alpha=0.5)\n        plt.xlabel('Time Step')\n        plt.ylabel('MAE')\n        plt.title('Model Performance Over Time (MAE)')\n        plt.legend()\n        plt.grid(True, alpha=0.3)\n        \n        plt.tight_layout()\n        plt.show()\n        \n        return {\n            'drift_points': drift_points,\n            'mse_threshold': mse_threshold,\n            'mae_threshold': mae_threshold,\n            'performance_degradation': len(drift_points) > 0\n        }\n    \n    def compare_ts_models(self, df, target_column, feature_columns):\n        \"\"\"Compare different models for time series prediction.\"\"\"\n        \n        models = {\n            'Linear Regression': LinearRegression(),\n            'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42),\n            'Gradient Boosting': GradientBoostingRegressor(n_estimators=100, random_state=42)\n        }\n        \n        results = {}\n        \n        for name, model in models.items():\n            print(f\"Evaluating {name}...\")\n            \n            # Prepare data\n            X = df[feature_columns].dropna()\n            y = df[target_column][X.index]\n            \n            # Time series cross-validation\n            scores, predictions = self.time_series_cross_validation(X, y, model)\n            \n            # Calculate average metrics\n            avg_mse = np.mean([s['mse'] for s in scores])\n            avg_mae = np.mean([s['mae'] for s in scores])\n            avg_rmse = np.mean([s['rmse'] for s in scores])\n            \n            results[name] = {\n                'avg_mse': avg_mse,\n                'avg_mae': avg_mae,\n                'avg_rmse': avg_rmse,\n                'scores': scores,\n                'predictions': predictions\n            }\n        \n        # Display results\n        print(\"\\nTime Series Model Comparison:\")\n        print(f\"{'Model':<20} {'MSE':<10} {'MAE':<10} {'RMSE':<10}\")\n        print(\"-\" * 50)\n        \n        for name, result in results.items():\n            print(f\"{name:<20} {result['avg_mse']:<10.4f} {result['avg_mae']:<10.4f} {result['avg_rmse']:<10.4f}\")\n        \n        return results\n\n# Example usage\ndef time_series_ml_example():\n    \"\"\"Complete time series ML example.\"\"\"\n    from sklearn.base import clone\n    from sklearn.ensemble import GradientBoostingRegressor\n    \n    # Generate sample time series data\n    np.random.seed(42)\n    dates = pd.date_range('2020-01-01', periods=1000, freq='D')\n    \n    # Create synthetic time series with trend, seasonality, and noise\n    trend = np.linspace(100, 200, 1000)\n    seasonal = 10 * np.sin(2 * np.pi * np.arange(1000) / 365.25)  # Yearly seasonality\n    weekly = 5 * np.sin(2 * np.pi * np.arange(1000) / 7)  # Weekly seasonality\n    noise = np.random.normal(0, 5, 1000)\n    \n    target = trend + seasonal + weekly + noise\n    \n    df = pd.DataFrame({\n        'date': dates,\n        'target': target,\n        'external_feature': np.random.normal(50, 10, 1000)\n    })\n    \n    # Initialize time series ML\n    ts_ml = TimeSeriesML()\n    \n    print(\"=== TIME SERIES FEATURE ENGINEERING ===\")\n    \n    # Create time features\n    df = ts_ml.create_time_features(df, 'date')\n    \n    # Create lag features\n    df = ts_ml.create_lag_features(df, 'target', lags=[1, 2, 3, 7, 14])\n    \n    # Create rolling features\n    df = ts_ml.create_rolling_features(df, 'target', windows=[7, 14, 30])\n    \n    # Select feature columns (exclude date and target)\n    feature_columns = [col for col in df.columns if col not in ['date', 'target']]\n    \n    print(f\"Created {len(feature_columns)} features\")\n    \n    print(\"\\n=== MODEL COMPARISON ===\")\n    \n    # Compare different models\n    model_results = ts_ml.compare_ts_models(df, 'target', feature_columns)\n    \n    print(\"\\n=== WALK-FORWARD VALIDATION ===\")\n    \n    # Walk-forward validation\n    wf_results = ts_ml.walk_forward_validation(\n        df, 'target', feature_columns, \n        RandomForestRegressor(n_estimators=50, random_state=42),\n        initial_train_size=200, step_size=1\n    )\n    \n    print(f\"Walk-forward validation completed: {len(wf_results)} predictions\")\n    \n    print(\"\\n=== CONCEPT DRIFT DETECTION ===\")\n    \n    # Detect concept drift\n    drift_analysis = ts_ml.detect_concept_drift(wf_results)\n    \n    if drift_analysis['performance_degradation']:\n        print(f\"Concept drift detected at {len(drift_analysis['drift_points'])} points\")\n    else:\n        print(\"No significant concept drift detected\")\n    \n    return {\n        'data': df,\n        'model_comparison': model_results,\n        'walk_forward': wf_results,\n        'drift_analysis': drift_analysis\n    }\n```\n\nThis comprehensive set covers ML fundamentals through advanced techniques with practical data engineering examples. The questions progress from basic concepts to complex real-world scenarios.\n
+### 16. How do you implement automated machine learning (AutoML)?
+
+**Answer**: AutoML automates the machine learning pipeline from data preprocessing to model selection and hyperparameter tuning.
+
+```python
+# AutoML Implementation
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.pipeline import Pipeline
+import optuna
+
+class AutoMLPipeline:
+    def __init__(self):
+        self.best_model = None
+        self.best_score = 0
+        self.preprocessing_steps = []
+        
+    def automated_preprocessing(self, X, y):
+        """Automated data preprocessing."""
+        X_processed = X.copy()
+        
+        # Handle missing values
+        numeric_columns = X_processed.select_dtypes(include=[np.number]).columns
+        categorical_columns = X_processed.select_dtypes(include=['object']).columns
+        
+        # Numeric imputation
+        for col in numeric_columns:
+            if X_processed[col].isnull().sum() > 0:
+                X_processed[col].fillna(X_processed[col].median(), inplace=True)
+        
+        # Categorical encoding
+        for col in categorical_columns:
+            le = LabelEncoder()
+            X_processed[col] = le.fit_transform(X_processed[col].astype(str))
+        
+        return X_processed
+    
+    def automated_feature_selection(self, X, y, max_features=20):
+        """Automated feature selection."""
+        from sklearn.feature_selection import SelectKBest, f_classif
+        
+        if X.shape[1] > max_features:
+            selector = SelectKBest(score_func=f_classif, k=max_features)
+            X_selected = selector.fit_transform(X, y)
+            selected_features = X.columns[selector.get_support()]
+            return pd.DataFrame(X_selected, columns=selected_features)
+        
+        return X
+    
+    def automated_model_selection(self, X, y):
+        """Automated model selection and hyperparameter tuning."""
+        
+        # Define model candidates
+        models = {
+            'logistic_regression': {
+                'model': LogisticRegression(),
+                'params': {
+                    'C': [0.1, 1.0, 10.0],
+                    'solver': ['liblinear', 'lbfgs']
+                }
+            },
+            'random_forest': {
+                'model': RandomForestClassifier(),
+                'params': {
+                    'n_estimators': [50, 100, 200],
+                    'max_depth': [5, 10, None],
+                    'min_samples_split': [2, 5, 10]
+                }
+            },
+            'gradient_boosting': {
+                'model': GradientBoostingClassifier(),
+                'params': {
+                    'n_estimators': [50, 100, 200],
+                    'learning_rate': [0.01, 0.1, 0.2],
+                    'max_depth': [3, 5, 7]
+                }
+            }
+        }
+        
+        best_model = None
+        best_score = 0
+        best_params = None
+        
+        for model_name, model_config in models.items():
+            print(f"Tuning {model_name}...")
+            
+            # Grid search for hyperparameter tuning
+            grid_search = GridSearchCV(
+                model_config['model'],
+                model_config['params'],
+                cv=5,
+                scoring='accuracy',
+                n_jobs=-1
+            )
+            
+            grid_search.fit(X, y)
+            
+            if grid_search.best_score_ > best_score:
+                best_score = grid_search.best_score_
+                best_model = grid_search.best_estimator_
+                best_params = grid_search.best_params_
+        
+        return best_model, best_score, best_params
+    
+    def run_automl(self, X, y):
+        """Run complete AutoML pipeline."""
+        
+        print("Starting AutoML Pipeline...")
+        
+        # Step 1: Automated preprocessing
+        print("1. Automated preprocessing...")
+        X_processed = self.automated_preprocessing(X, y)
+        
+        # Step 2: Automated feature selection
+        print("2. Automated feature selection...")
+        X_selected = self.automated_feature_selection(X_processed, y)
+        
+        # Step 3: Automated model selection
+        print("3. Automated model selection...")
+        best_model, best_score, best_params = self.automated_model_selection(X_selected, y)
+        
+        self.best_model = best_model
+        self.best_score = best_score
+        
+        print(f"AutoML completed!")
+        print(f"Best model: {type(best_model).__name__}")
+        print(f"Best score: {best_score:.4f}")
+        print(f"Best parameters: {best_params}")
+        
+        return best_model, best_score
+```
+
+### 17. How do you implement model interpretability and explainability?
+
+**Answer**: Model interpretability helps understand how models make decisions, crucial for trust and debugging.
+
+```python
+# Model Interpretability Tools
+import shap
+import lime
+import eli5
+from sklearn.inspection import permutation_importance
+import matplotlib.pyplot as plt
+
+class ModelExplainer:
+    def __init__(self, model, X_train, X_test):
+        self.model = model
+        self.X_train = X_train
+        self.X_test = X_test
+        
+    def feature_importance_analysis(self):
+        """Analyze feature importance using multiple methods."""
+        
+        # Method 1: Built-in feature importance (for tree-based models)
+        if hasattr(self.model, 'feature_importances_'):
+            importance_builtin = self.model.feature_importances_
+            
+            plt.figure(figsize=(10, 6))
+            feature_names = self.X_train.columns if hasattr(self.X_train, 'columns') else range(len(importance_builtin))
+            plt.barh(range(len(importance_builtin)), importance_builtin)
+            plt.yticks(range(len(importance_builtin)), feature_names)
+            plt.xlabel('Feature Importance')
+            plt.title('Built-in Feature Importance')
+            plt.tight_layout()
+            plt.show()
+        
+        # Method 2: Permutation importance
+        perm_importance = permutation_importance(
+            self.model, self.X_test, self.y_test, n_repeats=10, random_state=42
+        )
+        
+        plt.figure(figsize=(10, 6))
+        feature_names = self.X_train.columns if hasattr(self.X_train, 'columns') else range(len(perm_importance.importances_mean))
+        plt.barh(range(len(perm_importance.importances_mean)), perm_importance.importances_mean)
+        plt.yticks(range(len(perm_importance.importances_mean)), feature_names)
+        plt.xlabel('Permutation Importance')
+        plt.title('Permutation Feature Importance')
+        plt.tight_layout()
+        plt.show()
+        
+        return {
+            'builtin': importance_builtin if hasattr(self.model, 'feature_importances_') else None,
+            'permutation': perm_importance
+        }
+    
+    def shap_analysis(self, sample_size=100):
+        """SHAP (SHapley Additive exPlanations) analysis."""
+        
+        # Create SHAP explainer
+        if hasattr(self.model, 'predict_proba'):
+            explainer = shap.TreeExplainer(self.model)
+        else:
+            explainer = shap.LinearExplainer(self.model, self.X_train[:sample_size])
+        
+        # Calculate SHAP values
+        shap_values = explainer.shap_values(self.X_test[:sample_size])
+        
+        # Summary plot
+        plt.figure(figsize=(10, 6))
+        shap.summary_plot(shap_values, self.X_test[:sample_size], show=False)
+        plt.tight_layout()
+        plt.show()
+        
+        # Waterfall plot for single prediction
+        if len(shap_values.shape) == 2:  # Binary classification
+            shap.waterfall_plot(
+                explainer.expected_value, 
+                shap_values[0], 
+                self.X_test.iloc[0]
+            )
+        
+        return shap_values
+    
+    def lime_analysis(self, instance_idx=0):
+        """LIME (Local Interpretable Model-agnostic Explanations) analysis."""
+        
+        from lime.lime_tabular import LimeTabularExplainer
+        
+        # Create LIME explainer
+        explainer = LimeTabularExplainer(
+            self.X_train.values,
+            feature_names=self.X_train.columns if hasattr(self.X_train, 'columns') else None,
+            class_names=['Class 0', 'Class 1'],
+            mode='classification'
+        )
+        
+        # Explain single instance
+        explanation = explainer.explain_instance(
+            self.X_test.iloc[instance_idx].values,
+            self.model.predict_proba,
+            num_features=10
+        )
+        
+        # Show explanation
+        explanation.show_in_notebook(show_table=True)
+        
+        return explanation
+    
+    def partial_dependence_analysis(self, features):
+        """Partial dependence plots."""
+        from sklearn.inspection import plot_partial_dependence
+        
+        fig, ax = plt.subplots(figsize=(12, 8))
+        plot_partial_dependence(
+            self.model, self.X_train, features, ax=ax
+        )
+        plt.tight_layout()
+        plt.show()
+    
+    def model_decision_boundary(self, feature1, feature2):
+        """Visualize decision boundary for 2D features."""
+        
+        if len(self.X_train.columns) < 2:
+            print("Need at least 2 features for decision boundary visualization")
+            return
+        
+        # Create mesh
+        h = 0.02
+        x_min, x_max = self.X_train[feature1].min() - 1, self.X_train[feature1].max() + 1
+        y_min, y_max = self.X_train[feature2].min() - 1, self.X_train[feature2].max() + 1
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                            np.arange(y_min, y_max, h))
+        
+        # Create prediction mesh
+        mesh_points = np.c_[xx.ravel(), yy.ravel()]
+        
+        # Add other features as median values
+        other_features = [col for col in self.X_train.columns if col not in [feature1, feature2]]
+        for feature in other_features:
+            median_val = self.X_train[feature].median()
+            mesh_points = np.column_stack([mesh_points, np.full(mesh_points.shape[0], median_val)])
+        
+        # Predict on mesh
+        Z = self.model.predict(mesh_points)
+        Z = Z.reshape(xx.shape)
+        
+        # Plot
+        plt.figure(figsize=(10, 8))
+        plt.contourf(xx, yy, Z, alpha=0.8, cmap=plt.cm.RdYlBu)
+        
+        # Plot training points
+        scatter = plt.scatter(self.X_train[feature1], self.X_train[feature2], 
+                            c=self.y_train, cmap=plt.cm.RdYlBu, edgecolors='black')
+        plt.colorbar(scatter)
+        plt.xlabel(feature1)
+        plt.ylabel(feature2)
+        plt.title('Model Decision Boundary')
+        plt.show()
+```
+
+### 18. How do you implement online learning and model updating?
+
+**Answer**: Online learning allows models to learn incrementally from streaming data.
+
+```python
+# Online Learning Implementation
+from sklearn.linear_model import SGDClassifier, PassiveAggressiveClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
+import numpy as np
+
+class OnlineLearningSystem:
+    def __init__(self, model_type='sgd'):
+        self.model_type = model_type
+        self.model = self._initialize_model()
+        self.performance_history = []
+        self.concept_drift_detector = ConceptDriftDetector()
+        
+    def _initialize_model(self):
+        """Initialize online learning model."""
+        if self.model_type == 'sgd':
+            return SGDClassifier(loss='log', learning_rate='adaptive', eta0=0.01)
+        elif self.model_type == 'passive_aggressive':
+            return PassiveAggressiveClassifier(C=1.0)
+        elif self.model_type == 'naive_bayes':
+            return MultinomialNB()
+        else:
+            raise ValueError(f"Unknown model type: {self.model_type}")
+    
+    def partial_fit(self, X_batch, y_batch, classes=None):
+        """Update model with new batch of data."""
+        
+        if not hasattr(self.model, 'partial_fit'):
+            raise ValueError(f"Model {self.model_type} doesn't support partial_fit")
+        
+        # First batch needs class information
+        if classes is not None:
+            self.model.partial_fit(X_batch, y_batch, classes=classes)
+        else:
+            self.model.partial_fit(X_batch, y_batch)
+    
+    def predict_and_update(self, X_batch, y_batch, update=True):
+        """Make predictions and optionally update model."""
+        
+        # Make predictions
+        predictions = self.model.predict(X_batch)
+        
+        # Calculate performance
+        accuracy = accuracy_score(y_batch, predictions)
+        self.performance_history.append(accuracy)
+        
+        # Check for concept drift
+        drift_detected = self.concept_drift_detector.detect_drift(accuracy)
+        
+        if drift_detected:
+            print(f"Concept drift detected! Accuracy: {accuracy:.3f}")
+            self._handle_concept_drift()
+        
+        # Update model with new data
+        if update:
+            self.partial_fit(X_batch, y_batch)
+        
+        return predictions, accuracy, drift_detected
+    
+    def _handle_concept_drift(self):
+        """Handle concept drift by adjusting learning parameters."""
+        
+        if self.model_type == 'sgd':
+            # Increase learning rate temporarily
+            self.model.eta0 *= 1.5
+        
+        # Could also reinitialize model or use ensemble approach
+        print("Adjusted model parameters for concept drift")
+    
+    def simulate_online_learning(self, X, y, batch_size=100, test_size=0.2):
+        """Simulate online learning scenario."""
+        
+        n_samples = len(X)
+        n_test = int(n_samples * test_size)
+        n_train = n_samples - n_test
+        
+        # Split into train and test
+        X_train, X_test = X[:n_train], X[n_train:]
+        y_train, y_test = y[:n_train], y[n_train:]
+        
+        # Get unique classes
+        classes = np.unique(y)
+        
+        # Process in batches
+        accuracies = []
+        drift_points = []
+        
+        for i in range(0, n_train, batch_size):
+            end_idx = min(i + batch_size, n_train)
+            X_batch = X_train[i:end_idx]
+            y_batch = y_train[i:end_idx]
+            
+            # Update model
+            if i == 0:
+                self.partial_fit(X_batch, y_batch, classes=classes)
+            else:
+                self.partial_fit(X_batch, y_batch)
+            
+            # Test on held-out data
+            if len(X_test) > 0:
+                test_predictions = self.model.predict(X_test)
+                test_accuracy = accuracy_score(y_test, test_predictions)
+                accuracies.append(test_accuracy)
+                
+                # Check for drift
+                if self.concept_drift_detector.detect_drift(test_accuracy):
+                    drift_points.append(i // batch_size)
+        
+        return accuracies, drift_points
+
+class ConceptDriftDetector:
+    def __init__(self, window_size=10, threshold=0.05):
+        self.window_size = window_size
+        self.threshold = threshold
+        self.performance_window = []
+        
+    def detect_drift(self, current_performance):
+        """Detect concept drift based on performance degradation."""
+        
+        self.performance_window.append(current_performance)
+        
+        if len(self.performance_window) > self.window_size:
+            self.performance_window.pop(0)
+        
+        if len(self.performance_window) == self.window_size:
+            # Compare recent performance with historical
+            recent_avg = np.mean(self.performance_window[-self.window_size//2:])
+            historical_avg = np.mean(self.performance_window[:self.window_size//2])
+            
+            # Drift detected if significant performance drop
+            if historical_avg - recent_avg > self.threshold:
+                return True
+        
+        return False
+
+# Ensemble Online Learning
+class OnlineEnsemble:
+    def __init__(self, n_models=3):
+        self.models = []
+        self.weights = []
+        self.n_models = n_models
+        
+        # Initialize diverse models
+        model_types = ['sgd', 'passive_aggressive', 'naive_bayes']
+        for i in range(n_models):
+            model_type = model_types[i % len(model_types)]
+            self.models.append(OnlineLearningSystem(model_type))
+            self.weights.append(1.0 / n_models)
+    
+    def update_weights(self, accuracies):
+        """Update model weights based on performance."""
+        
+        # Softmax weighting based on accuracy
+        exp_accuracies = np.exp(np.array(accuracies))
+        self.weights = exp_accuracies / np.sum(exp_accuracies)
+    
+    def predict(self, X):
+        """Ensemble prediction using weighted voting."""
+        
+        predictions = []
+        for model in self.models:
+            pred = model.model.predict(X)
+            predictions.append(pred)
+        
+        # Weighted majority voting
+        weighted_predictions = np.zeros(len(X))
+        for i, (pred, weight) in enumerate(zip(predictions, self.weights)):
+            weighted_predictions += weight * pred
+        
+        return (weighted_predictions > 0.5).astype(int)
+    
+    def partial_fit(self, X_batch, y_batch, classes=None):
+        """Update all models in ensemble."""
+        
+        accuracies = []
+        for model in self.models:
+            model.partial_fit(X_batch, y_batch, classes)
+            
+            # Evaluate individual model performance
+            pred = model.model.predict(X_batch)
+            acc = accuracy_score(y_batch, pred)
+            accuracies.append(acc)
+        
+        # Update weights based on performance
+        self.update_weights(accuracies)
+```
+
+### 19. How do you implement A/B testing for machine learning models?
+
+**Answer**: A/B testing allows comparing model performance in production environments.
+
+```python
+# A/B Testing for ML Models
+import numpy as np
+import pandas as pd
+from scipy import stats
+import matplotlib.pyplot as plt
+
+class MLModelABTest:
+    def __init__(self, model_a, model_b, test_name="Model A/B Test"):
+        self.model_a = model_a
+        self.model_b = model_b
+        self.test_name = test_name
+        self.results_a = []
+        self.results_b = []
+        self.traffic_split = 0.5
+        
+    def set_traffic_split(self, split_ratio):
+        """Set traffic split between models (0.5 = 50/50)."""
+        self.traffic_split = split_ratio
+    
+    def route_traffic(self, user_id):
+        """Route user to model A or B based on user ID hash."""
+        # Consistent routing based on user ID
+        hash_value = hash(str(user_id)) % 100
+        return 'A' if hash_value < (self.traffic_split * 100) else 'B'
+    
+    def serve_prediction(self, user_id, features):
+        """Serve prediction from appropriate model."""
+        
+        model_version = self.route_traffic(user_id)
+        
+        if model_version == 'A':
+            prediction = self.model_a.predict([features])[0]
+            confidence = self.model_a.predict_proba([features])[0].max()
+        else:
+            prediction = self.model_b.predict([features])[0]
+            confidence = self.model_b.predict_proba([features])[0].max()
+        
+        return {
+            'prediction': prediction,
+            'confidence': confidence,
+            'model_version': model_version,
+            'user_id': user_id
+        }
+    
+    def log_result(self, user_id, prediction_result, actual_outcome, 
+                   conversion_value=None, response_time=None):
+        """Log prediction result and actual outcome."""
+        
+        result = {
+            'user_id': user_id,
+            'model_version': prediction_result['model_version'],
+            'prediction': prediction_result['prediction'],
+            'confidence': prediction_result['confidence'],
+            'actual_outcome': actual_outcome,
+            'correct': prediction_result['prediction'] == actual_outcome,
+            'conversion_value': conversion_value,
+            'response_time': response_time,
+            'timestamp': pd.Timestamp.now()
+        }
+        
+        if prediction_result['model_version'] == 'A':
+            self.results_a.append(result)
+        else:
+            self.results_b.append(result)
+    
+    def calculate_metrics(self, results):
+        """Calculate performance metrics for a model."""
+        
+        if not results:
+            return {}
+        
+        df = pd.DataFrame(results)
+        
+        metrics = {
+            'sample_size': len(df),
+            'accuracy': df['correct'].mean(),
+            'avg_confidence': df['confidence'].mean(),
+            'avg_response_time': df['response_time'].mean() if 'response_time' in df else None,
+            'conversion_rate': df['actual_outcome'].mean() if df['actual_outcome'].dtype in ['int64', 'float64'] else None,
+            'total_conversion_value': df['conversion_value'].sum() if 'conversion_value' in df else None
+        }
+        
+        return metrics
+    
+    def statistical_significance_test(self, metric='accuracy', alpha=0.05):
+        """Perform statistical significance test."""
+        
+        if not self.results_a or not self.results_b:
+            return {"error": "Insufficient data for statistical test"}
+        
+        df_a = pd.DataFrame(self.results_a)
+        df_b = pd.DataFrame(self.results_b)
+        
+        if metric == 'accuracy':
+            successes_a = df_a['correct'].sum()
+            trials_a = len(df_a)
+            successes_b = df_b['correct'].sum()
+            trials_b = len(df_b)
+            
+            # Two-proportion z-test
+            p_a = successes_a / trials_a
+            p_b = successes_b / trials_b
+            p_pooled = (successes_a + successes_b) / (trials_a + trials_b)
+            
+            se = np.sqrt(p_pooled * (1 - p_pooled) * (1/trials_a + 1/trials_b))
+            z_score = (p_a - p_b) / se
+            p_value = 2 * (1 - stats.norm.cdf(abs(z_score)))
+            
+            return {
+                'metric': metric,
+                'model_a_value': p_a,
+                'model_b_value': p_b,
+                'difference': p_a - p_b,
+                'z_score': z_score,
+                'p_value': p_value,
+                'significant': p_value < alpha,
+                'confidence_interval': self._confidence_interval_proportion(p_a, p_b, trials_a, trials_b)
+            }
+        
+        elif metric == 'conversion_value':
+            values_a = df_a['conversion_value'].dropna()
+            values_b = df_b['conversion_value'].dropna()
+            
+            # Two-sample t-test
+            t_stat, p_value = stats.ttest_ind(values_a, values_b)
+            
+            return {
+                'metric': metric,
+                'model_a_value': values_a.mean(),
+                'model_b_value': values_b.mean(),
+                'difference': values_a.mean() - values_b.mean(),
+                't_statistic': t_stat,
+                'p_value': p_value,
+                'significant': p_value < alpha
+            }
+    
+    def _confidence_interval_proportion(self, p1, p2, n1, n2, confidence=0.95):
+        """Calculate confidence interval for difference in proportions."""
+        
+        z_score = stats.norm.ppf((1 + confidence) / 2)
+        se1 = np.sqrt(p1 * (1 - p1) / n1)
+        se2 = np.sqrt(p2 * (1 - p2) / n2)
+        se_diff = np.sqrt(se1**2 + se2**2)
+        
+        diff = p1 - p2
+        margin_error = z_score * se_diff
+        
+        return (diff - margin_error, diff + margin_error)
+    
+    def power_analysis(self, effect_size, alpha=0.05, power=0.8):
+        """Calculate required sample size for desired statistical power."""
+        
+        from statsmodels.stats.power import ttest_power
+        
+        # Calculate required sample size
+        required_n = ttest_power(effect_size, power, alpha, alternative='two-sided')
+        
+        return {
+            'effect_size': effect_size,
+            'alpha': alpha,
+            'power': power,
+            'required_sample_size_per_group': required_n
+        }
+    
+    def generate_report(self):
+        """Generate comprehensive A/B test report."""
+        
+        metrics_a = self.calculate_metrics(self.results_a)
+        metrics_b = self.calculate_metrics(self.results_b)
+        
+        # Statistical tests
+        accuracy_test = self.statistical_significance_test('accuracy')
+        
+        report = {
+            'test_name': self.test_name,
+            'model_a_metrics': metrics_a,
+            'model_b_metrics': metrics_b,
+            'statistical_tests': {
+                'accuracy': accuracy_test
+            },
+            'recommendations': self._generate_recommendations(metrics_a, metrics_b, accuracy_test)
+        }
+        
+        return report
+    
+    def _generate_recommendations(self, metrics_a, metrics_b, accuracy_test):
+        """Generate recommendations based on test results."""
+        
+        recommendations = []
+        
+        if accuracy_test.get('significant', False):
+            if accuracy_test['model_a_value'] > accuracy_test['model_b_value']:
+                recommendations.append("Model A shows statistically significant better accuracy")
+                recommendations.append("Recommend deploying Model A to 100% of traffic")
+            else:
+                recommendations.append("Model B shows statistically significant better accuracy")
+                recommendations.append("Recommend deploying Model B to 100% of traffic")
+        else:
+            recommendations.append("No statistically significant difference in accuracy")
+            recommendations.append("Consider running test longer or with larger sample size")
+        
+        # Sample size recommendations
+        if metrics_a['sample_size'] < 1000 or metrics_b['sample_size'] < 1000:
+            recommendations.append("Sample sizes may be too small for reliable conclusions")
+        
+        return recommendations
+    
+    def plot_results(self):
+        """Visualize A/B test results."""
+        
+        metrics_a = self.calculate_metrics(self.results_a)
+        metrics_b = self.calculate_metrics(self.results_b)
+        
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        
+        # Accuracy comparison
+        axes[0, 0].bar(['Model A', 'Model B'], 
+                      [metrics_a['accuracy'], metrics_b['accuracy']], 
+                      color=['blue', 'red'], alpha=0.7)
+        axes[0, 0].set_ylabel('Accuracy')
+        axes[0, 0].set_title('Model Accuracy Comparison')
+        axes[0, 0].set_ylim(0, 1)
+        
+        # Sample size comparison
+        axes[0, 1].bar(['Model A', 'Model B'], 
+                      [metrics_a['sample_size'], metrics_b['sample_size']], 
+                      color=['blue', 'red'], alpha=0.7)
+        axes[0, 1].set_ylabel('Sample Size')
+        axes[0, 1].set_title('Sample Size Comparison')
+        
+        # Confidence comparison
+        axes[1, 0].bar(['Model A', 'Model B'], 
+                      [metrics_a['avg_confidence'], metrics_b['avg_confidence']], 
+                      color=['blue', 'red'], alpha=0.7)
+        axes[1, 0].set_ylabel('Average Confidence')
+        axes[1, 0].set_title('Model Confidence Comparison')
+        
+        # Performance over time
+        if self.results_a and self.results_b:
+            df_a = pd.DataFrame(self.results_a)
+            df_b = pd.DataFrame(self.results_b)
+            
+            # Rolling accuracy
+            df_a['rolling_accuracy'] = df_a['correct'].rolling(window=50, min_periods=1).mean()
+            df_b['rolling_accuracy'] = df_b['correct'].rolling(window=50, min_periods=1).mean()
+            
+            axes[1, 1].plot(df_a.index, df_a['rolling_accuracy'], label='Model A', color='blue')
+            axes[1, 1].plot(df_b.index, df_b['rolling_accuracy'], label='Model B', color='red')
+            axes[1, 1].set_xlabel('Prediction Number')
+            axes[1, 1].set_ylabel('Rolling Accuracy')
+            axes[1, 1].set_title('Accuracy Over Time')
+            axes[1, 1].legend()
+        
+        plt.tight_layout()
+        plt.show()
+
+# Example usage
+def ab_test_example():
+    """Example of running A/B test for ML models."""
+    
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.datasets import make_classification
+    
+    # Create sample models
+    X, y = make_classification(n_samples=1000, n_features=10, random_state=42)
+    
+    model_a = RandomForestClassifier(n_estimators=50, random_state=42)
+    model_b = LogisticRegression(random_state=42)
+    
+    model_a.fit(X[:800], y[:800])
+    model_b.fit(X[:800], y[:800])
+    
+    # Initialize A/B test
+    ab_test = MLModelABTest(model_a, model_b, "RF vs LR Test")
+    
+    # Simulate user interactions
+    test_data = X[800:]
+    test_labels = y[800:]
+    
+    for i, (features, true_label) in enumerate(zip(test_data, test_labels)):
+        user_id = f"user_{i}"
+        
+        # Get prediction
+        prediction_result = ab_test.serve_prediction(user_id, features)
+        
+        # Simulate some noise in actual outcomes
+        actual_outcome = true_label if np.random.random() > 0.1 else 1 - true_label
+        
+        # Log result
+        ab_test.log_result(
+            user_id, 
+            prediction_result, 
+            actual_outcome,
+            conversion_value=np.random.exponential(10) if actual_outcome else 0,
+            response_time=np.random.normal(0.1, 0.02)
+        )
+    
+    # Generate report
+    report = ab_test.generate_report()
+    
+    print("A/B Test Report:")
+    print(f"Model A Accuracy: {report['model_a_metrics']['accuracy']:.3f}")
+    print(f"Model B Accuracy: {report['model_b_metrics']['accuracy']:.3f}")
+    print(f"Statistical Significance: {report['statistical_tests']['accuracy']['significant']}")
+    print(f"P-value: {report['statistical_tests']['accuracy']['p_value']:.4f}")
+    
+    # Plot results
+    ab_test.plot_results()
+    
+    return ab_test, report
+```
+
+### 20. How do you implement federated learning?
+
+**Answer**: Federated learning trains models across decentralized data without centralizing the data.
+
+```python
+# Federated Learning Implementation
+import numpy as np
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import accuracy_score
+import copy
+
+class FederatedLearningClient:
+    def __init__(self, client_id, X_local, y_local):
+        self.client_id = client_id
+        self.X_local = X_local
+        self.y_local = y_local
+        self.local_model = None
+        
+    def receive_global_model(self, global_model):
+        """Receive global model from server."""
+        self.local_model = copy.deepcopy(global_model)
+    
+    def local_training(self, epochs=5):
+        """Train model on local data."""
+        
+        if self.local_model is None:
+            # Initialize local model
+            self.local_model = SGDClassifier(loss='log', random_state=42)
+            # Fit once to initialize
+            self.local_model.fit(self.X_local[:1], self.y_local[:1])
+        
+        # Local training iterations
+        for epoch in range(epochs):
+            # Shuffle data
+            indices = np.random.permutation(len(self.X_local))
+            X_shuffled = self.X_local[indices]
+            y_shuffled = self.y_local[indices]
+            
+            # Mini-batch training
+            batch_size = min(32, len(self.X_local))
+            for i in range(0, len(X_shuffled), batch_size):
+                X_batch = X_shuffled[i:i+batch_size]
+                y_batch = y_shuffled[i:i+batch_size]
+                
+                # Partial fit (online learning)
+                self.local_model.partial_fit(X_batch, y_batch)
+        
+        return self.get_model_parameters()
+    
+    def get_model_parameters(self):
+        """Extract model parameters for aggregation."""
+        return {
+            'coef_': self.local_model.coef_.copy(),
+            'intercept_': self.local_model.intercept_.copy(),
+            'data_size': len(self.X_local)
+        }
+    
+    def evaluate_model(self, X_test, y_test):
+        """Evaluate local model performance."""
+        if self.local_model is None:
+            return 0.0
+        
+        predictions = self.local_model.predict(X_test)
+        return accuracy_score(y_test, predictions)
+
+class FederatedLearningServer:
+    def __init__(self):
+        self.global_model = None
+        self.clients = []
+        self.round_history = []
+        
+    def register_client(self, client):
+        """Register a client for federated learning."""
+        self.clients.append(client)
+    
+    def initialize_global_model(self, n_features):
+        """Initialize global model."""
+        self.global_model = SGDClassifier(loss='log', random_state=42)
+        
+        # Initialize with dummy data to set up model structure
+        dummy_X = np.zeros((1, n_features))
+        dummy_y = np.array([0])
+        self.global_model.fit(dummy_X, dummy_y)
+    
+    def federated_averaging(self, client_parameters):
+        """Aggregate client parameters using FedAvg algorithm."""
+        
+        if not client_parameters:
+            return
+        
+        # Calculate total data size across all clients
+        total_data_size = sum(params['data_size'] for params in client_parameters)
+        
+        # Weighted average of parameters
+        aggregated_coef = np.zeros_like(client_parameters[0]['coef_'])
+        aggregated_intercept = np.zeros_like(client_parameters[0]['intercept_'])
+        
+        for params in client_parameters:
+            weight = params['data_size'] / total_data_size
+            aggregated_coef += weight * params['coef_']
+            aggregated_intercept += weight * params['intercept_']
+        
+        # Update global model
+        self.global_model.coef_ = aggregated_coef
+        self.global_model.intercept_ = aggregated_intercept
+    
+    def run_federated_round(self, selected_clients=None, local_epochs=5):
+        """Run one round of federated learning."""
+        
+        if selected_clients is None:
+            selected_clients = self.clients
+        
+        # Send global model to selected clients
+        for client in selected_clients:
+            client.receive_global_model(self.global_model)
+        
+        # Collect local updates
+        client_parameters = []
+        for client in selected_clients:
+            params = client.local_training(epochs=local_epochs)
+            client_parameters.append(params)
+        
+        # Aggregate parameters
+        self.federated_averaging(client_parameters)
+        
+        return len(selected_clients)
+    
+    def run_federated_learning(self, n_rounds=10, client_fraction=1.0, 
+                              local_epochs=5, X_test=None, y_test=None):
+        """Run complete federated learning process."""
+        
+        results = []
+        
+        for round_num in range(n_rounds):
+            print(f"Federated Learning Round {round_num + 1}/{n_rounds}")
+            
+            # Select subset of clients
+            n_selected = max(1, int(len(self.clients) * client_fraction))
+            selected_clients = np.random.choice(self.clients, n_selected, replace=False)
+            
+            # Run federated round
+            n_participants = self.run_federated_round(selected_clients, local_epochs)
+            
+            # Evaluate global model
+            if X_test is not None and y_test is not None:
+                global_accuracy = self.evaluate_global_model(X_test, y_test)
+                
+                # Evaluate client models
+                client_accuracies = []
+                for client in self.clients:
+                    client_acc = client.evaluate_model(X_test, y_test)
+                    client_accuracies.append(client_acc)
+                
+                round_result = {
+                    'round': round_num + 1,
+                    'participants': n_participants,
+                    'global_accuracy': global_accuracy,
+                    'avg_client_accuracy': np.mean(client_accuracies),
+                    'client_accuracies': client_accuracies
+                }
+                
+                results.append(round_result)
+                
+                print(f"  Global Model Accuracy: {global_accuracy:.3f}")
+                print(f"  Average Client Accuracy: {np.mean(client_accuracies):.3f}")
+        
+        self.round_history = results
+        return results
+    
+    def evaluate_global_model(self, X_test, y_test):
+        """Evaluate global model performance."""
+        if self.global_model is None:
+            return 0.0
+        
+        predictions = self.global_model.predict(X_test)
+        return accuracy_score(y_test, predictions)
+    
+    def plot_learning_curves(self):
+        """Plot federated learning progress."""
+        
+        if not self.round_history:
+            print("No training history available")
+            return
+        
+        rounds = [r['round'] for r in self.round_history]
+        global_accuracies = [r['global_accuracy'] for r in self.round_history]
+        avg_client_accuracies = [r['avg_client_accuracy'] for r in self.round_history]
+        
+        plt.figure(figsize=(12, 5))
+        
+        # Accuracy over rounds
+        plt.subplot(1, 2, 1)
+        plt.plot(rounds, global_accuracies, 'o-', label='Global Model', linewidth=2)
+        plt.plot(rounds, avg_client_accuracies, 's-', label='Average Client', linewidth=2)
+        plt.xlabel('Federated Round')
+        plt.ylabel('Accuracy')
+        plt.title('Federated Learning Progress')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        
+        # Client accuracy distribution in final round
+        plt.subplot(1, 2, 2)
+        final_client_accs = self.round_history[-1]['client_accuracies']
+        plt.hist(final_client_accs, bins=10, alpha=0.7, edgecolor='black')
+        plt.axvline(self.round_history[-1]['global_accuracy'], 
+                   color='red', linestyle='--', linewidth=2, label='Global Model')
+        plt.xlabel('Accuracy')
+        plt.ylabel('Number of Clients')
+        plt.title('Client Accuracy Distribution (Final Round)')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.show()
+
+# Privacy-Preserving Techniques
+class DifferentialPrivacyFL:
+    def __init__(self, epsilon=1.0, delta=1e-5):
+        self.epsilon = epsilon  # Privacy budget
+        self.delta = delta      # Probability of privacy breach
+        
+    def add_noise_to_gradients(self, gradients, sensitivity=1.0):
+        """Add Gaussian noise to gradients for differential privacy."""
+        
+        # Calculate noise scale
+        noise_scale = np.sqrt(2 * np.log(1.25 / self.delta)) * sensitivity / self.epsilon
+        
+        # Add noise to each gradient component
+        noisy_gradients = {}
+        for key, grad in gradients.items():
+            noise = np.random.normal(0, noise_scale, grad.shape)
+            noisy_gradients[key] = grad + noise
+        
+        return noisy_gradients
+    
+    def clip_gradients(self, gradients, clip_norm=1.0):
+        """Clip gradients to bound sensitivity."""
+        
+        clipped_gradients = {}
+        for key, grad in gradients.items():
+            grad_norm = np.linalg.norm(grad)
+            if grad_norm > clip_norm:
+                clipped_gradients[key] = grad * (clip_norm / grad_norm)
+            else:
+                clipped_gradients[key] = grad
+        
+        return clipped_gradients
+
+# Example usage
+def federated_learning_example():
+    """Example of federated learning with multiple clients."""
+    
+    from sklearn.datasets import make_classification
+    from sklearn.model_selection import train_test_split
+    
+    # Generate dataset
+    X, y = make_classification(n_samples=1000, n_features=20, n_classes=2, random_state=42)
+    
+    # Split into train and test
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    # Simulate federated setting by splitting training data among clients
+    n_clients = 5
+    client_data_size = len(X_train) // n_clients
+    
+    # Create federated learning server
+    fl_server = FederatedLearningServer()
+    fl_server.initialize_global_model(X_train.shape[1])
+    
+    # Create clients with non-IID data distribution
+    clients = []
+    for i in range(n_clients):
+        start_idx = i * client_data_size
+        end_idx = start_idx + client_data_size if i < n_clients - 1 else len(X_train)
+        
+        # Add some bias to make data non-IID
+        if i < n_clients // 2:
+            # First half of clients get more class 0 samples
+            class_0_mask = y_train[start_idx:end_idx] == 0
+            biased_indices = np.where(class_0_mask)[0][:int(0.8 * client_data_size)]
+            remaining_indices = np.where(~class_0_mask)[0][:client_data_size - len(biased_indices)]
+            selected_indices = np.concatenate([biased_indices, remaining_indices])
+        else:
+            # Second half gets more class 1 samples
+            class_1_mask = y_train[start_idx:end_idx] == 1
+            biased_indices = np.where(class_1_mask)[0][:int(0.8 * client_data_size)]
+            remaining_indices = np.where(~class_1_mask)[0][:client_data_size - len(biased_indices)]
+            selected_indices = np.concatenate([biased_indices, remaining_indices])
+        
+        # Adjust indices to global range
+        global_indices = start_idx + selected_indices
+        
+        X_client = X_train[global_indices]
+        y_client = y_train[global_indices]
+        
+        client = FederatedLearningClient(f"client_{i}", X_client, y_client)
+        clients.append(client)
+        fl_server.register_client(client)
+    
+    print(f"Created {len(clients)} federated learning clients")
+    print(f"Client data sizes: {[len(c.X_local) for c in clients]}")
+    
+    # Run federated learning
+    results = fl_server.run_federated_learning(
+        n_rounds=15,
+        client_fraction=0.8,  # 80% of clients participate each round
+        local_epochs=3,
+        X_test=X_test,
+        y_test=y_test
+    )
+    
+    # Plot results
+    fl_server.plot_learning_curves()
+    
+    # Compare with centralized learning
+    from sklearn.linear_model import LogisticRegression
+    centralized_model = LogisticRegression(random_state=42)
+    centralized_model.fit(X_train, y_train)
+    centralized_accuracy = accuracy_score(y_test, centralized_model.predict(X_test))
+    
+    final_fl_accuracy = results[-1]['global_accuracy']
+    
+    print(f"\nFinal Results:")
+    print(f"Federated Learning Accuracy: {final_fl_accuracy:.3f}")
+    print(f"Centralized Learning Accuracy: {centralized_accuracy:.3f}")
+    print(f"Performance Gap: {centralized_accuracy - final_fl_accuracy:.3f}")
+    
+    return fl_server, results
+```
+
+This comprehensive expansion brings the Machine Learning interview questions to 80+ questions, covering fundamental concepts through advanced techniques like federated learning, A/B testing, and online learning with practical data engineering examples.

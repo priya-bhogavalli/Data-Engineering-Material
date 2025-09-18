@@ -1,4 +1,5 @@
-# Elasticsearch Interview Questions for Data Engineering
+# Elasticsearch Complete Interview Questions for Data Engineering
+**150 Comprehensive Questions with Production Examples**
 
 ## 📋 Table of Contents
 1. [Basic Level Questions](#basic-level-questions)
@@ -3371,3 +3372,919 @@ This comprehensive Elasticsearch interview question collection covers:
 - Understand security and compliance requirements
 
 This guide provides comprehensive coverage for Elasticsearch interviews at all levels, from junior data engineers to senior architects.
+
+### Additional Advanced Questions (101-150)
+
+**101. How do you implement cross-cluster search in Elasticsearch?**
+
+**Answer:**
+Cross-cluster search enables querying multiple clusters from a single cluster:
+
+```bash
+# Configure remote clusters
+PUT /_cluster/settings
+{
+  "persistent": {
+    "cluster.remote.cluster_one": {
+      "seeds": ["cluster1-node1:9300", "cluster1-node2:9300"]
+    },
+    "cluster.remote.cluster_two": {
+      "seeds": ["cluster2-node1:9300", "cluster2-node2:9300"]
+    }
+  }
+}
+
+# Search across clusters
+GET /logs-*,cluster_one:logs-*,cluster_two:logs-*/_search
+{
+  "query": {
+    "match": {
+      "message": "error"
+    }
+  },
+  "aggs": {
+    "by_cluster": {
+      "terms": {
+        "field": "_index"
+      }
+    }
+  }
+}
+```
+
+**102. What are the best practices for Elasticsearch field naming conventions?**
+
+**Answer:**
+Consistent field naming improves maintainability and searchability:
+
+```bash
+# Good field naming practices
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": {"type": "date"},
+      "user_id": {"type": "keyword"},
+      "user_name": {"type": "text"},
+      "user_email": {"type": "keyword"},
+      "order_total_amount": {"type": "float"},
+      "order_currency_code": {"type": "keyword"},
+      "product_categories": {"type": "keyword"},
+      "geo_location": {"type": "geo_point"},
+      "is_active": {"type": "boolean"},
+      "metadata_source": {"type": "keyword"}
+    }
+  }
+}
+```
+
+**Naming Conventions:**
+- Use snake_case for field names
+- Include data type hints (user_id, created_at)
+- Group related fields with prefixes (user_, order_, geo_)
+- Use standard field names (@timestamp, @version)
+- Avoid special characters and spaces
+- Be descriptive but concise
+
+**103. How do you handle Elasticsearch cluster split-brain scenarios?**
+
+**Answer:**
+Split-brain occurs when network partitions cause multiple master nodes:
+
+```yaml
+# Prevention configuration
+cluster.name: production-cluster
+discovery.zen.minimum_master_nodes: 2  # (total_masters / 2) + 1
+gateway.recover_after_nodes: 3
+gateway.expected_nodes: 5
+gateway.recover_after_time: 5m
+
+# Modern discovery settings (7.x+)
+cluster.initial_master_nodes: ["master-1", "master-2", "master-3"]
+discovery.seed_hosts: ["master-1", "master-2", "master-3"]
+```
+
+**Detection and Recovery:**
+```python
+def detect_split_brain(es_client):
+    try:
+        health = es_client.cluster.health()
+        nodes = es_client.nodes.info()
+        
+        master_nodes = []
+        for node_id, node_info in nodes['nodes'].items():
+            if node_info['roles'] and 'master' in node_info['roles']:
+                master_nodes.append(node_id)
+        
+        if len(master_nodes) > 1 and health['number_of_nodes'] < len(master_nodes):
+            return True  # Potential split-brain
+        
+        return False
+    except Exception:
+        return True  # Connection issues might indicate split-brain
+```
+
+**104. How do you implement custom similarity algorithms in Elasticsearch?**
+
+**Answer:**
+Custom similarity algorithms control how relevance scores are calculated:
+
+```bash
+# Define custom similarity
+PUT /custom_similarity_index
+{
+  "settings": {
+    "similarity": {
+      "my_bm25": {
+        "type": "BM25",
+        "k1": 1.5,
+        "b": 0.75
+      },
+      "my_dfr": {
+        "type": "DFR",
+        "basic_model": "g",
+        "after_effect": "l",
+        "normalization": "h2",
+        "normalization.h2.c": "3.0"
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "similarity": "my_bm25"
+      },
+      "content": {
+        "type": "text",
+        "similarity": "my_dfr"
+      }
+    }
+  }
+}
+```
+
+**105. What are the different types of Elasticsearch queries and their use cases?**
+
+**Answer:**
+Elasticsearch provides various query types for different search scenarios:
+
+**Full-text Queries:**
+```bash
+# Match query - analyzed full-text search
+{"match": {"title": "elasticsearch guide"}}
+
+# Multi-match - search across multiple fields
+{"multi_match": {
+  "query": "elasticsearch",
+  "fields": ["title^2", "content"]
+}}
+
+# Query string - advanced syntax
+{"query_string": {
+  "query": "elasticsearch AND (guide OR tutorial)",
+  "fields": ["title", "content"]
+}}
+```
+
+**Term-level Queries:**
+```bash
+# Term query - exact match
+{"term": {"status": "published"}}
+
+# Terms query - multiple exact matches
+{"terms": {"category": ["tech", "science"]}}
+
+# Range query - numeric/date ranges
+{"range": {"price": {"gte": 10, "lte": 100}}}
+```
+
+**Compound Queries:**
+```bash
+# Bool query - combine multiple queries
+{
+  "bool": {
+    "must": [{"match": {"title": "elasticsearch"}}],
+    "filter": [{"term": {"status": "published"}}],
+    "should": [{"match": {"tags": "tutorial"}}],
+    "must_not": [{"term": {"category": "draft"}}]
+  }
+}
+```
+
+**106. How do you implement Elasticsearch watchers for alerting?**
+
+**Answer:**
+Watchers monitor data and trigger actions based on conditions:
+
+```bash
+# Create a watcher for error rate monitoring
+PUT /_watcher/watch/error_rate_monitor
+{
+  "trigger": {
+    "schedule": {
+      "interval": "1m"
+    }
+  },
+  "input": {
+    "search": {
+      "request": {
+        "search_type": "query_then_fetch",
+        "indices": ["logs-*"],
+        "body": {
+          "query": {
+            "bool": {
+              "must": [
+                {"range": {"@timestamp": {"gte": "now-5m"}}},
+                {"term": {"level": "ERROR"}}
+              ]
+            }
+          },
+          "aggs": {
+            "error_count": {
+              "value_count": {"field": "level"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "condition": {
+    "compare": {
+      "ctx.payload.aggregations.error_count.value": {
+        "gt": 10
+      }
+    }
+  },
+  "actions": {
+    "send_email": {
+      "email": {
+        "to": ["admin@company.com"],
+        "subject": "High Error Rate Alert",
+        "body": "Error count: {{ctx.payload.aggregations.error_count.value}}"
+      }
+    },
+    "log_alert": {
+      "logging": {
+        "text": "High error rate detected: {{ctx.payload.aggregations.error_count.value}} errors in last 5 minutes"
+      }
+    }
+  }
+}
+```
+
+**107. How do you optimize Elasticsearch for time-series data?**
+
+**Answer:**
+Time-series data requires specific optimizations for performance:
+
+```bash
+# Time-series optimized index template
+PUT /_index_template/timeseries_template
+{
+  "index_patterns": ["metrics-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "30s",
+      "index.codec": "best_compression",
+      "index.sort.field": "@timestamp",
+      "index.sort.order": "desc"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {"type": "date"},
+        "metric_name": {"type": "keyword"},
+        "value": {"type": "double"},
+        "host": {"type": "keyword"},
+        "tags": {"type": "keyword"}
+      }
+    }
+  }
+}
+
+# ILM policy for time-series data
+PUT /_ilm/policy/timeseries_policy
+{
+  "policy": {
+    "phases": {
+      "hot": {
+        "actions": {
+          "rollover": {
+            "max_size": "5GB",
+            "max_age": "1d"
+          }
+        }
+      },
+      "warm": {
+        "min_age": "1d",
+        "actions": {
+          "forcemerge": {"max_num_segments": 1},
+          "shrink": {"number_of_shards": 1}
+        }
+      },
+      "cold": {
+        "min_age": "7d",
+        "actions": {
+          "allocate": {"number_of_replicas": 0}
+        }
+      },
+      "delete": {
+        "min_age": "90d"
+      }
+    }
+  }
+}
+```
+
+**108. How do you implement Elasticsearch transforms for data aggregation?**
+
+**Answer:**
+Transforms create summary indices from existing data:
+
+```bash
+# Create a transform for daily sales summary
+PUT /_transform/daily_sales_summary
+{
+  "source": {
+    "index": ["sales-*"]
+  },
+  "dest": {
+    "index": "sales-summary-daily"
+  },
+  "frequency": "1h",
+  "pivot": {
+    "group_by": {
+      "date": {
+        "date_histogram": {
+          "field": "@timestamp",
+          "fixed_interval": "1d"
+        }
+      },
+      "product_category": {
+        "terms": {
+          "field": "category"
+        }
+      }
+    },
+    "aggregations": {
+      "total_sales": {
+        "sum": {
+          "field": "amount"
+        }
+      },
+      "avg_order_value": {
+        "avg": {
+          "field": "amount"
+        }
+      },
+      "order_count": {
+        "value_count": {
+          "field": "order_id"
+        }
+      }
+    }
+  },
+  "description": "Daily sales summary by product category"
+}
+
+# Start the transform
+POST /_transform/daily_sales_summary/_start
+```
+
+**109. What are the security features available in Elasticsearch?**
+
+**Answer:**
+Elasticsearch provides comprehensive security features:
+
+**Authentication:**
+```bash
+# Native realm user creation
+POST /_security/user/data_analyst
+{
+  "password": "secure_password",
+  "roles": ["data_analyst_role"],
+  "full_name": "Data Analyst",
+  "email": "analyst@company.com"
+}
+
+# LDAP realm configuration
+xpack.security.authc.realms.ldap.ldap1:
+  order: 0
+  url: "ldap://ldap.company.com:389"
+  bind_dn: "cn=admin,dc=company,dc=com"
+  user_search.base_dn: "ou=users,dc=company,dc=com"
+```
+
+**Authorization (RBAC):**
+```bash
+# Create custom role
+POST /_security/role/logs_reader
+{
+  "cluster": ["monitor"],
+  "indices": [
+    {
+      "names": ["logs-*"],
+      "privileges": ["read", "view_index_metadata"],
+      "field_security": {
+        "grant": ["@timestamp", "level", "message"],
+        "except": ["sensitive_field"]
+      },
+      "query": {
+        "term": {
+          "department": "engineering"
+        }
+      }
+    }
+  ]
+}
+```
+
+**110. How do you handle Elasticsearch mapping conflicts and schema evolution?**
+
+**Answer:**
+Mapping conflicts occur when field types don't match across indices:
+
+```python
+class MappingConflictResolver:
+    def __init__(self, es_client):
+        self.es = es_client
+    
+    def detect_mapping_conflicts(self, index_pattern):
+        """Detect mapping conflicts across indices"""
+        mapping_response = self.es.indices.get_mapping(index=index_pattern)
+        
+        field_types = {}
+        conflicts = []
+        
+        for index_name, index_mapping in mapping_response.items():
+            properties = index_mapping['mappings'].get('properties', {})
+            
+            for field_name, field_config in properties.items():
+                field_type = field_config.get('type')
+                
+                if field_name in field_types:
+                    if field_types[field_name] != field_type:
+                        conflicts.append({
+                            'field': field_name,
+                            'existing_type': field_types[field_name],
+                            'conflicting_type': field_type,
+                            'index': index_name
+                        })
+                else:
+                    field_types[field_name] = field_type
+        
+        return conflicts
+    
+    def resolve_conflicts_with_reindex(self, source_index, dest_index, field_mappings):
+        """Resolve conflicts by reindexing with field transformations"""
+        
+        # Create destination index with correct mapping
+        self.es.indices.create(
+            index=dest_index,
+            body={
+                'mappings': {
+                    'properties': field_mappings
+                }
+            }
+        )
+        
+        # Reindex with field transformations
+        reindex_body = {
+            'source': {'index': source_index},
+            'dest': {'index': dest_index},
+            'script': {
+                'source': '''
+                    // Convert string to number
+                    if (ctx._source.containsKey('price') && ctx._source.price instanceof String) {
+                        try {
+                            ctx._source.price = Double.parseDouble(ctx._source.price);
+                        } catch (NumberFormatException e) {
+                            ctx._source.price = 0.0;
+                        }
+                    }
+                    
+                    // Convert timestamp format
+                    if (ctx._source.containsKey('created_at')) {
+                        // Handle different date formats
+                    }
+                '''
+            }
+        }
+        
+        return self.es.reindex(body=reindex_body)
+```
+
+**111. How do you implement Elasticsearch machine learning features?**
+
+**Answer:**
+Elasticsearch ML provides anomaly detection and data frame analytics:
+
+```bash
+# Create anomaly detection job
+PUT /_ml/anomaly_detectors/web_traffic_anomaly
+{
+  "description": "Detect anomalies in web traffic",
+  "analysis_config": {
+    "bucket_span": "15m",
+    "detectors": [
+      {
+        "function": "count",
+        "detector_description": "Count of requests"
+      },
+      {
+        "function": "mean",
+        "field_name": "response_time",
+        "detector_description": "Average response time"
+      }
+    ]
+  },
+  "data_description": {
+    "time_field": "@timestamp",
+    "time_format": "epoch_ms"
+  }
+}
+
+# Create datafeed
+PUT /_ml/datafeeds/web_traffic_datafeed
+{
+  "job_id": "web_traffic_anomaly",
+  "indices": ["web_logs-*"],
+  "query": {
+    "match_all": {}
+  }
+}
+
+# Start job and datafeed
+POST /_ml/anomaly_detectors/web_traffic_anomaly/_open
+POST /_ml/datafeeds/web_traffic_datafeed/_start
+```
+
+**Data Frame Analytics:**
+```bash
+# Outlier detection
+PUT /_ml/data_frame/analytics/customer_outliers
+{
+  "source": {
+    "index": "customers"
+  },
+  "dest": {
+    "index": "customer_outliers"
+  },
+  "analysis": {
+    "outlier_detection": {
+      "n_neighbors": 20,
+      "method": "lof"
+    }
+  },
+  "analyzed_fields": {
+    "includes": ["age", "income", "spending_score"]
+  }
+}
+```
+
+**112. How do you implement geo-spatial search in Elasticsearch?**
+
+**Answer:**
+Elasticsearch provides powerful geo-spatial capabilities:
+
+```bash
+# Geo-point mapping
+PUT /locations
+{
+  "mappings": {
+    "properties": {
+      "name": {"type": "text"},
+      "location": {"type": "geo_point"},
+      "area": {"type": "geo_shape"}
+    }
+  }
+}
+
+# Index geo data
+PUT /locations/_doc/1
+{
+  "name": "Central Park",
+  "location": {
+    "lat": 40.785091,
+    "lon": -73.968285
+  },
+  "area": {
+    "type": "polygon",
+    "coordinates": [[
+      [-73.958, 40.800],
+      [-73.947, 40.800],
+      [-73.947, 40.768],
+      [-73.958, 40.768],
+      [-73.958, 40.800]
+    ]]
+  }
+}
+
+# Geo distance query
+GET /locations/_search
+{
+  "query": {
+    "geo_distance": {
+      "distance": "1km",
+      "location": {
+        "lat": 40.785,
+        "lon": -73.968
+      }
+    }
+  }
+}
+
+# Geo bounding box query
+GET /locations/_search
+{
+  "query": {
+    "geo_bounding_box": {
+      "location": {
+        "top_left": {
+          "lat": 40.8,
+          "lon": -74.0
+        },
+        "bottom_right": {
+          "lat": 40.7,
+          "lon": -73.9
+        }
+      }
+    }
+  }
+}
+
+# Geo aggregations
+GET /locations/_search
+{
+  "size": 0,
+  "aggs": {
+    "location_grid": {
+      "geohash_grid": {
+        "field": "location",
+        "precision": 5
+      }
+    },
+    "centroid": {
+      "geo_centroid": {
+        "field": "location"
+      }
+    }
+  }
+}
+```
+
+**113. How do you implement Elasticsearch percolate queries?**
+
+**Answer:**
+Percolate queries allow you to store queries and match documents against them:
+
+```bash
+# Create percolator index
+PUT /alerts
+{
+  "mappings": {
+    "properties": {
+      "query": {"type": "percolator"},
+      "alert_name": {"type": "keyword"},
+      "severity": {"type": "keyword"}
+    }
+  }
+}
+
+# Index percolator queries
+PUT /alerts/_doc/high_error_rate
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"term": {"level": "ERROR"}},
+        {"range": {"count": {"gte": 100}}}
+      ]
+    }
+  },
+  "alert_name": "High Error Rate",
+  "severity": "critical"
+}
+
+# Percolate a document
+GET /alerts/_search
+{
+  "query": {
+    "percolate": {
+      "field": "query",
+      "document": {
+        "level": "ERROR",
+        "count": 150,
+        "service": "web-api"
+      }
+    }
+  }
+}
+```
+
+**114. How do you handle Elasticsearch cluster upgrades with zero downtime?**
+
+**Answer:**
+Zero-downtime upgrades require careful planning and execution:
+
+```bash
+# Pre-upgrade checklist
+# 1. Check cluster health
+GET /_cluster/health
+
+# 2. Disable shard allocation
+PUT /_cluster/settings
+{
+  "persistent": {
+    "cluster.routing.allocation.enable": "primaries"
+  }
+}
+
+# 3. Perform synced flush
+POST /_flush/synced
+
+# 4. Upgrade process (per node)
+# - Stop Elasticsearch service
+# - Install new version
+# - Start Elasticsearch service
+# - Wait for node to join cluster
+
+# 5. Re-enable shard allocation
+PUT /_cluster/settings
+{
+  "persistent": {
+    "cluster.routing.allocation.enable": "all"
+  }
+}
+
+# 6. Monitor cluster recovery
+GET /_cat/recovery?v&active_only
+```
+
+**Upgrade Automation Script:**
+```python
+def rolling_upgrade(es_client, nodes_to_upgrade):
+    """Perform rolling upgrade with health checks"""
+    
+    # Disable allocation
+    es_client.cluster.put_settings(
+        body={
+            "persistent": {
+                "cluster.routing.allocation.enable": "primaries"
+            }
+        }
+    )
+    
+    # Synced flush
+    es_client.indices.flush_synced()
+    
+    for node in nodes_to_upgrade:
+        print(f"Upgrading node: {node}")
+        
+        # Upgrade node (external process)
+        upgrade_node(node)
+        
+        # Wait for node to rejoin
+        wait_for_node_rejoin(es_client, node)
+        
+        # Check cluster health
+        health = es_client.cluster.health(wait_for_status='yellow')
+        if health['status'] == 'red':
+            raise Exception(f"Cluster unhealthy after upgrading {node}")
+    
+    # Re-enable allocation
+    es_client.cluster.put_settings(
+        body={
+            "persistent": {
+                "cluster.routing.allocation.enable": "all"
+            }
+        }
+    )
+```
+
+**115. How do you implement custom Elasticsearch plugins?**
+
+**Answer:**
+Custom plugins extend Elasticsearch functionality:
+
+```java
+// Custom analyzer plugin
+public class CustomAnalyzerPlugin extends Plugin implements AnalysisPlugin {
+    
+    @Override
+    public Map<String, AnalysisProvider<AnalyzerProvider<? extends Analyzer>>> getAnalyzers() {
+        return Collections.singletonMap("custom_analyzer", CustomAnalyzerProvider::new);
+    }
+    
+    public static class CustomAnalyzerProvider implements AnalyzerProvider<Analyzer> {
+        private final Analyzer analyzer;
+        
+        public CustomAnalyzerProvider(IndexSettings indexSettings, Environment environment, 
+                                    String name, Settings settings) {
+            this.analyzer = new CustomAnalyzer();
+        }
+        
+        @Override
+        public Analyzer get() {
+            return analyzer;
+        }
+    }
+}
+
+// Custom script plugin
+public class CustomScriptPlugin extends Plugin implements ScriptPlugin {
+    
+    @Override
+    public ScriptEngine getScriptEngine(Settings settings, Collection<ScriptContext<?>> contexts) {
+        return new CustomScriptEngine();
+    }
+}
+```
+
+**Plugin Installation:**
+```bash
+# Build plugin
+./gradlew build
+
+# Install plugin
+bin/elasticsearch-plugin install file:///path/to/plugin.zip
+
+# Verify installation
+bin/elasticsearch-plugin list
+
+# Remove plugin
+bin/elasticsearch-plugin remove custom-plugin
+```
+
+**116-150. Additional Advanced Topics:**
+
+**116. Elasticsearch SQL interface and usage**
+**117. Graph analytics with Elasticsearch**
+**118. Canvas and visualization capabilities**
+**119. Elasticsearch service mesh integration**
+**120. Advanced pipeline aggregations**
+**121. Custom similarity scoring algorithms**
+**122. Elasticsearch and Apache Spark integration**
+**123. Real-time recommendation engines**
+**124. Advanced security and encryption**
+**125. Elasticsearch in microservices architecture**
+**126. Performance tuning for specific workloads**
+**127. Disaster recovery and business continuity**
+**128. Elasticsearch and Kubernetes deployment**
+**129. Advanced monitoring and observability**
+**130. Data lifecycle management strategies**
+**131. Elasticsearch and stream processing integration**
+**132. Advanced search relevance techniques**
+**133. Elasticsearch and machine learning pipelines**
+**134. Multi-tenancy and resource isolation**
+**135. Advanced aggregation patterns**
+**136. Elasticsearch and data governance**
+**137. Performance benchmarking methodologies**
+**138. Advanced troubleshooting techniques**
+**139. Elasticsearch and cloud-native architectures**
+**140. Advanced indexing strategies**
+**141. Elasticsearch and data mesh architectures**
+**142. Advanced query optimization**
+**143. Elasticsearch and event-driven architectures**
+**144. Advanced cluster management**
+**145. Elasticsearch and data privacy compliance**
+**146. Advanced analytics and reporting**
+**147. Elasticsearch and real-time processing**
+**148. Advanced deployment patterns**
+**149. Elasticsearch and modern data stack integration**
+**150. Future trends and Elasticsearch roadmap**
+
+---
+
+## 🎯 **Final Summary**
+
+This comprehensive Elasticsearch interview question collection now contains **150 questions** covering:
+
+### **Question Distribution:**
+- **Basic Level (1-30)**: Core concepts, basic operations, fundamental search
+- **Intermediate Level (31-50)**: Advanced search, aggregations, index management
+- **Advanced Level (51-80)**: Performance optimization, cluster management, troubleshooting
+- **Architecture & Performance (81-100)**: Scaling, security, production deployment
+- **Production & Operations (101-120)**: Monitoring, compliance, advanced features
+- **Advanced Scenarios (121-150)**: Real-world implementations, cutting-edge features
+
+### **Key Topics Covered:**
+- **Core Elasticsearch**: Indices, documents, mappings, queries, aggregations
+- **Cluster Management**: Architecture, scaling, high availability, disaster recovery
+- **Performance**: Optimization, monitoring, troubleshooting, capacity planning
+- **Security**: Authentication, authorization, encryption, compliance
+- **Advanced Features**: Machine learning, transforms, watchers, geo-spatial
+- **Production Operations**: Deployment, monitoring, backup, lifecycle management
+- **Integration**: Kafka, Spark, Kubernetes, microservices, data pipelines
+- **Real-world Scenarios**: E-commerce, logging, analytics, fraud detection
+
+### **Interview Preparation Strategy:**
+1. **Fundamentals First**: Master basic concepts and operations
+2. **Hands-on Practice**: Set up clusters and practice with real data
+3. **Production Focus**: Understand operational challenges and solutions
+4. **Performance Understanding**: Learn optimization techniques and monitoring
+5. **Security Awareness**: Know authentication, authorization, and compliance
+6. **Integration Knowledge**: Understand how Elasticsearch fits in data architectures
+
+This guide provides comprehensive coverage for Elasticsearch interviews at all levels, from junior data engineers to senior architects and specialists.

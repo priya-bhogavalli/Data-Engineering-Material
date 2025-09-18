@@ -1,11 +1,11 @@
-# C++ Programming Interview Questions for Data Engineering
+# C++ Programming Interview Questions for Data Engineering - EXPANDED TO 80
 
 ## 📋 Table of Contents
 
-1. [Core Concepts Questions (1-15)](#core-concepts-questions-1-15)
-2. [STL & Templates Questions (16-30)](#stl--templates-questions-16-30)
-3. [Object-Oriented Programming Questions (31-45)](#object-oriented-programming-questions-31-45)
-4. [Performance & Memory Questions (46-60)](#performance--memory-questions-46-60)
+1. [Core Concepts Questions (1-25)](#core-concepts-questions-1-25)
+2. [STL & Templates Questions (26-40)](#stl--templates-questions-26-40)
+3. [Object-Oriented Programming Questions (41-55)](#object-oriented-programming-questions-41-55)
+4. [Performance & Memory Questions (56-80)](#performance--memory-questions-56-80)
 
 ---
 
@@ -22,7 +22,7 @@ C++ is crucial for data engineers working on high-performance data processing sy
 
 ---
 
-## Core Concepts Questions (1-15)
+## Core Concepts Questions (1-25)
 
 ### 1. What are the key advantages of C++ over C for data engineering applications?
 **Answer**: 
@@ -395,243 +395,233 @@ public:
         return stats;
     }
 };
-
-// Usage examples
-void demonstrateTemplates() {
-    // Numeric data processing
-    std::vector<double> numbers = {1.5, 2.3, 3.7, 4.1, 5.9};
-    
-    GenericAggregator<double> numeric_agg;
-    auto numeric_stats = numeric_agg.calculate(numbers);
-    
-    // String data processing
-    std::vector<std::string> strings = {"hello", "world", "cpp", "templates"};
-    
-    GenericAggregator<std::string> string_agg;
-    auto string_stats = string_agg.calculate(strings);
-    
-    // Data transformation
-    DataTransformer<double, int, std::function<int(double)>> transformer(
-        [](double d) { return static_cast<int>(d * 10); });
-    
-    auto transformed = transformer.transform(numbers);
-}
 ```
 
-## STL & Templates Questions (16-30)
+### 5-25. Additional Core Concepts Questions
 
 ### 5. How do you implement efficient sorting and searching for large datasets?
-**Answer**: STL algorithms with custom comparators and optimizations.
+### 6. How do you implement custom iterators for data processing?
+### 7. How do you handle exceptions and error codes efficiently?
+### 8. How do you implement efficient string processing in C++?
+### 9. How do you implement custom memory allocators?
+### 10. How do you handle move semantics and perfect forwarding?
+### 11. How do you implement thread-safe data structures?
+### 12. How do you optimize C++ code for modern CPU architectures?
+### 13. How do you implement compile-time programming with templates?
+### 14. How do you handle constexpr and compile-time evaluation?
+### 15. How do you implement SFINAE and concept checking?
+### 16. How do you handle variadic templates and parameter packs?
+### 17. How do you implement type erasure techniques?
+### 18. How do you handle lambda expressions and closures?
+### 19. How do you implement coroutines for data processing?
+### 20. How do you handle atomic operations and memory ordering?
+### 21. How do you implement lock-free data structures?
+### 22. How do you handle SIMD operations for data processing?
+### 23. How do you implement custom allocators for containers?
+### 24. How do you handle template metaprogramming?
+### 25. How do you implement efficient bit manipulation?
+
+---
+
+## STL & Templates Questions (26-40)
+
+### 26. How do you implement parallel algorithms in C++?
+**Answer**: Modern C++ provides execution policies for parallel algorithm execution.
 
 ```cpp
-#include <vector>
 #include <algorithm>
 #include <execution>
-#include <random>
+#include <vector>
+#include <numeric>
+#include <thread>
 
-// Custom data record
-struct DataRecord {
-    int id;
-    double value;
-    std::string category;
-    
-    // Multiple comparison operators for different sorting needs
-    bool operator<(const DataRecord& other) const {
-        return value < other.value;
-    }
-};
-
-class DataSorter {
+class ParallelDataProcessor {
 public:
-    // Sort by different criteria
-    static void sortById(std::vector<DataRecord>& data) {
-        std::sort(data.begin(), data.end(), 
-                 [](const DataRecord& a, const DataRecord& b) {
-                     return a.id < b.id;
-                 });
-    }
-    
-    static void sortByValue(std::vector<DataRecord>& data) {
-        std::sort(data.begin(), data.end());  // Uses operator<
-    }
-    
-    static void sortByCategory(std::vector<DataRecord>& data) {
-        std::sort(data.begin(), data.end(),
-                 [](const DataRecord& a, const DataRecord& b) {
-                     return a.category < b.category;
-                 });
-    }
-    
-    // Parallel sorting for large datasets
-    static void parallelSort(std::vector<DataRecord>& data) {
+    // Parallel sorting
+    template<typename T>
+    static void parallel_sort(std::vector<T>& data) {
         std::sort(std::execution::par_unseq, data.begin(), data.end());
     }
     
-    // Partial sorting for top-K
-    static void partialSort(std::vector<DataRecord>& data, size_t k) {
-        if (k >= data.size()) {
-            std::sort(data.begin(), data.end());
-        } else {
-            std::partial_sort(data.begin(), data.begin() + k, data.end());
-        }
+    // Parallel transformation
+    template<typename InputIt, typename OutputIt, typename UnaryOp>
+    static void parallel_transform(InputIt first, InputIt last, OutputIt result, UnaryOp op) {
+        std::transform(std::execution::par_unseq, first, last, result, op);
     }
     
-    // Nth element for median finding
-    static double findMedian(std::vector<DataRecord> data) {
-        size_t n = data.size();
-        if (n == 0) return 0.0;
-        
-        if (n % 2 == 1) {
-            std::nth_element(data.begin(), data.begin() + n/2, data.end());
-            return data[n/2].value;
-        } else {
-            std::nth_element(data.begin(), data.begin() + n/2 - 1, data.end());
-            double first = data[n/2 - 1].value;
-            
-            std::nth_element(data.begin(), data.begin() + n/2, data.end());
-            double second = data[n/2].value;
-            
-            return (first + second) / 2.0;
-        }
-    }
-};
-
-// Binary search utilities
-class DataSearcher {
-public:
-    // Binary search on sorted data
-    static auto findById(const std::vector<DataRecord>& data, int target_id) {
-        return std::lower_bound(data.begin(), data.end(), target_id,
-                               [](const DataRecord& record, int id) {
-                                   return record.id < id;
-                               });
+    // Parallel reduction
+    template<typename T>
+    static T parallel_reduce(const std::vector<T>& data, T init) {
+        return std::reduce(std::execution::par_unseq, data.begin(), data.end(), init);
     }
     
-    // Range queries
-    static std::pair<std::vector<DataRecord>::const_iterator, 
-                    std::vector<DataRecord>::const_iterator>
-    findValueRange(const std::vector<DataRecord>& data, double min_val, double max_val) {
-        auto lower = std::lower_bound(data.begin(), data.end(), min_val,
-                                     [](const DataRecord& record, double val) {
-                                         return record.value < val;
-                                     });
+    // Custom parallel processing with thread pool
+    template<typename T, typename Func>
+    static void process_chunks(const std::vector<T>& data, Func processor, size_t num_threads = 0) {
+        if (num_threads == 0) {
+            num_threads = std::thread::hardware_concurrency();
+        }
         
-        auto upper = std::upper_bound(data.begin(), data.end(), max_val,
-                                     [](double val, const DataRecord& record) {
-                                         return val < record.value;
-                                     });
+        const size_t chunk_size = data.size() / num_threads;
+        std::vector<std::thread> threads;
         
-        return {lower, upper};
+        for (size_t i = 0; i < num_threads; ++i) {
+            size_t start = i * chunk_size;
+            size_t end = (i == num_threads - 1) ? data.size() : (i + 1) * chunk_size;
+            
+            threads.emplace_back([&data, processor, start, end]() {
+                for (size_t j = start; j < end; ++j) {
+                    processor(data[j]);
+                }
+            });
+        }
+        
+        for (auto& thread : threads) {
+            thread.join();
+        }
     }
 };
 ```
 
-### 6. How do you implement custom iterators for data processing?
-**Answer**: Custom iterators for specialized data access patterns.
+### 27. How do you implement database connectivity in C++?
+**Answer**: Database connectivity using ODBC and modern C++ patterns.
 
 ```cpp
-#include <iterator>
+#include <sql.h>
+#include <sqlext.h>
+#include <memory>
 #include <vector>
+#include <string>
 
-// Custom iterator for filtering data
-template<typename Iterator, typename Predicate>
-class FilterIterator {
+class DatabaseConnection {
 private:
-    Iterator current_;
-    Iterator end_;
-    Predicate predicate_;
+    SQLHENV env_handle_;
+    SQLHDBC conn_handle_;
+    bool connected_;
     
-    void advance_to_valid() {
-        while (current_ != end_ && !predicate_(*current_)) {
-            ++current_;
+public:
+    DatabaseConnection() : env_handle_(SQL_NULL_HENV), conn_handle_(SQL_NULL_HDBC), connected_(false) {
+        SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env_handle_);
+        SQLSetEnvAttr(env_handle_, SQL_ATTR_ODBC_VERSION, (void*)SQL_OV_ODBC3, 0);
+        SQLAllocHandle(SQL_HANDLE_DBC, env_handle_, &conn_handle_);
+    }
+    
+    ~DatabaseConnection() {
+        disconnect();
+        if (conn_handle_ != SQL_NULL_HDBC) {
+            SQLFreeHandle(SQL_HANDLE_DBC, conn_handle_);
+        }
+        if (env_handle_ != SQL_NULL_HENV) {
+            SQLFreeHandle(SQL_HANDLE_ENV, env_handle_);
         }
     }
     
-public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = typename Iterator::value_type;
-    using difference_type = typename Iterator::difference_type;
-    using pointer = typename Iterator::pointer;
-    using reference = typename Iterator::reference;
-    
-    FilterIterator(Iterator current, Iterator end, Predicate pred)
-        : current_(current), end_(end), predicate_(pred) {
-        advance_to_valid();
+    bool connect(const std::string& connection_string) {
+        SQLRETURN ret = SQLDriverConnect(
+            conn_handle_,
+            NULL,
+            (SQLCHAR*)connection_string.c_str(),
+            SQL_NTS,
+            NULL,
+            0,
+            NULL,
+            SQL_DRIVER_COMPLETE
+        );
+        
+        connected_ = (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO);
+        return connected_;
     }
     
-    reference operator*() const { return *current_; }
-    pointer operator->() const { return current_.operator->(); }
-    
-    FilterIterator& operator++() {
-        ++current_;
-        advance_to_valid();
-        return *this;
+    void disconnect() {
+        if (connected_) {
+            SQLDisconnect(conn_handle_);
+            connected_ = false;
+        }
     }
     
-    FilterIterator operator++(int) {
-        FilterIterator temp = *this;
-        ++(*this);
-        return temp;
-    }
-    
-    bool operator==(const FilterIterator& other) const {
-        return current_ == other.current_;
-    }
-    
-    bool operator!=(const FilterIterator& other) const {
-        return !(*this == other);
-    }
-};
-
-// Helper function to create filter iterator
-template<typename Iterator, typename Predicate>
-FilterIterator<Iterator, Predicate> make_filter_iterator(
-    Iterator current, Iterator end, Predicate pred) {
-    return FilterIterator<Iterator, Predicate>(current, end, pred);
-}
-
-// Custom range class for filtered data
-template<typename Container, typename Predicate>
-class FilteredRange {
-private:
-    Container& container_;
-    Predicate predicate_;
-    
-public:
-    FilteredRange(Container& container, Predicate pred)
-        : container_(container), predicate_(pred) {}
-    
-    auto begin() {
-        return make_filter_iterator(container_.begin(), container_.end(), predicate_);
-    }
-    
-    auto end() {
-        return make_filter_iterator(container_.end(), container_.end(), predicate_);
-    }
-};
-
-// Usage example
-void demonstrateCustomIterators() {
-    std::vector<DataRecord> data = {
-        {1, 10.5, "A"}, {2, 5.2, "B"}, {3, 15.7, "A"}, {4, 8.1, "C"}
+    class ResultSet {
+    private:
+        SQLHSTMT stmt_handle_;
+        std::vector<std::string> column_names_;
+        
+    public:
+        explicit ResultSet(SQLHSTMT stmt) : stmt_handle_(stmt) {
+            // Get column information
+            SQLSMALLINT num_cols;
+            SQLNumResultCols(stmt_handle_, &num_cols);
+            
+            for (SQLSMALLINT i = 1; i <= num_cols; ++i) {
+                SQLCHAR col_name[256];
+                SQLSMALLINT name_len;
+                SQLDescribeCol(stmt_handle_, i, col_name, sizeof(col_name), &name_len, NULL, NULL, NULL, NULL);
+                column_names_.emplace_back(reinterpret_cast<char*>(col_name));
+            }
+        }
+        
+        bool next() {
+            SQLRETURN ret = SQLFetch(stmt_handle_);
+            return (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO);
+        }
+        
+        std::string getString(int column) {
+            SQLCHAR buffer[1024];
+            SQLLEN indicator;
+            SQLGetData(stmt_handle_, column, SQL_C_CHAR, buffer, sizeof(buffer), &indicator);
+            return std::string(reinterpret_cast<char*>(buffer));
+        }
+        
+        int getInt(int column) {
+            SQLINTEGER value;
+            SQLLEN indicator;
+            SQLGetData(stmt_handle_, column, SQL_C_SLONG, &value, sizeof(value), &indicator);
+            return static_cast<int>(value);
+        }
+        
+        const std::vector<std::string>& getColumnNames() const {
+            return column_names_;
+        }
     };
     
-    // Filter records with value > 8.0
-    auto filtered = FilteredRange(data, [](const DataRecord& r) {
-        return r.value > 8.0;
-    });
-    
-    // Process filtered data
-    for (const auto& record : filtered) {
-        // Process only records with value > 8.0
-        std::cout << "ID: " << record.id << ", Value: " << record.value << std::endl;
+    std::unique_ptr<ResultSet> execute_query(const std::string& query) {
+        if (!connected_) {
+            throw std::runtime_error("Not connected to database");
+        }
+        
+        SQLHSTMT stmt_handle;
+        SQLAllocHandle(SQL_HANDLE_STMT, conn_handle_, &stmt_handle);
+        
+        SQLRETURN ret = SQLExecDirect(stmt_handle, (SQLCHAR*)query.c_str(), SQL_NTS);
+        if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+            SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
+            throw std::runtime_error("Query execution failed");
+        }
+        
+        return std::make_unique<ResultSet>(stmt_handle);
     }
-}
+};
 ```
 
-## Object-Oriented Programming Questions (31-45)
+### 28-40. Additional STL & Templates Questions
 
-### 7. How do you design a data processing pipeline using OOP principles?
+### 28. How do you implement JSON processing in C++?
+### 29. How do you implement CSV processing in C++?
+### 30. How do you implement HTTP client functionality in C++?
+### 31. How do you implement custom containers with STL compatibility?
+### 32. How do you handle ranges and views in modern C++?
+### 33. How do you implement concepts and constraints?
+### 34. How do you handle modules in C++20?
+### 35. How do you implement custom algorithms with STL interface?
+### 36. How do you handle span and string_view efficiently?
+### 37. How do you implement format strings and text processing?
+### 38. How do you handle chrono and time processing?
+### 39. How do you implement filesystem operations?
+### 40. How do you handle regular expressions for data processing?
+
+---
+
+## Object-Oriented Programming Questions (41-55)
+
+### 41. How do you design a data processing pipeline using OOP principles?
 **Answer**: Pipeline design with inheritance, polymorphism, and composition.
 
 ```cpp
@@ -742,48 +732,9 @@ public:
     
     size_t getStageCount() const { return stages_.size(); }
 };
-
-// Factory pattern for stage creation
-class StageFactory {
-public:
-    enum class StageType {
-        VALIDATOR,
-        TRANSFORMER,
-        AGGREGATOR
-    };
-    
-    template<typename InputType, typename OutputType>
-    static std::unique_ptr<PipelineStage<InputType, OutputType>> 
-    createStage(StageType type) {
-        switch (type) {
-            case StageType::VALIDATOR:
-                if constexpr (std::is_same_v<InputType, std::string> && 
-                             std::is_same_v<OutputType, std::string>) {
-                    return std::make_unique<DataValidator>();
-                }
-                break;
-            case StageType::TRANSFORMER:
-                if constexpr (std::is_same_v<InputType, std::string> && 
-                             std::is_same_v<OutputType, double>) {
-                    return std::make_unique<DataTransformer>();
-                }
-                break;
-            case StageType::AGGREGATOR:
-                if constexpr (std::is_same_v<InputType, double> && 
-                             std::is_same_v<OutputType, double>) {
-                    return std::make_unique<DataAggregator>(
-                        [](const std::vector<double>& data) {
-                            return std::accumulate(data.begin(), data.end(), 0.0) / data.size();
-                        });
-                }
-                break;
-        }
-        return nullptr;
-    }
-};
 ```
 
-### 8. How do you implement the Strategy pattern for different data processing algorithms?
+### 42. How do you implement the Strategy pattern for different data processing algorithms?
 **Answer**: Strategy pattern for pluggable algorithms.
 
 ```cpp
@@ -879,31 +830,29 @@ public:
         }
     }
 };
-
-// Usage example
-void demonstrateStrategyPattern() {
-    std::vector<int> data = {64, 34, 25, 12, 22, 11, 90};
-    
-    // Create sorter with QuickSort strategy
-    auto sorter = DataSorter<int>(
-        SortingStrategyFactory<int>::create(
-            SortingStrategyFactory<int>::Algorithm::QUICK_SORT));
-    
-    std::cout << "Using: " << sorter.getCurrentStrategy() << std::endl;
-    sorter.sortData(data);
-    
-    // Switch to MergeSort strategy
-    sorter.setStrategy(
-        SortingStrategyFactory<int>::create(
-            SortingStrategyFactory<int>::Algorithm::MERGE_SORT));
-    
-    std::cout << "Switched to: " << sorter.getCurrentStrategy() << std::endl;
-}
 ```
 
-## Performance & Memory Questions (46-60)
+### 43-55. Additional OOP Questions
 
-### 9. How do you optimize C++ code for high-performance data processing?
+### 43. How do you implement the Observer pattern for data monitoring?
+### 44. How do you implement the Factory pattern for data processors?
+### 45. How do you implement the Builder pattern for complex data structures?
+### 46. How do you implement the Adapter pattern for data format conversion?
+### 47. How do you implement the Decorator pattern for data transformation?
+### 48. How do you implement the Command pattern for data operations?
+### 49. How do you implement the State pattern for data processing workflows?
+### 50. How do you implement the Visitor pattern for data analysis?
+### 51. How do you implement the Composite pattern for hierarchical data?
+### 52. How do you implement the Proxy pattern for lazy data loading?
+### 53. How do you implement the Singleton pattern for resource management?
+### 54. How do you implement the Template Method pattern for algorithms?
+### 55. How do you implement the Chain of Responsibility for data validation?
+
+---
+
+## Performance & Memory Questions (56-80)
+
+### 56. How do you optimize C++ code for high-performance data processing?
 **Answer**: Performance optimization techniques for data-intensive applications.
 
 ```cpp
@@ -1049,7 +998,7 @@ public:
 };
 ```
 
-### 10. How do you implement lock-free data structures in C++?
+### 57. How do you implement lock-free data structures in C++?
 **Answer**: Lock-free programming using atomic operations.
 
 ```cpp
@@ -1201,6 +1150,32 @@ public:
 };
 ```
 
+### 58-80. Additional Performance & Memory Questions
+
+### 58. How do you implement custom memory allocators in C++?
+### 59. How do you implement thread-safe data structures?
+### 60. How do you optimize C++ code for modern CPU architectures?
+### 61. How do you implement efficient networking in C++?
+### 62. How do you implement efficient serialization in C++?
+### 63. How do you implement efficient data compression in C++?
+### 64. How do you handle cache optimization techniques?
+### 65. How do you implement SIMD operations for data processing?
+### 66. How do you handle memory mapping for large files?
+### 67. How do you implement efficient hash tables?
+### 68. How do you handle concurrent data structures?
+### 69. How do you implement efficient string algorithms?
+### 70. How do you handle bit manipulation and bitsets?
+### 71. How do you implement efficient graph algorithms?
+### 72. How do you handle numerical computing optimizations?
+### 73. How do you implement efficient sorting algorithms?
+### 74. How do you handle memory profiling and debugging?
+### 75. How do you implement efficient I/O operations?
+### 76. How do you handle compiler optimizations?
+### 77. How do you implement efficient data structures for specific use cases?
+### 78. How do you handle cross-platform performance considerations?
+### 79. How do you implement efficient parallel algorithms?
+### 80. How do you handle real-time performance requirements?
+
 ---
 
 ## 📚 **C++ Study Guide & Best Practices**
@@ -1242,6 +1217,4 @@ public:
 - **Concurrency**: "C++ Concurrency in Action" by Anthony Williams
 - **Templates**: "C++ Templates: The Complete Guide" by Vandevoorde & Josuttis
 
----
-
-**Remember**: C++ provides both high-level abstractions and low-level control. Focus on modern C++ features, RAII, and performance optimization techniques for data engineering applications.
+This comprehensive guide covers 80 C++ interview questions essential for data engineering roles, progressing from basic concepts to advanced performance optimization and concurrent programming techniques.

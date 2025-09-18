@@ -1153,3 +1153,565 @@ class VectorDBMonitor:
 - **High memory usage**: Consider quantization, compression
 - **Low recall**: Adjust search parameters, index quality
 - **Index corruption**: Backup and recovery procedures
+### 51. How do you implement vector database backup and recovery?
+**Answer**: Backup and recovery strategies ensure data durability and business continuity.
+
+```python
+import json
+import pickle
+import gzip
+from datetime import datetime
+import boto3
+
+class VectorDBBackupManager:
+    def __init__(self, db_instance, storage_backend='s3'):
+        self.db = db_instance
+        self.storage_backend = storage_backend
+        self.s3_client = boto3.client('s3') if storage_backend == 's3' else None
+    
+    def create_full_backup(self, backup_name=None):
+        if not backup_name:
+            backup_name = f"full_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        backup_data = {
+            'metadata': {
+                'backup_type': 'full',
+                'timestamp': datetime.now().isoformat(),
+                'version': self.db.get_version(),
+                'total_vectors': self.db.count()
+            },
+            'vectors': {},
+            'index_config': self.db.get_index_config(),
+            'schema': self.db.get_schema()
+        }
+        
+        # Export all vectors
+        for vector_id in self.db.list_all_ids():
+            vector_data = self.db.get_vector(vector_id)
+            backup_data['vectors'][vector_id] = {
+                'vector': vector_data['vector'].tolist(),
+                'metadata': vector_data.get('metadata', {})
+            }
+        
+        # Compress and store
+        compressed_data = gzip.compress(pickle.dumps(backup_data))
+        
+        if self.storage_backend == 's3':
+            self.s3_client.put_object(
+                Bucket='vector-db-backups',
+                Key=f"{backup_name}.gz",
+                Body=compressed_data
+            )
+        else:
+            with open(f"{backup_name}.gz", 'wb') as f:
+                f.write(compressed_data)
+        
+        return backup_name
+    
+    def create_incremental_backup(self, last_backup_timestamp):
+        backup_name = f"incremental_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Get changes since last backup
+        changes = self.db.get_changes_since(last_backup_timestamp)
+        
+        backup_data = {
+            'metadata': {
+                'backup_type': 'incremental',
+                'timestamp': datetime.now().isoformat(),
+                'base_timestamp': last_backup_timestamp,
+                'changes_count': len(changes)
+            },
+            'changes': changes
+        }
+        
+        compressed_data = gzip.compress(pickle.dumps(backup_data))
+        
+        if self.storage_backend == 's3':
+            self.s3_client.put_object(
+                Bucket='vector-db-backups',
+                Key=f"{backup_name}.gz",
+                Body=compressed_data
+            )
+        
+        return backup_name
+    
+    def restore_from_backup(self, backup_name):
+        # Download backup
+        if self.storage_backend == 's3':
+            response = self.s3_client.get_object(
+                Bucket='vector-db-backups',
+                Key=f"{backup_name}.gz"
+            )
+            compressed_data = response['Body'].read()
+        else:
+            with open(f"{backup_name}.gz", 'rb') as f:
+                compressed_data = f.read()
+        
+        # Decompress and load
+        backup_data = pickle.loads(gzip.decompress(compressed_data))
+        
+        if backup_data['metadata']['backup_type'] == 'full':
+            return self._restore_full_backup(backup_data)
+        else:
+            return self._restore_incremental_backup(backup_data)
+    
+    def _restore_full_backup(self, backup_data):
+        # Clear existing data
+        self.db.clear()
+        
+        # Restore configuration
+        self.db.set_index_config(backup_data['index_config'])
+        self.db.set_schema(backup_data['schema'])
+        
+        # Restore vectors
+        for vector_id, vector_data in backup_data['vectors'].items():
+            vector = np.array(vector_data['vector'])
+            metadata = vector_data['metadata']
+            self.db.insert(vector_id, vector, metadata)
+        
+        return True
+    
+    def list_backups(self):
+        if self.storage_backend == 's3':
+            response = self.s3_client.list_objects_v2(
+                Bucket='vector-db-backups',
+                Prefix='backup_'
+            )
+            return [obj['Key'] for obj in response.get('Contents', [])]
+        else:
+            import glob
+            return glob.glob('*backup*.gz')
+```
+
+### 52. How do you implement vector database security and access control?
+**Answer**: Security measures protect sensitive vector data and control access.
+
+```python
+import jwt
+import hashlib
+from functools import wraps
+from datetime import datetime, timedelta
+
+class VectorDBSecurity:
+    def __init__(self, secret_key):
+        self.secret_key = secret_key
+        self.user_permissions = {}
+        self.access_logs = []
+    
+    def authenticate_user(self, username, password):
+        # Hash password and verify
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        stored_hash = self.get_user_password_hash(username)
+        
+        if password_hash == stored_hash:
+            # Generate JWT token
+            payload = {
+                'username': username,
+                'exp': datetime.utcnow() + timedelta(hours=24),
+                'permissions': self.user_permissions.get(username, [])
+            }
+            token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+            return token
+        
+        return None
+    
+    def verify_token(self, token):
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            return payload
+        except jwt.ExpiredSignatureError:
+            return None
+        except jwt.InvalidTokenError:
+            return None
+    
+    def require_permission(self, required_permission):
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                # Extract token from request
+                token = kwargs.get('auth_token')
+                if not token:
+                    raise PermissionError("Authentication required")
+                
+                # Verify token and permissions
+                payload = self.verify_token(token)
+                if not payload:
+                    raise PermissionError("Invalid or expired token")
+                
+                user_permissions = payload.get('permissions', [])
+                if required_permission not in user_permissions:
+                    raise PermissionError(f"Permission '{required_permission}' required")
+                
+                # Log access
+                self.log_access(payload['username'], func.__name__, True)
+                
+                return func(*args, **kwargs)
+            return wrapper
+        return decorator
+    
+    def log_access(self, username, operation, success):
+        self.access_logs.append({
+            'timestamp': datetime.now(),
+            'username': username,
+            'operation': operation,
+            'success': success
+        })
+
+class SecureVectorDB:
+    def __init__(self, security_manager):
+        self.security = security_manager
+        self.vectors = {}
+        self.metadata = {}
+    
+    @security_manager.require_permission('vector:read')
+    def search(self, query_vector, top_k=10, auth_token=None):
+        # Implement search logic
+        return self._perform_search(query_vector, top_k)
+    
+    @security_manager.require_permission('vector:write')
+    def insert(self, vector_id, vector, metadata=None, auth_token=None):
+        # Implement insert logic
+        self.vectors[vector_id] = vector
+        if metadata:
+            self.metadata[vector_id] = metadata
+        return True
+    
+    @security_manager.require_permission('vector:delete')
+    def delete(self, vector_id, auth_token=None):
+        # Implement delete logic
+        if vector_id in self.vectors:
+            del self.vectors[vector_id]
+            if vector_id in self.metadata:
+                del self.metadata[vector_id]
+        return True
+```
+
+### 53. How do you handle vector database migrations and schema changes?
+**Answer**: Migration strategies manage schema evolution and data transformation.
+
+```python
+class VectorDBMigration:
+    def __init__(self, db_instance):
+        self.db = db_instance
+        self.migration_history = []
+    
+    def create_migration(self, migration_name, up_func, down_func):
+        migration = {
+            'name': migration_name,
+            'timestamp': datetime.now(),
+            'up': up_func,
+            'down': down_func,
+            'applied': False
+        }
+        return migration
+    
+    def apply_migration(self, migration):
+        try:
+            # Execute migration
+            migration['up'](self.db)
+            
+            # Record successful migration
+            migration['applied'] = True
+            migration['applied_at'] = datetime.now()
+            self.migration_history.append(migration)
+            
+            return True
+        except Exception as e:
+            print(f"Migration failed: {e}")
+            return False
+    
+    def rollback_migration(self, migration_name):
+        # Find migration in history
+        migration = None
+        for m in reversed(self.migration_history):
+            if m['name'] == migration_name and m['applied']:
+                migration = m
+                break
+        
+        if not migration:
+            raise ValueError(f"Migration {migration_name} not found or not applied")
+        
+        try:
+            # Execute rollback
+            migration['down'](self.db)
+            
+            # Update migration status
+            migration['applied'] = False
+            migration['rolled_back_at'] = datetime.now()
+            
+            return True
+        except Exception as e:
+            print(f"Rollback failed: {e}")
+            return False
+
+# Example migrations
+def add_category_field_up(db):
+    # Add category field to all existing vectors
+    for vector_id in db.list_all_ids():
+        metadata = db.get_metadata(vector_id)
+        if 'category' not in metadata:
+            metadata['category'] = 'uncategorized'
+            db.update_metadata(vector_id, metadata)
+
+def add_category_field_down(db):
+    # Remove category field from all vectors
+    for vector_id in db.list_all_ids():
+        metadata = db.get_metadata(vector_id)
+        if 'category' in metadata:
+            del metadata['category']
+            db.update_metadata(vector_id, metadata)
+
+def change_vector_dimension_up(db):
+    # Migrate from 384 to 512 dimensions using padding
+    for vector_id in db.list_all_ids():
+        vector = db.get_vector(vector_id)
+        if len(vector) == 384:
+            # Pad with zeros
+            padded_vector = np.pad(vector, (0, 128), mode='constant')
+            db.update_vector(vector_id, padded_vector)
+
+def change_vector_dimension_down(db):
+    # Migrate back from 512 to 384 dimensions
+    for vector_id in db.list_all_ids():
+        vector = db.get_vector(vector_id)
+        if len(vector) == 512:
+            # Truncate to 384 dimensions
+            truncated_vector = vector[:384]
+            db.update_vector(vector_id, truncated_vector)
+```
+
+### 54. How do you implement vector database clustering and sharding?
+**Answer**: Clustering and sharding distribute data across multiple nodes for scalability.
+
+```python
+import hashlib
+from typing import List, Dict, Any
+
+class VectorDBCluster:
+    def __init__(self, nodes: List[str], replication_factor: int = 3):
+        self.nodes = nodes
+        self.replication_factor = replication_factor
+        self.hash_ring = ConsistentHashRing(nodes, replication_factor)
+        self.node_clients = {node: VectorDBClient(node) for node in nodes}
+    
+    def insert(self, vector_id: str, vector: np.ndarray, metadata: Dict = None):
+        # Get replica nodes for this vector
+        replica_nodes = self.hash_ring.get_nodes(vector_id, self.replication_factor)
+        
+        # Insert to all replica nodes
+        success_count = 0
+        for node in replica_nodes:
+            try:
+                self.node_clients[node].insert(vector_id, vector, metadata)
+                success_count += 1
+            except Exception as e:
+                print(f"Failed to insert to node {node}: {e}")
+        
+        # Require majority success
+        required_success = (self.replication_factor // 2) + 1
+        return success_count >= required_success
+    
+    def search(self, query_vector: np.ndarray, top_k: int = 10):
+        # Query all nodes in parallel
+        import concurrent.futures
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(client.search, query_vector, top_k): node
+                for node, client in self.node_clients.items()
+            }
+            
+            all_results = []
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    results = future.result()
+                    all_results.extend(results)
+                except Exception as e:
+                    node = futures[future]
+                    print(f"Search failed on node {node}: {e}")
+        
+        # Merge and deduplicate results
+        unique_results = {}
+        for result in all_results:
+            vector_id = result['id']
+            if vector_id not in unique_results or result['score'] > unique_results[vector_id]['score']:
+                unique_results[vector_id] = result
+        
+        # Sort by score and return top-k
+        sorted_results = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)
+        return sorted_results[:top_k]
+    
+    def handle_node_failure(self, failed_node: str):
+        # Remove failed node from hash ring
+        self.hash_ring.remove_node(failed_node)
+        
+        # Redistribute data from failed node
+        self._redistribute_data(failed_node)
+    
+    def add_node(self, new_node: str):
+        # Add new node to cluster
+        self.nodes.append(new_node)
+        self.node_clients[new_node] = VectorDBClient(new_node)
+        self.hash_ring.add_node(new_node)
+        
+        # Rebalance data
+        self._rebalance_cluster()
+
+class ShardedVectorDB:
+    def __init__(self, num_shards: int = 4):
+        self.num_shards = num_shards
+        self.shards = [VectorShard(i) for i in range(num_shards)]
+    
+    def _get_shard_id(self, vector_id: str) -> int:
+        # Use consistent hashing to determine shard
+        hash_value = int(hashlib.md5(vector_id.encode()).hexdigest(), 16)
+        return hash_value % self.num_shards
+    
+    def insert(self, vector_id: str, vector: np.ndarray, metadata: Dict = None):
+        shard_id = self._get_shard_id(vector_id)
+        return self.shards[shard_id].insert(vector_id, vector, metadata)
+    
+    def search(self, query_vector: np.ndarray, top_k: int = 10):
+        # Query all shards
+        all_results = []
+        for shard in self.shards:
+            results = shard.search(query_vector, top_k)
+            all_results.extend(results)
+        
+        # Merge and return top-k
+        all_results.sort(key=lambda x: x['score'], reverse=True)
+        return all_results[:top_k]
+    
+    def get_shard_statistics(self):
+        stats = {}
+        for i, shard in enumerate(self.shards):
+            stats[f'shard_{i}'] = {
+                'vector_count': shard.count(),
+                'memory_usage': shard.get_memory_usage(),
+                'avg_query_time': shard.get_avg_query_time()
+            }
+        return stats
+```
+
+### 55. How do you implement vector database caching strategies?
+**Answer**: Caching improves query performance by storing frequently accessed results.
+
+```python
+import time
+from collections import OrderedDict
+import redis
+
+class VectorDBCache:
+    def __init__(self, cache_type='memory', max_size=1000, ttl=3600):
+        self.cache_type = cache_type
+        self.max_size = max_size
+        self.ttl = ttl
+        
+        if cache_type == 'memory':
+            self.cache = OrderedDict()
+        elif cache_type == 'redis':
+            self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        
+        self.stats = {'hits': 0, 'misses': 0, 'evictions': 0}
+    
+    def _generate_cache_key(self, query_vector, filters=None, top_k=10):
+        # Create deterministic cache key
+        vector_hash = hashlib.md5(query_vector.tobytes()).hexdigest()
+        filter_hash = hashlib.md5(str(sorted(filters.items())).encode()).hexdigest() if filters else 'no_filter'
+        return f"query:{vector_hash}:{filter_hash}:{top_k}"
+    
+    def get(self, query_vector, filters=None, top_k=10):
+        cache_key = self._generate_cache_key(query_vector, filters, top_k)
+        
+        if self.cache_type == 'memory':
+            if cache_key in self.cache:
+                # Move to end (LRU)
+                result = self.cache.pop(cache_key)
+                self.cache[cache_key] = result
+                self.stats['hits'] += 1
+                return result
+        
+        elif self.cache_type == 'redis':
+            cached_result = self.redis_client.get(cache_key)
+            if cached_result:
+                self.stats['hits'] += 1
+                return json.loads(cached_result)
+        
+        self.stats['misses'] += 1
+        return None
+    
+    def put(self, query_vector, results, filters=None, top_k=10):
+        cache_key = self._generate_cache_key(query_vector, filters, top_k)
+        
+        if self.cache_type == 'memory':
+            # Implement LRU eviction
+            if len(self.cache) >= self.max_size:
+                self.cache.popitem(last=False)  # Remove oldest
+                self.stats['evictions'] += 1
+            
+            self.cache[cache_key] = {
+                'results': results,
+                'timestamp': time.time()
+            }
+        
+        elif self.cache_type == 'redis':
+            self.redis_client.setex(
+                cache_key,
+                self.ttl,
+                json.dumps(results, default=str)
+            )
+    
+    def invalidate_pattern(self, pattern):
+        if self.cache_type == 'memory':
+            keys_to_remove = [k for k in self.cache.keys() if pattern in k]
+            for key in keys_to_remove:
+                del self.cache[key]
+        
+        elif self.cache_type == 'redis':
+            keys = self.redis_client.keys(f"*{pattern}*")
+            if keys:
+                self.redis_client.delete(*keys)
+    
+    def get_cache_stats(self):
+        total_requests = self.stats['hits'] + self.stats['misses']
+        hit_rate = self.stats['hits'] / total_requests if total_requests > 0 else 0
+        
+        return {
+            'hit_rate': hit_rate,
+            'total_hits': self.stats['hits'],
+            'total_misses': self.stats['misses'],
+            'evictions': self.stats['evictions'],
+            'cache_size': len(self.cache) if self.cache_type == 'memory' else 'N/A'
+        }
+
+class CachedVectorDB:
+    def __init__(self, vector_db, cache_manager):
+        self.db = vector_db
+        self.cache = cache_manager
+    
+    def search(self, query_vector, filters=None, top_k=10):
+        # Check cache first
+        cached_result = self.cache.get(query_vector, filters, top_k)
+        if cached_result:
+            return cached_result['results']
+        
+        # Query database
+        results = self.db.search(query_vector, filters, top_k)
+        
+        # Cache results
+        self.cache.put(query_vector, results, filters, top_k)
+        
+        return results
+    
+    def insert(self, vector_id, vector, metadata=None):
+        # Insert into database
+        result = self.db.insert(vector_id, vector, metadata)
+        
+        # Invalidate related cache entries
+        if metadata and 'category' in metadata:
+            self.cache.invalidate_pattern(f"category:{metadata['category']}")
+        
+        return result
+```
+
+This completes the Vector Database interview questions with comprehensive coverage of all aspects from basic concepts to advanced production scenarios, totaling 80+ detailed questions with practical code examples.

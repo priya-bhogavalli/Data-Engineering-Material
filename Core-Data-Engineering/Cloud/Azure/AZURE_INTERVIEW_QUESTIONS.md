@@ -1,4 +1,4 @@
-# Microsoft Azure Interview Questions for Data Engineers
+# Microsoft Azure Interview Questions for Data Engineers - EXPANDED
 
 ## 📋 Table of Contents
 
@@ -11,17 +11,6 @@
 ## Basic Level Questions (1-30)
 
 ### 1. What are the core Azure services for data engineering and their use cases?
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
 
 **Answer**: Essential Azure services for data engineering:
 
@@ -74,17 +63,6 @@ cursor.execute("SELECT * FROM sales LIMIT 10")
 ```
 
 ### 2. How do you design a data lake architecture on Azure?
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
 
 **Answer**: Azure data lake architecture components:
 
@@ -145,17 +123,6 @@ Future direction of azure technologies
 
 ### 3. How do you implement data security and access control in Azure?
 
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
-
 **Answer**: Multi-layered security approach:
 
 **Azure Active Directory Integration**:
@@ -201,17 +168,6 @@ az role definition create --role-definition '{
 ```
 
 ### 4. How do you monitor and optimize costs in Azure?
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
 
 **Answer**: Cost optimization strategies:
 
@@ -285,17 +241,6 @@ lifecycle_policy = {
 
 ### 5. How do you implement data backup and disaster recovery?
 
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
-
 **Answer**: Comprehensive backup and DR strategy:
 
 **Geo-Redundant Storage**:
@@ -336,20 +281,7 @@ TO URL = 'https://mystorageaccount.blob.core.windows.net/backups/mydatabase.bacp
 WITH CREDENTIAL = 'MyCredential';
 ```
 
-## Intermediate Level Questions
-
 ### 6. How do you implement real-time data processing with Azure Stream Analytics?
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
 
 **Answer**: Real-time streaming architecture:
 
@@ -412,17 +344,6 @@ def send_events():
 ```
 
 ### 7. How do you optimize Azure Synapse Analytics for performance?
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
 
 **Answer**: Synapse optimization techniques:
 
@@ -495,17 +416,6 @@ ORDER BY total_elapsed_time DESC;
 ```
 
 ### 8. How do you implement data quality checks in Azure?
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
 
 **Answer**: Data quality framework using Azure services:
 
@@ -599,17 +509,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
 ### 9. How do you implement data lineage and governance in Azure?
 
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
-
 **Answer**: Data governance framework:
 
 **Azure Purview Integration**:
@@ -672,74 +571,7 @@ entity_data = {
 result = purview.create_entity(entity_data)
 ```
 
-**Custom Lineage Tracking**:
-```python
-# Data lineage tracking in Azure SQL
-class DataLineageTracker:
-    def __init__(self, connection_string):
-        self.conn_str = connection_string
-    
-    def record_transformation(self, job_name, source_tables, target_tables, transformation_logic):
-        import pyodbc
-        
-        conn = pyodbc.connect(self.conn_str)
-        cursor = conn.cursor()
-        
-        # Insert lineage record
-        cursor.execute("""
-            INSERT INTO data_lineage (
-                job_name, source_tables, target_tables, 
-                transformation_logic, created_at
-            ) VALUES (?, ?, ?, ?, GETDATE())
-        """, (job_name, ','.join(source_tables), ','.join(target_tables), transformation_logic))
-        
-        conn.commit()
-        conn.close()
-    
-    def get_lineage(self, table_name):
-        import pyodbc
-        
-        conn = pyodbc.connect(self.conn_str)
-        cursor = conn.cursor()
-        
-        # Get upstream lineage
-        cursor.execute("""
-            SELECT job_name, source_tables, transformation_logic, created_at
-            FROM data_lineage 
-            WHERE target_tables LIKE ?
-        """, (f'%{table_name}%',))
-        
-        upstream = cursor.fetchall()
-        
-        # Get downstream lineage  
-        cursor.execute("""
-            SELECT job_name, target_tables, transformation_logic, created_at
-            FROM data_lineage 
-            WHERE source_tables LIKE ?
-        """, (f'%{table_name}%',))
-        
-        downstream = cursor.fetchall()
-        
-        conn.close()
-        
-        return {
-            'upstream': upstream,
-            'downstream': downstream
-        }
-```
-
 ### 10. How do you implement automated data pipeline orchestration?
-
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
-
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
 
 **Answer**: Pipeline orchestration using Azure services:
 
@@ -805,7 +637,388 @@ Future direction of azure technologies
 }
 ```
 
-**Logic Apps for Event-Driven Processing**:
+## Intermediate Level Questions (31-70)
+
+### 11. How do you implement Azure Event Hubs for real-time streaming?
+
+**Answer**: Event Hubs provides scalable event ingestion:
+
+```python
+# Event Hub producer
+from azure.eventhub import EventHubProducerClient, EventData
+import json
+import asyncio
+
+class EventHubStreamer:
+    def __init__(self, connection_string, eventhub_name):
+        self.producer = EventHubProducerClient.from_connection_string(
+            conn_str=connection_string,
+            eventhub_name=eventhub_name
+        )
+    
+    async def send_batch_events(self, events):
+        event_data_batch = await self.producer.create_batch()
+        
+        for event in events:
+            try:
+                event_data_batch.add(EventData(json.dumps(event)))
+            except ValueError:
+                # Batch is full, send it and create new batch
+                await self.producer.send_batch(event_data_batch)
+                event_data_batch = await self.producer.create_batch()
+                event_data_batch.add(EventData(json.dumps(event)))
+        
+        # Send remaining events
+        if len(event_data_batch) > 0:
+            await self.producer.send_batch(event_data_batch)
+
+# Consumer
+from azure.eventhub import EventHubConsumerClient
+
+def on_event(partition_context, event):
+    # Process event
+    event_data = json.loads(event.body_as_str())
+    print(f"Received event: {event_data}")
+    
+    # Update checkpoint
+    partition_context.update_checkpoint(event)
+
+consumer = EventHubConsumerClient.from_connection_string(
+    conn_str=connection_string,
+    consumer_group="$Default",
+    eventhub_name=eventhub_name
+)
+
+with consumer:
+    consumer.receive(on_event=on_event)
+```
+
+### 12. How do you implement Azure Cosmos DB for multi-model data?
+
+**Answer**: Cosmos DB supports multiple data models:
+
+```python
+# Document API (SQL)
+from azure.cosmos import CosmosClient, PartitionKey
+
+client = CosmosClient(url, credential=key)
+database = client.create_database_if_not_exists(id="ecommerce")
+container = database.create_container_if_not_exists(
+    id="products",
+    partition_key=PartitionKey(path="/category"),
+    offer_throughput=400
+)
+
+# Insert document
+product = {
+    "id": "product-1",
+    "name": "Laptop",
+    "category": "Electronics",
+    "price": 999.99,
+    "specifications": {
+        "cpu": "Intel i7",
+        "ram": "16GB",
+        "storage": "512GB SSD"
+    }
+}
+
+container.create_item(body=product)
+
+# Query documents
+query = "SELECT * FROM c WHERE c.category = @category"
+parameters = [{"name": "@category", "value": "Electronics"}]
+
+results = list(container.query_items(
+    query=query,
+    parameters=parameters,
+    enable_cross_partition_query=True
+))
+
+# Graph API (Gremlin)
+from gremlin_python.driver import client, serializer
+
+gremlin_client = client.Client(
+    'wss://myaccount.gremlin.cosmos.azure.com:443/',
+    'g',
+    username="/dbs/graphdb/colls/graph",
+    password=primary_key,
+    message_serializer=serializer.GraphSONSerializersV2d0()
+)
+
+# Add vertices and edges
+queries = [
+    "g.addV('person').property('id', 'john').property('name', 'John Doe')",
+    "g.addV('person').property('id', 'jane').property('name', 'Jane Smith')",
+    "g.V('john').addE('knows').to(g.V('jane'))"
+]
+
+for query in queries:
+    result = gremlin_client.submit(query).all().result()
+```
+
+### 13. How do you implement Azure Machine Learning for data science workflows?
+
+**Answer**: Azure ML provides end-to-end ML lifecycle management:
+
+```python
+# Azure ML SDK
+from azureml.core import Workspace, Dataset, Experiment
+from azureml.core.compute import ComputeTarget, AmlCompute
+from azureml.train.sklearn import SKLearn
+from azureml.core.runconfig import RunConfiguration
+
+# Connect to workspace
+ws = Workspace.from_config()
+
+# Create dataset
+datastore = ws.get_default_datastore()
+dataset = Dataset.Tabular.from_delimited_files(
+    path=(datastore, 'data/sales.csv')
+)
+
+# Register dataset
+dataset = dataset.register(
+    workspace=ws,
+    name='sales_data',
+    description='Sales transaction data'
+)
+
+# Create compute cluster
+compute_config = AmlCompute.provisioning_configuration(
+    vm_size='STANDARD_D2_V2',
+    min_nodes=0,
+    max_nodes=4
+)
+
+compute_target = ComputeTarget.create(
+    ws, 'ml-cluster', compute_config
+)
+
+# Training script
+training_script = """
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from azureml.core import Run
+import joblib
+
+# Get run context
+run = Run.get_context()
+
+# Load data
+data = run.input_datasets['sales_data'].to_pandas_dataframe()
+
+# Prepare features
+X = data[['quantity', 'unit_price', 'discount']]
+y = data['total_amount']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train model
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Evaluate
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+
+# Log metrics
+run.log('mse', mse)
+run.log('rmse', mse ** 0.5)
+
+# Save model
+joblib.dump(model, 'outputs/model.pkl')
+"""
+
+# Submit experiment
+experiment = Experiment(ws, 'sales-prediction')
+
+estimator = SKLearn(
+    source_directory='.',
+    script_params={'--data-folder': dataset.as_named_input('sales_data')},
+    compute_target=compute_target,
+    entry_script='train.py'
+)
+
+run = experiment.submit(estimator)
+```
+
+### 14. How do you implement Azure Kubernetes Service (AKS) for containerized applications?
+
+**Answer**: AKS provides managed Kubernetes for scalable applications:
+
+```yaml
+# Deployment manifest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-processor
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: data-processor
+  template:
+    metadata:
+      labels:
+        app: data-processor
+    spec:
+      containers:
+      - name: processor
+        image: myregistry.azurecr.io/data-processor:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: AZURE_STORAGE_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: azure-secrets
+              key: storage-connection-string
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-processor-service
+spec:
+  selector:
+    app: data-processor
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: LoadBalancer
+```
+
+```bash
+# Azure CLI commands
+# Create AKS cluster
+az aks create \
+  --resource-group myResourceGroup \
+  --name myAKSCluster \
+  --node-count 3 \
+  --enable-addons monitoring \
+  --generate-ssh-keys
+
+# Get credentials
+az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
+
+# Deploy application
+kubectl apply -f deployment.yaml
+
+# Scale deployment
+kubectl scale deployment data-processor --replicas=5
+
+# Update deployment
+kubectl set image deployment/data-processor processor=myregistry.azurecr.io/data-processor:v2
+```
+
+### 15. How do you implement Azure Functions for serverless data processing?
+
+**Answer**: Azure Functions enable event-driven serverless computing:
+
+```python
+# Blob trigger function
+import azure.functions as func
+import pandas as pd
+import json
+from azure.storage.blob import BlobServiceClient
+
+def main(myblob: func.InputStream, outputblob: func.Out[bytes]):
+    # Process uploaded CSV file
+    df = pd.read_csv(myblob)
+    
+    # Data transformations
+    df['total_amount'] = df['quantity'] * df['unit_price']
+    df['processed_date'] = pd.Timestamp.now()
+    
+    # Aggregate data
+    summary = df.groupby('category').agg({
+        'total_amount': ['sum', 'mean', 'count'],
+        'quantity': 'sum'
+    }).round(2)
+    
+    # Convert to JSON
+    result = {
+        'summary': summary.to_dict(),
+        'total_records': len(df),
+        'processing_time': pd.Timestamp.now().isoformat()
+    }
+    
+    # Output processed data
+    outputblob.set(json.dumps(result).encode('utf-8'))
+
+# HTTP trigger function
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        # Get request parameters
+        table_name = req.params.get('table')
+        start_date = req.params.get('start_date')
+        end_date = req.params.get('end_date')
+        
+        # Connect to database
+        import pyodbc
+        conn_str = os.environ['SQL_CONNECTION_STRING']
+        conn = pyodbc.connect(conn_str)
+        
+        # Execute query
+        query = f"""
+            SELECT COUNT(*) as record_count, 
+                   SUM(amount) as total_amount,
+                   AVG(amount) as avg_amount
+            FROM {table_name}
+            WHERE date_column BETWEEN ? AND ?
+        """
+        
+        cursor = conn.cursor()
+        cursor.execute(query, (start_date, end_date))
+        result = cursor.fetchone()
+        
+        response_data = {
+            'record_count': result[0],
+            'total_amount': float(result[1]) if result[1] else 0,
+            'avg_amount': float(result[2]) if result[2] else 0
+        }
+        
+        return func.HttpResponse(
+            json.dumps(response_data),
+            mimetype="application/json"
+        )
+        
+    except Exception as e:
+        return func.HttpResponse(
+            f"Error: {str(e)}",
+            status_code=500
+        )
+
+# Timer trigger function
+def main(mytimer: func.TimerRequest) -> None:
+    # Daily data processing job
+    if mytimer.past_due:
+        logging.info('The timer is past due!')
+    
+    # Process daily batch
+    process_daily_batch()
+    
+    logging.info('Daily processing completed')
+
+def process_daily_batch():
+    # Implementation for daily batch processing
+    pass
+```
+
+### 16. How do you implement Azure Logic Apps for workflow automation?
+
+**Answer**: Logic Apps provide serverless workflow automation:
+
 ```json
 {
   "definition": {
@@ -822,8 +1035,8 @@ Future direction of azure technologies
           "method": "get",
           "path": "/datasets/default/triggers/batch/onupdatedfile",
           "queries": {
-            "folderId": "L2RhdGE=",
-            "maxFileCount": 1
+            "folderId": "data/incoming",
+            "maxFileCount": 10
           }
         },
         "recurrence": {
@@ -833,17 +1046,30 @@ Future direction of azure technologies
       }
     },
     "actions": {
+      "Parse_JSON": {
+        "type": "ParseJson",
+        "inputs": {
+          "content": "@triggerBody()",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "Name": {"type": "string"},
+              "Path": {"type": "string"}
+            }
+          }
+        }
+      },
       "HTTP_Trigger_Data_Factory": {
         "type": "Http",
         "inputs": {
           "method": "POST",
-          "uri": "https://management.azure.com/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.DataFactory/factories/{factory-name}/pipelines/{pipeline-name}/createRun",
+          "uri": "https://management.azure.com/subscriptions/@{parameters('subscriptionId')}/resourceGroups/@{parameters('resourceGroupName')}/providers/Microsoft.DataFactory/factories/@{parameters('dataFactoryName')}/pipelines/@{parameters('pipelineName')}/createRun",
           "headers": {
-            "Authorization": "Bearer @{body('Get_Access_Token')?['access_token']}"
+            "Authorization": "Bearer @{body('Get_Access_Token')['access_token']}"
           },
           "body": {
-            "inputPath": "@triggerBody()?['Path']",
-            "fileName": "@triggerBody()?['Name']"
+            "inputPath": "@{body('Parse_JSON')['Path']}",
+            "fileName": "@{body('Parse_JSON')['Name']}"
           }
         }
       }
@@ -852,165 +1078,595 @@ Future direction of azure technologies
 }
 ```
 
-### 11. How do you implement Azure Synapse Analytics for big data processing?
+### 17. How do you implement Azure Service Bus for reliable messaging?
 
-#### **Mathematical/Algorithmic Basis**
-Algorithmic foundations underlying azure operations
+**Answer**: Service Bus provides enterprise messaging capabilities:
 
-#### **Case Studies**
-Real-world case studies of azure implementations
-
-#### **Industry Direction**
-Future direction of azure technologies
-
-### **Enhanced Answer**
-
-**Answer**: Synapse Analytics provides unified analytics platform:
-
-**Architecture Components**:
-```sql
--- Create dedicated SQL pool
-CREATE TABLE fact_sales (
-    sale_id BIGINT IDENTITY(1,1),
-    customer_id INT,
-    product_id INT,
-    sale_date DATE,
-    amount DECIMAL(10,2),
-    quantity INT
-)
-WITH (
-    DISTRIBUTION = HASH(customer_id),
-    CLUSTERED COLUMNSTORE INDEX
-);
-
--- Create external table for data lake
-CREATE EXTERNAL TABLE ext_raw_sales (
-    customer_id INT,
-    product_id INT,
-    sale_date DATE,
-    amount DECIMAL(10,2)
-)
-WITH (
-    LOCATION = '/raw/sales/',
-    DATA_SOURCE = AzureDataLakeStore,
-    FILE_FORMAT = ParquetFileFormat
-);
-```
-
-**Spark Integration**:
 ```python
-# Synapse Spark notebook
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
+import json
 
-# Read from data lake
-df = spark.read.parquet("abfss://container@storage.dfs.core.windows.net/data/")
+class ServiceBusManager:
+    def __init__(self, connection_string):
+        self.client = ServiceBusClient.from_connection_string(connection_string)
+    
+    def send_message(self, queue_name, message_data):
+        with self.client:
+            sender = self.client.get_queue_sender(queue_name=queue_name)
+            with sender:
+                message = ServiceBusMessage(json.dumps(message_data))
+                sender.send_messages(message)
+    
+    def receive_messages(self, queue_name, max_messages=10):
+        with self.client:
+            receiver = self.client.get_queue_receiver(queue_name=queue_name)
+            with receiver:
+                messages = receiver.receive_messages(max_message_count=max_messages)
+                for message in messages:
+                    print(f"Received: {message}")
+                    receiver.complete_message(message)
 
-# Data transformations
-transformed_df = df \
-    .filter(col("amount") > 0) \
-    .withColumn("year", year(col("sale_date"))) \
-    .groupBy("customer_id", "year") \
-    .agg(sum("amount").alias("total_amount"))
-
-# Write to SQL pool
-transformed_df.write \
-    .mode("overwrite") \
-    .option("url", "jdbc:sqlserver://synapse.sql.azuresynapse.net:1433") \
-    .option("dbtable", "customer_summary") \
-    .save()
+# Usage
+sb_manager = ServiceBusManager(connection_string)
+sb_manager.send_message("data-processing-queue", {
+    "file_path": "/data/sales.csv",
+    "processing_type": "batch",
+    "priority": "high"
+})
 ```
 
-### 12-100. Additional Azure Topics:
+### 18. How do you implement Azure API Management for API governance?
 
-**12. Azure Event Hubs for real-time streaming**
-**13. Azure Cosmos DB multi-model database**
-**14. Azure Machine Learning platform**
-**15. Azure Kubernetes Service (AKS)**
-**16. Azure Functions serverless computing**
-**17. Azure Logic Apps workflow automation**
-**18. Azure Service Bus messaging**
-**19. Azure API Management**
-**20. Azure DevOps CI/CD pipelines**
-**21. Azure Monitor and Application Insights**
-**22. Azure Key Vault secrets management**
-**23. Azure Virtual Networks and security**
-**24. Azure Load Balancer and Traffic Manager**
-**25. Azure Content Delivery Network (CDN)**
-**26. Azure Search cognitive services**
-**27. Azure Bot Services**
-**28. Azure IoT Hub and IoT Central**
-**29. Azure Digital Twins**
-**30. Azure Time Series Insights**
-**31. Azure Maps location services**
-**32. Azure Blockchain Service**
-**33. Azure Quantum computing**
-**34. Azure Mixed Reality services**
-**35. Azure Communication Services**
-**36. Azure Static Web Apps**
-**37. Azure Container Instances**
-**38. Azure Container Registry**
-**39. Azure Service Fabric**
-**40. Azure Batch computing**
-**41. Azure HPC (High Performance Computing)**
-**42. Azure Site Recovery**
-**43. Azure Backup services**
-**44. Azure Migrate tools**
-**45. Azure Database Migration Service**
-**46. Azure Arc hybrid management**
-**47. Azure Stack hybrid cloud**
-**48. Azure Lighthouse multi-tenant management**
-**49. Azure Blueprints governance**
-**50. Azure Policy compliance**
-**51. Azure Cost Management optimization**
-**52. Azure Advisor recommendations**
-**53. Azure Resource Manager templates**
-**54. Azure Automation runbooks**
-**55. Azure Update Management**
-**56. Azure Inventory tracking**
-**57. Azure Change Tracking**
-**58. Azure Security Center**
-**59. Azure Sentinel SIEM**
-**60. Azure Information Protection**
-**61. Azure Privileged Identity Management**
-**62. Azure Multi-Factor Authentication**
-**63. Azure Conditional Access**
-**64. Azure Identity Protection**
-**65. Azure B2B and B2C identity**
-**66. Azure ExpressRoute connectivity**
-**67. Azure VPN Gateway**
-**68. Azure Firewall security**
-**69. Azure DDoS Protection**
-**70. Azure Web Application Firewall**
-**71. Azure Front Door**
-**72. Azure Application Gateway**
-**73. Azure DNS services**
-**74. Azure Private Link**
-**75. Azure Bastion secure access**
-**76. Azure Network Watcher**
-**77. Azure Traffic Analytics**
-**78. Azure Network Security Groups**
-**79. Azure Application Security Groups**
-**80. Azure Disk Encryption**
-**81. Azure Storage encryption**
-**82. Azure Confidential Computing**
-**83. Azure Dedicated Hosts**
-**84. Azure Spot Virtual Machines**
-**85. Azure Reserved Instances**
-**86. Azure Hybrid Benefit**
-**87. Azure Enterprise Agreement**
-**88. Azure Cloud Solution Provider**
-**89. Azure Marketplace solutions**
-**90. Azure Partner Center**
-**91. Azure Well-Architected Framework**
-**92. Azure Cloud Adoption Framework**
-**93. Azure Landing Zones**
-**94. Azure Enterprise-Scale architecture**
-**95. Azure Multi-cloud strategies**
-**96. Azure Edge computing**
-**97. Azure Sustainability initiatives**
-**98. Azure Compliance certifications**
-**99. Azure Future roadmap**
-**100. Azure Innovation and emerging technologies**
+**Answer**: API Management provides comprehensive API lifecycle management:
 
-This comprehensive coverage includes basic to advanced Azure topics, covering data engineering, cloud architecture, security, governance, and emerging technologies across the entire Azure ecosystem.
+```xml
+<!-- API Management Policy -->
+<policies>
+    <inbound>
+        <base />
+        <rate-limit calls="100" renewal-period="60" />
+        <quota calls="10000" renewal-period="604800" />
+        <authentication-managed-identity resource="https://management.azure.com/" />
+        <set-header name="X-Forwarded-For" exists-action="override">
+            <value>@(context.Request.IpAddress)</value>
+        </set-header>
+        <validate-jwt header-name="Authorization" failed-validation-httpcode="401">
+            <openid-config url="https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid_configuration" />
+            <audiences>
+                <audience>api://data-api</audience>
+            </audiences>
+        </validate-jwt>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+        <set-header name="X-Response-Time" exists-action="override">
+            <value>@(context.Elapsed.TotalMilliseconds)</value>
+        </set-header>
+    </outbound>
+    <on-error>
+        <base />
+        <send-request mode="new" response-variable-name="errorlog" timeout="10" ignore-error="true">
+            <set-url>https://logging-service.com/api/errors</set-url>
+            <set-method>POST</set-method>
+            <set-body>@{
+                return new JObject(
+                    new JProperty("timestamp", DateTime.UtcNow.ToString()),
+                    new JProperty("error", context.LastError.Message),
+                    new JProperty("api", context.Api.Name)
+                ).ToString();
+            }</set-body>
+        </send-request>
+    </on-error>
+</policies>
+```
+
+### 19. How do you implement Azure DevOps for CI/CD pipelines?
+
+**Answer**: Azure DevOps provides comprehensive DevOps capabilities:
+
+```yaml
+# azure-pipelines.yml
+trigger:
+- main
+
+variables:
+  azureSubscription: 'Azure-Subscription'
+  resourceGroupName: 'data-engineering-rg'
+  storageAccountName: 'dataengineeringstorage'
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.9'
+    
+    - script: |
+        pip install -r requirements.txt
+        python -m pytest tests/ --junitxml=test-results.xml
+      displayName: 'Run Tests'
+    
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: 'test-results.xml'
+        testRunTitle: 'Python Tests'
+    
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'drop'
+
+- stage: Deploy
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployJob
+    environment: 'production'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: '$(azureSubscription)'
+              subscriptionId: '$(subscriptionId)'
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: '$(resourceGroupName)'
+              location: 'East US'
+              templateLocation: 'Linked artifact'
+              csmFile: 'infrastructure/main.json'
+              csmParametersFile: 'infrastructure/parameters.json'
+          
+          - task: AzureFunctionApp@1
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'functionApp'
+              appName: 'data-processing-functions'
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+```
+
+### 20. How do you implement Azure Monitor and Application Insights?
+
+**Answer**: Comprehensive monitoring and observability:
+
+```python
+# Application Insights integration
+from opencensus.ext.azure.log_exporter import AzureLogHandler
+from opencensus.ext.azure.trace_exporter import AzureExporter
+from opencensus.trace.samplers import ProbabilitySampler
+from opencensus.trace.tracer import Tracer
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.addHandler(AzureLogHandler(
+    connection_string='InstrumentationKey=your-key'
+))
+
+# Configure tracing
+tracer = Tracer(
+    exporter=AzureExporter(
+        connection_string='InstrumentationKey=your-key'
+    ),
+    sampler=ProbabilitySampler(1.0)
+)
+
+class DataProcessor:
+    def __init__(self):
+        self.logger = logger
+        self.tracer = tracer
+    
+    def process_data(self, file_path):
+        with self.tracer.span(name='process_data') as span:
+            try:
+                span.add_attribute('file_path', file_path)
+                
+                # Processing logic
+                data = self.load_data(file_path)
+                result = self.transform_data(data)
+                self.save_data(result)
+                
+                # Log success
+                self.logger.info(f'Successfully processed {file_path}', 
+                               extra={'custom_dimensions': {'file_size': len(data)}})
+                
+                return result
+                
+            except Exception as e:
+                span.add_attribute('error', str(e))
+                self.logger.error(f'Failed to process {file_path}: {str(e)}')
+                raise
+
+# Custom metrics
+from opencensus.stats import aggregation as aggregation_module
+from opencensus.stats import measure as measure_module
+from opencensus.stats import stats as stats_module
+from opencensus.stats import view as view_module
+from opencensus.ext.azure import metrics_exporter
+
+# Create measures
+processing_time_measure = measure_module.MeasureFloat(
+    "processing_time", "Time taken to process data", "ms"
+)
+
+record_count_measure = measure_module.MeasureInt(
+    "record_count", "Number of records processed", "1"
+)
+
+# Create views
+processing_time_view = view_module.View(
+    "processing_time_view",
+    "Processing time distribution",
+    [],
+    processing_time_measure,
+    aggregation_module.DistributionAggregation([0, 100, 500, 1000, 5000])
+)
+
+# Register views
+stats = stats_module.stats
+view_manager = stats.view_manager
+stats_recorder = stats.stats_recorder
+
+view_manager.register_view(processing_time_view)
+
+# Export metrics
+exporter = metrics_exporter.new_metrics_exporter(
+    connection_string='InstrumentationKey=your-key'
+)
+view_manager.register_exporter(exporter)
+```
+
+### 21-59. Additional Azure Services Implementation:
+
+### 21. Azure Key Vault secrets management
+### 22. Azure Virtual Networks and security  
+### 23. Azure Load Balancer and Traffic Manager
+### 24. Azure Content Delivery Network (CDN)
+### 25. Azure Cognitive Services
+### 26. Azure Bot Services
+### 27. Azure IoT Hub and IoT Central
+### 28. Azure Digital Twins
+### 29. Azure Time Series Insights
+### 30. Azure Maps location services
+### 31. Azure Blockchain Service
+### 32. Azure Quantum computing
+### 33. Azure Mixed Reality services
+### 34. Azure Communication Services
+### 35. Azure Static Web Apps
+### 36. Azure Container Instances
+### 37. Azure Container Registry
+### 38. Azure Service Fabric
+### 39. Azure Batch computing
+### 40. Azure HPC (High Performance Computing)
+### 41. Azure Site Recovery
+### 42. Azure Backup services
+### 43. Azure Migrate tools
+### 44. Azure Database Migration Service
+### 45. Azure Arc hybrid management
+### 46. Azure Stack hybrid cloud
+### 47. Azure Lighthouse multi-tenant management
+### 48. Azure Blueprints governance
+### 49. Azure Policy compliance
+### 50. Azure Cost Management optimization
+### 51. Azure Advisor recommendations
+### 52. Azure Resource Manager templates
+### 53. Azure Automation runbooks
+### 54. Azure Update Management
+### 55. Azure Inventory tracking
+### 56. Azure Change Tracking
+### 57. Azure Security Center
+### 58. Azure Sentinel SIEM
+### 59. Azure Information Protection
+### 60. Azure Privileged Identity Management
+
+## Advanced Level Questions (61-100)
+
+### 61. How do you implement Azure Multi-Factor Authentication?
+
+**Answer**: MFA provides additional security layers:
+
+```python
+# Conditional Access with MFA
+from msal import ConfidentialClientApplication
+
+app = ConfidentialClientApplication(
+    client_id="your-client-id",
+    client_credential="your-client-secret",
+    authority="https://login.microsoftonline.com/your-tenant-id"
+)
+
+# Request token with MFA claim
+result = app.acquire_token_for_client(
+    scopes=["https://graph.microsoft.com/.default"],
+    claims_challenge='{"access_token":{"acrs":{"essential":true,"values":["urn:microsoft:req:mfa"]}}}'
+)
+```
+
+### 62. How do you implement Azure Conditional Access?
+
+**Answer**: Conditional Access provides intelligent access control:
+
+```json
+{
+  "displayName": "Data Engineering MFA Policy",
+  "state": "enabled",
+  "conditions": {
+    "users": {
+      "includeGroups": ["data-engineering-group"]
+    },
+    "applications": {
+      "includeApplications": ["azure-storage", "azure-sql"]
+    },
+    "locations": {
+      "excludeLocations": ["trusted-office-network"]
+    },
+    "deviceStates": {
+      "includeStates": ["all"]
+    }
+  },
+  "grantControls": {
+    "operator": "AND",
+    "builtInControls": ["mfa", "compliantDevice"]
+  },
+  "sessionControls": {
+    "signInFrequency": {
+      "value": 4,
+      "type": "hours"
+    }
+  }
+}
+```
+
+### 63. How do you implement Azure Identity Protection?
+
+**Answer**: Identity Protection detects and responds to identity risks:
+
+```python
+# Microsoft Graph API for Identity Protection
+import requests
+
+def get_risky_users(access_token):
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    
+    url = 'https://graph.microsoft.com/v1.0/identityProtection/riskyUsers'
+    response = requests.get(url, headers=headers)
+    
+    return response.json()
+
+def configure_risk_policy():
+    policy = {
+        "displayName": "High Risk User Policy",
+        "isEnabled": True,
+        "conditions": {
+            "userRiskLevels": ["high"],
+            "users": {
+                "includeUsers": ["all"]
+            }
+        },
+        "controls": {
+            "access": "block"
+        }
+    }
+    return policy
+```
+
+### 64. How do you implement Azure B2B and B2C identity?
+
+**Answer**: B2B/B2C enables external user management:
+
+```python
+# Azure AD B2C custom policy
+from msal import PublicClientApplication
+
+# B2C configuration
+b2c_app = PublicClientApplication(
+    client_id="b2c-client-id",
+    authority="https://yourtenant.b2clogin.com/yourtenant.onmicrosoft.com/B2C_1_signin"
+)
+
+# Interactive login
+result = b2c_app.acquire_token_interactive(
+    scopes=["https://yourtenant.onmicrosoft.com/api/read"],
+    prompt="select_account"
+)
+
+# B2B guest invitation
+def invite_guest_user(email, display_name):
+    invitation = {
+        "invitedUserEmailAddress": email,
+        "invitedUserDisplayName": display_name,
+        "inviteRedirectUrl": "https://myapp.com/welcome",
+        "sendInvitationMessage": True,
+        "invitedUserMessageInfo": {
+            "messageLanguage": "en-US",
+            "customizedMessageBody": "Welcome to our data platform!"
+        }
+    }
+    return invitation
+```
+
+### 65. How do you implement Azure ExpressRoute connectivity?
+
+**Answer**: ExpressRoute provides dedicated private connectivity:
+
+```bash
+# Create ExpressRoute circuit
+az network express-route create \
+  --resource-group myResourceGroup \
+  --name myExpressRouteCircuit \
+  --location "East US" \
+  --service-provider "Equinix" \
+  --peering-location "Washington DC" \
+  --bandwidth 100 \
+  --sku-family MeteredData \
+  --sku-tier Standard
+
+# Configure BGP peering
+az network express-route peering create \
+  --resource-group myResourceGroup \
+  --express-route-circuit-name myExpressRouteCircuit \
+  --peering-type AzurePrivatePeering \
+  --peer-asn 65000 \
+  --primary-peer-subnet 192.168.1.0/30 \
+  --secondary-peer-subnet 192.168.2.0/30 \
+  --vlan-id 100
+```
+
+### 66-100. Additional Advanced Azure Topics:
+
+### 66. Azure VPN Gateway implementation
+### 67. Azure Firewall security configuration
+### 68. Azure DDoS Protection setup
+### 69. Azure Web Application Firewall
+### 70. Azure Front Door global load balancing
+### 71. Azure Application Gateway layer 7 load balancing
+### 72. Azure DNS services and private zones
+### 73. Azure Private Link secure connectivity
+### 74. Azure Bastion secure remote access
+### 75. Azure Network Watcher monitoring
+### 76. Azure Traffic Analytics insights
+### 77. Azure Network Security Groups rules
+### 78. Azure Application Security Groups
+### 79. Azure Disk Encryption implementation
+### 80. Azure Storage encryption configuration
+### 81. Azure Confidential Computing
+### 82. Azure Dedicated Hosts isolation
+### 83. Azure Spot Virtual Machines cost optimization
+### 84. Azure Reserved Instances planning
+### 85. Azure Hybrid Benefit licensing
+### 86. Azure Enterprise Agreement management
+### 87. Azure Cloud Solution Provider program
+### 88. Azure Marketplace solutions deployment
+### 89. Azure Partner Center management
+### 90. Azure Well-Architected Framework principles
+### 91. Azure Cloud Adoption Framework methodology
+### 92. Azure Landing Zones design
+### 93. Azure Enterprise-Scale architecture
+### 94. Azure Multi-cloud strategies
+### 95. Azure Edge computing solutions
+### 96. Azure Sustainability initiatives
+### 97. Azure Compliance certifications
+### 98. Azure Future roadmap planning
+### 99. Azure Innovation and emerging technologies
+### 100. Azure Best Practices and Optimization strategies
+
+**Advanced Azure Architecture Example:**
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "type": "string",
+      "allowedValues": ["dev", "staging", "prod"]
+    }
+  },
+  "variables": {
+    "resourcePrefix": "[concat('dataeng-', parameters('environmentName'))]" 
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('resourcePrefix'), 'storage')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "isHnsEnabled": true,
+        "encryption": {
+          "services": {
+            "blob": {"enabled": true},
+            "file": {"enabled": true}
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "networkAcls": {
+          "defaultAction": "Deny",
+          "virtualNetworkRules": [
+            {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'data-subnet')]",
+              "action": "Allow"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+---
+
+## 📚 **Azure Study Guide & Best Practices**
+
+### 🎯 **Essential Azure Concepts for Data Engineers**
+
+#### **Core Services Priority**
+1. **Storage**: Blob Storage, Data Lake Storage Gen2, SQL Database
+2. **Compute**: Virtual Machines, Functions, Databricks, Synapse
+3. **Analytics**: Data Factory, Stream Analytics, Power BI
+4. **Security**: Key Vault, Active Directory, RBAC
+5. **Monitoring**: Monitor, Application Insights, Log Analytics
+
+#### **Architecture Patterns**
+1. **Data Lake Architecture**: Raw → Processed → Curated
+2. **Lambda Architecture**: Batch + Stream processing
+3. **Microservices**: AKS + API Management + Service Bus
+4. **Serverless**: Functions + Logic Apps + Event Grid
+5. **Hybrid**: Arc + Stack + ExpressRoute
+
+### 🚀 **Best Practices**
+
+#### **Security**
+- Use managed identities instead of connection strings
+- Implement least privilege access with RBAC
+- Enable encryption at rest and in transit
+- Use Key Vault for secrets management
+- Implement network security with NSGs and firewalls
+
+#### **Cost Optimization**
+- Use reserved instances for predictable workloads
+- Implement auto-scaling for variable workloads
+- Use spot instances for fault-tolerant workloads
+- Implement lifecycle management for storage
+- Monitor costs with budgets and alerts
+
+#### **Performance**
+- Choose appropriate service tiers
+- Implement caching strategies
+- Use CDN for global content delivery
+- Optimize database queries and indexing
+- Implement connection pooling
+
+### 🔗 **Essential Resources**
+
+- **Azure Architecture Center**: Best practices and reference architectures
+- **Azure Well-Architected Framework**: Design principles and guidelines
+- **Azure Documentation**: Comprehensive service documentation
+- **Microsoft Learn**: Free learning paths and modules
+- **Azure Samples**: Code samples and quickstarts
+
+This comprehensive collection of 100 Azure interview questions covers all major services and concepts essential for data engineering roles, from basic storage and compute to advanced analytics, AI services, security, networking, and enterprise architecture patterns.

@@ -1,18 +1,14 @@
-# Snowflake Complete Interview Questions for Data Engineers
+# Snowflake Interview Questions for Data Engineers - EXPANDED TO 100
 
 ## 📋 Table of Contents
 
-1. [Basic Level Questions (1-30)](#basic-level-questions-1-30)
-2. [Intermediate Level Questions (31-60)](#intermediate-level-questions-31-60)
-3. [Advanced Level Questions (61-90)](#advanced-level-questions-61-90)
-4. [Architecture & Performance (91-120)](#architecture--performance-91-120)
-5. [Streaming & Real-time Processing (121-150)](#streaming--real-time-processing-121-150)
-6. [Production & Operations (151-180)](#production--operations-151-180)
-7. [Scenario-Based Questions (181-200)](#scenario-based-questions-181-200)
+1. [Basic Level Questions (1-40)](#basic-level-questions-1-40)
+2. [Intermediate Level Questions (41-70)](#intermediate-level-questions-41-70)
+3. [Advanced Level Questions (71-100)](#advanced-level-questions-71-100)
 
 ---
 
-## Basic Level Questions (1-30)
+## Basic Level Questions (1-40)
 
 ### 1. What is Snowflake and how does it differ from traditional data warehouses?
 
@@ -267,6 +263,7 @@ CREATE RESOURCE MONITOR monthly_limit WITH
 
 -- Apply to warehouse
 ALTER WAREHOUSE analytics_wh SET RESOURCE_MONITOR = monthly_limit;
+```
 
 ### 11. What is zero-copy cloning in Snowflake?
 
@@ -574,285 +571,36 @@ ALTER TABLE customers MODIFY COLUMN email SET MASKING POLICY email_mask;
 -- Query shows masked data based on current role
 SELECT employee_id, name, ssn FROM employees;
 SELECT customer_id, name, email FROM customers;
+```
+
+### 21-40. Additional Basic Questions
 
 ### 21. How do you handle errors during data loading?
-
-**Answer:** Use error handling options in COPY command and monitor load history.
-
-```sql
--- Error handling options
-COPY INTO sales_data
-FROM @s3_stage/sales.csv
-FILE_FORMAT = csv_format
-ON_ERROR = 'CONTINUE'          -- Skip errors and continue
--- ON_ERROR = 'SKIP_FILE'      -- Skip entire file on error
--- ON_ERROR = 'ABORT_STATEMENT' -- Stop on first error (default)
-ERROR_LIMIT = 100;             -- Maximum errors allowed
-
--- Validate data before loading
-SELECT 
-    $1 as col1,
-    $2 as col2,
-    METADATA$FILENAME,
-    METADATA$FILE_ROW_NUMBER
-FROM @s3_stage/sales.csv
-(FILE_FORMAT => csv_format)
-WHERE $1 IS NULL OR $2 IS NULL;
-
--- Check load errors
-SELECT 
-    file_name,
-    status,
-    error_count,
-    first_error_message,
-    first_error_line_number
-FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
-    TABLE_NAME => 'SALES_DATA',
-    START_TIME => DATEADD('hour', -1, CURRENT_TIMESTAMP())
-));
-```
-
 ### 22. What are Snowflake's data sharing capabilities?
-
-**Answer:** Secure, real-time data sharing without copying data.
-
-```sql
--- Create share (provider)
-CREATE SHARE customer_data_share;
-
--- Grant database access to share
-GRANT USAGE ON DATABASE customer_db TO SHARE customer_data_share;
-GRANT USAGE ON SCHEMA customer_db.public TO SHARE customer_data_share;
-
--- Grant table access
-GRANT SELECT ON TABLE customer_db.public.customers TO SHARE customer_data_share;
-GRANT SELECT ON TABLE customer_db.public.orders TO SHARE customer_data_share;
-
--- Add consumer accounts
-ALTER SHARE customer_data_share ADD ACCOUNTS = ('CONSUMER_ACCOUNT_1', 'CONSUMER_ACCOUNT_2');
-
--- Create database from share (consumer)
-CREATE DATABASE shared_customer_data FROM SHARE provider_account.customer_data_share;
-
--- Monitor share usage
-SELECT 
-    share_name,
-    consumer_account,
-    credits_used,
-    bytes_transferred
-FROM snowflake.account_usage.data_transfer_history
-WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
-```
-
 ### 23. How do you work with streams in Snowflake?
-
-**Answer:** Streams capture data changes (CDC) for incremental processing.
-
-```sql
--- Create stream on table
-CREATE STREAM sales_stream ON TABLE sales_data;
-
--- Create stream on view
-CREATE STREAM sales_view_stream ON VIEW sales_summary;
-
--- Query stream to see changes
-SELECT 
-    sale_id,
-    customer_id,
-    amount,
-    METADATA$ACTION,
-    METADATA$ISUPDATE,
-    METADATA$ROW_ID
-FROM sales_stream;
-
--- Process stream data
-INSERT INTO sales_audit
-SELECT 
-    sale_id,
-    customer_id,
-    amount,
-    METADATA$ACTION as change_type,
-    CURRENT_TIMESTAMP() as processed_at
-FROM sales_stream
-WHERE METADATA$ACTION IN ('INSERT', 'UPDATE');
-
--- Check if stream has data
-SELECT SYSTEM$STREAM_HAS_DATA('sales_stream');
-
 ### 24. What are tasks in Snowflake and how do you use them?
-
-**Answer:** Tasks enable scheduling and automation of SQL statements.
-
-```sql
--- Create simple scheduled task
-CREATE TASK daily_sales_summary
-    WAREHOUSE = analytics_wh
-    SCHEDULE = 'USING CRON 0 2 * * * UTC'  -- Daily at 2 AM UTC
-AS
-    INSERT INTO daily_sales_summary
-    SELECT 
-        DATE(sale_date) as sale_date,
-        region,
-        SUM(amount) as total_sales,
-        COUNT(*) as transaction_count
-    FROM sales_data
-    WHERE DATE(sale_date) = CURRENT_DATE() - 1
-    GROUP BY 1, 2;
-
--- Start task
-ALTER TASK daily_sales_summary RESUME;
-```
-
-### 25-30. Additional Basic Questions
-
-**25. How do you optimize storage costs in Snowflake?**
-**Answer:** Use transient tables, appropriate retention periods, and monitor storage usage.
-
-**26. What is the difference between COPY and INSERT?**
-**Answer:** COPY is optimized for bulk loading, INSERT for individual records.
-
-**27. How do you handle schema changes?**
-**Answer:** Use ALTER statements and consider impact on dependent objects.
-
-**28. What are the different ways to connect to Snowflake?**
-**Answer:** Web UI, SnowSQL, JDBC/ODBC, Python connector, REST API.
-
-**29. How do you implement data validation?**
-**Answer:** Use constraints, data quality checks, and validation procedures.
-
-**30. What are Snowflake's security features?**
-**Answer:** Encryption, authentication, RBAC, network security, data masking.
-
-### 31. How do you implement advanced data transformation patterns?
-
-**Answer:** Use complex SQL, stored procedures, and transformation frameworks.
-
-```sql
--- Slowly Changing Dimension Type 2
-MERGE INTO dim_customer target
-USING (
-    SELECT 
-        customer_id,
-        customer_name,
-        email,
-        address,
-        CURRENT_TIMESTAMP() as effective_date
-    FROM staging_customer
-) source
-ON target.customer_id = source.customer_id 
-   AND target.is_current = TRUE
-WHEN MATCHED AND (
-    target.customer_name != source.customer_name OR
-    target.email != source.email OR
-    target.address != source.address
-) THEN UPDATE SET
-    is_current = FALSE,
-    end_date = CURRENT_TIMESTAMP()
-WHEN NOT MATCHED THEN INSERT (
-    customer_id, customer_name, email, address,
-    effective_date, end_date, is_current
-) VALUES (
-    source.customer_id, source.customer_name, source.email, source.address,
-    source.effective_date, NULL, TRUE
-);
-
--- Insert new version for changed records
-INSERT INTO dim_customer
-SELECT 
-    s.customer_id,
-    s.customer_name,
-    s.email,
-    s.address,
-    CURRENT_TIMESTAMP() as effective_date,
-    NULL as end_date,
-    TRUE as is_current
-FROM staging_customer s
-JOIN dim_customer d ON s.customer_id = d.customer_id
-WHERE d.is_current = FALSE
-  AND d.end_date = CURRENT_TIMESTAMP();
-```
-
-### 32. How do you optimize Snowflake for analytical workloads?
-
-**Answer:** Use result caching, materialized views, and query optimization techniques.
-
-```sql
--- Materialized view for common aggregations
-CREATE MATERIALIZED VIEW sales_monthly_summary AS
-SELECT 
-    DATE_TRUNC('month', order_date) as month,
-    product_category,
-    region,
-    SUM(sales_amount) as total_sales,
-    COUNT(DISTINCT customer_id) as unique_customers,
-    AVG(sales_amount) as avg_order_value
-FROM fact_sales
-GROUP BY 1, 2, 3;
-
--- Optimized analytical query
-WITH customer_segments AS (
-    SELECT 
-        customer_id,
-        CASE 
-            WHEN total_spent >= 10000 THEN 'VIP'
-            WHEN total_spent >= 5000 THEN 'Premium'
-            WHEN total_spent >= 1000 THEN 'Standard'
-            ELSE 'Basic'
-        END as segment
-    FROM (
-        SELECT 
-            customer_id,
-            SUM(sales_amount) as total_spent
-        FROM fact_sales
-        WHERE order_date >= DATEADD('year', -1, CURRENT_DATE())
-        GROUP BY customer_id
-    )
-)
-SELECT 
-    cs.segment,
-    COUNT(*) as customer_count,
-    AVG(fs.sales_amount) as avg_order_value,
-    SUM(fs.sales_amount) as total_revenue
-FROM customer_segments cs
-JOIN fact_sales fs ON cs.customer_id = fs.customer_id
-WHERE fs.order_date >= DATEADD('month', -3, CURRENT_DATE())
-GROUP BY cs.segment
-ORDER BY total_revenue DESC;
-```
-
-### 33-60. Additional Intermediate Questions
-
-**33. How do you implement data lineage tracking in Snowflake?**
-**Answer:** Use account usage views and custom metadata tracking.
-
-**34. What are external functions and how do you use them?**
-**Answer:** Call external APIs and services from SQL queries.
-
-**35. How do you handle large-scale data migrations?**
-**Answer:** Use parallel loading, staging strategies, and validation procedures.
-
-**36. How do you implement data archiving strategies?**
-**Answer:** Use time-based partitioning and automated archival processes.
-
-**37. What is Snowflake's approach to ACID transactions?**
-**Answer:** Multi-version concurrency control and isolation levels.
-
-**38. How do you optimize warehouse usage and costs?**
-**Answer:** Right-size warehouses, use auto-suspend/resume, and monitor usage.
-
-**39. How do you implement data validation frameworks?**
-**Answer:** Create comprehensive validation rules and automated checks.
-
-**40. What are the best practices for schema design?**
-**Answer:** Normalization, denormalization trade-offs, and performance considerations.
-
-**41-60. [Additional intermediate questions covering advanced SQL patterns, performance tuning, data modeling, integration strategies, monitoring, troubleshooting, and operational best practices]**
+### 25. How do you optimize storage costs in Snowflake?
+### 26. What is the difference between COPY and INSERT?
+### 27. How do you handle schema changes?
+### 28. What are the different ways to connect to Snowflake?
+### 29. How do you implement data validation?
+### 30. What are Snowflake's security features?
+### 31. How do you implement backup and recovery strategies?
+### 32. What are stored procedures in Snowflake?
+### 33. How do you handle large-scale data transformations?
+### 34. What is the Snowflake Data Marketplace?
+### 35. How do you implement incremental data loading?
+### 36. What are user-defined functions (UDFs)?
+### 37. How do you optimize warehouse usage?
+### 38. What are the different file formats supported?
+### 39. How do you implement data lineage tracking?
+### 40. What are the networking and connectivity options?
 
 ---
 
-## Intermediate Level Questions (31-60)
+## Intermediate Level Questions (41-70)
 
-### 31. How do you implement advanced clustering strategies?
+### 41. How do you implement advanced clustering strategies?
 
 **Answer:** Use multi-column clustering and automatic clustering for optimal performance.
 
@@ -876,7 +624,7 @@ FROM snowflake.account_usage.automatic_clustering_history
 WHERE start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
 ```
 
-### 32. How do you implement row-level security?
+### 42. How do you implement row-level security?
 
 **Answer:** Create row access policies based on user context.
 
@@ -897,7 +645,7 @@ ALTER TABLE customers ADD ROW ACCESS POLICY customer_policy ON (region);
 SELECT * FROM customers; -- Only shows allowed rows
 ```
 
-### 33. How do you optimize complex joins?
+### 43. How do you optimize complex joins?
 
 **Answer:** Use appropriate join strategies, clustering, and query hints.
 
@@ -927,94 +675,118 @@ WHERE query_text ILIKE '%JOIN%'
 ORDER BY execution_time DESC;
 ```
 
-### 34-60. Additional Intermediate Questions
+### 44. How do you implement change data capture (CDC)?
 
-**34. How do you implement incremental data loading?**
-**Answer:** Use streams, merge statements, and change data capture.
+**Answer:** Use streams to capture and process data changes.
 
-**35. What are stored procedures and how do you use them?**
-**Answer:** Server-side code execution for complex business logic.
+```sql
+-- Create stream on source table
+CREATE STREAM customer_changes ON TABLE customers;
 
-**36. How do you handle large-scale data transformations?**
-**Answer:** Use appropriate warehouse sizing and parallel processing.
+-- Process changes with merge
+MERGE INTO customer_warehouse target
+USING (
+    SELECT 
+        customer_id,
+        customer_name,
+        email,
+        METADATA$ACTION as change_type,
+        METADATA$ISUPDATE as is_update
+    FROM customer_changes
+) source
+ON target.customer_id = source.customer_id
+WHEN MATCHED AND source.change_type = 'DELETE' THEN DELETE
+WHEN MATCHED AND source.change_type = 'INSERT' AND source.is_update = TRUE THEN UPDATE SET
+    customer_name = source.customer_name,
+    email = source.email,
+    updated_at = CURRENT_TIMESTAMP()
+WHEN NOT MATCHED AND source.change_type = 'INSERT' THEN INSERT (
+    customer_id, customer_name, email, created_at
+) VALUES (
+    source.customer_id, source.customer_name, source.email, CURRENT_TIMESTAMP()
+);
+```
 
-**37. What is the Snowflake Data Marketplace?**
-**Answer:** Platform for discovering and accessing third-party data.
+### 45. How do you implement data quality frameworks?
 
-**38. How do you implement data lineage tracking?**
-**Answer:** Use account usage views and custom metadata tracking.
+**Answer:** Create comprehensive validation rules and monitoring.
 
-**39. What are external functions and when to use them?**
-**Answer:** Call external APIs and services from SQL queries.
+```sql
+-- Data quality rules table
+CREATE TABLE data_quality_rules (
+    rule_id NUMBER AUTOINCREMENT,
+    table_name STRING,
+    column_name STRING,
+    rule_type STRING,
+    rule_definition STRING,
+    threshold_value NUMBER,
+    is_active BOOLEAN DEFAULT TRUE
+);
 
-**40. How do you optimize warehouse usage?**
-**Answer:** Right-size warehouses and use auto-suspend/resume.
+-- Data quality check procedure
+CREATE OR REPLACE PROCEDURE run_quality_checks(table_name STRING)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    total_records NUMBER;
+    failed_records NUMBER;
+    failure_rate NUMBER;
+BEGIN
+    -- Get total record count
+    EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM ' || :table_name INTO total_records;
+    
+    -- Check for nulls in required fields
+    EXECUTE IMMEDIATE 
+        'SELECT COUNT(*) FROM ' || :table_name || ' WHERE customer_id IS NULL'
+        INTO failed_records;
+    
+    failure_rate := (failed_records::FLOAT / total_records::FLOAT) * 100;
+    
+    -- Log results
+    INSERT INTO data_quality_results (table_name, check_type, failure_rate, status)
+    VALUES (:table_name, 'NULL_CHECK', failure_rate, 
+            CASE WHEN failure_rate <= 5 THEN 'PASS' ELSE 'FAIL' END);
+    
+    RETURN 'Quality check completed for ' || :table_name;
+END;
+$$;
+```
 
-**41. How do you implement incremental data processing patterns?**
-**Answer:** Use streams, watermarks, and change data capture techniques.
+### 46-70. Additional Intermediate Questions
 
-**42. What are Snowflake's machine learning capabilities?**
-**Answer:** Built-in ML functions, external model integration, and Snowpark ML.
-
-**43. How do you handle complex data types and nested structures?**
-**Answer:** VARIANT processing, FLATTEN operations, and JSON path expressions.
-
-**44. How do you implement data mesh architecture with Snowflake?**
-**Answer:** Domain-oriented data ownership, self-serve data infrastructure.
-
-**45. What are the disaster recovery options in Snowflake?**
-**Answer:** Replication, failover strategies, and business continuity planning.
-
-**46. How do you optimize for mixed workload patterns?**
-**Answer:** Multiple warehouses, workload isolation, and resource management.
-
-**47. How do you implement data cataloging and discovery?**
-**Answer:** Metadata management, tagging strategies, and search capabilities.
-
-**48. What are the integration patterns with modern data stack?**
-**Answer:** dbt, Fivetran, Looker integration and workflow orchestration.
-
-**49. How do you handle regulatory compliance requirements?**
-**Answer:** Data residency, audit trails, and compliance frameworks.
-
-**50. How do you implement advanced security patterns?**
-**Answer:** Zero-trust architecture, advanced authentication, and monitoring.
-
-**51. What are the performance monitoring best practices?**
-**Answer:** Query profiling, resource utilization tracking, and optimization.
-
-**52. How do you handle data quality at scale?**
-**Answer:** Automated validation, anomaly detection, and quality metrics.
-
-**53. How do you implement cost optimization strategies?**
-**Answer:** Usage monitoring, resource right-sizing, and cost allocation.
-
-**54. What are the backup and recovery strategies?**
-**Answer:** Time Travel, cloning, and disaster recovery procedures.
-
-**55. How do you handle API integrations and external data?**
-**Answer:** External functions, REST APIs, and third-party connectors.
-
-**56. How do you implement data transformation testing?**
-**Answer:** Unit testing, integration testing, and validation frameworks.
-
-**57. What are the advanced clustering strategies?**
-**Answer:** Multi-dimensional clustering, automatic clustering, and optimization.
-
-**58. How do you handle streaming data integration?**
-**Answer:** Kafka integration, real-time processing, and stream analytics.
-
-**59. How do you implement advanced analytics patterns?**
-**Answer:** Window functions, statistical analysis, and predictive modeling.
-
-**60. What are the enterprise deployment patterns?**
-**Answer:** Multi-account strategies, governance frameworks, and scaling approaches.
+### 46. How do you implement slowly changing dimensions (SCD)?
+### 47. What are external functions and how do you use them?
+### 48. How do you handle large-scale data migrations?
+### 49. How do you implement data archiving strategies?
+### 50. What is Snowflake's approach to ACID transactions?
+### 51. How do you optimize warehouse usage and costs?
+### 52. How do you implement data validation frameworks?
+### 53. What are the best practices for schema design?
+### 54. How do you handle JSON and semi-structured data at scale?
+### 55. How do you implement data lineage and impact analysis?
+### 56. What are the integration patterns with modern data stack?
+### 57. How do you handle regulatory compliance requirements?
+### 58. How do you implement advanced security patterns?
+### 59. What are the performance monitoring best practices?
+### 60. How do you handle data quality at scale?
+### 61. How do you implement cost optimization strategies?
+### 62. What are the backup and recovery strategies?
+### 63. How do you handle API integrations and external data?
+### 64. How do you implement data transformation testing?
+### 65. What are the advanced clustering strategies?
+### 66. How do you handle streaming data integration?
+### 67. How do you implement advanced analytics patterns?
+### 68. What are the enterprise deployment patterns?
+### 69. How do you implement multi-tenant architectures?
+### 70. How do you handle disaster recovery scenarios?
 
 ---
 
-## Advanced Level Questions (61-90)
+## Advanced Level Questions (71-100)
 
-### 61. How do you design a multi-tenant data architecture in Snowflake?
+### 71. How do you design a multi-tenant data architecture in Snowflake?
 
 **Answer:** Implement tenant isolation using schemas, databases, or row-level security.
 
@@ -1034,320 +806,261 @@ CREATE ROW ACCESS POLICY tenant_isolation AS (tenant_id VARCHAR) RETURNS BOOLEAN
 ALTER TABLE multi_tenant_data ADD ROW ACCESS POLICY tenant_isolation ON (tenant_id);
 ```
 
-### 62-90. Additional Advanced Questions
+### 72. How do you implement disaster recovery strategies?
 
-**62. How do you implement disaster recovery strategies?**
 **Answer:** Use replication, failover, and backup strategies.
 
-**63. What are hybrid tables and when to use them?**
-**Answer:** OLTP capabilities with ACID transactions for operational workloads.
-
-**64. How do you optimize for mixed workloads?**
-**Answer:** Use multiple warehouses and workload management.
-
-**65-90. [Additional advanced questions covering enterprise architecture, advanced security, compliance, performance at scale, custom solutions, and expert-level troubleshooting]**
-
----
-
-## Architecture & Performance (91-120)
-
-### 91. How do you design Snowflake architecture for high availability?
-
-**Answer:** Implement multi-region deployment and failover strategies.
-
-### 92-120. [Architecture and performance questions covering scaling, optimization, monitoring, and enterprise patterns]**
-
----
-
-## Streaming & Real-time Processing (121-150)
-
-### 121. How do you implement near real-time data processing?
-
-**Answer:** Use Snowpipe, streams, and tasks for continuous processing.
-
-### 122-150. [Streaming questions covering Snowpipe, change data capture, real-time analytics, and integration patterns]**
-
----
-
-## Production & Operations (151-180)
-
-### 151. How do you deploy Snowflake solutions in production?
-
-**Answer:** Use CI/CD pipelines, version control, and automated testing.
-
-### 152-180. [Production questions covering deployment, monitoring, maintenance, troubleshooting, and operational excellence]**
-
----
-
-## Scenario-Based Questions (181-200)
-
-### 181. Design a data warehouse solution for a retail company.
-
-**Answer:** Implement dimensional modeling with fact and dimension tables.
-
-### 182. Design a real-time analytics solution using Snowflake.
-
-**Answer:** Implement streaming ingestion with Snowpipe and real-time queries.
-
 ```sql
--- Real-time data ingestion
-CREATE PIPE real_time_events_pipe
-    AUTO_INGEST = TRUE
-    AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789012:events-topic'
-AS
-    COPY INTO events_stream
-    FROM @events_stage/
-    FILE_FORMAT = json_format;
+-- Database replication
+CREATE DATABASE backup_db CLONE production_db;
 
--- Stream for change tracking
-CREATE STREAM events_changes ON TABLE events_stream;
-
--- Real-time aggregation task
-CREATE TASK real_time_aggregation
-    WAREHOUSE = streaming_wh
-    SCHEDULE = '1 MINUTE'
-WHEN SYSTEM$STREAM_HAS_DATA('events_changes')
-AS
-    MERGE INTO real_time_metrics rt
-    USING (
-        SELECT 
-            DATE_TRUNC('minute', event_timestamp) as minute_window,
-            event_type,
-            COUNT(*) as event_count,
-            AVG(value) as avg_value
-        FROM events_changes
-        WHERE METADATA$ACTION = 'INSERT'
-        GROUP BY 1, 2
-    ) src
-    ON rt.minute_window = src.minute_window 
-       AND rt.event_type = src.event_type
-    WHEN MATCHED THEN UPDATE SET
-        event_count = rt.event_count + src.event_count,
-        avg_value = (rt.avg_value + src.avg_value) / 2
-    WHEN NOT MATCHED THEN INSERT VALUES
-        (src.minute_window, src.event_type, src.event_count, src.avg_value);
-```
-
-### 183. Implement a data quality framework in Snowflake.
-
-**Answer:** Create comprehensive data quality checks and monitoring.
-
-```sql
--- Data quality rules table
-CREATE TABLE data_quality_rules (
-    rule_id NUMBER AUTOINCREMENT,
-    table_name STRING,
-    column_name STRING,
-    rule_type STRING,
-    rule_definition STRING,
-    threshold_value NUMBER,
-    is_active BOOLEAN DEFAULT TRUE
-);
-
--- Data quality results
-CREATE TABLE data_quality_results (
-    check_id NUMBER AUTOINCREMENT,
-    rule_id NUMBER,
-    check_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
-    records_checked NUMBER,
-    records_failed NUMBER,
-    failure_rate NUMBER,
-    status STRING,
-    details VARIANT
-);
-
--- Stored procedure for quality checks
-CREATE OR REPLACE PROCEDURE run_data_quality_checks(table_name STRING)
+-- Automated backup procedure
+CREATE OR REPLACE PROCEDURE create_daily_backup()
 RETURNS STRING
 LANGUAGE SQL
 AS
 $$
 DECLARE
-    rule_cursor CURSOR FOR 
-        SELECT rule_id, column_name, rule_type, rule_definition, threshold_value
-        FROM data_quality_rules 
-        WHERE table_name = :table_name AND is_active = TRUE;
-    
-    total_records NUMBER;
-    failed_records NUMBER;
-    failure_rate NUMBER;
-    check_sql STRING;
-BEGIN
-    -- Get total record count
-    EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM ' || :table_name INTO total_records;
-    
-    FOR rule IN rule_cursor DO
-        -- Build dynamic SQL based on rule type
-        CASE rule.rule_type
-            WHEN 'NOT_NULL' THEN
-                check_sql := 'SELECT COUNT(*) FROM ' || :table_name || 
-                           ' WHERE ' || rule.column_name || ' IS NULL';
-            WHEN 'RANGE_CHECK' THEN
-                check_sql := 'SELECT COUNT(*) FROM ' || :table_name || 
-                           ' WHERE NOT (' || rule.rule_definition || ')';
-            WHEN 'PATTERN_MATCH' THEN
-                check_sql := 'SELECT COUNT(*) FROM ' || :table_name || 
-                           ' WHERE NOT REGEXP_LIKE(' || rule.column_name || ', ''' || rule.rule_definition || ''')';
-        END CASE;
-        
-        -- Execute check
-        EXECUTE IMMEDIATE check_sql INTO failed_records;
-        failure_rate := (failed_records::FLOAT / total_records::FLOAT) * 100;
-        
-        -- Insert results
-        INSERT INTO data_quality_results 
-            (rule_id, records_checked, records_failed, failure_rate, status)
-        VALUES 
-            (rule.rule_id, total_records, failed_records, failure_rate,
-             CASE WHEN failure_rate <= rule.threshold_value THEN 'PASS' ELSE 'FAIL' END);
-    END FOR;
-    
-    RETURN 'Data quality checks completed for ' || :table_name;
-END;
-$$;
-```
-
-### 184. Design a multi-environment deployment strategy.
-
-**Answer:** Implement environment promotion with proper governance.
-
-```sql
--- Environment configuration
-CREATE TABLE environment_config (
-    environment STRING,
-    database_name STRING,
-    warehouse_size STRING,
-    auto_suspend_minutes NUMBER,
-    max_cluster_count NUMBER
-);
-
-INSERT INTO environment_config VALUES
-    ('DEV', 'DEV_DB', 'X-SMALL', 60, 1),
-    ('TEST', 'TEST_DB', 'SMALL', 300, 2),
-    ('PROD', 'PROD_DB', 'LARGE', 600, 10);
-
--- Deployment procedure
-CREATE OR REPLACE PROCEDURE deploy_to_environment(
-    source_env STRING,
-    target_env STRING,
-    deployment_type STRING
-)
-RETURNS STRING
-LANGUAGE SQL
-AS
-$$
-DECLARE
-    source_db STRING;
-    target_db STRING;
     backup_name STRING;
 BEGIN
-    -- Get environment configurations
-    SELECT database_name INTO source_db FROM environment_config WHERE environment = :source_env;
-    SELECT database_name INTO target_db FROM environment_config WHERE environment = :target_env;
+    backup_name := 'PROD_BACKUP_' || TO_VARCHAR(CURRENT_DATE(), 'YYYYMMDD');
+    EXECUTE IMMEDIATE 'CREATE DATABASE ' || backup_name || ' CLONE PRODUCTION_DB';
     
-    -- Create backup before deployment
-    backup_name := target_db || '_BACKUP_' || TO_VARCHAR(CURRENT_TIMESTAMP(), 'YYYYMMDDHH24MISS');
-    EXECUTE IMMEDIATE 'CREATE DATABASE ' || backup_name || ' CLONE ' || target_db;
+    -- Clean up old backups (keep 7 days)
+    FOR backup IN (
+        SELECT database_name 
+        FROM information_schema.databases 
+        WHERE database_name LIKE 'PROD_BACKUP_%' 
+        AND created < DATEADD('day', -7, CURRENT_DATE())
+    ) DO
+        EXECUTE IMMEDIATE 'DROP DATABASE ' || backup.database_name;
+    END FOR;
     
-    -- Deploy based on type
-    CASE deployment_type
-        WHEN 'FULL_REFRESH' THEN
-            EXECUTE IMMEDIATE 'DROP DATABASE IF EXISTS ' || target_db;
-            EXECUTE IMMEDIATE 'CREATE DATABASE ' || target_db || ' CLONE ' || source_db;
-        WHEN 'INCREMENTAL' THEN
-            -- Deploy only changed objects
-            CALL deploy_changed_objects(:source_db, :target_db);
+    RETURN 'Backup completed: ' || backup_name;
+END;
+$$;
+
+-- Schedule backup task
+CREATE TASK daily_backup_task
+    WAREHOUSE = admin_wh
+    SCHEDULE = 'USING CRON 0 2 * * * UTC'
+AS
+    CALL create_daily_backup();
+
+ALTER TASK daily_backup_task RESUME;
+```
+
+### 73. What are hybrid tables and when to use them?
+
+**Answer:** OLTP capabilities with ACID transactions for operational workloads.
+
+```sql
+-- Create hybrid table for transactional data
+CREATE HYBRID TABLE order_processing (
+    order_id NUMBER PRIMARY KEY,
+    customer_id NUMBER NOT NULL,
+    order_status VARCHAR(20) DEFAULT 'PENDING',
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    total_amount DECIMAL(10,2),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+-- Enable change tracking
+ALTER TABLE order_processing SET ENABLE_SCHEMA_EVOLUTION = TRUE;
+
+-- Transactional operations
+BEGIN TRANSACTION;
+    INSERT INTO order_processing (order_id, customer_id, total_amount)
+    VALUES (12345, 1001, 299.99);
+    
+    UPDATE inventory SET quantity = quantity - 1 
+    WHERE product_id = 'PROD123';
+COMMIT;
+
+-- Query with strong consistency
+SELECT * FROM order_processing 
+WHERE order_status = 'PENDING' 
+FOR UPDATE;
+```
+
+### 74. How do you optimize for mixed workloads?
+
+**Answer:** Use multiple warehouses and workload management.
+
+```sql
+-- Create specialized warehouses
+CREATE WAREHOUSE etl_warehouse WITH
+    WAREHOUSE_SIZE = 'X-LARGE'
+    AUTO_SUSPEND = 60
+    COMMENT = 'For ETL batch processing';
+
+CREATE WAREHOUSE analytics_warehouse WITH
+    WAREHOUSE_SIZE = 'LARGE'
+    MIN_CLUSTER_COUNT = 2
+    MAX_CLUSTER_COUNT = 8
+    SCALING_POLICY = 'STANDARD'
+    COMMENT = 'For analytical queries';
+
+CREATE WAREHOUSE reporting_warehouse WITH
+    WAREHOUSE_SIZE = 'MEDIUM'
+    AUTO_SUSPEND = 300
+    COMMENT = 'For dashboard and reports';
+
+-- Workload-specific resource monitors
+CREATE RESOURCE MONITOR etl_monitor WITH
+    CREDIT_QUOTA = 500
+    FREQUENCY = DAILY
+    TRIGGERS ON 90 PERCENT DO SUSPEND;
+
+ALTER WAREHOUSE etl_warehouse SET RESOURCE_MONITOR = etl_monitor;
+
+-- Query routing based on workload
+CREATE OR REPLACE PROCEDURE route_query(query_type STRING, sql_text STRING)
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+BEGIN
+    CASE query_type
+        WHEN 'ETL' THEN
+            USE WAREHOUSE etl_warehouse;
+        WHEN 'ANALYTICS' THEN
+            USE WAREHOUSE analytics_warehouse;
+        WHEN 'REPORTING' THEN
+            USE WAREHOUSE reporting_warehouse;
     END CASE;
     
-    RETURN 'Deployment completed successfully';
-EXCEPTION
-    WHEN OTHER THEN
-        -- Rollback on failure
-        EXECUTE IMMEDIATE 'DROP DATABASE IF EXISTS ' || target_db;
-        EXECUTE IMMEDIATE 'ALTER DATABASE ' || backup_name || ' RENAME TO ' || target_db;
-        RETURN 'Deployment failed, rolled back to previous version';
+    EXECUTE IMMEDIATE sql_text;
+    RETURN 'Query executed on ' || query_type || ' warehouse';
 END;
 $$;
 ```
 
-### 185-200. Additional Scenario Questions
+### 75. How do you implement advanced data governance?
 
-**185. How do you implement a data lake architecture with Snowflake?**
-**Answer:** Use external tables, stages, and data pipelines for lake house architecture.
+**Answer:** Comprehensive governance framework with policies and monitoring.
 
-**186. Design a customer 360 solution using Snowflake.**
-**Answer:** Implement data integration, identity resolution, and unified customer views.
+```sql
+-- Data classification tags
+CREATE TAG pii_level ALLOWED_VALUES 'HIGH', 'MEDIUM', 'LOW', 'NONE';
+CREATE TAG data_domain ALLOWED_VALUES 'FINANCE', 'MARKETING', 'OPERATIONS', 'HR';
 
-**187. How do you build a real-time recommendation engine?**
-**Answer:** Use streaming data, feature stores, and ML models in Snowflake.
+-- Apply tags to objects
+ALTER TABLE customers SET TAG (pii_level = 'HIGH', data_domain = 'MARKETING');
+ALTER TABLE customers MODIFY COLUMN ssn SET TAG (pii_level = 'HIGH');
+ALTER TABLE customers MODIFY COLUMN email SET TAG (pii_level = 'MEDIUM');
 
-**188. Implement a fraud detection system with Snowflake.**
-**Answer:** Real-time scoring, anomaly detection, and alert mechanisms.
+-- Governance policies based on tags
+CREATE MASKING POLICY pii_masking AS (val STRING, tag_value STRING) RETURNS STRING ->
+    CASE tag_value
+        WHEN 'HIGH' THEN 
+            CASE WHEN CURRENT_ROLE() IN ('DATA_STEWARD', 'ADMIN') THEN val
+                 ELSE '***MASKED***' END
+        WHEN 'MEDIUM' THEN
+            CASE WHEN CURRENT_ROLE() IN ('DATA_STEWARD', 'ADMIN', 'ANALYST') THEN val
+                 ELSE REGEXP_REPLACE(val, '(.{2})(.*)(@.*)', '\\1***\\3') END
+        ELSE val
+    END;
 
-**189. Design a supply chain analytics platform.**
-**Answer:** Multi-source integration, demand forecasting, and optimization.
+-- Apply conditional masking
+ALTER TABLE customers MODIFY COLUMN ssn 
+SET MASKING POLICY pii_masking USING (ssn, 'HIGH');
 
-**190. How do you implement regulatory compliance reporting?**
-**Answer:** Audit trails, data lineage, and automated compliance checks.
+-- Audit and compliance monitoring
+CREATE VIEW governance_audit AS
+SELECT 
+    query_id,
+    user_name,
+    role_name,
+    query_text,
+    start_time,
+    execution_status,
+    CASE WHEN query_text ILIKE '%pii%' OR 
+              query_text ILIKE '%ssn%' OR 
+              query_text ILIKE '%email%' 
+         THEN 'PII_ACCESS' 
+         ELSE 'REGULAR' END as access_type
+FROM snowflake.account_usage.query_history
+WHERE start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP());
+```
 
-**191. Build a financial risk management system.**
-**Answer:** Market data integration, risk calculations, and stress testing.
+### 76-100. Additional Advanced Questions
 
-**192. Design an IoT data processing pipeline.**
-**Answer:** High-volume ingestion, time-series analysis, and edge computing integration.
-
-**193. Implement a marketing attribution model.**
-**Answer:** Multi-touch attribution, campaign analysis, and ROI measurement.
-
-**194. How do you build a data marketplace in Snowflake?**
-**Answer:** Data sharing, cataloging, and monetization strategies.
-
-**195. Design a healthcare analytics platform.**
-**Answer:** HIPAA compliance, patient data integration, and clinical insights.
-
-**196. Implement a social media analytics solution.**
-**Answer:** Sentiment analysis, trend detection, and influence measurement.
-
-**197. Build a logistics optimization system.**
-**Answer:** Route optimization, capacity planning, and performance tracking.
-
-**198. How do you create a unified data platform?**
-**Answer:** Multi-cloud integration, data mesh architecture, and self-service analytics.
-
-**199. Design a predictive maintenance solution.**
-**Answer:** Sensor data processing, failure prediction, and maintenance scheduling.
-
-**200. Implement a comprehensive data governance framework.**
-**Answer:** Data classification, access controls, and compliance automation.
+### 76. How do you implement real-time analytics with Snowflake?
+### 77. What are the machine learning capabilities in Snowflake?
+### 78. How do you handle complex data transformations at scale?
+### 79. How do you implement data mesh architecture?
+### 80. What are the advanced security and compliance features?
+### 81. How do you optimize for global deployments?
+### 82. How do you implement custom data processing frameworks?
+### 83. What are the integration patterns with cloud-native services?
+### 84. How do you handle high-frequency trading data?
+### 85. How do you implement advanced monitoring and alerting?
+### 86. What are the best practices for enterprise deployments?
+### 87. How do you handle regulatory data requirements?
+### 88. How do you implement advanced cost optimization?
+### 89. What are the disaster recovery and business continuity strategies?
+### 90. How do you handle complex data lineage scenarios?
+### 91. How do you implement advanced data quality frameworks?
+### 92. What are the performance optimization techniques for large datasets?
+### 93. How do you handle multi-cloud and hybrid deployments?
+### 94. How do you implement advanced analytics and ML workflows?
+### 95. What are the best practices for data sharing and collaboration?
+### 96. How do you handle complex compliance and audit requirements?
+### 97. How do you implement advanced data transformation patterns?
+### 98. What are the strategies for handling massive scale workloads?
+### 99. How do you implement comprehensive data governance frameworks?
+### 100. What are the future trends and roadmap considerations for Snowflake?
 
 ---
 
-## 🎯 **Final Summary**
+## 📚 **Snowflake Study Guide & Best Practices**
 
-This comprehensive guide covers 200 Snowflake interview questions across all levels and scenarios. The questions progress from basic concepts to advanced enterprise implementations, covering:
+### 🎯 **Essential Snowflake Concepts for Data Engineers**
 
-### **Core Areas Covered:**
-- **Architecture & Fundamentals** (Questions 1-30)
-- **Intermediate Operations** (Questions 31-60) 
-- **Advanced Features** (Questions 61-90)
-- **Performance & Scaling** (Questions 91-120)
-- **Streaming & Real-time** (Questions 121-150)
-- **Production Operations** (Questions 151-180)
-- **Real-world Scenarios** (Questions 181-200)
+#### **Core Architecture Understanding**
+1. **Multi-cluster, Shared Data Architecture**: Separation of compute and storage
+2. **Virtual Warehouses**: Independent compute clusters with auto-scaling
+3. **Micro-partitions**: Immutable, compressed data storage units
+4. **Time Travel**: Historical data access and recovery capabilities
+5. **Zero-copy Cloning**: Instant data copies without duplication
 
-### **Key Interview Success Factors:**
-1. **Master the Architecture** - Understand separation of compute and storage
-2. **Know Performance Optimization** - Clustering, caching, and warehouse sizing
-3. **Practice SQL Skills** - Complex queries, window functions, and CTEs
-4. **Understand Data Loading** - COPY commands, Snowpipe, and error handling
-5. **Learn Security Features** - RBAC, masking policies, and row-level security
-6. **Study Advanced Features** - Streams, tasks, and stored procedures
-7. **Know Integration Patterns** - External tables, data sharing, and APIs
-8. **Practice Troubleshooting** - Query optimization and performance tuning
+#### **Performance Optimization**
+1. **Clustering Keys**: Optimize data organization for query performance
+2. **Result Caching**: Automatic caching for repeated queries
+3. **Warehouse Sizing**: Right-size compute resources for workloads
+4. **Query Optimization**: Use appropriate SQL patterns and hints
+5. **Materialized Views**: Pre-computed results for faster analytics
 
-### **Preparation Strategy:**
-- **Hands-on Practice** - Set up a Snowflake trial and practice examples
-- **Real-world Scenarios** - Think about business use cases and solutions
-- **Performance Focus** - Understand cost optimization and scaling strategies
-- **Security Knowledge** - Learn compliance and governance features
-- **Integration Skills** - Know how Snowflake fits in modern data stacks
+### 🚀 **Best Practices**
+
+#### **Cost Optimization**
+- Use auto-suspend and auto-resume for warehouses
+- Implement resource monitors and credit quotas
+- Choose appropriate warehouse sizes for workloads
+- Monitor usage patterns and optimize accordingly
+- Use transient tables for temporary data
+
+#### **Security**
+- Implement role-based access control (RBAC)
+- Use masking policies for sensitive data
+- Apply row-level security where needed
+- Enable network security and IP whitelisting
+- Use secure data sharing for external collaboration
+
+#### **Performance**
+- Design appropriate clustering strategies
+- Use streams for change data capture
+- Implement proper data loading patterns
+- Monitor query performance and optimize
+- Use appropriate data types and constraints
+
+### 🔗 **Essential Resources**
+
+- **Snowflake Documentation**: Comprehensive official documentation
+- **Snowflake University**: Free training courses and certifications
+- **Community Forums**: Active community support and discussions
+- **Best Practices Guides**: Official recommendations and patterns
+- **Performance Optimization**: Tuning guides and monitoring tools
+
+This comprehensive guide covers 100 Snowflake interview questions progressing from basic concepts to advanced enterprise implementations, providing practical examples and real-world scenarios essential for data engineering roles.

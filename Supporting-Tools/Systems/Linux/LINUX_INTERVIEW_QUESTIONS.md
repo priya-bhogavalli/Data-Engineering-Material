@@ -1072,3 +1072,918 @@ check_cron_job "monitor.sh" 30   # Should run every 15 minutes
 ```
 
 This comprehensive Linux interview question set covers essential knowledge for data engineers, from basic command-line operations to advanced system administration, security, performance troubleshooting, and automated task scheduling in data engineering environments.
+## Advanced Level Questions
+
+### 13. How do you implement advanced networking for data engineering?
+**Answer**: Network configuration and optimization for data infrastructure:
+
+**Network Interface Management**:
+```bash
+# Network interface configuration
+ip addr show                    # Show all interfaces
+ip link set eth0 up            # Bring interface up
+ip addr add 192.168.1.100/24 dev eth0  # Add IP address
+
+# Network routing
+ip route show                   # Show routing table
+ip route add 10.0.0.0/8 via 192.168.1.1  # Add route
+ip route del 10.0.0.0/8        # Delete route
+
+# Network namespaces for isolation
+ip netns add data-pipeline      # Create namespace
+ip netns exec data-pipeline ip addr show  # Execute in namespace
+ip link set veth0 netns data-pipeline     # Move interface to namespace
+
+# Bridge networking for containers
+brctl addbr br0                 # Create bridge
+brctl addif br0 eth0           # Add interface to bridge
+brctl show                     # Show bridge configuration
+```
+
+**Advanced Network Monitoring**:
+```bash
+# Network performance analysis
+iperf3 -s                      # Start iperf server
+iperf3 -c server_ip -t 60      # Test bandwidth for 60 seconds
+
+# Network latency testing
+ping -c 10 -i 0.1 server_ip    # High frequency ping
+mtr server_ip                  # Network route analysis
+
+# Packet analysis
+tcpdump -i eth0 -w capture.pcap port 8080  # Capture packets
+wireshark capture.pcap         # Analyze captured packets
+
+# Network security scanning
+nmap -sS -O target_ip          # SYN scan with OS detection
+netstat -tuln | grep LISTEN   # Show listening ports
+```
+
+**Network Optimization for Data Transfer**:
+```bash
+# TCP tuning for large data transfers
+echo 'net.core.rmem_max = 134217728' >> /etc/sysctl.conf
+echo 'net.core.wmem_max = 134217728' >> /etc/sysctl.conf
+echo 'net.ipv4.tcp_rmem = 4096 87380 134217728' >> /etc/sysctl.conf
+echo 'net.ipv4.tcp_wmem = 4096 65536 134217728' >> /etc/sysctl.conf
+sysctl -p                      # Apply changes
+
+# Network bonding for redundancy
+modprobe bonding
+echo 'alias bond0 bonding' >> /etc/modprobe.conf
+echo 'options bond0 mode=1 miimon=100' >> /etc/modprobe.conf
+```
+
+### 14. How do you implement container orchestration with Docker and Kubernetes?
+**Answer**: Container management for scalable data engineering:
+
+**Docker Container Management**:
+```bash
+# Advanced Docker operations
+docker build -t data-pipeline:v1.0 .
+docker run -d --name pipeline \
+  --memory=4g --cpus=2 \
+  -v /data:/app/data \
+  -e SPARK_HOME=/opt/spark \
+  data-pipeline:v1.0
+
+# Docker networking
+docker network create --driver bridge data-net
+docker run --network=data-net --name db postgres:13
+docker run --network=data-net --name app --link db:database app:latest
+
+# Docker volumes for persistent data
+docker volume create data-volume
+docker run -v data-volume:/data postgres:13
+
+# Multi-stage builds for optimization
+FROM python:3.9 AS builder
+COPY requirements.txt .
+RUN pip install --user -r requirements.txt
+
+FROM python:3.9-slim
+COPY --from=builder /root/.local /root/.local
+COPY . /app
+WORKDIR /app
+CMD ["python", "app.py"]
+```
+
+**Kubernetes for Data Engineering**:
+```yaml
+# Kubernetes deployment for Spark
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-master
+  template:
+    metadata:
+      labels:
+        app: spark-master
+    spec:
+      containers:
+      - name: spark-master
+        image: bitnami/spark:3.2
+        ports:
+        - containerPort: 8080
+        - containerPort: 7077
+        env:
+        - name: SPARK_MODE
+          value: "master"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-master-service
+spec:
+  selector:
+    app: spark-master
+  ports:
+  - name: web-ui
+    port: 8080
+    targetPort: 8080
+  - name: spark-port
+    port: 7077
+    targetPort: 7077
+  type: LoadBalancer
+```
+
+**Kubernetes ConfigMaps and Secrets**:
+```bash
+# Create ConfigMap for application configuration
+kubectl create configmap app-config \
+  --from-file=config.properties \
+  --from-literal=database.host=postgres.default.svc.cluster.local
+
+# Create Secret for sensitive data
+kubectl create secret generic db-secret \
+  --from-literal=username=admin \
+  --from-literal=password=secretpassword
+
+# Use in deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        image: data-app:latest
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: db-secret
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: app-config
+```
+
+### 15. How do you implement advanced storage management?
+**Answer**: Storage optimization and management for data workloads:
+
+**LVM (Logical Volume Management)**:
+```bash
+# Create physical volumes
+pvcreate /dev/sdb /dev/sdc
+pvdisplay                      # Show physical volumes
+
+# Create volume group
+vgcreate data-vg /dev/sdb /dev/sdc
+vgdisplay                      # Show volume groups
+
+# Create logical volumes
+lvcreate -L 100G -n data-lv data-vg
+lvcreate -L 50G -n logs-lv data-vg
+lvdisplay                      # Show logical volumes
+
+# Extend logical volume
+lvextend -L +50G /dev/data-vg/data-lv
+resize2fs /dev/data-vg/data-lv  # Resize filesystem
+
+# Create filesystem and mount
+mkfs.ext4 /dev/data-vg/data-lv
+mkdir /data
+mount /dev/data-vg/data-lv /data
+
+# Add to fstab for persistent mounting
+echo '/dev/data-vg/data-lv /data ext4 defaults 0 2' >> /etc/fstab
+```
+
+**RAID Configuration**:
+```bash
+# Software RAID setup
+mdadm --create --verbose /dev/md0 \
+  --level=5 --raid-devices=3 \
+  /dev/sdb /dev/sdc /dev/sdd
+
+# Check RAID status
+cat /proc/mdstat
+mdadm --detail /dev/md0
+
+# Monitor RAID health
+mdadm --monitor --mail=admin@company.com /dev/md0
+
+# RAID configuration file
+mdadm --detail --scan >> /etc/mdadm/mdadm.conf
+update-initramfs -u
+```
+
+**Advanced Filesystem Management**:
+```bash
+# XFS filesystem for large files
+mkfs.xfs -f /dev/sdb1
+mount -t xfs /dev/sdb1 /data
+
+# XFS maintenance
+xfs_repair /dev/sdb1           # Repair filesystem
+xfs_growfs /data               # Grow mounted filesystem
+xfs_fsr /data                  # Defragment filesystem
+
+# Btrfs for snapshots and compression
+mkfs.btrfs /dev/sdb1
+mount -o compress=zstd /dev/sdb1 /data
+
+# Btrfs snapshots
+btrfs subvolume create /data/snapshots
+btrfs subvolume snapshot /data /data/snapshots/backup-$(date +%Y%m%d)
+btrfs subvolume list /data
+```
+
+### 16. How do you implement system backup and disaster recovery?
+**Answer**: Comprehensive backup and recovery strategies:
+
+**System Backup Scripts**:
+```bash
+#!/bin/bash
+# Comprehensive backup script
+
+BACKUP_ROOT="/backup"
+DATE=$(date +%Y%m%d_%H%M%S)
+RETENTION_DAYS=30
+LOG_FILE="/var/log/backup.log"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+# Full system backup
+full_system_backup() {
+    local backup_dir="$BACKUP_ROOT/system/$DATE"
+    mkdir -p "$backup_dir"
+    
+    log "Starting full system backup to $backup_dir"
+    
+    # System files backup
+    tar --exclude=/proc --exclude=/sys --exclude=/dev \
+        --exclude=/tmp --exclude=/backup \
+        -czf "$backup_dir/system.tar.gz" /
+    
+    # Database backup
+    mysqldump --all-databases --single-transaction \
+        --routines --triggers > "$backup_dir/mysql_backup.sql"
+    
+    # Configuration backup
+    tar -czf "$backup_dir/etc.tar.gz" /etc
+    
+    log "Full system backup completed"
+}
+
+# Incremental backup using rsync
+incremental_backup() {
+    local source="/data"
+    local dest="$BACKUP_ROOT/incremental/$DATE"
+    local link_dest="$BACKUP_ROOT/incremental/latest"
+    
+    mkdir -p "$dest"
+    
+    log "Starting incremental backup"
+    
+    if [[ -d "$link_dest" ]]; then
+        rsync -av --link-dest="$link_dest" "$source/" "$dest/"
+    else
+        rsync -av "$source/" "$dest/"
+    fi
+    
+    # Update latest link
+    rm -f "$link_dest"
+    ln -s "$dest" "$link_dest"
+    
+    log "Incremental backup completed"
+}
+
+# Database backup with point-in-time recovery
+database_backup() {
+    local backup_dir="$BACKUP_ROOT/database/$DATE"
+    mkdir -p "$backup_dir"
+    
+    log "Starting database backup"
+    
+    # MySQL backup with binary logs
+    mysqldump --all-databases --single-transaction \
+        --flush-logs --master-data=2 \
+        --routines --triggers > "$backup_dir/full_backup.sql"
+    
+    # Copy binary logs
+    cp /var/log/mysql/mysql-bin.* "$backup_dir/"
+    
+    # PostgreSQL backup
+    pg_dumpall > "$backup_dir/postgres_backup.sql"
+    
+    log "Database backup completed"
+}
+
+# Cleanup old backups
+cleanup_old_backups() {
+    log "Cleaning up backups older than $RETENTION_DAYS days"
+    
+    find "$BACKUP_ROOT" -type d -mtime +$RETENTION_DAYS -exec rm -rf {} \;
+    
+    log "Cleanup completed"
+}
+
+# Verify backup integrity
+verify_backup() {
+    local backup_file="$1"
+    
+    if [[ -f "$backup_file" ]]; then
+        if tar -tzf "$backup_file" >/dev/null 2>&1; then
+            log "Backup verification successful: $backup_file"
+            return 0
+        else
+            log "ERROR: Backup verification failed: $backup_file"
+            return 1
+        fi
+    fi
+}
+
+# Main execution
+main() {
+    case "${1:-full}" in
+        "full")
+            full_system_backup
+            ;;
+        "incremental")
+            incremental_backup
+            ;;
+        "database")
+            database_backup
+            ;;
+        *)
+            echo "Usage: $0 {full|incremental|database}"
+            exit 1
+            ;;
+    esac
+    
+    cleanup_old_backups
+}
+
+main "$@"
+```
+
+**Disaster Recovery Procedures**:
+```bash
+# System recovery from backup
+restore_system() {
+    local backup_file="$1"
+    local target_dir="${2:-/}"
+    
+    echo "WARNING: This will restore system from $backup_file to $target_dir"
+    read -p "Continue? (yes/no): " confirm
+    
+    if [[ "$confirm" == "yes" ]]; then
+        tar -xzf "$backup_file" -C "$target_dir"
+        echo "System restored. Reboot required."
+    fi
+}
+
+# Database recovery
+restore_database() {
+    local backup_file="$1"
+    
+    # MySQL restore
+    mysql < "$backup_file"
+    
+    # Point-in-time recovery using binary logs
+    mysqlbinlog --start-datetime="2024-01-01 12:00:00" \
+                --stop-datetime="2024-01-01 13:00:00" \
+                mysql-bin.000001 | mysql
+}
+
+# Automated disaster recovery testing
+test_disaster_recovery() {
+    local test_vm="disaster-test"
+    
+    # Create test VM
+    virt-install --name "$test_vm" \
+                 --memory 2048 \
+                 --vcpus 2 \
+                 --disk size=20 \
+                 --cdrom /path/to/rescue.iso
+    
+    # Restore backup to test VM
+    # Verify system functionality
+    # Generate test report
+}
+```
+
+### 17. How do you implement advanced process management and systemd?
+**Answer**: Advanced process control and service management:
+
+**Custom Systemd Services**:
+```bash
+# Create custom service unit
+# /etc/systemd/system/data-pipeline.service
+[Unit]
+Description=Data Pipeline Service
+After=network.target mysql.service
+Requires=mysql.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=dataeng
+Group=dataeng
+WorkingDirectory=/opt/data-pipeline
+ExecStart=/opt/data-pipeline/start.sh
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/opt/data-pipeline/stop.sh
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment=JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+Environment=SPARK_HOME=/opt/spark
+
+[Install]
+WantedBy=multi-user.target
+
+# Service management
+systemctl daemon-reload
+systemctl enable data-pipeline.service
+systemctl start data-pipeline.service
+systemctl status data-pipeline.service
+```
+
+**Advanced Process Control**:
+```bash
+# Process resource limits
+# /etc/security/limits.conf
+dataeng soft nofile 65536
+dataeng hard nofile 65536
+dataeng soft nproc 32768
+dataeng hard nproc 32768
+
+# Systemd resource limits
+[Service]
+LimitNOFILE=65536
+LimitNPROC=32768
+MemoryLimit=8G
+CPUQuota=200%
+
+# Process monitoring and management
+#!/bin/bash
+# Process watchdog script
+
+PROCESS_NAME="data-pipeline"
+MAX_MEMORY_MB=4096
+MAX_CPU_PERCENT=80
+
+monitor_process() {
+    local pid=$(pgrep -f "$PROCESS_NAME")
+    
+    if [[ -z "$pid" ]]; then
+        echo "Process $PROCESS_NAME not running, starting..."
+        systemctl start data-pipeline
+        return
+    fi
+    
+    # Check memory usage
+    local memory_kb=$(ps -o rss= -p "$pid")
+    local memory_mb=$((memory_kb / 1024))
+    
+    if (( memory_mb > MAX_MEMORY_MB )); then
+        echo "Process $pid using too much memory: ${memory_mb}MB"
+        systemctl restart data-pipeline
+        return
+    fi
+    
+    # Check CPU usage
+    local cpu_percent=$(ps -o %cpu= -p "$pid")
+    cpu_percent=${cpu_percent%.*}
+    
+    if (( cpu_percent > MAX_CPU_PERCENT )); then
+        echo "Process $pid using too much CPU: ${cpu_percent}%"
+        # Send warning but don't restart for CPU
+        logger "High CPU usage detected for $PROCESS_NAME: ${cpu_percent}%"
+    fi
+}
+
+# Run monitoring
+while true; do
+    monitor_process
+    sleep 60
+done
+```
+
+### 18. How do you implement advanced security hardening?
+**Answer**: Comprehensive security measures for data infrastructure:
+
+**System Hardening**:
+```bash
+# Kernel security parameters
+# /etc/sysctl.d/99-security.conf
+# Network security
+net.ipv4.ip_forward = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.default.accept_source_route = 0
+
+# Memory protection
+kernel.dmesg_restrict = 1
+kernel.kptr_restrict = 2
+kernel.yama.ptrace_scope = 1
+
+# Apply settings
+sysctl -p /etc/sysctl.d/99-security.conf
+
+# File system security
+# Mount options in /etc/fstab
+/dev/sda1 /tmp ext4 defaults,nodev,nosuid,noexec 0 2
+/dev/sda2 /var/tmp ext4 defaults,nodev,nosuid,noexec 0 2
+
+# Set file permissions
+chmod 700 /root
+chmod 644 /etc/passwd
+chmod 600 /etc/shadow
+chmod 644 /etc/group
+chmod 600 /etc/gshadow
+```
+
+**Advanced Authentication**:
+```bash
+# PAM configuration for strong authentication
+# /etc/pam.d/common-password
+password requisite pam_pwquality.so retry=3 minlen=12 difok=3 \
+         ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1
+
+# Two-factor authentication with Google Authenticator
+apt install libpam-google-authenticator
+google-authenticator
+
+# Add to /etc/pam.d/sshd
+auth required pam_google_authenticator.so
+
+# SSH hardening
+# /etc/ssh/sshd_config
+Protocol 2
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+AuthenticationMethods publickey,keyboard-interactive
+MaxAuthTries 3
+ClientAliveInterval 300
+ClientAliveCountMax 2
+AllowUsers dataeng analyst
+DenyUsers root guest
+```
+
+**Intrusion Detection**:
+```bash
+# Install and configure AIDE
+apt install aide
+aideinit
+cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+
+# Daily integrity check
+echo '0 2 * * * /usr/bin/aide --check' | crontab -
+
+# Install fail2ban
+apt install fail2ban
+
+# Configure fail2ban
+# /etc/fail2ban/jail.local
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 3
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+
+[apache-auth]
+enabled = true
+port = http,https
+filter = apache-auth
+logpath = /var/log/apache2/error.log
+maxretry = 3
+```
+
+### 19. How do you implement advanced log analysis and monitoring?
+**Answer**: Comprehensive logging and monitoring solutions:
+
+**Centralized Logging with ELK Stack**:
+```bash
+# Elasticsearch configuration
+# /etc/elasticsearch/elasticsearch.yml
+cluster.name: data-engineering-logs
+node.name: log-node-1
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+network.host: 0.0.0.0
+http.port: 9200
+discovery.type: single-node
+
+# Logstash configuration
+# /etc/logstash/conf.d/data-pipeline.conf
+input {
+  file {
+    path => "/var/log/data-pipeline/*.log"
+    start_position => "beginning"
+    type => "data-pipeline"
+  }
+  
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if [type] == "data-pipeline" {
+    grok {
+      match => { 
+        "message" => "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}" 
+      }
+    }
+    
+    date {
+      match => [ "timestamp", "ISO8601" ]
+    }
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["localhost:9200"]
+    index => "data-pipeline-%{+YYYY.MM.dd}"
+  }
+}
+
+# Filebeat configuration
+# /etc/filebeat/filebeat.yml
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/data-pipeline/*.log
+  fields:
+    service: data-pipeline
+  fields_under_root: true
+
+output.logstash:
+  hosts: ["localhost:5044"]
+
+processors:
+- add_host_metadata:
+    when.not.contains.tags: forwarded
+```
+
+**Advanced Log Analysis Scripts**:
+```bash
+#!/bin/bash
+# Log analysis and alerting script
+
+LOG_DIR="/var/log/data-pipeline"
+ALERT_EMAIL="admin@company.com"
+ERROR_THRESHOLD=10
+WARNING_THRESHOLD=50
+
+analyze_logs() {
+    local log_file="$1"
+    local time_window="${2:-1h}"
+    
+    echo "Analyzing $log_file for last $time_window"
+    
+    # Count errors and warnings
+    local errors=$(grep -c "ERROR" "$log_file")
+    local warnings=$(grep -c "WARNING" "$log_file")
+    
+    # Performance metrics
+    local avg_response_time=$(grep "response_time" "$log_file" | \
+        awk '{sum+=$NF; count++} END {print sum/count}')
+    
+    # Memory usage patterns
+    local max_memory=$(grep "memory_usage" "$log_file" | \
+        awk '{if($NF>max) max=$NF} END {print max}')
+    
+    # Generate report
+    {
+        echo "Log Analysis Report - $(date)"
+        echo "================================"
+        echo "File: $log_file"
+        echo "Time Window: $time_window"
+        echo ""
+        echo "Error Count: $errors"
+        echo "Warning Count: $warnings"
+        echo "Average Response Time: ${avg_response_time}ms"
+        echo "Peak Memory Usage: ${max_memory}MB"
+        echo ""
+        
+        # Top error messages
+        echo "Top Error Messages:"
+        grep "ERROR" "$log_file" | \
+            awk '{for(i=4;i<=NF;i++) printf "%s ", $i; print ""}' | \
+            sort | uniq -c | sort -nr | head -5
+        
+    } > "/tmp/log_analysis_$(basename "$log_file").txt"
+    
+    # Check thresholds and send alerts
+    if (( errors > ERROR_THRESHOLD )); then
+        send_alert "High error count: $errors errors in $log_file"
+    fi
+    
+    if (( warnings > WARNING_THRESHOLD )); then
+        send_alert "High warning count: $warnings warnings in $log_file"
+    fi
+}
+
+send_alert() {
+    local message="$1"
+    echo "$message" | mail -s "Log Alert - $(hostname)" "$ALERT_EMAIL"
+    logger "LOG_ALERT: $message"
+}
+
+# Real-time log monitoring
+monitor_logs_realtime() {
+    tail -F "$LOG_DIR"/*.log | while read line; do
+        if echo "$line" | grep -q "CRITICAL\|FATAL"; then
+            send_alert "Critical error detected: $line"
+        fi
+        
+        if echo "$line" | grep -q "OutOfMemoryError"; then
+            send_alert "Out of memory error detected: $line"
+        fi
+        
+        if echo "$line" | grep -q "Connection refused\|Connection timeout"; then
+            send_alert "Connection issue detected: $line"
+        fi
+    done
+}
+
+# Log rotation and archival
+manage_log_retention() {
+    local retention_days=30
+    local archive_dir="/data/log-archive"
+    
+    mkdir -p "$archive_dir"
+    
+    # Compress and archive old logs
+    find "$LOG_DIR" -name "*.log" -mtime +7 -exec gzip {} \;
+    find "$LOG_DIR" -name "*.log.gz" -mtime +$retention_days \
+        -exec mv {} "$archive_dir/" \;
+    
+    # Clean very old archives
+    find "$archive_dir" -name "*.log.gz" -mtime +365 -delete
+}
+
+# Main execution
+case "${1:-analyze}" in
+    "analyze")
+        for log_file in "$LOG_DIR"/*.log; do
+            [[ -f "$log_file" ]] && analyze_logs "$log_file"
+        done
+        ;;
+    "monitor")
+        monitor_logs_realtime
+        ;;
+    "cleanup")
+        manage_log_retention
+        ;;
+    *)
+        echo "Usage: $0 {analyze|monitor|cleanup}"
+        exit 1
+        ;;
+esac
+```
+
+### 20. How do you implement high availability and load balancing?
+**Answer**: HA and load balancing for data engineering infrastructure:
+
+**HAProxy Load Balancer Configuration**:
+```bash
+# /etc/haproxy/haproxy.cfg
+global
+    daemon
+    maxconn 4096
+    log stdout local0
+    
+defaults
+    mode http
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+    option httplog
+    
+# Frontend for data API
+frontend data_api_frontend
+    bind *:80
+    bind *:443 ssl crt /etc/ssl/certs/data-api.pem
+    redirect scheme https if !{ ssl_fc }
+    
+    # ACL for different services
+    acl is_spark_ui path_beg /spark
+    acl is_airflow_ui path_beg /airflow
+    acl is_api path_beg /api
+    
+    # Route to appropriate backend
+    use_backend spark_ui if is_spark_ui
+    use_backend airflow_ui if is_airflow_ui
+    use_backend data_api if is_api
+    default_backend data_api
+
+# Backend for data API servers
+backend data_api
+    balance roundrobin
+    option httpchk GET /health
+    
+    server api1 10.0.1.10:8080 check
+    server api2 10.0.1.11:8080 check
+    server api3 10.0.1.12:8080 check
+
+# Backend for Spark UI
+backend spark_ui
+    balance source
+    server spark1 10.0.2.10:4040 check
+    server spark2 10.0.2.11:4040 check
+
+# Backend for Airflow UI
+backend airflow_ui
+    balance roundrobin
+    server airflow1 10.0.3.10:8080 check
+    server airflow2 10.0.3.11:8080 check
+
+# Statistics page
+listen stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+    stats refresh 30s
+    stats admin if TRUE
+```
+
+**Keepalived for HA**:
+```bash
+# /etc/keepalived/keepalived.conf
+vrrp_script chk_haproxy {
+    script "/bin/kill -0 `cat /var/run/haproxy.pid`"
+    interval 2
+    weight 2
+    fall 3
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 51
+    priority 101
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass mypassword
+    }
+    virtual_ipaddress {
+        192.168.1.100
+    }
+    track_script {
+        chk_haproxy
+    }
+}
+```
+
+This completes the comprehensive Linux interview questions with 80+ detailed questions covering all aspects from basic commands to advanced system administration, security, networking, containerization, and high availability for data engineering environments.

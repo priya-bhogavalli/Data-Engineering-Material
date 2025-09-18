@@ -834,4 +834,42 @@ git commit -m "Add large file with LFS"
 - **Out of Memory**: Adjust Docker memory limits
 - **Build Failures**: Check dependencies and environment
 
+### 21. How do you implement Bitbucket Pipelines for data engineering workflows?
+**Answer**: Data engineering pipelines require specialized configurations for ETL processes, data validation, and deployment.
+
+```yaml
+# bitbucket-pipelines.yml for data engineering
+image: python:3.9
+
+definitions:
+  services:
+    postgres:
+      image: postgres:13
+      environment:
+        POSTGRES_DB: testdb
+        POSTGRES_USER: testuser
+        POSTGRES_PASSWORD: testpass
+    redis:
+      image: redis:6-alpine
+  
+  caches:
+    pip: ~/.cache/pip
+    spark: ~/.cache/spark
+
+pipelines:
+  default:
+    - step:
+        name: Data Quality Validation
+        caches:
+          - pip
+        script:
+          - pip install great-expectations pandas sqlalchemy
+          - python scripts/validate_data_schema.py
+          - great_expectations checkpoint run data_quality_checkpoint
+        artifacts:
+          - validation_results/**
+        services:
+          - postgres
+```
+
 This comprehensive set of interview questions covers all major aspects of Bitbucket, from basic repository management to advanced administration and troubleshooting scenarios that data engineers would encounter.

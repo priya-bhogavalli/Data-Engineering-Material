@@ -1554,3 +1554,11 @@ This comprehensive Power BI guide covers 80 interview questions spanning:
 - **Business Context** - Connect technical skills to business value
 
 This comprehensive Power BI interview preparation covers essential knowledge for data engineers, from basic concepts to advanced enterprise implementation patterns, governance frameworks, and optimization strategies.
+
+**Additional Power BI Resources:**
+- **Microsoft Learn**: Official Power BI learning paths
+- **Power BI Community**: Forums and user groups
+- **DAX Guide**: Comprehensive DAX function reference
+- **Power Query M Reference**: Complete M language documentation
+- **Power BI REST API**: Programmatic access documentation
+- **Power BI Embedded**: Developer resources and samples

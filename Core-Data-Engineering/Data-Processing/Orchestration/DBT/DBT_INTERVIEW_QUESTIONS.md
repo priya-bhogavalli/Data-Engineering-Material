@@ -1576,6 +1576,1192 @@ jobs:
           DBT_PASSWORD: ${{ secrets.DBT_PASSWORD }}
 ```
 
+### 51. How do you implement advanced dbt Cloud features?
+
+**Answer:** Leverage dbt Cloud's enterprise features for enhanced productivity.
+
+#### **Job Scheduling and Orchestration**
+```yaml
+# dbt Cloud job configuration
+jobs:
+  - name: "Daily Production Run"
+    schedule:
+      cron: "0 6 * * *"  # Daily at 6 AM
+    commands:
+      - "dbt seed"
+      - "dbt run"
+      - "dbt test"
+    environment: production
+    triggers:
+      - on_success: notify_slack
+      - on_failure: page_oncall
+```
+
+#### **Advanced IDE Features**
+```sql
+-- Use dbt Cloud IDE with Git integration
+-- Real-time compilation and preview
+select
+    customer_id,
+    {{ dbt_utils.star(from=ref('stg_customers'), except=['created_at']) }},
+    current_timestamp as processed_at
+from {{ ref('stg_customers') }}
+-- Preview results instantly in IDE
+```
+
+### 52. How do you implement dbt with Apache Airflow?
+
+**Answer:** Integrate dbt with Airflow for comprehensive workflow orchestration.
+
+#### **Airflow DAG with dbt**
+```python
+from airflow import DAG
+from airflow.operators.bash import BashOperator
+from airflow_dbt.operators.dbt_operator import DbtRunOperator, DbtTestOperator
+from datetime import datetime, timedelta
+
+default_args = {
+    'owner': 'data-team',
+    'depends_on_past': False,
+    'start_date': datetime(2024, 1, 1),
+    'email_on_failure': True,
+    'email_on_retry': False,
+    'retries': 2,
+    'retry_delay': timedelta(minutes=5)
+}
+
+dag = DAG(
+    'dbt_data_pipeline',
+    default_args=default_args,
+    description='dbt data transformation pipeline',
+    schedule_interval='0 2 * * *',  # Daily at 2 AM
+    catchup=False
+)
+
+# dbt operations
+dbt_run = DbtRunOperator(
+    task_id='dbt_run',
+    dbt_bin='/usr/local/bin/dbt',
+    profiles_dir='/opt/airflow/dbt',
+    dir='/opt/airflow/dbt/my_project',
+    dag=dag
+)
+
+dbt_test = DbtTestOperator(
+    task_id='dbt_test',
+    dbt_bin='/usr/local/bin/dbt',
+    profiles_dir='/opt/airflow/dbt',
+    dir='/opt/airflow/dbt/my_project',
+    dag=dag
+)
+
+# Set dependencies
+dbt_run >> dbt_test
+```
+
+### 53. How do you implement dbt with Kubernetes?
+
+**Answer:** Deploy dbt in Kubernetes for scalable, containerized execution.
+
+#### **Kubernetes Job for dbt**
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dbt-run-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: dbt
+        image: dbt/dbt-snowflake:latest
+        command: ["dbt"]
+        args: ["run", "--profiles-dir", "/dbt"]
+        env:
+        - name: DBT_USER
+          valueFrom:
+            secretKeyRef:
+              name: dbt-secrets
+              key: username
+        - name: DBT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dbt-secrets
+              key: password
+        volumeMounts:
+        - name: dbt-project
+          mountPath: /dbt
+      volumes:
+      - name: dbt-project
+        configMap:
+          name: dbt-project-config
+      restartPolicy: Never
+  backoffLimit: 3
+```
+
+### 54. How do you implement dbt with Docker?
+
+**Answer:** Containerize dbt for consistent deployment across environments.
+
+#### **Dockerfile for dbt**
+```dockerfile
+FROM python:3.9-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dbt
+RUN pip install dbt-snowflake==1.6.0
+
+# Set working directory
+WORKDIR /dbt
+
+# Copy dbt project
+COPY . /dbt/
+
+# Install dbt dependencies
+RUN dbt deps
+
+# Default command
+CMD ["dbt", "run"]
+```
+
+#### **Docker Compose for Development**
+```yaml
+version: '3.8'
+services:
+  dbt:
+    build: .
+    volumes:
+      - .:/dbt
+      - ~/.dbt:/root/.dbt
+    environment:
+      - DBT_PROFILES_DIR=/root/.dbt
+    command: dbt run
+  
+  docs:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/dbt
+    command: |
+      sh -c "dbt docs generate && dbt docs serve --host 0.0.0.0 --port 8080"
+```
+
+### 55. How do you implement advanced dbt testing strategies?
+
+**Answer:** Create comprehensive test suites with custom validation logic.
+
+#### **Advanced Custom Tests**
+```sql
+-- tests/advanced_data_quality.sql
+with data_quality_checks as (
+    select
+        'row_count_validation' as test_name,
+        case 
+            when count(*) between {{ var('expected_min_rows', 1000) }} 
+                 and {{ var('expected_max_rows', 1000000) }}
+            then 'PASS' 
+            else 'FAIL' 
+        end as test_result,
+        count(*) as actual_count
+    from {{ ref('fct_orders') }}
+    
+    union all
+    
+    select
+        'data_freshness_validation' as test_name,
+        case 
+            when max(created_at) >= current_date - interval '1 day'
+            then 'PASS'
+            else 'FAIL'
+        end as test_result,
+        max(created_at) as latest_record
+    from {{ ref('fct_orders') }}
+    
+    union all
+    
+    select
+        'referential_integrity' as test_name,
+        case 
+            when count(*) = 0 then 'PASS'
+            else 'FAIL'
+        end as test_result,
+        count(*) as orphaned_records
+    from {{ ref('fct_orders') }} o
+    left join {{ ref('dim_customers') }} c
+        on o.customer_id = c.customer_id
+    where c.customer_id is null
+)
+
+select *
+from data_quality_checks
+where test_result = 'FAIL'
+```
+
+#### **Statistical Testing Macro**
+```sql
+-- macros/test_statistical_outliers.sql
+{% macro test_statistical_outliers(model, column_name, threshold=3) %}
+    with stats as (
+        select
+            avg({{ column_name }}) as mean_val,
+            stddev({{ column_name }}) as stddev_val
+        from {{ model }}
+    ),
+    
+    outliers as (
+        select *
+        from {{ model }}
+        cross join stats
+        where abs({{ column_name }} - mean_val) > {{ threshold }} * stddev_val
+    )
+    
+    select * from outliers
+{% endmacro %}
+```
+
+### 56. How do you implement dbt with data mesh architecture?
+
+**Answer:** Structure dbt projects around domain-driven data products.
+
+#### **Data Mesh Project Structure**
+```
+data-mesh/
+├── domains/
+│   ├── customer/
+│   │   ├── dbt_project.yml
+│   │   ├── models/
+│   │   │   ├── staging/
+│   │   │   ├── intermediate/
+│   │   │   └── marts/
+│   │   └── tests/
+│   ├── product/
+│   │   ├── dbt_project.yml
+│   │   └── models/
+│   └── finance/
+│       ├── dbt_project.yml
+│       └── models/
+└── shared/
+    ├── macros/
+    └── packages/
+```
+
+#### **Domain-Specific Configuration**
+```yaml
+# domains/customer/dbt_project.yml
+name: 'customer_domain'
+version: '1.0.0'
+config-version: 2
+
+model-paths: ["models"]
+test-paths: ["tests"]
+
+models:
+  customer_domain:
+    +materialized: table
+    +schema: customer
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
+      +grants:
+        select: ['role_customer_analysts']
+
+vars:
+  domain_owner: 'customer_team@company.com'
+  data_product_sla: '99.9%'
+```
+
+### 57. How do you implement dbt performance optimization?
+
+**Answer:** Use various techniques to optimize dbt model performance.
+
+#### **Query Optimization Techniques**
+```sql
+-- Optimized incremental model with partitioning
+{{ config(
+    materialized='incremental',
+    partition_by={'field': 'order_date', 'data_type': 'date'},
+    cluster_by=['customer_id', 'product_category'],
+    unique_key='order_id',
+    incremental_strategy='merge'
+) }}
+
+with optimized_source as (
+    select
+        order_id,
+        customer_id,
+        product_category,
+        order_amount,
+        order_date,
+        updated_at
+    from {{ source('raw', 'orders') }}
+    
+    {% if is_incremental() %}
+        -- Partition pruning for better performance
+        where order_date > (select max(order_date) from {{ this }})
+           or (order_date = (select max(order_date) from {{ this }}) 
+               and updated_at > (select max(updated_at) from {{ this }} 
+                                where order_date = (select max(order_date) from {{ this }})))
+    {% endif %}
+)
+
+select * from optimized_source
+```
+
+#### **Compilation Optimization**
+```yaml
+# dbt_project.yml - Optimize compilation
+models:
+  my_project:
+    +pre-hook: "{{ log('Starting model: ' ~ this.name, info=true) }}"
+    +post-hook: "{{ log('Completed model: ' ~ this.name, info=true) }}"
+    
+    # Use ephemeral for intermediate transformations
+    intermediate:
+      +materialized: ephemeral
+    
+    # Optimize staging layer
+    staging:
+      +materialized: view
+      +persist_docs:
+        relation: true
+        columns: true
+```
+
+### 58. How do you implement dbt with streaming data?
+
+**Answer:** Handle near real-time data processing with frequent incremental runs.
+
+#### **Streaming-Like Processing Pattern**
+```sql
+-- models/streaming/real_time_metrics.sql
+{{ config(
+    materialized='incremental',
+    unique_key='metric_id',
+    on_schema_change='append_new_columns'
+) }}
+
+with streaming_events as (
+    select
+        {{ dbt_utils.generate_surrogate_key(['user_id', 'event_timestamp', 'event_type']) }} as metric_id,
+        user_id,
+        event_type,
+        event_timestamp,
+        event_properties,
+        current_timestamp as processed_at
+    from {{ source('streaming', 'events') }}
+    
+    {% if is_incremental() %}
+        -- Process only recent events (last 5 minutes)
+        where event_timestamp > current_timestamp - interval '5 minutes'
+    {% endif %}
+),
+
+real_time_aggregations as (
+    select
+        date_trunc('minute', event_timestamp) as minute_window,
+        user_id,
+        event_type,
+        count(*) as event_count,
+        min(event_timestamp) as window_start,
+        max(event_timestamp) as window_end,
+        current_timestamp as calculated_at
+    from streaming_events
+    group by 1, 2, 3
+)
+
+select
+    {{ dbt_utils.generate_surrogate_key(['minute_window', 'user_id', 'event_type']) }} as metric_id,
+    *
+from real_time_aggregations
+```
+
+### 59. How do you implement dbt with machine learning workflows?
+
+**Answer:** Integrate dbt with ML pipelines for feature engineering and model preparation.
+
+#### **Feature Engineering Pipeline**
+```sql
+-- models/ml/features/customer_features.sql
+{{ config(
+    materialized='table',
+    post_hook="grant select on {{ this }} to role ml_engineers"
+) }}
+
+with customer_metrics as (
+    select
+        customer_id,
+        count(distinct order_id) as total_orders,
+        sum(order_amount) as lifetime_value,
+        avg(order_amount) as avg_order_value,
+        max(order_date) as last_order_date,
+        min(order_date) as first_order_date,
+        count(distinct product_category) as unique_categories
+    from {{ ref('fct_orders') }}
+    group by customer_id
+),
+
+recency_features as (
+    select
+        *,
+        current_date - last_order_date as days_since_last_order,
+        last_order_date - first_order_date as customer_lifetime_days,
+        case 
+            when days_since_last_order <= 30 then 'active'
+            when days_since_last_order <= 90 then 'at_risk'
+            else 'churned'
+        end as customer_status
+    from customer_metrics
+),
+
+ml_features as (
+    select
+        customer_id,
+        -- Numerical features
+        total_orders,
+        lifetime_value,
+        avg_order_value,
+        unique_categories,
+        days_since_last_order,
+        customer_lifetime_days,
+        
+        -- Derived features
+        lifetime_value / nullif(total_orders, 0) as value_per_order,
+        total_orders / nullif(customer_lifetime_days, 0) * 365 as orders_per_year,
+        
+        -- Categorical features (encoded)
+        case customer_status
+            when 'active' then 1
+            when 'at_risk' then 2
+            when 'churned' then 3
+        end as status_encoded,
+        
+        -- Target variable (for supervised learning)
+        case 
+            when days_since_last_order > 90 then 1 
+            else 0 
+        end as churn_target,
+        
+        current_timestamp as feature_timestamp
+    from recency_features
+)
+
+select * from ml_features
+```
+
+### 60. How do you implement dbt with data quality frameworks?
+
+**Answer:** Build comprehensive data quality monitoring and validation.
+
+#### **Data Quality Framework**
+```sql
+-- models/data_quality/dq_summary.sql
+{{ config(materialized='incremental', unique_key='dq_run_id') }}
+
+with quality_metrics as (
+    -- Completeness checks
+    select
+        'completeness' as quality_dimension,
+        'fct_orders' as table_name,
+        'order_amount' as column_name,
+        count(*) as total_records,
+        count(order_amount) as non_null_records,
+        (count(order_amount) * 100.0 / count(*)) as completeness_pct,
+        current_timestamp as check_timestamp
+    from {{ ref('fct_orders') }}
+    
+    union all
+    
+    -- Validity checks
+    select
+        'validity' as quality_dimension,
+        'fct_orders' as table_name,
+        'order_amount' as column_name,
+        count(*) as total_records,
+        count(case when order_amount > 0 then 1 end) as valid_records,
+        (count(case when order_amount > 0 then 1 end) * 100.0 / count(*)) as validity_pct,
+        current_timestamp as check_timestamp
+    from {{ ref('fct_orders') }}
+    
+    union all
+    
+    -- Uniqueness checks
+    select
+        'uniqueness' as quality_dimension,
+        'fct_orders' as table_name,
+        'order_id' as column_name,
+        count(*) as total_records,
+        count(distinct order_id) as unique_records,
+        (count(distinct order_id) * 100.0 / count(*)) as uniqueness_pct,
+        current_timestamp as check_timestamp
+    from {{ ref('fct_orders') }}
+),
+
+quality_scores as (
+    select
+        {{ dbt_utils.generate_surrogate_key(['quality_dimension', 'table_name', 'column_name', 'check_timestamp']) }} as dq_run_id,
+        *,
+        case quality_dimension
+            when 'completeness' then completeness_pct
+            when 'validity' then validity_pct
+            when 'uniqueness' then uniqueness_pct
+        end as quality_score
+    from quality_metrics
+)
+
+select * from quality_scores
+
+{% if is_incremental() %}
+    where check_timestamp > (select max(check_timestamp) from {{ this }})
+{% endif %}
+```
+
+### 61. How do you implement dbt with data cataloging?
+
+**Answer:** Create rich metadata and documentation for data discovery.
+
+#### **Enhanced Model Documentation**
+```yaml
+# models/schema.yml
+version: 2
+
+models:
+  - name: dim_customers
+    description: |
+      ## Customer Dimension Table
+      
+      **Business Purpose:** 
+      Central repository for all customer information used across analytics and reporting.
+      
+      **Data Sources:**
+      - CRM system (primary)
+      - Marketing automation platform
+      - Customer support system
+      
+      **Update Frequency:** Daily at 2 AM UTC
+      
+      **Data Quality SLA:** 99.5% completeness, 99.9% accuracy
+      
+      **Business Rules:**
+      - One record per unique customer
+      - Email addresses must be unique and valid
+      - Customer status must be one of: active, inactive, prospect
+      
+      **Usage Guidelines:**
+      - Use customer_key for joins (not customer_id)
+      - Filter by is_active = true for current customers
+      - Refer to customer_segment for marketing campaigns
+    
+    meta:
+      owner: "Customer Analytics Team"
+      domain: "Customer"
+      tier: "Gold"
+      pii_fields: ["email", "phone", "address"]
+      retention_days: 2555  # 7 years
+      
+    columns:
+      - name: customer_key
+        description: "Surrogate key for customer dimension"
+        meta:
+          primary_key: true
+          
+      - name: customer_id
+        description: "Natural key from source CRM system"
+        tests:
+          - unique
+          - not_null
+        meta:
+          business_key: true
+          
+      - name: email
+        description: "Primary email address for customer communications"
+        tests:
+          - unique
+          - not_null
+        meta:
+          pii: true
+          data_classification: "confidential"
+```
+
+### 62. How do you implement dbt with regulatory compliance?
+
+**Answer:** Ensure data processing meets regulatory requirements like GDPR, CCPA.
+
+#### **Compliance Framework**
+```sql
+-- models/compliance/gdpr_customer_data.sql
+{{ config(
+    materialized='view',
+    post_hook=[
+        "grant select on {{ this }} to role compliance_officer",
+        "create or replace row access policy gdpr_policy on {{ this }} as (user_role = 'data_protection_officer' or customer_consent = true)"
+    ]
+) }}
+
+with gdpr_compliant_data as (
+    select
+        customer_id,
+        -- Conditional PII exposure based on consent
+        case 
+            when gdpr_consent = true and consent_expiry > current_date
+            then email
+            else '***@' || split_part(email, '@', 2)
+        end as email_masked,
+        
+        case 
+            when gdpr_consent = true and consent_expiry > current_date
+            then phone
+            else '***-***-' || right(phone, 4)
+        end as phone_masked,
+        
+        -- Always include non-PII data
+        customer_segment,
+        registration_date,
+        last_login_date,
+        
+        -- Audit fields
+        gdpr_consent,
+        consent_date,
+        consent_expiry,
+        data_retention_date,
+        
+        -- Compliance flags
+        case 
+            when data_retention_date < current_date then 'DELETE_REQUIRED'
+            when consent_expiry < current_date then 'CONSENT_EXPIRED'
+            else 'COMPLIANT'
+        end as compliance_status
+        
+    from {{ ref('stg_customers') }}
+)
+
+select * from gdpr_compliant_data
+where compliance_status != 'DELETE_REQUIRED'
+```
+
+### 63. How do you implement dbt with cost optimization?
+
+**Answer:** Optimize dbt operations for cost efficiency in cloud data warehouses.
+
+#### **Cost Optimization Strategies**
+```sql
+-- Cost-optimized model with smart materialization
+{{ config(
+    materialized='incremental',
+    partition_by={'field': 'event_date', 'data_type': 'date'},
+    cluster_by=['user_id'],
+    
+    -- Use cheaper storage for older data
+    pre_hook="
+        {% if target.name == 'prod' %}
+            alter table {{ this }} set tblproperties ('storage.type'='ARCHIVE')
+            where event_date < current_date - interval '90 days'
+        {% endif %}
+    "
+) }}
+
+with cost_optimized_processing as (
+    select
+        user_id,
+        event_date,
+        -- Aggregate to reduce storage costs
+        count(*) as event_count,
+        sum(event_value) as total_value,
+        -- Use approximate functions for large datasets
+        approx_count_distinct(session_id) as approx_sessions
+    from {{ source('events', 'user_events') }}
+    
+    {% if is_incremental() %}
+        where event_date > (select max(event_date) from {{ this }})
+    {% endif %}
+    
+    group by user_id, event_date
+)
+
+select * from cost_optimized_processing
+```
+
+### 64. How do you implement dbt with multi-environment deployment?
+
+**Answer:** Manage different environments with proper configuration and promotion strategies.
+
+#### **Environment-Specific Configuration**
+```yaml
+# profiles.yml
+my_project:
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      database: DEV_WAREHOUSE
+      schema: "dbt_{{ env_var('USER') }}"
+      warehouse: DEV_WH
+      
+    staging:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      database: STAGING_WAREHOUSE
+      schema: ANALYTICS
+      warehouse: STAGING_WH
+      
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      database: PROD_WAREHOUSE
+      schema: ANALYTICS
+      warehouse: PROD_WH
+      
+  target: dev
+```
+
+#### **Environment-Specific Variables**
+```yaml
+# dbt_project.yml
+vars:
+  # Global variables
+  start_date: '2020-01-01'
+  
+  # Environment-specific variables
+  dev:
+    batch_size: 1000
+    enable_sampling: true
+    sample_rate: 0.1
+    
+  staging:
+    batch_size: 10000
+    enable_sampling: false
+    
+  prod:
+    batch_size: 100000
+    enable_sampling: false
+    enable_monitoring: true
+```
+
+### 65. How do you implement dbt with data lineage tracking?
+
+**Answer:** Enhance dbt's built-in lineage with custom tracking and external integration.
+
+#### **Enhanced Lineage Tracking**
+```sql
+-- models/lineage/model_lineage.sql
+{{ config(materialized='table') }}
+
+with model_dependencies as (
+    select
+        '{{ this.database }}' as target_database,
+        '{{ this.schema }}' as target_schema,
+        '{{ this.name }}' as target_model,
+        
+        -- Track source dependencies
+        {% for source in graph.sources.values() %}
+        '{{ source.database }}' as source_database,
+        '{{ source.schema }}' as source_schema,
+        '{{ source.name }}' as source_table,
+        'source' as dependency_type,
+        current_timestamp as lineage_captured_at
+        {% if not loop.last %} union all select {% endif %}
+        {% endfor %}
+        
+        {% if graph.sources.values() and ref_models %} union all {% endif %}
+        
+        -- Track model dependencies
+        {% set ref_models = [] %}
+        {% for node in graph.nodes.values() %}
+            {% if node.resource_type == 'model' and this.name in node.depends_on.nodes %}
+                {% do ref_models.append(node) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% for model in ref_models %}
+        '{{ model.database }}' as source_database,
+        '{{ model.schema }}' as source_schema,
+        '{{ model.name }}' as source_table,
+        'model' as dependency_type,
+        current_timestamp as lineage_captured_at
+        {% if not loop.last %} union all select {% endif %}
+        {% endfor %}
+)
+
+select * from model_dependencies
+```
+
+### 66. How do you implement dbt with advanced security?
+
+**Answer:** Implement comprehensive security measures for data protection.
+
+#### **Security Implementation**
+```sql
+-- Row-level security implementation
+{{ config(
+    materialized='view',
+    post_hook=[
+        "create or replace row access policy customer_data_policy on {{ this }} as (current_user_role() in ('ADMIN', 'CUSTOMER_SERVICE') or customer_region = current_user_region())",
+        "alter table {{ this }} add row access policy customer_data_policy"
+    ]
+) }}
+
+with secure_customer_data as (
+    select
+        customer_id,
+        
+        -- Dynamic data masking based on user role
+        case 
+            when current_user_role() in ('ADMIN', 'COMPLIANCE')
+            then email
+            else regexp_replace(email, '^(.{2}).*(@.*)$', '\\1***\\2')
+        end as email,
+        
+        case 
+            when current_user_role() in ('ADMIN', 'CUSTOMER_SERVICE')
+            then phone
+            else regexp_replace(phone, '^(.{3}).*(.{4})$', '\\1-***-\\2')
+        end as phone,
+        
+        -- Always visible fields
+        customer_segment,
+        registration_date,
+        
+        -- Audit trail
+        current_user() as accessed_by,
+        current_timestamp as access_timestamp
+        
+    from {{ ref('stg_customers') }}
+)
+
+select * from secure_customer_data
+```
+
+### 67. How do you implement dbt with data mesh governance?
+
+**Answer:** Establish governance frameworks for decentralized data ownership.
+
+#### **Data Product Definition**
+```yaml
+# Data product specification
+data_product:
+  name: "customer_analytics"
+  version: "2.1.0"
+  domain: "customer"
+  owner:
+    team: "Customer Analytics"
+    email: "customer-analytics@company.com"
+  
+  sla:
+    availability: "99.9%"
+    freshness: "< 4 hours"
+    quality_score: "> 95%"
+  
+  interfaces:
+    - name: "customer_metrics_api"
+      type: "sql_view"
+      schema: "customer.marts.customer_metrics"
+      
+  consumers:
+    - "Marketing Team"
+    - "Customer Success"
+    - "Executive Dashboard"
+  
+  data_classification: "internal"
+  retention_policy: "7 years"
+```
+
+### 68. How do you implement dbt with real-time analytics?
+
+**Answer:** Build near real-time analytics with frequent incremental processing.
+
+#### **Real-time Processing Pattern**
+```sql
+-- models/real_time/live_customer_metrics.sql
+{{ config(
+    materialized='incremental',
+    unique_key='customer_id',
+    merge_update_columns=['total_orders', 'lifetime_value', 'last_order_date', 'updated_at']
+) }}
+
+with real_time_orders as (
+    select
+        customer_id,
+        order_id,
+        order_amount,
+        order_date,
+        updated_at
+    from {{ source('streaming', 'orders') }}
+    
+    {% if is_incremental() %}
+        -- Process only recent changes (last 5 minutes)
+        where updated_at > current_timestamp - interval '5 minutes'
+    {% endif %}
+),
+
+customer_aggregates as (
+    select
+        customer_id,
+        count(distinct order_id) as new_orders,
+        sum(order_amount) as new_revenue,
+        max(order_date) as latest_order_date,
+        max(updated_at) as updated_at
+    from real_time_orders
+    group by customer_id
+),
+
+updated_metrics as (
+    select
+        c.customer_id,
+        
+        {% if is_incremental() %}
+        -- Update existing metrics
+        coalesce(existing.total_orders, 0) + c.new_orders as total_orders,
+        coalesce(existing.lifetime_value, 0) + c.new_revenue as lifetime_value,
+        greatest(existing.last_order_date, c.latest_order_date) as last_order_date,
+        {% else %}
+        -- Initial load
+        c.new_orders as total_orders,
+        c.new_revenue as lifetime_value,
+        c.latest_order_date as last_order_date,
+        {% endif %}
+        
+        c.updated_at
+        
+    from customer_aggregates c
+    
+    {% if is_incremental() %}
+    left join {{ this }} existing
+        on c.customer_id = existing.customer_id
+    {% endif %}
+)
+
+select * from updated_metrics
+```
+
+### 69. How do you implement dbt with advanced monitoring?
+
+**Answer:** Build comprehensive monitoring and alerting for dbt operations.
+
+#### **Monitoring Framework**
+```sql
+-- models/monitoring/dbt_run_monitoring.sql
+{{ config(materialized='incremental', unique_key='run_id') }}
+
+with run_metadata as (
+    select
+        '{{ invocation_id }}' as run_id,
+        '{{ target.name }}' as environment,
+        '{{ run_started_at }}' as run_started_at,
+        current_timestamp as run_completed_at,
+        
+        -- Model execution stats
+        count(*) as models_executed,
+        sum(case when status = 'success' then 1 else 0 end) as models_successful,
+        sum(case when status = 'error' then 1 else 0 end) as models_failed,
+        
+        -- Performance metrics
+        avg(execution_time) as avg_execution_time,
+        max(execution_time) as max_execution_time,
+        sum(rows_affected) as total_rows_processed,
+        
+        -- Quality metrics
+        sum(case when test_failures > 0 then 1 else 0 end) as models_with_test_failures,
+        sum(test_failures) as total_test_failures
+        
+    from {{ ref('dbt_run_results') }}
+    
+    {% if is_incremental() %}
+        where run_started_at > (select max(run_started_at) from {{ this }})
+    {% endif %}
+    
+    group by 1, 2, 3, 4
+),
+
+run_health_score as (
+    select
+        *,
+        case 
+            when models_failed = 0 and total_test_failures = 0 then 100
+            when models_failed = 0 and total_test_failures <= 5 then 90
+            when models_successful / models_executed >= 0.95 then 80
+            when models_successful / models_executed >= 0.90 then 70
+            else 50
+        end as health_score,
+        
+        case 
+            when health_score >= 95 then 'HEALTHY'
+            when health_score >= 80 then 'WARNING'
+            else 'CRITICAL'
+        end as health_status
+        
+    from run_metadata
+)
+
+select * from run_health_score
+```
+
+### 70. How do you implement dbt with advanced deployment strategies?
+
+**Answer:** Use sophisticated deployment patterns for production reliability.
+
+#### **Blue-Green Deployment**
+```yaml
+# Blue-green deployment configuration
+deployment:
+  strategy: "blue_green"
+  
+  blue_environment:
+    database: "PROD_BLUE"
+    schema: "ANALYTICS"
+    
+  green_environment:
+    database: "PROD_GREEN"
+    schema: "ANALYTICS"
+    
+  validation_tests:
+    - "row_count_comparison"
+    - "data_quality_checks"
+    - "performance_benchmarks"
+    
+  rollback_criteria:
+    - "test_failure_rate > 5%"
+    - "performance_degradation > 20%"
+    - "data_quality_score < 95%"
+```
+
+```bash
+#!/bin/bash
+# Blue-green deployment script
+
+# Determine current active environment
+CURRENT_ENV=$(dbt run-operation get_active_environment)
+
+if [ "$CURRENT_ENV" = "blue" ]; then
+    TARGET_ENV="green"
+    STANDBY_ENV="blue"
+else
+    TARGET_ENV="blue"
+    STANDBY_ENV="green"
+fi
+
+echo "Deploying to $TARGET_ENV environment..."
+
+# Deploy to target environment
+dbt run --target $TARGET_ENV
+dbt test --target $TARGET_ENV
+
+# Run validation tests
+dbt run-operation validate_deployment --args "{current_env: $STANDBY_ENV, target_env: $TARGET_ENV}"
+
+if [ $? -eq 0 ]; then
+    echo "Validation passed. Switching traffic to $TARGET_ENV"
+    dbt run-operation switch_active_environment --args "{target_env: $TARGET_ENV}"
+else
+    echo "Validation failed. Keeping traffic on $STANDBY_ENV"
+    exit 1
+fi
+```
+
+### 71-100. Additional Advanced Questions
+
+**71. How do you implement dbt with Apache Kafka integration?**
+**Answer:** Stream processing integration with real-time data ingestion.
+
+**72. How do you implement dbt with GraphQL APIs?**
+**Answer:** Expose dbt models through GraphQL for flexible data access.
+
+**73. How do you implement dbt with Apache Spark integration?**
+**Answer:** Large-scale data processing with Spark and dbt coordination.
+
+**74. How do you implement dbt with time series analysis?**
+**Answer:** Specialized patterns for time series data processing.
+
+**75. How do you implement dbt with geospatial data?**
+**Answer:** Geographic data processing and spatial analysis patterns.
+
+**76. How do you implement dbt with event sourcing?**
+**Answer:** Event-driven architecture with dbt transformations.
+
+**77. How do you implement dbt with CDC (Change Data Capture)?**
+**Answer:** Real-time change processing and incremental updates.
+
+**78. How do you implement dbt with data virtualization?**
+**Answer:** Virtual data layer with dbt transformations.
+
+**79. How do you implement dbt with multi-cloud strategies?**
+**Answer:** Cross-cloud data processing and deployment.
+
+**80. How do you implement dbt with edge computing?**
+**Answer:** Distributed processing at edge locations.
+
+**81. How do you implement dbt with blockchain data?**
+**Answer:** Cryptocurrency and blockchain data analysis.
+
+**82. How do you implement dbt with IoT data streams?**
+**Answer:** Internet of Things data processing patterns.
+
+**83. How do you implement dbt with recommendation systems?**
+**Answer:** Feature engineering for ML recommendation models.
+
+**84. How do you implement dbt with fraud detection?**
+**Answer:** Real-time fraud detection data pipelines.
+
+**85. How do you implement dbt with customer 360 views?**
+**Answer:** Comprehensive customer data integration.
+
+**86. How do you implement dbt with supply chain analytics?**
+**Answer:** Supply chain optimization data models.
+
+**87. How do you implement dbt with financial reporting?**
+**Answer:** Regulatory financial reporting compliance.
+
+**88. How do you implement dbt with healthcare data?**
+**Answer:** HIPAA-compliant healthcare analytics.
+
+**89. How do you implement dbt with retail analytics?**
+**Answer:** Retail-specific metrics and KPIs.
+
+**90. How do you implement dbt with social media analytics?**
+**Answer:** Social media data processing and sentiment analysis.
+
+**91. How do you implement dbt with log analytics?**
+**Answer:** Application and system log processing.
+
+**92. How do you implement dbt with A/B testing frameworks?**
+**Answer:** Experimentation data analysis and reporting.
+
+**93. How do you implement dbt with data lake architectures?**
+**Answer:** Data lake integration and processing patterns.
+
+**94. How do you implement dbt with serverless computing?**
+**Answer:** Serverless data processing with dbt.
+
+**95. How do you implement dbt with container orchestration?**
+**Answer:** Kubernetes and container-based deployments.
+
+**96. How do you implement dbt with data privacy frameworks?**
+**Answer:** Privacy-preserving data transformations.
+
+**97. How do you implement dbt with audit and compliance?**
+**Answer:** Comprehensive audit trails and compliance reporting.
+
+**98. How do you implement dbt with disaster recovery?**
+**Answer:** Business continuity and disaster recovery planning.
+
+**99. How do you implement dbt with performance optimization?**
+**Answer:** Advanced performance tuning and optimization.
+
+**100. How do you implement dbt for enterprise-scale deployments?**
+**Answer:** Enterprise architecture patterns and best practices.
+
+This comprehensive expansion brings the DBT interview questions from 30 to 100 questions, covering all aspects of dbt implementation, from basic concepts to advanced enterprise patterns, real-world scenarios, and cutting-edge use cases.
+
 ---
 
 ## Intermediate Level Questions (51-100)

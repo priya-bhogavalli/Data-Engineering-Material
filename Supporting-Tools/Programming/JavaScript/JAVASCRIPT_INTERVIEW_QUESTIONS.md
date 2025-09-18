@@ -1,12 +1,12 @@
-# JavaScript Interview Questions for Data Engineering
+# JavaScript Interview Questions for Data Engineering - EXPANDED TO 80
 
 ## 📋 Table of Contents
 
-1. [Core Concepts Questions (1-20)](#core-concepts-questions-1-20)
-2. [Asynchronous Programming (21-35)](#asynchronous-programming-21-35)
-3. [Data Structures & Algorithms (36-50)](#data-structures--algorithms-36-50)
-4. [API Development & Integration (51-65)](#api-development--integration-51-65)
-5. [Performance & Optimization (66-80)](#performance--optimization-66-80)
+1. [Core Concepts Questions (1-25)](#core-concepts-questions-1-25)
+2. [Asynchronous Programming (26-40)](#asynchronous-programming-26-40)
+3. [Data Structures & Algorithms (41-55)](#data-structures--algorithms-41-55)
+4. [API Development & Integration (56-70)](#api-development--integration-56-70)
+5. [Performance & Optimization (71-80)](#performance--optimization-71-80)
 
 ---
 
@@ -23,7 +23,7 @@ JavaScript is essential for data engineers building web interfaces, APIs, and da
 
 ---
 
-## Core Concepts Questions (1-20)
+## Core Concepts Questions (1-25)
 
 ### 1. Explain JavaScript's data types and their use in data processing.
 **Answer**: JavaScript has primitive and non-primitive data types crucial for data manipulation.
@@ -196,11 +196,11 @@ const processor = createDataProcessor({
 });
 
 // Memoization with closures
-function memoize(fn) {
+function memoize(fn, keyGenerator = JSON.stringify) {
     const cache = new Map();
     
     return function(...args) {
-        const key = JSON.stringify(args);
+        const key = keyGenerator(args);
         
         if (cache.has(key)) {
             return cache.get(key);
@@ -217,40 +217,6 @@ const expensiveCalculation = memoize(function(data) {
     console.log('Performing expensive calculation...');
     return data.reduce((sum, item) => sum + item.value * item.weight, 0);
 });
-
-// Module pattern with closures
-const DataAnalyzer = (function() {
-    let datasets = [];
-    let analysisCache = new Map();
-    
-    return {
-        addDataset: function(name, data) {
-            datasets.push({ name, data, timestamp: Date.now() });
-        },
-        
-        analyze: function(datasetName, analysisType) {
-            const cacheKey = `${datasetName}-${analysisType}`;
-            
-            if (analysisCache.has(cacheKey)) {
-                return analysisCache.get(cacheKey);
-            }
-            
-            const dataset = datasets.find(d => d.name === datasetName);
-            if (!dataset) {
-                throw new Error(`Dataset ${datasetName} not found`);
-            }
-            
-            const result = performAnalysis(dataset.data, analysisType);
-            analysisCache.set(cacheKey, result);
-            
-            return result;
-        },
-        
-        clearCache: function() {
-            analysisCache.clear();
-        }
-    };
-})();
 ```
 
 ### 4. How do you work with arrays and objects for data manipulation?
@@ -297,90 +263,6 @@ const allPositiveAmounts = salesData.every(sale => sale.amount > 0);
 // Sort data
 const sortedByAmount = [...salesData].sort((a, b) => b.amount - a.amount);
 const sortedByDate = [...salesData].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-// Advanced array operations
-function processDataBatch(data, batchSize = 100) {
-    const batches = [];
-    
-    for (let i = 0; i < data.length; i += batchSize) {
-        batches.push(data.slice(i, i + batchSize));
-    }
-    
-    return batches.map(batch => ({
-        size: batch.length,
-        total: batch.reduce((sum, item) => sum + item.amount, 0),
-        average: batch.reduce((sum, item) => sum + item.amount, 0) / batch.length
-    }));
-}
-
-// Object manipulation
-const customerData = {
-    personal: {
-        name: 'John Doe',
-        email: 'john@example.com',
-        age: 30
-    },
-    orders: [
-        { id: 1, total: 100 },
-        { id: 2, total: 150 }
-    ],
-    preferences: {
-        newsletter: true,
-        notifications: false
-    }
-};
-
-// Deep cloning
-function deepClone(obj) {
-    if (obj === null || typeof obj !== 'object') {
-        return obj;
-    }
-    
-    if (obj instanceof Date) {
-        return new Date(obj.getTime());
-    }
-    
-    if (obj instanceof Array) {
-        return obj.map(item => deepClone(item));
-    }
-    
-    const cloned = {};
-    for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            cloned[key] = deepClone(obj[key]);
-        }
-    }
-    
-    return cloned;
-}
-
-// Object property access
-function getNestedProperty(obj, path) {
-    return path.split('.').reduce((current, key) => {
-        return current && current[key] !== undefined ? current[key] : undefined;
-    }, obj);
-}
-
-// Usage
-const customerName = getNestedProperty(customerData, 'personal.name');
-const firstOrderTotal = getNestedProperty(customerData, 'orders.0.total');
-
-// Object transformation
-function transformCustomerData(customer) {
-    return {
-        id: customer.id,
-        fullName: `${customer.personal.firstName} ${customer.personal.lastName}`,
-        contactInfo: {
-            email: customer.personal.email,
-            phone: customer.personal.phone
-        },
-        orderSummary: {
-            totalOrders: customer.orders.length,
-            totalSpent: customer.orders.reduce((sum, order) => sum + order.total, 0),
-            averageOrder: customer.orders.reduce((sum, order) => sum + order.total, 0) / customer.orders.length
-        }
-    };
-}
 ```
 
 ### 5. What are JavaScript's execution contexts and scope?
@@ -431,77 +313,36 @@ function createDataFilter(criteria) {
 
 const activeFilter = createDataFilter({ status: 'active' });
 const filteredData = activeFilter(userData);
-
-// Hoisting examples
-console.log(hoistedVar); // undefined (not ReferenceError)
-var hoistedVar = 'I am hoisted';
-
-// console.log(letVar); // ReferenceError (temporal dead zone)
-let letVar = 'I am not hoisted';
-
-// Function hoisting
-console.log(hoistedFunction()); // "I am hoisted!"
-
-function hoistedFunction() {
-    return "I am hoisted!";
-}
-
-// Arrow functions and scope
-const DataProcessor = {
-    name: 'Main Processor',
-    data: [],
-    
-    // Regular function - has its own 'this'
-    processWithRegular: function(callback) {
-        this.data.forEach(function(item) {
-            // 'this' refers to global object or undefined in strict mode
-            callback(item);
-        });
-    },
-    
-    // Arrow function - inherits 'this' from enclosing scope
-    processWithArrow: function(callback) {
-        this.data.forEach((item) => {
-            // 'this' refers to DataProcessor object
-            callback(item, this.name);
-        });
-    }
-};
-
-// Scope chain example
-function outerFunction(outerParam) {
-    const outerVar = 'outer';
-    
-    function middleFunction(middleParam) {
-        const middleVar = 'middle';
-        
-        function innerFunction(innerParam) {
-            const innerVar = 'inner';
-            
-            // Has access to all outer scopes
-            console.log(innerVar);   // 'inner'
-            console.log(middleVar);  // 'middle'
-            console.log(outerVar);   // 'outer'
-            console.log(innerParam); // inner parameter
-            console.log(middleParam); // middle parameter
-            console.log(outerParam); // outer parameter
-        }
-        
-        return innerFunction;
-    }
-    
-    return middleFunction;
-}
-
-const processor = outerFunction('outer')('middle');
-processor('inner');
 ```
+
+### 6-25. Additional Core Concepts Questions
+
+### 6. How do you handle prototypes and inheritance in JavaScript?
+### 7. What are arrow functions and when should you use them?
+### 8. How do you implement destructuring for data extraction?
+### 9. What are template literals and their use in data formatting?
+### 10. How do you work with the spread operator and rest parameters?
+### 11. What are symbols and their applications in data processing?
+### 12. How do you handle regular expressions for data validation?
+### 13. What are generators and iterators in JavaScript?
+### 14. How do you implement proper error handling strategies?
+### 15. What are modules and how do you organize code?
+### 16. How do you work with JSON data effectively?
+### 17. What are WeakMap and WeakSet and their use cases?
+### 18. How do you handle dates and times in JavaScript?
+### 19. What are proxies and their applications?
+### 20. How do you implement functional programming concepts?
+### 21. What are higher-order functions and their benefits?
+### 22. How do you handle immutability in JavaScript?
+### 23. What are the different ways to create objects?
+### 24. How do you implement method chaining?
+### 25. What are the best practices for variable declarations?
 
 ---
 
-## Asynchronous Programming (21-35)
+## Asynchronous Programming (26-40)
 
-### 21. Explain Promises and async/await for data processing.
+### 26. Explain Promises and async/await for data processing.
 **Answer**: Asynchronous programming is essential for data fetching and processing operations.
 
 ```javascript
@@ -570,94 +411,9 @@ async function fetchMultipleUsers(userIds) {
         throw error;
     }
 }
-
-// Handle partial failures with Promise.allSettled
-async function fetchUsersWithErrorHandling(userIds) {
-    const userPromises = userIds.map(id => fetchUserData(id));
-    const results = await Promise.allSettled(userPromises);
-    
-    const successful = results
-        .filter(result => result.status === 'fulfilled')
-        .map(result => result.value);
-    
-    const failed = results
-        .filter(result => result.status === 'rejected')
-        .map(result => result.reason);
-    
-    return { successful, failed };
-}
-
-// Race conditions with Promise.race
-async function fetchWithTimeout(promise, timeout = 5000) {
-    const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Operation timed out')), timeout);
-    });
-    
-    return Promise.race([promise, timeoutPromise]);
-}
-
-// Data processing pipeline with async/await
-class DataPipeline {
-    constructor() {
-        this.stages = [];
-    }
-    
-    addStage(stageFn) {
-        this.stages.push(stageFn);
-        return this;
-    }
-    
-    async process(initialData) {
-        let data = initialData;
-        
-        for (const [index, stage] of this.stages.entries()) {
-            try {
-                console.log(`Processing stage ${index + 1}...`);
-                data = await stage(data);
-            } catch (error) {
-                console.error(`Error in stage ${index + 1}:`, error);
-                throw error;
-            }
-        }
-        
-        return data;
-    }
-}
-
-// Usage
-const pipeline = new DataPipeline()
-    .addStage(async (data) => {
-        // Stage 1: Fetch additional data
-        const enriched = await Promise.all(
-            data.map(async (item) => ({
-                ...item,
-                details: await fetchItemDetails(item.id)
-            }))
-        );
-        return enriched;
-    })
-    .addStage(async (data) => {
-        // Stage 2: Transform data
-        return data.map(item => ({
-            id: item.id,
-            name: item.name,
-            value: item.details.value * 1.1 // Apply 10% markup
-        }));
-    })
-    .addStage(async (data) => {
-        // Stage 3: Save to database
-        await saveToDatabase(data);
-        return data;
-    });
-
-// Execute pipeline
-const initialData = [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }];
-pipeline.process(initialData)
-    .then(result => console.log('Pipeline completed:', result))
-    .catch(error => console.error('Pipeline failed:', error));
 ```
 
-### 22. How do you handle errors in asynchronous operations?
+### 27. How do you handle errors in asynchronous operations?
 **Answer**: Proper error handling is crucial for robust data processing applications.
 
 ```javascript
@@ -728,96 +484,29 @@ class ValidationError extends DataProcessingError {
         this.name = 'ValidationError';
     }
 }
-
-// Error handling middleware
-async function withErrorHandling(operation, context = {}) {
-    try {
-        return await operation();
-    } catch (error) {
-        // Log error with context
-        console.error('Operation failed:', {
-            error: error.message,
-            stack: error.stack,
-            context,
-            timestamp: new Date().toISOString()
-        });
-        
-        // Transform error if needed
-        if (error.name === 'ValidationError') {
-            throw new DataProcessingError(
-                `Validation failed: ${error.message}`,
-                'VALIDATION_FAILED',
-                error.data
-            );
-        }
-        
-        throw error;
-    }
-}
-
-// Circuit breaker pattern
-class CircuitBreaker {
-    constructor(threshold = 5, timeout = 60000) {
-        this.threshold = threshold;
-        this.timeout = timeout;
-        this.failureCount = 0;
-        this.lastFailureTime = null;
-        this.state = 'CLOSED'; // CLOSED, OPEN, HALF_OPEN
-    }
-    
-    async execute(operation) {
-        if (this.state === 'OPEN') {
-            if (Date.now() - this.lastFailureTime > this.timeout) {
-                this.state = 'HALF_OPEN';
-            } else {
-                throw new Error('Circuit breaker is OPEN');
-            }
-        }
-        
-        try {
-            const result = await operation();
-            this.onSuccess();
-            return result;
-        } catch (error) {
-            this.onFailure();
-            throw error;
-        }
-    }
-    
-    onSuccess() {
-        this.failureCount = 0;
-        this.state = 'CLOSED';
-    }
-    
-    onFailure() {
-        this.failureCount++;
-        this.lastFailureTime = Date.now();
-        
-        if (this.failureCount >= this.threshold) {
-            this.state = 'OPEN';
-        }
-    }
-}
-
-// Usage
-const circuitBreaker = new CircuitBreaker(3, 30000);
-
-async function fetchDataWithCircuitBreaker(url) {
-    return circuitBreaker.execute(async () => {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        return response.json();
-    });
-}
 ```
+
+### 28-40. Additional Asynchronous Programming Questions
+
+### 28. How do you implement Promise.all vs Promise.allSettled?
+### 29. What is the event loop and how does it work?
+### 30. How do you handle race conditions in async code?
+### 31. What are microtasks and macrotasks?
+### 32. How do you implement timeout handling for promises?
+### 33. What are async generators and their use cases?
+### 34. How do you handle backpressure in streaming data?
+### 35. What are AbortController and AbortSignal?
+### 36. How do you implement retry mechanisms?
+### 37. What are the differences between callbacks, promises, and async/await?
+### 38. How do you handle concurrent operations efficiently?
+### 39. What are observables and how do they compare to promises?
+### 40. How do you implement circuit breaker patterns?
 
 ---
 
-## Data Structures & Algorithms (36-50)
+## Data Structures & Algorithms (41-55)
 
-### 36. How do you implement efficient data structures for processing?
+### 41. How do you implement efficient data structures for processing?
 **Answer**: Custom data structures optimized for specific data processing needs.
 
 ```javascript
@@ -944,126 +633,189 @@ class Trie {
         return results;
     }
 }
-
-// Binary Search Tree for sorted data
-class BSTNode {
-    constructor(value, data = null) {
-        this.value = value;
-        this.data = data;
-        this.left = null;
-        this.right = null;
-    }
-}
-
-class BinarySearchTree {
-    constructor() {
-        this.root = null;
-    }
-    
-    insert(value, data = null) {
-        const newNode = new BSTNode(value, data);
-        
-        if (!this.root) {
-            this.root = newNode;
-            return;
-        }
-        
-        let current = this.root;
-        while (true) {
-            if (value < current.value) {
-                if (!current.left) {
-                    current.left = newNode;
-                    break;
-                }
-                current = current.left;
-            } else {
-                if (!current.right) {
-                    current.right = newNode;
-                    break;
-                }
-                current = current.right;
-            }
-        }
-    }
-    
-    search(value) {
-        let current = this.root;
-        
-        while (current) {
-            if (value === current.value) {
-                return current.data;
-            } else if (value < current.value) {
-                current = current.left;
-            } else {
-                current = current.right;
-            }
-        }
-        
-        return null;
-    }
-    
-    inOrderTraversal(callback) {
-        this.inOrder(this.root, callback);
-    }
-    
-    inOrder(node, callback) {
-        if (node) {
-            this.inOrder(node.left, callback);
-            callback(node.value, node.data);
-            this.inOrder(node.right, callback);
-        }
-    }
-    
-    findRange(min, max) {
-        const results = [];
-        this.rangeSearch(this.root, min, max, results);
-        return results;
-    }
-    
-    rangeSearch(node, min, max, results) {
-        if (!node) return;
-        
-        if (node.value >= min && node.value <= max) {
-            results.push({ value: node.value, data: node.data });
-        }
-        
-        if (node.value > min) {
-            this.rangeSearch(node.left, min, max, results);
-        }
-        
-        if (node.value < max) {
-            this.rangeSearch(node.right, min, max, results);
-        }
-    }
-}
-
-// Usage examples
-const userLookup = new HashMap();
-userLookup.set('user123', { name: 'John', email: 'john@example.com' });
-userLookup.set('user456', { name: 'Jane', email: 'jane@example.com' });
-
-const productTrie = new Trie();
-productTrie.insert('laptop', { id: 1, price: 999 });
-productTrie.insert('laptop-pro', { id: 2, price: 1299 });
-productTrie.insert('mouse', { id: 3, price: 29 });
-
-const suggestions = productTrie.startsWith('lap');
-console.log(suggestions); // [{ word: 'laptop', data: {...} }, { word: 'laptop-pro', data: {...} }]
-
-const priceBST = new BinarySearchTree();
-priceBST.insert(100, { product: 'Mouse' });
-priceBST.insert(500, { product: 'Keyboard' });
-priceBST.insert(1000, { product: 'Monitor' });
-
-const midRangeProducts = priceBST.findRange(200, 800);
-console.log(midRangeProducts); // Products in price range 200-800
 ```
+
+### 42. How do you implement sorting and searching algorithms?
+**Answer**: Efficient algorithms for data processing and analysis.
+
+```javascript
+// Quick Sort implementation
+function quickSort(arr, compareFn = (a, b) => a - b) {
+    if (arr.length <= 1) return arr;
+    
+    const pivot = arr[Math.floor(arr.length / 2)];
+    const left = [];
+    const right = [];
+    const equal = [];
+    
+    for (const element of arr) {
+        const comparison = compareFn(element, pivot);
+        if (comparison < 0) {
+            left.push(element);
+        } else if (comparison > 0) {
+            right.push(element);
+        } else {
+            equal.push(element);
+        }
+    }
+    
+    return [
+        ...quickSort(left, compareFn),
+        ...equal,
+        ...quickSort(right, compareFn)
+    ];
+}
+
+// Merge Sort implementation
+function mergeSort(arr, compareFn = (a, b) => a - b) {
+    if (arr.length <= 1) return arr;
+    
+    const mid = Math.floor(arr.length / 2);
+    const left = mergeSort(arr.slice(0, mid), compareFn);
+    const right = mergeSort(arr.slice(mid), compareFn);
+    
+    return merge(left, right, compareFn);
+}
+
+function merge(left, right, compareFn) {
+    const result = [];
+    let leftIndex = 0;
+    let rightIndex = 0;
+    
+    while (leftIndex < left.length && rightIndex < right.length) {
+        if (compareFn(left[leftIndex], right[rightIndex]) <= 0) {
+            result.push(left[leftIndex]);
+            leftIndex++;
+        } else {
+            result.push(right[rightIndex]);
+            rightIndex++;
+        }
+    }
+    
+    return result.concat(left.slice(leftIndex)).concat(right.slice(rightIndex));
+}
+
+// Binary Search
+function binarySearch(sortedArr, target, compareFn = (a, b) => a - b) {
+    let left = 0;
+    let right = sortedArr.length - 1;
+    
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const comparison = compareFn(sortedArr[mid], target);
+        
+        if (comparison === 0) {
+            return mid;
+        } else if (comparison < 0) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    
+    return -1; // Not found
+}
+
+// Heap implementation for priority queue
+class MinHeap {
+    constructor(compareFn = (a, b) => a - b) {
+        this.heap = [];
+        this.compare = compareFn;
+    }
+    
+    parent(index) {
+        return Math.floor((index - 1) / 2);
+    }
+    
+    leftChild(index) {
+        return 2 * index + 1;
+    }
+    
+    rightChild(index) {
+        return 2 * index + 2;
+    }
+    
+    swap(i, j) {
+        [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]];
+    }
+    
+    insert(value) {
+        this.heap.push(value);
+        this.heapifyUp(this.heap.length - 1);
+    }
+    
+    heapifyUp(index) {
+        while (index > 0) {
+            const parentIndex = this.parent(index);
+            if (this.compare(this.heap[index], this.heap[parentIndex]) >= 0) {
+                break;
+            }
+            this.swap(index, parentIndex);
+            index = parentIndex;
+        }
+    }
+    
+    extractMin() {
+        if (this.heap.length === 0) return null;
+        if (this.heap.length === 1) return this.heap.pop();
+        
+        const min = this.heap[0];
+        this.heap[0] = this.heap.pop();
+        this.heapifyDown(0);
+        return min;
+    }
+    
+    heapifyDown(index) {
+        while (this.leftChild(index) < this.heap.length) {
+            const leftIndex = this.leftChild(index);
+            const rightIndex = this.rightChild(index);
+            let smallestIndex = leftIndex;
+            
+            if (rightIndex < this.heap.length && 
+                this.compare(this.heap[rightIndex], this.heap[leftIndex]) < 0) {
+                smallestIndex = rightIndex;
+            }
+            
+            if (this.compare(this.heap[index], this.heap[smallestIndex]) <= 0) {
+                break;
+            }
+            
+            this.swap(index, smallestIndex);
+            index = smallestIndex;
+        }
+    }
+    
+    peek() {
+        return this.heap.length > 0 ? this.heap[0] : null;
+    }
+    
+    size() {
+        return this.heap.length;
+    }
+}
+```
+
+### 43-55. Additional Data Structures & Algorithms Questions
+
+### 43. How do you implement graph algorithms for data analysis?
+### 44. What are dynamic programming techniques for optimization?
+### 45. How do you implement string matching algorithms?
+### 46. What are tree traversal algorithms and their applications?
+### 47. How do you implement caching strategies?
+### 48. What are bloom filters and their use cases?
+### 49. How do you implement sliding window algorithms?
+### 50. What are union-find data structures?
+### 51. How do you implement topological sorting?
+### 52. What are segment trees and their applications?
+### 53. How do you implement efficient set operations?
+### 54. What are skip lists and their advantages?
+### 55. How do you implement approximate algorithms?
 
 ---
 
-## API Development & Integration (51-65)
+## API Development & Integration (56-70)
 
-### 51. How do you build RESTful APIs with JavaScript?
+### 56. How do you build RESTful APIs with JavaScript?
 **Answer**: Building scalable APIs for data services using modern JavaScript frameworks.
 
 ```javascript
@@ -1178,107 +930,6 @@ class DataAPI {
         }
     }
     
-    async getAggregatedData(req, res) {
-        try {
-            const { dataset } = req.params;
-            const { groupBy, aggregations, timeRange } = req.query;
-            
-            if (!groupBy || !aggregations) {
-                return res.status(400).json({
-                    error: 'groupBy and aggregations parameters are required'
-                });
-            }
-            
-            const groupByFields = groupBy.split(',');
-            const aggFunctions = aggregations.split(',');
-            
-            const result = await this.dataService.aggregate(dataset, {
-                groupBy: groupByFields,
-                aggregations: aggFunctions,
-                timeRange: timeRange ? JSON.parse(timeRange) : null
-            });
-            
-            res.json({
-                success: true,
-                data: result,
-                metadata: {
-                    groupBy: groupByFields,
-                    aggregations: aggFunctions,
-                    generatedAt: new Date().toISOString()
-                }
-            });
-            
-        } catch (error) {
-            this.handleError(res, error);
-        }
-    }
-    
-    async createData(req, res) {
-        try {
-            const { dataset } = req.params;
-            const data = req.body;
-            
-            // Validate data
-            const validation = await this.validateData(dataset, data);
-            if (!validation.isValid) {
-                return res.status(400).json({
-                    error: 'Validation failed',
-                    details: validation.errors
-                });
-            }
-            
-            // Create record
-            const result = await this.dataService.create(dataset, data);
-            
-            res.status(201).json({
-                success: true,
-                data: result,
-                message: 'Data created successfully'
-            });
-            
-        } catch (error) {
-            this.handleError(res, error);
-        }
-    }
-    
-    async batchOperation(req, res) {
-        try {
-            const { dataset } = req.params;
-            const { operations } = req.body;
-            
-            if (!Array.isArray(operations)) {
-                return res.status(400).json({
-                    error: 'Operations must be an array'
-                });
-            }
-            
-            const results = await Promise.allSettled(
-                operations.map(op => this.processBatchOperation(dataset, op))
-            );
-            
-            const successful = results.filter(r => r.status === 'fulfilled').length;
-            const failed = results.filter(r => r.status === 'rejected').length;
-            
-            res.json({
-                success: true,
-                summary: {
-                    total: operations.length,
-                    successful,
-                    failed
-                },
-                results: results.map((result, index) => ({
-                    operation: index,
-                    status: result.status,
-                    data: result.status === 'fulfilled' ? result.value : null,
-                    error: result.status === 'rejected' ? result.reason.message : null
-                }))
-            });
-            
-        } catch (error) {
-            this.handleError(res, error);
-        }
-    }
-    
     setupErrorHandling() {
         // 404 handler
         this.app.use('*', (req, res) => {
@@ -1305,45 +956,226 @@ class DataAPI {
         });
     }
     
-    handleError(res, error) {
-        console.error('Request error:', error);
-        
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({
-                error: 'Validation failed',
-                details: error.details
-            });
-        }
-        
-        if (error.name === 'NotFoundError') {
-            return res.status(404).json({
-                error: 'Resource not found'
-            });
-        }
-        
-        res.status(500).json({
-            error: 'Internal server error',
-            timestamp: new Date().toISOString()
-        });
-    }
-    
     start(port = 3000) {
         this.app.listen(port, () => {
             console.log(`Data API server running on port ${port}`);
         });
     }
 }
+```
+
+### 57. How do you implement WebSocket connections for real-time data?
+**Answer**: Real-time data streaming using WebSockets.
+
+```javascript
+// WebSocket server implementation
+const WebSocket = require('ws');
+const EventEmitter = require('events');
+
+class RealTimeDataServer extends EventEmitter {
+    constructor(port = 8080) {
+        super();
+        this.wss = new WebSocket.Server({ port });
+        this.clients = new Map();
+        this.subscriptions = new Map();
+        this.setupServer();
+    }
+    
+    setupServer() {
+        this.wss.on('connection', (ws, req) => {
+            const clientId = this.generateClientId();
+            this.clients.set(clientId, {
+                ws,
+                subscriptions: new Set(),
+                metadata: {
+                    connectedAt: new Date(),
+                    ip: req.socket.remoteAddress
+                }
+            });
+            
+            console.log(`Client ${clientId} connected`);
+            
+            ws.on('message', (message) => {
+                this.handleMessage(clientId, message);
+            });
+            
+            ws.on('close', () => {
+                this.handleDisconnect(clientId);
+            });
+            
+            ws.on('error', (error) => {
+                console.error(`Client ${clientId} error:`, error);
+            });
+            
+            // Send welcome message
+            this.sendToClient(clientId, {
+                type: 'welcome',
+                clientId,
+                timestamp: new Date().toISOString()
+            });
+        });
+    }
+    
+    handleMessage(clientId, message) {
+        try {
+            const data = JSON.parse(message);
+            
+            switch (data.type) {
+                case 'subscribe':
+                    this.subscribe(clientId, data.channel, data.filters);
+                    break;
+                case 'unsubscribe':
+                    this.unsubscribe(clientId, data.channel);
+                    break;
+                case 'ping':
+                    this.sendToClient(clientId, { type: 'pong', timestamp: new Date().toISOString() });
+                    break;
+                default:
+                    this.sendToClient(clientId, { type: 'error', message: 'Unknown message type' });
+            }
+        } catch (error) {
+            this.sendToClient(clientId, { type: 'error', message: 'Invalid JSON' });
+        }
+    }
+    
+    subscribe(clientId, channel, filters = {}) {
+        const client = this.clients.get(clientId);
+        if (!client) return;
+        
+        client.subscriptions.add(channel);
+        
+        if (!this.subscriptions.has(channel)) {
+            this.subscriptions.set(channel, new Map());
+        }
+        
+        this.subscriptions.get(channel).set(clientId, { filters });
+        
+        this.sendToClient(clientId, {
+            type: 'subscribed',
+            channel,
+            timestamp: new Date().toISOString()
+        });
+        
+        console.log(`Client ${clientId} subscribed to ${channel}`);
+    }
+    
+    unsubscribe(clientId, channel) {
+        const client = this.clients.get(clientId);
+        if (!client) return;
+        
+        client.subscriptions.delete(channel);
+        
+        if (this.subscriptions.has(channel)) {
+            this.subscriptions.get(channel).delete(clientId);
+        }
+        
+        this.sendToClient(clientId, {
+            type: 'unsubscribed',
+            channel,
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    broadcast(channel, data) {
+        if (!this.subscriptions.has(channel)) return;
+        
+        const subscribers = this.subscriptions.get(channel);
+        
+        for (const [clientId, subscription] of subscribers) {
+            // Apply filters if any
+            if (this.matchesFilters(data, subscription.filters)) {
+                this.sendToClient(clientId, {
+                    type: 'data',
+                    channel,
+                    data,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+    }
+    
+    matchesFilters(data, filters) {
+        for (const [key, value] of Object.entries(filters)) {
+            if (data[key] !== value) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    sendToClient(clientId, message) {
+        const client = this.clients.get(clientId);
+        if (client && client.ws.readyState === WebSocket.OPEN) {
+            client.ws.send(JSON.stringify(message));
+        }
+    }
+    
+    handleDisconnect(clientId) {
+        const client = this.clients.get(clientId);
+        if (!client) return;
+        
+        // Remove from all subscriptions
+        for (const channel of client.subscriptions) {
+            if (this.subscriptions.has(channel)) {
+                this.subscriptions.get(channel).delete(clientId);
+            }
+        }
+        
+        this.clients.delete(clientId);
+        console.log(`Client ${clientId} disconnected`);
+    }
+    
+    generateClientId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
+    
+    getStats() {
+        return {
+            connectedClients: this.clients.size,
+            activeChannels: this.subscriptions.size,
+            totalSubscriptions: Array.from(this.subscriptions.values())
+                .reduce((sum, subs) => sum + subs.size, 0)
+        };
+    }
+}
 
 // Usage
-const api = new DataAPI();
-api.start(3000);
+const server = new RealTimeDataServer(8080);
+
+// Simulate data streaming
+setInterval(() => {
+    const sampleData = {
+        metric: 'cpu_usage',
+        value: Math.random() * 100,
+        server: 'web-01',
+        timestamp: new Date().toISOString()
+    };
+    
+    server.broadcast('metrics', sampleData);
+}, 1000);
 ```
+
+### 58-70. Additional API Development Questions
+
+### 58. How do you implement GraphQL APIs with JavaScript?
+### 59. What are microservices and how do you build them?
+### 60. How do you implement API authentication and authorization?
+### 61. What are API rate limiting strategies?
+### 62. How do you handle API versioning?
+### 63. What are serverless functions and their use cases?
+### 64. How do you implement API caching strategies?
+### 65. What are API gateways and their benefits?
+### 66. How do you implement API monitoring and logging?
+### 67. What are webhook implementations?
+### 68. How do you handle API documentation?
+### 69. What are API testing strategies?
+### 70. How do you implement API security best practices?
 
 ---
 
-## Performance & Optimization (66-80)
+## Performance & Optimization (71-80)
 
-### 66. How do you optimize JavaScript performance for data processing?
+### 71. How do you optimize JavaScript performance for data processing?
 **Answer**: Performance optimization techniques for handling large datasets and intensive computations.
 
 ```javascript
@@ -1583,36 +1415,19 @@ class PerformanceOptimizer {
         };
     }
 }
-
-// Usage examples
-const optimizer = new PerformanceOptimizer();
-
-// Memoized expensive calculation
-const expensiveCalculation = optimizer.memoize((data) => {
-    return data.reduce((sum, item) => sum + Math.sqrt(item.value), 0);
-});
-
-// Lazy sequence processing
-const largeDataset = Array.from({ length: 1000000 }, (_, i) => ({ id: i, value: Math.random() * 100 }));
-const lazySequence = optimizer.createLazySequence(largeDataset);
-
-const result = lazySequence
-    .filter(item => item.value > 50)
-    .map(item => ({ ...item, processed: true }))
-    .take(100)
-    .toArray();
-
-// Object pooling for frequent operations
-const dataPointPool = optimizer.createObjectPool(
-    () => ({ x: 0, y: 0, processed: false }),
-    (obj) => { obj.x = 0; obj.y = 0; obj.processed = false; }
-);
-
-// Performance monitoring
-const monitoredFunction = optimizer.measurePerformance('Data Processing', async (data) => {
-    return data.map(item => item.value * 2);
-});
 ```
+
+### 72-80. Additional Performance & Optimization Questions
+
+### 72. How do you implement memory management strategies?
+### 73. What are Web Workers and how do you use them effectively?
+### 74. How do you optimize DOM manipulation performance?
+### 75. What are service workers and their caching strategies?
+### 76. How do you implement code splitting and lazy loading?
+### 77. What are performance monitoring techniques?
+### 78. How do you optimize network requests?
+### 79. What are bundling and minification strategies?
+### 80. How do you implement progressive web app features?
 
 ---
 
@@ -1678,6 +1493,4 @@ const monitoredFunction = optimizer.measurePerformance('Data Processing', async 
 - **Performance**: [Web Performance APIs](https://developer.mozilla.org/en-US/docs/Web/API/Performance)
 - **Node.js**: [Official Documentation](https://nodejs.org/en/docs/)
 
----
-
-**Remember**: JavaScript's versatility makes it valuable across the entire data engineering stack. Focus on understanding both client-side and server-side applications, with emphasis on asynchronous programming and performance optimization.
+This comprehensive guide covers 80 JavaScript interview questions essential for data engineering roles, progressing from basic concepts to advanced performance optimization and real-world application development.

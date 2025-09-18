@@ -990,6 +990,450 @@ enabled = true
 # Use aggregation functions when possible
 ```
 
+### 34. How do you implement Grafana for data engineering monitoring?
+**Answer**: Data engineering requires specialized monitoring for ETL pipelines, data quality, and infrastructure.
+
+```json
+{
+  "dashboard": {
+    "title": "Data Engineering Pipeline Monitoring",
+    "panels": [
+      {
+        "title": "Pipeline Execution Status",
+        "type": "stat",
+        "targets": [{
+          "expr": "sum(pipeline_runs_total{status=\"success\"}) by (pipeline_name)",
+          "legendFormat": "{{pipeline_name}} Success Rate"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"type": "range", "from": 0, "to": 0.8, "text": "Critical"},
+              {"type": "range", "from": 0.8, "to": 0.95, "text": "Warning"},
+              {"type": "range", "from": 0.95, "to": 1, "text": "Healthy"}
+            ],
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.8},
+                {"color": "green", "value": 0.95}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Data Processing Volume",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "sum(rate(data_records_processed_total[5m])) by (pipeline_name)",
+          "legendFormat": "{{pipeline_name}} Records/sec"
+        }]
+      },
+      {
+        "title": "Data Quality Metrics",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "data_quality_score",
+            "legendFormat": "Quality Score"
+          },
+          {
+            "expr": "data_completeness_percentage",
+            "legendFormat": "Completeness %"
+          },
+          {
+            "expr": "data_accuracy_percentage", 
+            "legendFormat": "Accuracy %"
+          }
+        ]
+      },
+      {
+        "title": "Pipeline Execution Time",
+        "type": "heatmap",
+        "targets": [{
+          "expr": "histogram_quantile(0.95, sum(rate(pipeline_duration_seconds_bucket[5m])) by (le, pipeline_name))",
+          "format": "heatmap"
+        }]
+      }
+    ]
+  }
+}
+```
+
+### 35. How do you create Grafana dashboards for Apache Kafka monitoring?
+**Answer**: Kafka monitoring requires tracking broker health, topic metrics, and consumer lag.
+
+```json
+{
+  "dashboard": {
+    "title": "Apache Kafka Monitoring",
+    "templating": {
+      "list": [
+        {
+          "name": "cluster",
+          "type": "query",
+          "query": "label_values(kafka_server_brokertopicmetrics_messagesin_total, cluster)"
+        },
+        {
+          "name": "topic",
+          "type": "query",
+          "query": "label_values(kafka_server_brokertopicmetrics_messagesin_total{cluster=\"$cluster\"}, topic)"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "title": "Broker Status",
+        "type": "stat",
+        "targets": [{
+          "expr": "kafka_server_kafkaserver_brokerstate{cluster=\"$cluster\"}",
+          "legendFormat": "Broker {{instance}}"
+        }]
+      },
+      {
+        "title": "Messages In Rate",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "sum(rate(kafka_server_brokertopicmetrics_messagesin_total{cluster=\"$cluster\", topic=\"$topic\"}[5m])) by (topic)",
+          "legendFormat": "{{topic}}"
+        }]
+      },
+      {
+        "title": "Consumer Lag",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "kafka_consumer_lag_sum{cluster=\"$cluster\", topic=\"$topic\"}",
+          "legendFormat": "{{consumer_group}} - {{topic}}"
+        }]
+      },
+      {
+        "title": "Disk Usage by Topic",
+        "type": "piechart",
+        "targets": [{
+          "expr": "sum(kafka_log_size{cluster=\"$cluster\"}) by (topic)",
+          "legendFormat": "{{topic}}"
+        }]
+      }
+    ]
+  }
+}
+```
+
+### 36. How do you implement Grafana for Spark application monitoring?
+**Answer**: Spark monitoring focuses on job execution, resource utilization, and performance metrics.
+
+```json
+{
+  "dashboard": {
+    "title": "Apache Spark Application Monitoring",
+    "panels": [
+      {
+        "title": "Active Applications",
+        "type": "stat",
+        "targets": [{
+          "expr": "spark_streaming_applications_active",
+          "legendFormat": "Active Apps"
+        }]
+      },
+      {
+        "title": "Job Execution Time",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "spark_job_duration_seconds",
+          "legendFormat": "Job {{job_id}}"
+        }]
+      },
+      {
+        "title": "Executor Memory Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "spark_executor_memory_used_bytes / spark_executor_memory_max_bytes * 100",
+            "legendFormat": "Executor {{executor_id}} Memory %"
+          }
+        ]
+      },
+      {
+        "title": "Stage Completion Rate",
+        "type": "bargauge",
+        "targets": [{
+          "expr": "rate(spark_stage_completed_tasks_total[5m])",
+          "legendFormat": "Stage {{stage_id}}"
+        }]
+      },
+      {
+        "title": "Shuffle Read/Write",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(spark_executor_shuffle_read_bytes_total[5m])",
+            "legendFormat": "Shuffle Read"
+          },
+          {
+            "expr": "rate(spark_executor_shuffle_write_bytes_total[5m])",
+            "legendFormat": "Shuffle Write"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 37. How do you create custom Grafana data source plugins?
+**Answer**: Custom data sources extend Grafana's connectivity to proprietary or specialized systems.
+
+```typescript
+// src/datasource.ts
+import { DataSourceInstanceSettings, DataQueryRequest, DataQueryResponse } from '@grafana/data';
+import { DataSourceWithBackend } from '@grafana/runtime';
+import { MyQuery, MyDataSourceOptions } from './types';
+
+export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptions> {
+  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+    super(instanceSettings);
+  }
+
+  async query(request: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
+    // Custom query logic
+    const promises = request.targets.map(async (target) => {
+      if (target.queryType === 'timeseries') {
+        return this.queryTimeSeries(target, request);
+      } else if (target.queryType === 'table') {
+        return this.queryTable(target, request);
+      }
+      return { data: [] };
+    });
+
+    const responses = await Promise.all(promises);
+    return { data: responses.flatMap(r => r.data) };
+  }
+
+  private async queryTimeSeries(target: MyQuery, request: DataQueryRequest) {
+    // Implement time series query
+    const response = await this.getResource('timeseries', {
+      query: target.query,
+      from: request.range.from.valueOf(),
+      to: request.range.to.valueOf()
+    });
+    
+    return {
+      data: [{
+        name: target.refId,
+        fields: [
+          { name: 'Time', type: 'time', values: response.timestamps },
+          { name: 'Value', type: 'number', values: response.values }
+        ]
+      }]
+    };
+  }
+
+  async testDatasource() {
+    try {
+      await this.getResource('health');
+      return { status: 'success', message: 'Data source connected successfully' };
+    } catch (error) {
+      return { status: 'error', message: 'Connection failed: ' + error.message };
+    }
+  }
+}
+```
+
+### 38. How do you implement Grafana provisioning for automated deployment?
+**Answer**: Provisioning enables automated configuration management for dashboards and data sources.
+
+```yaml
+# provisioning/datasources/datasources.yml
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    database: metrics
+    user: grafana
+    secureJsonData:
+      password: ${INFLUXDB_PASSWORD}
+    
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "logstash-*"
+    timeField: "@timestamp"
+    esVersion: 70
+```
+
+```yaml
+# provisioning/dashboards/dashboards.yml
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      
+  - name: 'infrastructure'
+    orgId: 1
+    folder: 'Infrastructure'
+    type: file
+    disableDeletion: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/infrastructure
+```
+
+### 39. How do you implement Grafana Enterprise features for large organizations?
+**Answer**: Grafana Enterprise provides advanced features for enterprise deployments.
+
+```yaml
+# Enterprise configuration
+enterprise:
+  license_path: /etc/grafana/license.jwt
+  
+auth:
+  saml:
+    enabled: true
+    certificate_path: /etc/grafana/saml.crt
+    private_key_path: /etc/grafana/saml.key
+    idp_metadata_url: https://idp.company.com/metadata
+    
+reporting:
+  enabled: true
+  
+white_labeling:
+  app_title: "Company Analytics"
+  login_background: url(/public/img/company-bg.jpg)
+  
+data_source_permissions:
+  enabled: true
+  
+team_sync:
+  ldap:
+    enabled: true
+    
+caching:
+  enabled: true
+  redis:
+    addr: redis:6379
+    
+enterprise_plugins:
+  - grafana-image-renderer
+  - grafana-piechart-panel
+```
+
+### 40. How do you implement Grafana image rendering for reports?
+**Answer**: Image rendering enables automated report generation and sharing.
+
+```dockerfile
+# Dockerfile for Grafana with image rendering
+FROM grafana/grafana:latest
+
+# Install image renderer plugin
+RUN grafana-cli plugins install grafana-image-renderer
+
+# Install dependencies
+USER root
+RUN apt-get update && apt-get install -y \
+    chromium-browser \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
+USER grafana
+
+# Configure image rendering
+ENV GF_RENDERING_SERVER_URL=http://renderer:8081/render
+ENV GF_RENDERING_CALLBACK_URL=http://grafana:3000/
+ENV GF_LOG_FILTERS=rendering:debug
+```
+
+```python
+# Automated report generation
+import requests
+import schedule
+import time
+from datetime import datetime, timedelta
+
+def generate_daily_report():
+    """Generate daily dashboard report"""
+    
+    # Calculate time range
+    end_time = datetime.now()
+    start_time = end_time - timedelta(days=1)
+    
+    # Render dashboard as PNG
+    render_url = f"http://grafana:3000/render/d/dashboard-uid/dashboard-name"
+    params = {
+        'from': int(start_time.timestamp() * 1000),
+        'to': int(end_time.timestamp() * 1000),
+        'width': 1920,
+        'height': 1080,
+        'tz': 'UTC'
+    }
+    
+    headers = {
+        'Authorization': f'Bearer {API_TOKEN}'
+    }
+    
+    response = requests.get(render_url, params=params, headers=headers)
+    
+    if response.status_code == 200:
+        # Save image
+        filename = f"daily_report_{end_time.strftime('%Y%m%d')}.png"
+        with open(filename, 'wb') as f:
+            f.write(response.content)
+        
+        # Send via email
+        send_email_report(filename)
+        print(f"Report generated: {filename}")
+    else:
+        print(f"Failed to generate report: {response.status_code}")
+
+def send_email_report(filename):
+    """Send report via email"""
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.image import MIMEImage
+    
+    msg = MIMEMultipart()
+    msg['Subject'] = f"Daily Analytics Report - {datetime.now().strftime('%Y-%m-%d')}"
+    msg['From'] = 'reports@company.com'
+    msg['To'] = 'team@company.com'
+    
+    with open(filename, 'rb') as f:
+        img = MIMEImage(f.read())
+        img.add_header('Content-Disposition', 'attachment', filename=filename)
+        msg.attach(img)
+    
+    # Send email
+    server = smtplib.SMTP('smtp.company.com', 587)
+    server.starttls()
+    server.login('reports@company.com', 'password')
+    server.send_message(msg)
+    server.quit()
+
+# Schedule daily reports
+schedule.every().day.at("08:00").do(generate_daily_report)
+
+while True:
+    schedule.run_pending()
+    time.sleep(60)
+```
+
 ---
 
 ## Key Takeaways for Interviews

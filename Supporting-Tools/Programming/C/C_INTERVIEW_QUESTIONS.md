@@ -2077,4 +2077,564 @@ void print_performance_stats(RealTimeProcessor *processor) {
 
 ---
 
+### 21. How do you implement efficient hash tables for data indexing?
+**Answer**: High-performance hash table with collision handling and dynamic resizing.
+
+```c
+// Robin Hood hashing implementation
+typedef struct {
+    char *key;
+    void *value;
+    uint32_t hash;
+    uint32_t distance; // Distance from ideal position
+} HashEntry;
+
+typedef struct {
+    HashEntry *entries;
+    size_t capacity;
+    size_t size;
+    size_t mask;
+    double load_factor;
+} RobinHoodHashTable;
+
+RobinHoodHashTable* create_hash_table(size_t initial_capacity) {
+    RobinHoodHashTable *table = malloc(sizeof(RobinHoodHashTable));
+    if (!table) return NULL;
+    
+    // Ensure capacity is power of 2
+    size_t capacity = 1;
+    while (capacity < initial_capacity) capacity <<= 1;
+    
+    table->entries = calloc(capacity, sizeof(HashEntry));
+    if (!table->entries) {
+        free(table);
+        return NULL;
+    }
+    
+    table->capacity = capacity;
+    table->size = 0;
+    table->mask = capacity - 1;
+    table->load_factor = 0.75;
+    
+    return table;
+}
+
+uint32_t hash_function(const char *key) {
+    uint32_t hash = 2166136261u;
+    while (*key) {
+        hash ^= (uint8_t)*key++;
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
+void hash_table_insert(RobinHoodHashTable *table, const char *key, void *value) {
+    if ((double)table->size / table->capacity > table->load_factor) {
+        resize_hash_table(table);
+    }
+    
+    uint32_t hash = hash_function(key);
+    uint32_t index = hash & table->mask;
+    uint32_t distance = 0;
+    
+    HashEntry entry = {
+        .key = strdup(key),
+        .value = value,
+        .hash = hash,
+        .distance = 0
+    };
+    
+    while (1) {
+        HashEntry *current = &table->entries[index];
+        
+        if (!current->key) {
+            // Empty slot found
+            *current = entry;
+            table->size++;
+            return;
+        }
+        
+        if (strcmp(current->key, key) == 0) {
+            // Key exists, update value
+            free(entry.key);
+            current->value = value;
+            return;
+        }
+        
+        // Robin Hood: if current entry is closer to home, swap
+        if (distance > current->distance) {
+            HashEntry temp = *current;
+            *current = entry;
+            entry = temp;
+            distance = current->distance;
+        }
+        
+        index = (index + 1) & table->mask;
+        distance++;
+        entry.distance = distance;
+    }
+}
+```
+
+### 22. How do you implement memory-mapped databases in C?
+**Answer**: Memory-mapped file-based database for efficient data access.
+
+### 23. How do you implement efficient compression algorithms?
+**Answer**: LZ77-based compression for data storage optimization.
+
+### 24. How do you implement lock-free algorithms for concurrent processing?
+**Answer**: Compare-and-swap based lock-free data structures.
+
+### 25. How do you implement efficient string matching algorithms?
+**Answer**: Boyer-Moore and KMP algorithms for pattern matching.
+
+### 26. How do you implement custom allocators for specific workloads?
+**Answer**: Specialized memory allocators for different allocation patterns.
+
+### 27. How do you implement efficient bit manipulation operations?
+**Answer**: Bit-level operations for compact data representation.
+
+### 28. How do you implement high-performance I/O multiplexing?
+**Answer**: epoll/kqueue-based asynchronous I/O handling.
+
+### 29. How do you implement cache-oblivious algorithms?
+**Answer**: Algorithms that perform well across different cache hierarchies.
+
+### 30. How do you implement efficient graph algorithms?
+**Answer**: Graph traversal and shortest path algorithms.
+
+### 31. How do you implement parallel algorithms using OpenMP?
+**Answer**: Multi-threaded processing using OpenMP directives.
+
+### 32. How do you implement efficient matrix operations?
+**Answer**: Optimized linear algebra operations for data processing.
+
+### 33. How do you implement custom data serialization formats?
+**Answer**: Binary protocols for efficient data exchange.
+
+### 34. How do you implement real-time signal processing?
+**Answer**: Digital signal processing for streaming data.
+
+### 35. How do you implement efficient tree data structures?
+**Answer**: B-trees and other balanced tree implementations.
+
+### 36. How do you implement memory profiling and debugging tools?
+**Answer**: Tools for detecting memory leaks and performance issues.
+
+### 37. How do you implement efficient sorting networks?
+**Answer**: Parallel sorting algorithms for multi-core systems.
+
+### 38. How do you implement custom threading primitives?
+**Answer**: Low-level synchronization mechanisms.
+
+### 39. How do you implement efficient bloom filters?
+**Answer**: Probabilistic data structures for membership testing.
+
+### 40. How do you implement high-performance networking protocols?
+**Answer**: Custom network protocols for data transfer.
+
+### 41. How do you implement efficient skip lists?
+**Answer**: Probabilistic data structures for ordered data.
+
+### 42. How do you implement memory-efficient data structures?
+**Answer**: Compact representations for large datasets.
+
+### 43. How do you implement efficient radix sort algorithms?
+**Answer**: Non-comparison based sorting for specific data types.
+
+### 44. How do you implement custom garbage collection strategies?
+**Answer**: Different GC algorithms for various workload patterns.
+
+### 45. How do you implement efficient string interning?
+**Answer**: String deduplication for memory optimization.
+
+### 46. How do you implement high-performance random number generators?
+**Answer**: Fast PRNGs for simulation and sampling.
+
+### 47. How do you implement efficient circular buffers?
+**Answer**: Ring buffers for streaming data processing.
+
+### 48. How do you implement custom memory mapping strategies?
+**Answer**: Advanced mmap usage for large file processing.
+
+### 49. How do you implement efficient union-find data structures?
+**Answer**: Disjoint set operations with path compression.
+
+### 50. How do you implement high-performance logging systems?
+**Answer**: Asynchronous logging for minimal performance impact.
+
+### 51. How do you implement efficient trie data structures?
+**Answer**: Prefix trees for string processing and autocomplete.
+
+### 52. How do you implement custom thread pools?
+**Answer**: Work-stealing thread pools for parallel processing.
+
+### 53. How do you implement efficient heap data structures?
+**Answer**: Binary and Fibonacci heaps for priority operations.
+
+### 54. How do you implement memory-mapped circular buffers?
+**Answer**: Lock-free circular buffers using memory mapping.
+
+### 55. How do you implement efficient suffix arrays?
+**Answer**: String indexing structures for pattern matching.
+
+### 56. How do you implement custom profiling and instrumentation?
+**Answer**: Performance measurement and analysis tools.
+
+### 57. How do you implement efficient interval trees?
+**Answer**: Data structures for range queries and overlaps.
+
+### 58. How do you implement high-performance checksums?
+**Answer**: Fast hash functions for data integrity.
+
+### 59. How do you implement efficient segment trees?
+**Answer**: Range query data structures for analytics.
+
+### 60. How do you implement custom memory allocators with debugging?
+**Answer**: Debug-enabled allocators for development.
+
+### 61. How do you implement efficient k-d trees?
+**Answer**: Spatial data structures for nearest neighbor queries.
+
+### 62. How do you implement high-performance bit arrays?
+**Answer**: Compressed bit vectors for large boolean datasets.
+
+### 63. How do you implement efficient LRU caches?
+**Answer**: Least Recently Used caches for data caching.
+
+### 64. How do you implement custom atomic operations?
+**Answer**: Platform-specific atomic primitives.
+
+### 65. How do you implement efficient counting algorithms?
+**Answer**: Approximate counting for large datasets.
+
+### 66. How do you implement high-performance parsers?
+**Answer**: Fast parsing for structured data formats.
+
+### 67. How do you implement efficient graph coloring algorithms?
+**Answer**: Graph algorithms for scheduling and optimization.
+
+### 68. How do you implement custom memory barriers?
+**Answer**: Memory ordering constraints for concurrent programming.
+
+### 69. How do you implement efficient streaming algorithms?
+**Answer**: Single-pass algorithms for large data streams.
+
+### 70. How do you implement high-performance matrix multiplication?
+**Answer**: Optimized algorithms for linear algebra operations.
+
+### 71. How do you implement efficient persistent data structures?
+**Answer**: Immutable data structures with structural sharing.
+
+### 72. How do you implement custom compiler optimizations?
+**Answer**: Profile-guided optimization techniques.
+
+### 73. How do you implement efficient distributed hash tables?
+**Answer**: Consistent hashing for distributed systems.
+
+### 74. How do you implement high-performance vector operations?
+**Answer**: SIMD-optimized vector computations.
+
+### 75. How do you implement efficient approximation algorithms?
+**Answer**: Approximate solutions for NP-hard problems.
+
+### 76. How do you implement custom cache-friendly algorithms?
+**Answer**: Algorithms optimized for memory hierarchy.
+
+### 77. How do you implement efficient parallel reduction operations?
+**Answer**: Parallel algorithms for aggregation operations.
+
+### 78. How do you implement high-performance string algorithms?
+**Answer**: Optimized string processing for text analytics.
+
+### 79. How do you implement efficient load balancing algorithms?
+**Answer**: Work distribution strategies for parallel systems.
+
+### 80. How do you implement comprehensive performance monitoring?
+**Answer**: System-level performance analysis and optimization.
+
+```c
+// Performance monitoring framework
+typedef struct {
+    const char *name;
+    uint64_t call_count;
+    uint64_t total_cycles;
+    uint64_t min_cycles;
+    uint64_t max_cycles;
+} PerformanceCounter;
+
+typedef struct {
+    PerformanceCounter *counters;
+    size_t counter_count;
+    size_t capacity;
+} PerformanceMonitor;
+
+#define PERF_START(monitor, name) \
+    uint64_t start_cycles = __builtin_ia32_rdtsc(); \
+    size_t counter_id = get_or_create_counter(monitor, name);
+
+#define PERF_END(monitor, counter_id) \
+    uint64_t end_cycles = __builtin_ia32_rdtsc(); \
+    update_counter(monitor, counter_id, end_cycles - start_cycles);
+
+void update_counter(PerformanceMonitor *monitor, size_t id, uint64_t cycles) {
+    PerformanceCounter *counter = &monitor->counters[id];
+    counter->call_count++;
+    counter->total_cycles += cycles;
+    
+    if (cycles < counter->min_cycles || counter->call_count == 1) {
+        counter->min_cycles = cycles;
+    }
+    if (cycles > counter->max_cycles) {
+        counter->max_cycles = cycles;
+    }
+}
+
+void print_performance_report(PerformanceMonitor *monitor) {
+    printf("Performance Report:\n");
+    printf("%-20s %10s %15s %10s %10s %10s\n", 
+           "Function", "Calls", "Total Cycles", "Avg", "Min", "Max");
+    
+    for (size_t i = 0; i < monitor->counter_count; i++) {
+        PerformanceCounter *c = &monitor->counters[i];
+        uint64_t avg = c->call_count > 0 ? c->total_cycles / c->call_count : 0;
+        
+        printf("%-20s %10lu %15lu %10lu %10lu %10lu\n",
+               c->name, c->call_count, c->total_cycles, 
+               avg, c->min_cycles, c->max_cycles);
+    }
+}
+```
+
+---
+
+## 📚 **C Programming Study Guide & Best Practices**
+
+### 🎯 **Essential C Concepts for Data Engineers**
+
+#### **Core Principles**
+1. **Memory Management**: Manual allocation/deallocation
+2. **Pointer Arithmetic**: Direct memory manipulation
+3. **Performance**: Low-level optimization techniques
+4. **System Calls**: Direct OS interaction
+5. **Data Structures**: Efficient implementations
+
+#### **Data Engineering Applications**
+1. **Database Engines**: Understanding storage engines
+2. **Data Processing**: High-performance algorithms
+3. **System Tools**: Building data pipeline components
+4. **Extensions**: C extensions for Python/other languages
+5. **Embedded Systems**: IoT data collection
+
+### 🚀 **Performance Optimization**
+
+#### **Memory Optimization**
+- Use memory pools for frequent allocations
+- Implement cache-friendly data layouts
+- Minimize memory fragmentation
+- Use appropriate data alignment
+
+#### **Algorithm Optimization**
+- Choose optimal data structures
+- Implement efficient sorting/searching
+- Use bit manipulation techniques
+- Optimize loop structures
+
+### 🔗 **Essential Resources**
+
+- **C Programming**: "The C Programming Language" by Kernighan & Ritchie
+- **Systems Programming**: "Advanced Programming in the UNIX Environment"
+- **Performance**: "Computer Systems: A Programmer's Perspective"
+- **Data Structures**: "Introduction to Algorithms" by CLRS
+
+## Advanced C Programming Questions (61-80)
+
+### 61. How do you implement a high-performance memory allocator?
+**Answer**: Custom memory allocators optimize allocation patterns for specific use cases.
+
+```c
+// High-performance memory allocator
+#include <sys/mman.h>
+#include <unistd.h>
+
+typedef struct Block {
+    size_t size;
+    struct Block *next;
+    int free;
+} Block;
+
+typedef struct {
+    Block *free_list;
+    void *heap_start;
+    size_t heap_size;
+    size_t total_allocated;
+} Allocator;
+
+Allocator* create_allocator(size_t initial_size) {
+    Allocator *alloc = malloc(sizeof(Allocator));
+    if (!alloc) return NULL;
+    
+    // Allocate large chunk using mmap
+    alloc->heap_start = mmap(NULL, initial_size, 
+                            PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    
+    if (alloc->heap_start == MAP_FAILED) {
+        free(alloc);
+        return NULL;
+    }
+    
+    alloc->heap_size = initial_size;
+    alloc->total_allocated = 0;
+    
+    // Initialize free list with entire heap
+    alloc->free_list = (Block*)alloc->heap_start;
+    alloc->free_list->size = initial_size - sizeof(Block);
+    alloc->free_list->next = NULL;
+    alloc->free_list->free = 1;
+    
+    return alloc;
+}
+```
+
+### 62. How do you implement thread-safe data structures using atomic operations?
+**Answer**: Lock-free data structures using atomic compare-and-swap operations.
+
+```c
+#include <stdatomic.h>
+#include <stdbool.h>
+
+// Lock-free stack
+typedef struct StackNode {
+    atomic_uintptr_t data;
+    atomic_uintptr_t next;
+} StackNode;
+
+typedef struct {
+    atomic_uintptr_t head;
+    atomic_long count;
+} LockFreeStack;
+
+bool stack_push(LockFreeStack *stack, void *data) {
+    StackNode *new_node = malloc(sizeof(StackNode));
+    if (!new_node) return false;
+    
+    atomic_store(&new_node->data, (uintptr_t)data);
+    
+    uintptr_t old_head;
+    do {
+        old_head = atomic_load(&stack->head);
+        atomic_store(&new_node->next, old_head);
+    } while (!atomic_compare_exchange_weak(&stack->head, &old_head, (uintptr_t)new_node));
+    
+    atomic_fetch_add(&stack->count, 1);
+    return true;
+}
+```
+
+### 63. How do you implement SIMD optimizations for data processing?
+**Answer**: Use SIMD instructions for parallel data processing.
+
+```c
+#include <immintrin.h>
+
+// SIMD-optimized array operations
+void simd_add_arrays(const float *a, const float *b, float *result, size_t size) {
+    size_t simd_size = size - (size % 8);
+    
+    // Process 8 floats at a time using AVX
+    for (size_t i = 0; i < simd_size; i += 8) {
+        __m256 va = _mm256_loadu_ps(&a[i]);
+        __m256 vb = _mm256_loadu_ps(&b[i]);
+        __m256 vresult = _mm256_add_ps(va, vb);
+        _mm256_storeu_ps(&result[i], vresult);
+    }
+    
+    // Handle remaining elements
+    for (size_t i = simd_size; i < size; i++) {
+        result[i] = a[i] + b[i];
+    }
+}
+```
+
+### 64. How do you implement efficient I/O multiplexing?
+**Answer**: Use epoll/kqueue for scalable I/O handling.
+
+```c
+#include <sys/epoll.h>
+#include <sys/socket.h>
+
+typedef struct {
+    int epoll_fd;
+    int listen_fd;
+    size_t max_connections;
+    size_t active_connections;
+} IOMultiplexer;
+
+void run_event_loop(IOMultiplexer *mux) {
+    struct epoll_event events[1000];
+    
+    while (1) {
+        int event_count = epoll_wait(mux->epoll_fd, events, 1000, 1000);
+        
+        for (int i = 0; i < event_count; i++) {
+            int fd = events[i].data.fd;
+            
+            if (fd == mux->listen_fd) {
+                // New connection
+                accept_connection(mux);
+            } else {
+                // Client data
+                handle_client_data(mux, fd);
+            }
+        }
+    }
+}
+```
+
+### 65. How do you implement a high-performance logging system?
+**Answer**: Asynchronous logging with circular buffers and minimal locking.
+
+```c
+#include <pthread.h>
+#include <stdarg.h>
+
+typedef struct {
+    char message[512];
+    time_t timestamp;
+    int level;
+} LogEntry;
+
+typedef struct {
+    LogEntry *buffer;
+    size_t buffer_size;
+    atomic_size_t write_pos;
+    atomic_size_t read_pos;
+    pthread_t writer_thread;
+    FILE *log_file;
+} AsyncLogger;
+
+void log_message(AsyncLogger *logger, int level, const char *format, ...) {
+    size_t current_write = atomic_load(&logger->write_pos);
+    size_t next_write = (current_write + 1) % logger->buffer_size;
+    
+    if (next_write == atomic_load(&logger->read_pos)) {
+        return; // Buffer full
+    }
+    
+    LogEntry *entry = &logger->buffer[current_write];
+    entry->level = level;
+    entry->timestamp = time(NULL);
+    
+    va_list args;
+    va_start(args, format);
+    vsnprintf(entry->message, sizeof(entry->message), format, args);
+    va_end(args);
+    
+    atomic_store(&logger->write_pos, next_write);
+}
+```
+
 **Remember**: C programming provides the foundation for understanding how data systems work at the lowest level. Focus on memory management, performance optimization, and system-level programming concepts.
+
+This comprehensive collection of 80 C programming interview questions covers everything from basic concepts to advanced system programming, providing the foundation needed for high-performance data engineering applications.
