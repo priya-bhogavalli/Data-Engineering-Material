@@ -1868,6 +1868,1879 @@ WHERE gdpr_consent = TRUE;
 
 ---
 
-**Total Questions: 50**
+### 51. How do you implement data mesh architecture with Fivetran?
 
-This comprehensive set covers all aspects of Fivetran from basic concepts to advanced production scenarios, providing thorough preparation for data engineering interviews.
+**Answer:**
+**Data Mesh Implementation:**
+
+```python
+data_mesh_architecture = {
+    "domain_ownership": "Each team owns their Fivetran connectors",
+    "data_products": "Standardized schemas per domain",
+    "self_serve": "Template-based connector deployment",
+    "federated_governance": "Centralized policies, distributed execution"
+}
+```
+
+**Domain Setup:**
+```yaml
+# sales-domain/fivetran-config.yml
+domain: sales
+connectors:
+  - name: salesforce-sales
+    destination_schema: sales_domain
+    sync_frequency: 15min
+  - name: hubspot-sales  
+    destination_schema: sales_domain
+    sync_frequency: 1hour
+```
+
+### 52. How do you handle data privacy and anonymization in Fivetran?
+
+**Answer:**
+**Privacy Implementation:**
+
+```sql
+-- Anonymization at ingestion
+CREATE VIEW anonymized_customers AS
+SELECT 
+    SHA2(email, 256) as customer_hash,
+    CASE 
+        WHEN age BETWEEN 18 AND 25 THEN '18-25'
+        WHEN age BETWEEN 26 AND 35 THEN '26-35'
+        ELSE '35+'
+    END as age_group,
+    country,
+    _fivetran_synced
+FROM raw_customers;
+```
+
+**Privacy Configuration:**
+```json
+{
+  "privacy_settings": {
+    "pii_fields": ["email", "phone", "ssn"],
+    "anonymization": "hash_with_salt",
+    "retention_period": "7_years",
+    "deletion_policy": "automatic_after_retention"
+  }
+}
+```
+
+### 53. How do you optimize Fivetran for multi-cloud deployments?
+
+**Answer:**
+**Multi-cloud Strategy:**
+
+```python
+multi_cloud_setup = {
+    "aws": {
+        "region": "us-east-1",
+        "warehouse": "redshift",
+        "connectors": ["salesforce", "stripe"]
+    },
+    "gcp": {
+        "region": "us-central1", 
+        "warehouse": "bigquery",
+        "connectors": ["google_ads", "google_analytics"]
+    },
+    "azure": {
+        "region": "east-us",
+        "warehouse": "synapse",
+        "connectors": ["dynamics", "office365"]
+    }
+}
+```
+
+### 54. How do you implement data quality gates in Fivetran pipelines?
+
+**Answer:**
+**Quality Gates Implementation:**
+
+```sql
+-- Data quality checks
+CREATE OR REPLACE PROCEDURE data_quality_gate()
+AS $$
+BEGIN
+    -- Freshness check
+    IF (SELECT MAX(_fivetran_synced) FROM critical_table) < CURRENT_TIMESTAMP - INTERVAL '2 hours' THEN
+        RAISE EXCEPTION 'Data freshness violation';
+    END IF;
+    
+    -- Completeness check
+    IF (SELECT COUNT(*) FROM critical_table WHERE key_field IS NULL) > 0 THEN
+        RAISE EXCEPTION 'Data completeness violation';
+    END IF;
+    
+    -- Volume check
+    IF (SELECT COUNT(*) FROM critical_table WHERE DATE(_fivetran_synced) = CURRENT_DATE) < 1000 THEN
+        RAISE EXCEPTION 'Data volume anomaly detected';
+    END IF;
+END;
+$$;
+```
+
+### 55. How do you handle complex data transformations with Fivetran and external tools?
+
+**Answer:**
+**Hybrid Transformation Architecture:**
+
+```python
+# External processing pipeline
+def complex_transformation_pipeline():
+    # Step 1: Extract from Fivetran tables
+    raw_data = extract_from_warehouse("fivetran_schema.raw_table")
+    
+    # Step 2: Apply ML transformations
+    enriched_data = apply_ml_enrichment(raw_data)
+    
+    # Step 3: Complex business logic
+    processed_data = apply_business_rules(enriched_data)
+    
+    # Step 4: Load back to warehouse
+    load_to_warehouse(processed_data, "analytics.processed_table")
+    
+    return "transformation_complete"
+```
+
+**Integration Pattern:**
+```yaml
+# airflow_dag.py
+dag = DAG('fivetran_external_processing')
+
+fivetran_sync = FivetranSyncOperator(
+    task_id='sync_source_data',
+    connector_id='salesforce_connector'
+)
+
+external_processing = PythonOperator(
+    task_id='complex_transformations',
+    python_callable=complex_transformation_pipeline
+)
+
+fivetran_sync >> external_processing
+```
+
+### 56. How do you implement data lineage and impact analysis with Fivetran?
+
+**Answer:**
+**Lineage Tracking System:**
+
+```sql
+-- Lineage metadata table
+CREATE TABLE data_lineage (
+    source_system VARCHAR(100),
+    source_table VARCHAR(100),
+    target_table VARCHAR(100),
+    transformation_type VARCHAR(50),
+    dependency_level INTEGER,
+    last_updated TIMESTAMP
+);
+
+-- Impact analysis query
+WITH RECURSIVE lineage_tree AS (
+    SELECT source_table, target_table, 1 as level
+    FROM data_lineage
+    WHERE source_table = 'salesforce_opportunity'
+    
+    UNION ALL
+    
+    SELECT dl.source_table, dl.target_table, lt.level + 1
+    FROM data_lineage dl
+    JOIN lineage_tree lt ON dl.source_table = lt.target_table
+    WHERE lt.level < 5
+)
+SELECT * FROM lineage_tree;
+```
+
+### 57. How do you handle Fivetran connector customization and extensibility?
+
+**Answer:**
+**Customization Approaches:**
+
+```python
+# Custom connector using Fivetran SDK
+from fivetran_connector_sdk import Connector
+
+class CustomAPIConnector(Connector):
+    def __init__(self):
+        self.api_client = CustomAPIClient()
+    
+    def extract_data(self, cursor):
+        data = self.api_client.get_data(since=cursor)
+        return self.transform_data(data)
+    
+    def transform_data(self, raw_data):
+        # Custom transformation logic
+        return processed_data
+```
+
+**Configuration:**
+```json
+{
+  "custom_connector": {
+    "name": "custom_api_source",
+    "type": "rest_api",
+    "authentication": "oauth2",
+    "endpoints": [
+      {
+        "path": "/api/v1/customers",
+        "method": "GET",
+        "pagination": "cursor_based"
+      }
+    ]
+  }
+}
+```
+
+### 58. How do you implement disaster recovery testing for Fivetran?
+
+**Answer:**
+**DR Testing Framework:**
+
+```python
+# Disaster recovery test suite
+def disaster_recovery_test():
+    test_scenarios = {
+        "primary_region_failure": test_region_failover,
+        "connector_failure": test_connector_recovery,
+        "data_corruption": test_data_restoration,
+        "warehouse_outage": test_warehouse_failover
+    }
+    
+    results = {}
+    for scenario, test_func in test_scenarios.items():
+        results[scenario] = test_func()
+    
+    return results
+
+def test_region_failover():
+    # Simulate primary region failure
+    # Verify secondary region activation
+    # Measure RTO and RPO
+    return {"status": "passed", "rto": "15min", "rpo": "5min"}
+```
+
+### 59. How do you optimize Fivetran for time-series data and IoT scenarios?
+
+**Answer:**
+**Time-series Optimization:**
+
+```sql
+-- Optimized time-series table structure
+CREATE TABLE iot_sensor_data (
+    sensor_id VARCHAR(50),
+    timestamp TIMESTAMP,
+    temperature DECIMAL(5,2),
+    humidity DECIMAL(5,2),
+    pressure DECIMAL(8,2),
+    _fivetran_synced TIMESTAMP
+)
+PARTITION BY DATE(timestamp)
+CLUSTER BY (sensor_id, timestamp);
+```
+
+**Streaming Configuration:**
+```json
+{
+  "iot_connector": {
+    "sync_frequency": "1min",
+    "batch_size": 100000,
+    "compression": "gzip",
+    "time_column": "timestamp",
+    "partitioning": "daily"
+  }
+}
+```
+
+### 60. How do you implement cost allocation and chargeback for Fivetran usage?
+
+**Answer:**
+**Cost Allocation Framework:**
+
+```sql
+-- Cost allocation by team/department
+CREATE VIEW fivetran_cost_allocation AS
+SELECT 
+    connector_name,
+    department,
+    SUM(monthly_active_rows) as mar_usage,
+    SUM(monthly_active_rows) * 0.10 as estimated_cost,
+    COUNT(DISTINCT table_name) as table_count
+FROM connector_usage cu
+JOIN department_mapping dm ON cu.connector_name = dm.connector_name
+WHERE usage_month = DATE_TRUNC('month', CURRENT_DATE)
+GROUP BY connector_name, department;
+```
+
+**Chargeback Report:**
+```python
+def generate_chargeback_report(month):
+    return {
+        "sales_team": {"mar": 1000000, "cost": 100, "connectors": ["salesforce", "hubspot"]},
+        "marketing_team": {"mar": 500000, "cost": 50, "connectors": ["google_ads", "facebook_ads"]},
+        "finance_team": {"mar": 200000, "cost": 20, "connectors": ["stripe", "quickbooks"]}
+    }
+```
+
+### 61. How do you handle Fivetran in regulated industries (healthcare, finance)?
+
+**Answer:**
+**Regulatory Compliance:**
+
+```python
+regulatory_requirements = {
+    "healthcare_hipaa": {
+        "encryption": "AES-256 at rest and in transit",
+        "access_control": "Role-based with MFA",
+        "audit_logging": "Complete access trail",
+        "data_residency": "US-only regions",
+        "baa_required": True
+    },
+    "finance_sox": {
+        "change_management": "Approval workflows",
+        "segregation_of_duties": "Separate dev/prod access",
+        "audit_trail": "Immutable logs",
+        "data_retention": "7 years minimum"
+    }
+}
+```
+
+**Implementation:**
+```sql
+-- Audit trail for regulatory compliance
+CREATE TABLE fivetran_audit_log (
+    log_id BIGINT IDENTITY(1,1),
+    user_id VARCHAR(100),
+    action VARCHAR(50),
+    connector_id VARCHAR(100),
+    timestamp TIMESTAMP,
+    ip_address VARCHAR(15),
+    details JSON
+);
+```
+
+### 62. How do you implement A/B testing data pipelines with Fivetran?
+
+**Answer:**
+**A/B Testing Pipeline:**
+
+```sql
+-- A/B test data model
+CREATE TABLE ab_test_events (
+    user_id VARCHAR(50),
+    experiment_id VARCHAR(50),
+    variant VARCHAR(10),
+    event_type VARCHAR(50),
+    event_timestamp TIMESTAMP,
+    conversion_value DECIMAL(10,2),
+    _fivetran_synced TIMESTAMP
+);
+
+-- Real-time A/B test analysis
+CREATE VIEW ab_test_results AS
+SELECT 
+    experiment_id,
+    variant,
+    COUNT(DISTINCT user_id) as users,
+    COUNT(*) as events,
+    SUM(conversion_value) as total_revenue,
+    AVG(conversion_value) as avg_revenue_per_user
+FROM ab_test_events
+WHERE event_timestamp >= CURRENT_DATE - 7
+GROUP BY experiment_id, variant;
+```
+
+### 63. How do you handle data synchronization conflicts in Fivetran?
+
+**Answer:**
+**Conflict Resolution Strategies:**
+
+```python
+conflict_resolution = {
+    "timestamp_based": "Last write wins based on _fivetran_synced",
+    "source_priority": "Primary source takes precedence",
+    "manual_review": "Flag conflicts for human review",
+    "merge_strategy": "Combine non-conflicting fields"
+}
+```
+
+**Implementation:**
+```sql
+-- Conflict detection and resolution
+WITH conflicts AS (
+    SELECT 
+        customer_id,
+        COUNT(DISTINCT email) as email_versions,
+        COUNT(DISTINCT phone) as phone_versions
+    FROM (
+        SELECT customer_id, email, phone FROM salesforce_contacts
+        UNION ALL
+        SELECT customer_id, email, phone FROM hubspot_contacts
+    ) combined
+    GROUP BY customer_id
+    HAVING COUNT(DISTINCT email) > 1 OR COUNT(DISTINCT phone) > 1
+)
+SELECT * FROM conflicts;
+```
+
+### 64. How do you implement data catalog integration with Fivetran?
+
+**Answer:**
+**Data Catalog Integration:**
+
+```python
+# Automated catalog population
+def populate_data_catalog():
+    fivetran_tables = get_fivetran_tables()
+    
+    for table in fivetran_tables:
+        catalog_entry = {
+            "table_name": table.name,
+            "source_system": table.connector_type,
+            "schema": table.schema,
+            "columns": get_table_columns(table),
+            "last_updated": table.last_sync,
+            "data_owner": get_connector_owner(table.connector_id),
+            "tags": ["fivetran", table.connector_type, "raw_data"]
+        }
+        
+        data_catalog.create_or_update(catalog_entry)
+```
+
+### 65. How do you handle Fivetran performance optimization for large-scale deployments?
+
+**Answer:**
+**Performance Optimization:**
+
+```python
+performance_optimization = {
+    "connector_level": {
+        "parallel_streams": 8,
+        "batch_size": 50000,
+        "compression": "enabled",
+        "connection_pooling": True
+    },
+    "warehouse_level": {
+        "clustering_keys": ["_fivetran_synced", "primary_key"],
+        "partitioning": "date_based",
+        "materialized_views": "for_common_queries"
+    },
+    "network_level": {
+        "private_link": "enabled",
+        "regional_optimization": "same_region_as_warehouse",
+        "cdn_caching": "for_static_data"
+    }
+}
+```
+
+### 66. How do you implement data retention policies with Fivetran?
+
+**Answer:**
+**Retention Policy Implementation:**
+
+```sql
+-- Automated data retention
+CREATE OR REPLACE PROCEDURE apply_retention_policy()
+AS $$
+BEGIN
+    -- Archive old data
+    CREATE TABLE archived_data AS
+    SELECT * FROM production_table
+    WHERE _fivetran_synced < CURRENT_DATE - INTERVAL '2 years';
+    
+    -- Delete from production
+    DELETE FROM production_table
+    WHERE _fivetran_synced < CURRENT_DATE - INTERVAL '2 years';
+    
+    -- Log retention action
+    INSERT INTO retention_log (table_name, action, record_count, execution_date)
+    VALUES ('production_table', 'archived', ROW_COUNT, CURRENT_DATE);
+END;
+$$;
+```
+
+### 67. How do you handle Fivetran connector dependencies and orchestration?
+
+**Answer:**
+**Dependency Management:**
+
+```yaml
+# Connector dependency graph
+connector_dependencies:
+  salesforce_accounts:
+    depends_on: []
+    triggers: [salesforce_opportunities, salesforce_contacts]
+  
+  salesforce_opportunities:
+    depends_on: [salesforce_accounts]
+    triggers: [revenue_calculations]
+  
+  revenue_calculations:
+    depends_on: [salesforce_opportunities, stripe_payments]
+    triggers: [executive_dashboard]
+```
+
+**Orchestration:**
+```python
+# Airflow DAG for connector orchestration
+from airflow import DAG
+from fivetran_provider.operators.fivetran import FivetranSyncOperator
+
+dag = DAG('fivetran_orchestration')
+
+sync_accounts = FivetranSyncOperator(
+    task_id='sync_salesforce_accounts',
+    connector_id='salesforce_accounts'
+)
+
+sync_opportunities = FivetranSyncOperator(
+    task_id='sync_salesforce_opportunities', 
+    connector_id='salesforce_opportunities'
+)
+
+sync_accounts >> sync_opportunities
+```
+
+### 68. How do you implement data masking and tokenization in Fivetran?
+
+**Answer:**
+**Data Masking Implementation:**
+
+```sql
+-- Dynamic data masking
+CREATE VIEW masked_customer_data AS
+SELECT 
+    customer_id,
+    CASE 
+        WHEN CURRENT_USER IN ('analyst', 'manager') THEN first_name
+        ELSE 'MASKED'
+    END as first_name,
+    CASE 
+        WHEN CURRENT_USER = 'admin' THEN email
+        ELSE CONCAT(LEFT(email, 2), '***@', SPLIT_PART(email, '@', 2))
+    END as email,
+    phone_tokenized,  -- Pre-tokenized sensitive data
+    _fivetran_synced
+FROM raw_customer_data;
+```
+
+**Tokenization Service:**
+```python
+def tokenize_sensitive_data(data):
+    tokenized = {}
+    for field, value in data.items():
+        if field in ['ssn', 'credit_card', 'phone']:
+            tokenized[f"{field}_tokenized"] = generate_token(value)
+        else:
+            tokenized[field] = value
+    return tokenized
+```
+
+### 69. How do you handle Fivetran API rate limiting and optimization?
+
+**Answer:**
+**Rate Limiting Strategies:**
+
+```python
+# Intelligent rate limiting
+class RateLimitManager:
+    def __init__(self):
+        self.limits = {
+            'salesforce': {'daily': 100000, 'per_second': 20},
+            'hubspot': {'daily': 40000, 'per_second': 10},
+            'stripe': {'daily': 100, 'per_second': 25}
+        }
+    
+    def optimize_sync_schedule(self, connector_type):
+        limit = self.limits[connector_type]
+        optimal_frequency = self.calculate_frequency(limit)
+        return optimal_frequency
+    
+    def calculate_frequency(self, limit):
+        # Calculate optimal sync frequency based on limits
+        return "15min" if limit['per_second'] > 15 else "1hour"
+```
+
+### 70. How do you implement cross-region data replication with Fivetran?
+
+**Answer:**
+**Cross-region Replication:**
+
+```python
+cross_region_setup = {
+    "primary_region": {
+        "location": "us-east-1",
+        "connectors": "all_active_connectors",
+        "sync_frequency": "real_time"
+    },
+    "secondary_region": {
+        "location": "eu-west-1",
+        "connectors": "critical_connectors_only", 
+        "sync_frequency": "1_hour_delay",
+        "purpose": "disaster_recovery"
+    },
+    "replication_strategy": {
+        "method": "warehouse_level_replication",
+        "consistency": "eventual_consistency",
+        "failover_time": "< 15_minutes"
+    }
+}
+```
+
+### 71. How do you handle Fivetran schema evolution in production?
+
+**Answer:**
+**Schema Evolution Management:**
+
+```sql
+-- Schema change tracking
+CREATE TABLE schema_evolution_log (
+    table_name VARCHAR(100),
+    change_type VARCHAR(50),
+    column_name VARCHAR(100),
+    old_data_type VARCHAR(50),
+    new_data_type VARCHAR(50),
+    change_timestamp TIMESTAMP,
+    impact_assessment TEXT
+);
+
+-- Automated schema validation
+CREATE OR REPLACE PROCEDURE validate_schema_changes()
+AS $$
+BEGIN
+    -- Check for breaking changes
+    IF EXISTS (
+        SELECT 1 FROM schema_evolution_log 
+        WHERE change_type = 'COLUMN_DROPPED'
+        AND change_timestamp >= CURRENT_DATE
+    ) THEN
+        -- Alert downstream systems
+        CALL send_schema_change_alert('BREAKING_CHANGE_DETECTED');
+    END IF;
+END;
+$$;
+```
+
+### 72. How do you implement data quality scoring with Fivetran?
+
+**Answer:**
+**Quality Scoring Framework:**
+
+```sql
+-- Data quality scoring
+WITH quality_metrics AS (
+    SELECT 
+        table_name,
+        -- Completeness score (0-100)
+        (COUNT(*) - COUNT(CASE WHEN key_field IS NULL THEN 1 END)) * 100.0 / COUNT(*) as completeness_score,
+        -- Freshness score (0-100)
+        CASE 
+            WHEN MAX(_fivetran_synced) >= CURRENT_TIMESTAMP - INTERVAL '1 hour' THEN 100
+            WHEN MAX(_fivetran_synced) >= CURRENT_TIMESTAMP - INTERVAL '24 hours' THEN 75
+            ELSE 25
+        END as freshness_score,
+        -- Uniqueness score (0-100)
+        COUNT(DISTINCT key_field) * 100.0 / COUNT(*) as uniqueness_score
+    FROM fivetran_tables
+    GROUP BY table_name
+)
+SELECT 
+    table_name,
+    (completeness_score + freshness_score + uniqueness_score) / 3 as overall_quality_score,
+    CASE 
+        WHEN (completeness_score + freshness_score + uniqueness_score) / 3 >= 90 THEN 'EXCELLENT'
+        WHEN (completeness_score + freshness_score + uniqueness_score) / 3 >= 75 THEN 'GOOD'
+        WHEN (completeness_score + freshness_score + uniqueness_score) / 3 >= 50 THEN 'FAIR'
+        ELSE 'POOR'
+    END as quality_grade
+FROM quality_metrics;
+```
+
+### 73. How do you handle Fivetran connector versioning and rollbacks?
+
+**Answer:**
+**Version Management:**
+
+```python
+# Connector version control
+class ConnectorVersionManager:
+    def __init__(self):
+        self.versions = {}
+    
+    def deploy_connector_version(self, connector_id, version):
+        # Backup current configuration
+        current_config = self.get_connector_config(connector_id)
+        self.backup_configuration(connector_id, current_config)
+        
+        # Deploy new version
+        self.update_connector(connector_id, version)
+        
+        # Validate deployment
+        if not self.validate_connector(connector_id):
+            self.rollback_connector(connector_id)
+            raise Exception("Deployment validation failed")
+    
+    def rollback_connector(self, connector_id):
+        backup_config = self.get_latest_backup(connector_id)
+        self.restore_configuration(connector_id, backup_config)
+```
+
+### 74. How do you implement data observability with Fivetran?
+
+**Answer:**
+**Observability Framework:**
+
+```python
+# Data observability metrics
+observability_metrics = {
+    "data_freshness": {
+        "metric": "time_since_last_sync",
+        "threshold": "2_hours",
+        "alert_level": "warning"
+    },
+    "data_volume": {
+        "metric": "row_count_change_percentage",
+        "threshold": "20_percent_deviation",
+        "alert_level": "critical"
+    },
+    "data_quality": {
+        "metric": "null_percentage",
+        "threshold": "5_percent",
+        "alert_level": "warning"
+    },
+    "schema_changes": {
+        "metric": "new_columns_added",
+        "threshold": "any_change",
+        "alert_level": "info"
+    }
+}
+```
+
+**Monitoring Dashboard:**
+```sql
+-- Observability dashboard query
+SELECT 
+    connector_name,
+    table_name,
+    DATEDIFF('minute', MAX(_fivetran_synced), CURRENT_TIMESTAMP) as minutes_since_sync,
+    COUNT(*) as current_row_count,
+    LAG(COUNT(*)) OVER (PARTITION BY table_name ORDER BY DATE(_fivetran_synced)) as previous_row_count,
+    (COUNT(*) - LAG(COUNT(*)) OVER (PARTITION BY table_name ORDER BY DATE(_fivetran_synced))) * 100.0 / 
+        LAG(COUNT(*)) OVER (PARTITION BY table_name ORDER BY DATE(_fivetran_synced)) as volume_change_pct
+FROM fivetran_monitoring
+WHERE _fivetran_synced >= CURRENT_DATE - 7
+GROUP BY connector_name, table_name, DATE(_fivetran_synced)
+ORDER BY minutes_since_sync DESC;
+```
+
+### 75. How do you handle Fivetran in microservices architecture?
+
+**Answer:**
+**Microservices Integration:**
+
+```python
+# Service-specific connector management
+microservices_connectors = {
+    "user_service": {
+        "connectors": ["auth0_users", "salesforce_contacts"],
+        "destination_schema": "user_domain",
+        "owner_team": "user_experience"
+    },
+    "payment_service": {
+        "connectors": ["stripe_payments", "paypal_transactions"],
+        "destination_schema": "payment_domain", 
+        "owner_team": "payments"
+    },
+    "analytics_service": {
+        "connectors": ["google_analytics", "mixpanel_events"],
+        "destination_schema": "analytics_domain",
+        "owner_team": "data_analytics"
+    }
+}
+```
+
+**Service Mesh Integration:**
+```yaml
+# Kubernetes service mesh configuration
+apiVersion: v1
+kind: Service
+metadata:
+  name: fivetran-connector-service
+  annotations:
+    service-mesh.io/inject: "true"
+spec:
+  selector:
+    app: fivetran-connector
+  ports:
+  - port: 8080
+    targetPort: 8080
+```
+
+### 76. How do you implement Fivetran cost optimization at enterprise scale?
+
+**Answer:**
+**Enterprise Cost Optimization:**
+
+```python
+# Cost optimization engine
+class FivetranCostOptimizer:
+    def __init__(self):
+        self.cost_thresholds = {
+            "monthly_budget": 50000,
+            "mar_limit": 100000000,
+            "connector_limit": 200
+        }
+    
+    def optimize_costs(self):
+        optimizations = []
+        
+        # Analyze MAR usage patterns
+        high_mar_connectors = self.identify_high_mar_connectors()
+        for connector in high_mar_connectors:
+            optimizations.append(self.suggest_mar_reduction(connector))
+        
+        # Optimize sync frequencies
+        sync_optimizations = self.optimize_sync_frequencies()
+        optimizations.extend(sync_optimizations)
+        
+        # Identify unused connectors
+        unused_connectors = self.find_unused_connectors()
+        optimizations.extend(unused_connectors)
+        
+        return optimizations
+    
+    def suggest_mar_reduction(self, connector):
+        return {
+            "connector": connector['name'],
+            "current_mar": connector['mar'],
+            "suggested_actions": [
+                "Filter historical data older than 2 years",
+                "Exclude system audit fields",
+                "Reduce sync frequency for reference data"
+            ],
+            "estimated_savings": connector['mar'] * 0.3 * 0.10  # 30% reduction
+        }
+```
+
+### 77. How do you handle Fivetran data encryption and key management?
+
+**Answer:**
+**Encryption Management:**
+
+```python
+encryption_strategy = {
+    "data_in_transit": {
+        "protocol": "TLS 1.3",
+        "certificate_management": "automatic_renewal",
+        "cipher_suites": "enterprise_grade"
+    },
+    "data_at_rest": {
+        "algorithm": "AES-256-GCM",
+        "key_management": "customer_managed_keys",
+        "key_rotation": "quarterly_automatic"
+    },
+    "key_management": {
+        "aws": "AWS KMS with customer CMK",
+        "azure": "Azure Key Vault with HSM",
+        "gcp": "Google Cloud KMS with Cloud HSM"
+    }
+}
+```
+
+**Implementation:**
+```json
+{
+  "encryption_config": {
+    "customer_managed_key": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+    "key_rotation_enabled": true,
+    "encryption_context": {
+      "fivetran_account": "company_name",
+      "environment": "production"
+    }
+  }
+}
+```
+
+### 78. How do you implement Fivetran testing strategies for CI/CD?
+
+**Answer:**
+**Testing Framework:**
+
+```python
+# Fivetran testing suite
+class FivetranTestSuite:
+    def __init__(self):
+        self.test_environment = "staging"
+    
+    def test_connector_configuration(self, connector_config):
+        """Test connector configuration validity"""
+        tests = [
+            self.test_authentication(connector_config),
+            self.test_schema_mapping(connector_config),
+            self.test_sync_frequency(connector_config),
+            self.test_data_filtering(connector_config)
+        ]
+        return all(tests)
+    
+    def test_data_quality(self, table_name):
+        """Test data quality after sync"""
+        quality_tests = [
+            self.test_row_count_reasonable(table_name),
+            self.test_no_null_primary_keys(table_name),
+            self.test_data_freshness(table_name),
+            self.test_schema_consistency(table_name)
+        ]
+        return all(quality_tests)
+    
+    def test_transformation_logic(self, model_name):
+        """Test dbt transformations"""
+        return self.run_dbt_tests(model_name)
+```
+
+**CI/CD Pipeline:**
+```yaml
+# .github/workflows/fivetran-ci.yml
+name: Fivetran CI/CD
+on:
+  pull_request:
+    paths: ['fivetran/**']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Connector Config
+        run: python test_fivetran_config.py
+      
+      - name: Deploy to Staging
+        run: fivetran deploy --environment staging
+      
+      - name: Run Data Quality Tests
+        run: python test_data_quality.py
+      
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/main'
+        run: fivetran deploy --environment production
+```
+
+### 79. How do you handle Fivetran performance monitoring and optimization?
+
+**Answer:**
+**Performance Monitoring:**
+
+```sql
+-- Performance monitoring dashboard
+CREATE VIEW fivetran_performance_metrics AS
+SELECT 
+    connector_name,
+    table_name,
+    DATE(sync_start_time) as sync_date,
+    AVG(DATEDIFF('second', sync_start_time, sync_end_time)) as avg_sync_duration_sec,
+    SUM(rows_synced) as total_rows_synced,
+    SUM(rows_synced) / AVG(DATEDIFF('second', sync_start_time, sync_end_time)) as rows_per_second,
+    COUNT(CASE WHEN sync_status = 'FAILED' THEN 1 END) as failed_syncs,
+    COUNT(*) as total_syncs,
+    (COUNT(CASE WHEN sync_status = 'FAILED' THEN 1 END) * 100.0 / COUNT(*)) as failure_rate_pct
+FROM fivetran_sync_log
+WHERE sync_start_time >= CURRENT_DATE - 30
+GROUP BY connector_name, table_name, DATE(sync_start_time)
+ORDER BY avg_sync_duration_sec DESC;
+```
+
+**Optimization Recommendations:**
+```python
+def generate_performance_recommendations(connector_metrics):
+    recommendations = []
+    
+    for metric in connector_metrics:
+        if metric['avg_sync_duration_sec'] > 3600:  # > 1 hour
+            recommendations.append({
+                "connector": metric['connector_name'],
+                "issue": "Long sync duration",
+                "recommendation": "Consider data filtering or parallel processing",
+                "priority": "high"
+            })
+        
+        if metric['failure_rate_pct'] > 5:  # > 5% failure rate
+            recommendations.append({
+                "connector": metric['connector_name'],
+                "issue": "High failure rate",
+                "recommendation": "Review error logs and API limits",
+                "priority": "critical"
+            })
+    
+    return recommendations
+```
+
+### 80. How do you implement Fivetran data governance at scale?
+
+**Answer:**
+**Governance Framework:**
+
+```python
+# Data governance policies
+governance_policies = {
+    "data_classification": {
+        "public": {"encryption": "standard", "access": "all_users"},
+        "internal": {"encryption": "enhanced", "access": "employees_only"},
+        "confidential": {"encryption": "maximum", "access": "authorized_only"},
+        "restricted": {"encryption": "maximum", "access": "need_to_know"}
+    },
+    "retention_policies": {
+        "transactional_data": "7_years",
+        "customer_data": "5_years_after_last_interaction",
+        "log_data": "2_years",
+        "test_data": "90_days"
+    },
+    "access_controls": {
+        "role_based": True,
+        "attribute_based": True,
+        "time_based": True,
+        "location_based": True
+    }
+}
+```
+
+**Automated Governance:**
+```sql
+-- Automated data classification
+CREATE OR REPLACE PROCEDURE classify_fivetran_data()
+AS $$
+BEGIN
+    -- Classify based on column names and content
+    UPDATE data_catalog 
+    SET classification = 'CONFIDENTIAL'
+    WHERE column_name IN ('ssn', 'credit_card', 'bank_account')
+       OR column_name LIKE '%password%'
+       OR column_name LIKE '%secret%';
+    
+    -- Apply retention policies
+    UPDATE data_catalog
+    SET retention_period = '7_years'
+    WHERE table_name LIKE '%transaction%'
+       OR table_name LIKE '%payment%';
+END;
+$$;
+```
+
+### 81. How do you implement Fivetran for event-driven architectures?
+
+**Answer:**
+**Event-Driven Integration:**
+
+```python
+# Event-driven Fivetran workflow
+class EventDrivenFivetran:
+    def __init__(self):
+        self.event_handlers = {
+            'sync_complete': self.handle_sync_complete,
+            'sync_failure': self.handle_sync_failure,
+            'schema_change': self.handle_schema_change
+        }
+    
+    def handle_sync_complete(self, event):
+        # Trigger downstream processing
+        self.trigger_dbt_run(event.connector_id)
+        self.update_data_catalog(event.table_name)
+        self.send_notification("sync_success", event)
+    
+    def handle_sync_failure(self, event):
+        # Implement retry logic and alerting
+        self.retry_sync(event.connector_id)
+        self.alert_on_call_team(event.error_details)
+```
+
+### 82. How do you handle Fivetran data deduplication strategies?
+
+**Answer:**
+**Deduplication Approaches:**
+
+```sql
+-- Deduplication using Fivetran metadata
+WITH deduplicated_records AS (
+    SELECT *,
+        ROW_NUMBER() OVER (
+            PARTITION BY primary_key 
+            ORDER BY _fivetran_synced DESC
+        ) as row_num
+    FROM raw_table
+    WHERE _fivetran_deleted = FALSE
+)
+SELECT * FROM deduplicated_records WHERE row_num = 1;
+
+-- Handle duplicate detection across sources
+WITH cross_source_duplicates AS (
+    SELECT 
+        email,
+        COUNT(DISTINCT source_system) as source_count,
+        ARRAY_AGG(DISTINCT source_system) as sources
+    FROM (
+        SELECT email, 'salesforce' as source_system FROM salesforce_contacts
+        UNION ALL
+        SELECT email, 'hubspot' as source_system FROM hubspot_contacts
+    ) combined
+    GROUP BY email
+    HAVING COUNT(DISTINCT source_system) > 1
+)
+SELECT * FROM cross_source_duplicates;
+```
+
+### 83. How do you implement Fivetran for machine learning pipelines?
+
+**Answer:**
+**ML Pipeline Integration:**
+
+```python
+# ML-ready data pipeline
+class MLDataPipeline:
+    def __init__(self):
+        self.feature_store = FeatureStore()
+        self.model_registry = ModelRegistry()
+    
+    def process_fivetran_data_for_ml(self, table_name):
+        # Extract features from Fivetran data
+        raw_data = self.extract_from_warehouse(table_name)
+        
+        # Feature engineering
+        features = self.engineer_features(raw_data)
+        
+        # Store in feature store
+        self.feature_store.write_features(features)
+        
+        # Trigger model training if needed
+        if self.should_retrain_model(features):
+            self.trigger_model_training()
+    
+    def engineer_features(self, raw_data):
+        return {
+            'customer_lifetime_value': self.calculate_clv(raw_data),
+            'churn_probability': self.calculate_churn_score(raw_data),
+            'engagement_score': self.calculate_engagement(raw_data)
+        }
+```
+
+### 84. How do you handle Fivetran connector customization for proprietary APIs?
+
+**Answer:**
+**Custom Connector Development:**
+
+```python
+# Custom API connector
+from fivetran_connector_sdk import Connector, ConfigurationError
+
+class ProprietaryAPIConnector(Connector):
+    def __init__(self, configuration):
+        self.api_key = configuration.get('api_key')
+        self.base_url = configuration.get('base_url')
+        self.client = self.create_api_client()
+    
+    def schema(self):
+        return {
+            'customers': {
+                'primary_key': ['id'],
+                'columns': {
+                    'id': 'STRING',
+                    'name': 'STRING', 
+                    'email': 'STRING',
+                    'created_at': 'TIMESTAMP'
+                }
+            }
+        }
+    
+    def update(self, configuration, state):
+        cursor = state.get('cursor', '2020-01-01')
+        
+        for table_name in self.schema().keys():
+            records = self.extract_table_data(table_name, cursor)
+            
+            for record in records:
+                yield {
+                    'type': 'RECORD',
+                    'table': table_name,
+                    'data': record
+                }
+            
+            # Update cursor
+            new_cursor = self.get_latest_timestamp(records)
+            yield {
+                'type': 'STATE',
+                'value': {'cursor': new_cursor}
+            }
+```
+
+### 85. How do you implement Fivetran data validation and reconciliation?
+
+**Answer:**
+**Validation Framework:**
+
+```sql
+-- Source-to-target reconciliation
+WITH source_counts AS (
+    SELECT 
+        'salesforce' as source,
+        COUNT(*) as record_count,
+        MAX(last_modified_date) as max_modified_date
+    FROM salesforce_api_direct
+),
+target_counts AS (
+    SELECT 
+        'fivetran' as source,
+        COUNT(*) as record_count,
+        MAX(_fivetran_synced) as max_sync_date
+    FROM fivetran_salesforce.opportunity
+    WHERE _fivetran_deleted = FALSE
+)
+SELECT 
+    s.record_count as source_count,
+    t.record_count as target_count,
+    ABS(s.record_count - t.record_count) as count_difference,
+    CASE 
+        WHEN ABS(s.record_count - t.record_count) = 0 THEN 'PASS'
+        WHEN ABS(s.record_count - t.record_count) < (s.record_count * 0.01) THEN 'WARNING'
+        ELSE 'FAIL'
+    END as validation_status
+FROM source_counts s
+CROSS JOIN target_counts t;
+```
+
+### 86. How do you handle Fivetran for regulatory reporting requirements?
+
+**Answer:**
+**Regulatory Compliance:**
+
+```python
+# Regulatory reporting framework
+class RegulatoryReporting:
+    def __init__(self):
+        self.regulations = {
+            'sox': {'retention': '7_years', 'audit_trail': 'complete'},
+            'gdpr': {'data_residency': 'eu_only', 'right_to_erasure': True},
+            'hipaa': {'encryption': 'required', 'access_logging': 'detailed'}
+        }
+    
+    def generate_compliance_report(self, regulation_type):
+        requirements = self.regulations[regulation_type]
+        
+        report = {
+            'data_inventory': self.audit_data_sources(),
+            'access_logs': self.generate_access_audit(),
+            'retention_compliance': self.check_retention_policies(),
+            'encryption_status': self.verify_encryption()
+        }
+        
+        return self.format_regulatory_report(report, regulation_type)
+```
+
+### 87. How do you implement Fivetran for data lake architectures?
+
+**Answer:**
+**Data Lake Integration:**
+
+```python
+# Data lake architecture with Fivetran
+data_lake_architecture = {
+    "bronze_layer": {
+        "description": "Raw Fivetran data",
+        "location": "s3://data-lake/bronze/fivetran/",
+        "format": "parquet",
+        "partitioning": "date"
+    },
+    "silver_layer": {
+        "description": "Cleaned and validated data",
+        "location": "s3://data-lake/silver/",
+        "transformations": "dbt_models",
+        "quality_checks": "great_expectations"
+    },
+    "gold_layer": {
+        "description": "Business-ready aggregated data",
+        "location": "s3://data-lake/gold/",
+        "consumption": "analytics_tools"
+    }
+}
+```
+
+**Implementation:**
+```sql
+-- Delta Lake integration
+CREATE TABLE bronze_salesforce_opportunity
+USING DELTA
+LOCATION 's3://data-lake/bronze/salesforce/opportunity/'
+PARTITIONED BY (date_partition)
+AS SELECT 
+    *,
+    DATE(_fivetran_synced) as date_partition
+FROM fivetran_salesforce.opportunity;
+```
+
+### 88. How do you handle Fivetran connector lifecycle management?
+
+**Answer:**
+**Lifecycle Management:**
+
+```python
+# Connector lifecycle automation
+class ConnectorLifecycleManager:
+    def __init__(self):
+        self.lifecycle_stages = [
+            'development', 'testing', 'staging', 'production', 'deprecated'
+        ]
+    
+    def promote_connector(self, connector_id, from_stage, to_stage):
+        # Validation checks
+        if not self.validate_promotion(connector_id, from_stage, to_stage):
+            raise Exception("Promotion validation failed")
+        
+        # Backup current configuration
+        self.backup_connector_config(connector_id)
+        
+        # Apply stage-specific configurations
+        stage_config = self.get_stage_configuration(to_stage)
+        self.update_connector_config(connector_id, stage_config)
+        
+        # Run post-promotion tests
+        self.run_promotion_tests(connector_id, to_stage)
+        
+        # Update lifecycle metadata
+        self.update_lifecycle_status(connector_id, to_stage)
+    
+    def deprecate_connector(self, connector_id, replacement_connector=None):
+        # Gradual deprecation process
+        deprecation_plan = {
+            'phase_1': 'Reduce sync frequency',
+            'phase_2': 'Redirect to replacement connector',
+            'phase_3': 'Disable connector',
+            'phase_4': 'Archive historical data'
+        }
+        
+        return self.execute_deprecation_plan(connector_id, deprecation_plan)
+```
+
+### 89. How do you implement Fivetran for real-time operational analytics?
+
+**Answer:**
+**Real-time Analytics:**
+
+```sql
+-- Real-time operational dashboard
+CREATE VIEW real_time_operations AS
+SELECT 
+    connector_name,
+    table_name,
+    COUNT(*) as records_last_hour,
+    MAX(_fivetran_synced) as last_sync_time,
+    DATEDIFF('minute', MAX(_fivetran_synced), CURRENT_TIMESTAMP) as minutes_since_sync,
+    CASE 
+        WHEN DATEDIFF('minute', MAX(_fivetran_synced), CURRENT_TIMESTAMP) <= 5 THEN 'REAL_TIME'
+        WHEN DATEDIFF('minute', MAX(_fivetran_synced), CURRENT_TIMESTAMP) <= 60 THEN 'NEAR_REAL_TIME'
+        ELSE 'BATCH'
+    END as sync_classification
+FROM fivetran_metadata
+WHERE _fivetran_synced >= CURRENT_TIMESTAMP - INTERVAL '1 hour'
+GROUP BY connector_name, table_name
+ORDER BY minutes_since_sync;
+```
+
+**Streaming Integration:**
+```python
+# Real-time processing with Kafka
+def process_fivetran_changes():
+    kafka_consumer = KafkaConsumer('fivetran-changes')
+    
+    for message in kafka_consumer:
+        change_event = json.loads(message.value)
+        
+        # Process change in real-time
+        if change_event['operation'] == 'INSERT':
+            process_new_record(change_event['data'])
+        elif change_event['operation'] == 'UPDATE':
+            process_updated_record(change_event['data'])
+        elif change_event['operation'] == 'DELETE':
+            process_deleted_record(change_event['data'])
+```
+
+### 90. How do you handle Fivetran for multi-environment deployments?
+
+**Answer:**
+**Multi-environment Strategy:**
+
+```yaml
+# Environment configuration
+environments:
+  development:
+    fivetran_account: "dev-account"
+    warehouse: "dev_warehouse"
+    sync_frequency: "1_hour"
+    data_retention: "30_days"
+    connectors:
+      - salesforce_sandbox
+      - test_database
+  
+  staging:
+    fivetran_account: "staging-account"
+    warehouse: "staging_warehouse"
+    sync_frequency: "15_minutes"
+    data_retention: "90_days"
+    connectors:
+      - salesforce_staging
+      - production_replica
+  
+  production:
+    fivetran_account: "prod-account"
+    warehouse: "prod_warehouse"
+    sync_frequency: "5_minutes"
+    data_retention: "7_years"
+    connectors:
+      - salesforce_production
+      - all_production_sources
+```
+
+**Deployment Automation:**
+```python
+# Environment promotion pipeline
+def promote_to_environment(connector_config, target_env):
+    env_config = load_environment_config(target_env)
+    
+    # Apply environment-specific settings
+    connector_config.update({
+        'destination_schema': f"{env_config['schema_prefix']}_{connector_config['name']}",
+        'sync_frequency': env_config['default_sync_frequency'],
+        'warehouse_config': env_config['warehouse_config']
+    })
+    
+    # Deploy to target environment
+    fivetran_client = FivetranClient(env_config['api_credentials'])
+    return fivetran_client.create_or_update_connector(connector_config)
+```
+
+### 91. How do you implement Fivetran monitoring with external tools?
+
+**Answer:**
+**External Monitoring Integration:**
+
+```python
+# DataDog integration
+class FivetranDataDogMonitoring:
+    def __init__(self):
+        self.datadog = DataDogClient()
+    
+    def send_metrics(self, connector_metrics):
+        for metric in connector_metrics:
+            self.datadog.gauge(
+                'fivetran.sync.duration',
+                metric['sync_duration_seconds'],
+                tags=[f"connector:{metric['connector_name']}", f"table:{metric['table_name']}"]
+            )
+            
+            self.datadog.gauge(
+                'fivetran.sync.rows',
+                metric['rows_synced'],
+                tags=[f"connector:{metric['connector_name']}"]
+            )
+    
+    def create_alerts(self):
+        alerts = [
+            {
+                'name': 'Fivetran Sync Failure',
+                'query': 'avg(last_5m):avg:fivetran.sync.success_rate{*} < 0.95',
+                'message': 'Fivetran sync success rate below 95%'
+            },
+            {
+                'name': 'Fivetran High Latency',
+                'query': 'avg(last_15m):avg:fivetran.sync.duration{*} > 3600',
+                'message': 'Fivetran sync taking longer than 1 hour'
+            }
+        ]
+        
+        for alert in alerts:
+            self.datadog.create_monitor(alert)
+```
+
+### 92. How do you handle Fivetran data archival and lifecycle management?
+
+**Answer:**
+**Data Lifecycle Management:**
+
+```sql
+-- Automated data archival
+CREATE OR REPLACE PROCEDURE archive_old_fivetran_data()
+AS $$
+DECLARE
+    table_record RECORD;
+BEGIN
+    -- Loop through all Fivetran tables
+    FOR table_record IN 
+        SELECT schemaname, tablename 
+        FROM pg_tables 
+        WHERE schemaname LIKE 'fivetran_%'
+    LOOP
+        -- Archive data older than retention period
+        EXECUTE format('
+            CREATE TABLE %I.%I_archive AS
+            SELECT * FROM %I.%I
+            WHERE _fivetran_synced < CURRENT_DATE - INTERVAL ''2 years''
+        ', table_record.schemaname, table_record.tablename, 
+           table_record.schemaname, table_record.tablename);
+        
+        -- Delete archived data from main table
+        EXECUTE format('
+            DELETE FROM %I.%I
+            WHERE _fivetran_synced < CURRENT_DATE - INTERVAL ''2 years''
+        ', table_record.schemaname, table_record.tablename);
+        
+        -- Log archival action
+        INSERT INTO data_lifecycle_log (table_name, action, record_count, execution_date)
+        VALUES (table_record.tablename, 'ARCHIVED', GET DIAGNOSTICS ROW_COUNT, CURRENT_DATE);
+    END LOOP;
+END;
+$$;
+```
+
+### 93. How do you implement Fivetran for customer 360 use cases?
+
+**Answer:**
+**Customer 360 Implementation:**
+
+```sql
+-- Unified customer view
+CREATE VIEW customer_360 AS
+WITH customer_base AS (
+    SELECT 
+        COALESCE(sf.id, hs.id, st.customer_id) as unified_customer_id,
+        COALESCE(sf.email, hs.email, st.email) as email,
+        COALESCE(sf.first_name, hs.first_name) as first_name,
+        COALESCE(sf.last_name, hs.last_name) as last_name
+    FROM fivetran_salesforce.contact sf
+    FULL OUTER JOIN fivetran_hubspot.contact hs ON sf.email = hs.email
+    FULL OUTER JOIN fivetran_stripe.customer st ON sf.email = st.email
+),
+customer_transactions AS (
+    SELECT 
+        customer_id,
+        COUNT(*) as total_transactions,
+        SUM(amount) as lifetime_value,
+        MAX(created_date) as last_transaction_date
+    FROM fivetran_stripe.charge
+    WHERE status = 'succeeded'
+    GROUP BY customer_id
+),
+customer_support AS (
+    SELECT 
+        requester_email,
+        COUNT(*) as total_tickets,
+        AVG(satisfaction_score) as avg_satisfaction
+    FROM fivetran_zendesk.ticket
+    GROUP BY requester_email
+)
+SELECT 
+    cb.*,
+    COALESCE(ct.total_transactions, 0) as total_transactions,
+    COALESCE(ct.lifetime_value, 0) as lifetime_value,
+    ct.last_transaction_date,
+    COALESCE(cs.total_tickets, 0) as support_tickets,
+    cs.avg_satisfaction as support_satisfaction
+FROM customer_base cb
+LEFT JOIN customer_transactions ct ON cb.unified_customer_id = ct.customer_id
+LEFT JOIN customer_support cs ON cb.email = cs.requester_email;
+```
+
+### 94. How do you handle Fivetran for data mesh and domain-driven design?
+
+**Answer:**
+**Data Mesh Implementation:**
+
+```python
+# Domain-driven Fivetran architecture
+class DataMeshFivetran:
+    def __init__(self):
+        self.domains = {
+            'sales': {
+                'connectors': ['salesforce', 'hubspot'],
+                'owner_team': 'sales_ops',
+                'data_products': ['sales_pipeline', 'lead_scoring']
+            },
+            'marketing': {
+                'connectors': ['google_ads', 'facebook_ads', 'mailchimp'],
+                'owner_team': 'marketing_ops', 
+                'data_products': ['campaign_performance', 'attribution']
+            },
+            'finance': {
+                'connectors': ['stripe', 'quickbooks', 'netsuite'],
+                'owner_team': 'finance_ops',
+                'data_products': ['revenue_recognition', 'financial_reporting']
+            }
+        }
+    
+    def setup_domain_infrastructure(self, domain_name):
+        domain_config = self.domains[domain_name]
+        
+        # Create domain-specific schema
+        self.create_domain_schema(domain_name)
+        
+        # Setup connectors with domain ownership
+        for connector in domain_config['connectors']:
+            self.setup_domain_connector(connector, domain_name)
+        
+        # Implement domain data contracts
+        self.create_data_contracts(domain_name, domain_config['data_products'])
+```
+
+### 95. How do you implement Fivetran disaster recovery automation?
+
+**Answer:**
+**Automated DR Implementation:**
+
+```python
+# Disaster recovery automation
+class FivetranDRAutomation:
+    def __init__(self):
+        self.primary_region = 'us-east-1'
+        self.dr_region = 'us-west-2'
+        self.rto_target = 15  # minutes
+        self.rpo_target = 5   # minutes
+    
+    def execute_failover(self):
+        failover_steps = [
+            self.validate_dr_readiness,
+            self.stop_primary_connectors,
+            self.activate_dr_connectors,
+            self.update_dns_records,
+            self.validate_dr_functionality,
+            self.notify_stakeholders
+        ]
+        
+        for step in failover_steps:
+            try:
+                step()
+                self.log_failover_step(step.__name__, 'SUCCESS')
+            except Exception as e:
+                self.log_failover_step(step.__name__, 'FAILED', str(e))
+                self.execute_rollback()
+                raise
+    
+    def validate_dr_readiness(self):
+        # Check DR infrastructure health
+        dr_checks = {
+            'warehouse_connectivity': self.test_warehouse_connection(self.dr_region),
+            'connector_configs': self.validate_dr_connector_configs(),
+            'network_connectivity': self.test_network_connectivity(),
+            'data_freshness': self.check_dr_data_freshness()
+        }
+        
+        if not all(dr_checks.values()):
+            raise Exception(f"DR readiness check failed: {dr_checks}")
+```
+
+### 96. How do you handle Fivetran for compliance with data localization laws?
+
+**Answer:**
+**Data Localization Compliance:**
+
+```python
+# Data residency management
+data_residency_rules = {
+    'gdpr_eu': {
+        'allowed_regions': ['eu-west-1', 'eu-central-1'],
+        'data_types': ['personal_data', 'customer_data'],
+        'cross_border_restrictions': True
+    },
+    'ccpa_california': {
+        'allowed_regions': ['us-west-1', 'us-west-2'],
+        'data_types': ['california_residents'],
+        'deletion_rights': True
+    },
+    'pipeda_canada': {
+        'allowed_regions': ['ca-central-1'],
+        'data_types': ['canadian_personal_data'],
+        'consent_required': True
+    }
+}
+
+# Automated compliance checking
+def validate_data_residency(connector_config):
+    data_classification = classify_data_types(connector_config)
+    
+    for data_type in data_classification:
+        applicable_rules = get_applicable_rules(data_type)
+        
+        for rule in applicable_rules:
+            if not validate_region_compliance(connector_config.region, rule):
+                raise ComplianceViolation(f"Data residency violation: {rule}")
+```
+
+### 97. How do you implement Fivetran for edge computing scenarios?
+
+**Answer:**
+**Edge Computing Integration:**
+
+```python
+# Edge-to-cloud data pipeline
+class EdgeFivetranIntegration:
+    def __init__(self):
+        self.edge_locations = {
+            'retail_stores': {'count': 500, 'data_volume': 'low'},
+            'manufacturing_plants': {'count': 50, 'data_volume': 'high'},
+            'iot_sensors': {'count': 10000, 'data_volume': 'medium'}
+        }
+    
+    def setup_edge_connectors(self, edge_type):
+        edge_config = self.edge_locations[edge_type]
+        
+        # Configure edge-optimized sync
+        connector_config = {
+            'sync_frequency': self.calculate_optimal_frequency(edge_config),
+            'batch_size': self.calculate_batch_size(edge_config),
+            'compression': 'high',
+            'local_buffering': True,
+            'offline_resilience': True
+        }
+        
+        return self.deploy_edge_connectors(connector_config)
+    
+    def handle_intermittent_connectivity(self, connector_id):
+        # Implement offline-first strategy
+        return {
+            'local_storage': 'buffer_data_locally',
+            'sync_on_reconnect': 'batch_upload_when_online',
+            'conflict_resolution': 'timestamp_based_merge'
+        }
+```
+
+### 98. How do you implement Fivetran cost forecasting and budgeting?
+
+**Answer:**
+**Cost Forecasting Framework:**
+
+```python
+# Cost forecasting model
+class FivetranCostForecaster:
+    def __init__(self):
+        self.historical_data = self.load_historical_usage()
+        self.growth_factors = {
+            'business_growth': 1.2,  # 20% annual growth
+            'data_volume_growth': 1.3,  # 30% data growth
+            'new_connectors': 1.1   # 10% new sources
+        }
+    
+    def forecast_annual_cost(self, current_mar):
+        # Apply growth factors
+        projected_mar = current_mar
+        for factor in self.growth_factors.values():
+            projected_mar *= factor
+        
+        # Calculate tiered pricing
+        annual_cost = self.calculate_tiered_cost(projected_mar)
+        
+        # Add buffer for unexpected growth
+        annual_cost *= 1.15  # 15% buffer
+        
+        return {
+            'projected_mar': projected_mar,
+            'annual_cost': annual_cost,
+            'monthly_cost': annual_cost / 12,
+            'cost_per_mar': annual_cost / projected_mar
+        }
+    
+    def generate_budget_recommendations(self, target_budget):
+        current_cost = self.calculate_current_monthly_cost()
+        
+        if current_cost > target_budget:
+            return self.suggest_cost_reductions(current_cost - target_budget)
+        else:
+            return self.suggest_growth_opportunities(target_budget - current_cost)
+```
+
+### 99. How do you handle Fivetran for streaming analytics platforms?
+
+**Answer:**
+**Streaming Analytics Integration:**
+
+```python
+# Real-time streaming pipeline
+class StreamingAnalyticsPipeline:
+    def __init__(self):
+        self.kafka_producer = KafkaProducer()
+        self.stream_processor = StreamProcessor()
+    
+    def setup_fivetran_streaming(self):
+        # Configure CDC for real-time streaming
+        cdc_config = {
+            'method': 'log_based_cdc',
+            'latency_target': '< 30 seconds',
+            'output_format': 'kafka_json',
+            'kafka_topic': 'fivetran-changes'
+        }
+        
+        # Setup stream processing
+        self.stream_processor.create_stream(
+            input_topic='fivetran-changes',
+            output_topic='processed-events',
+            processing_function=self.process_change_event
+        )
+    
+    def process_change_event(self, event):
+        # Real-time event processing
+        if event['table'] == 'transactions' and event['operation'] == 'INSERT':
+            # Real-time fraud detection
+            fraud_score = self.calculate_fraud_score(event['data'])
+            if fraud_score > 0.8:
+                self.trigger_fraud_alert(event['data'])
+        
+        # Update real-time aggregations
+        self.update_streaming_aggregates(event)
+        
+        return event
+```
+
+### 100. How do you implement Fivetran for global enterprise deployments?
+
+**Answer:**
+**Global Enterprise Architecture:**
+
+```python
+# Global deployment strategy
+class GlobalFivetranDeployment:
+    def __init__(self):
+        self.regions = {
+            'americas': {
+                'primary': 'us-east-1',
+                'secondary': 'us-west-2',
+                'data_residency': ['us', 'canada', 'brazil']
+            },
+            'emea': {
+                'primary': 'eu-west-1', 
+                'secondary': 'eu-central-1',
+                'data_residency': ['eu', 'uk', 'middle_east', 'africa']
+            },
+            'apac': {
+                'primary': 'ap-southeast-1',
+                'secondary': 'ap-northeast-1', 
+                'data_residency': ['singapore', 'japan', 'australia']
+            }
+        }
+    
+    def deploy_global_architecture(self):
+        for region_name, region_config in self.regions.items():
+            # Deploy regional Fivetran instance
+            self.deploy_regional_instance(region_name, region_config)
+            
+            # Setup cross-region replication
+            self.setup_cross_region_replication(region_name)
+            
+            # Configure data governance
+            self.apply_regional_governance(region_name)
+    
+    def optimize_global_performance(self):
+        optimizations = {
+            'data_locality': 'Process data in nearest region',
+            'network_optimization': 'Use private links and CDN',
+            'caching_strategy': 'Regional data caching',
+            'load_balancing': 'Intelligent traffic routing'
+        }
+        
+        return self.implement_optimizations(optimizations)
+```
+
+**Total Questions: 100**
+
+This comprehensive set of 100 Fivetran interview questions covers all aspects from basic concepts to advanced enterprise scenarios, providing thorough preparation for data engineering interviews at all levels.

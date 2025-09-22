@@ -1,14 +1,20 @@
-# Amazon Redshift Interview Questions - Complete Guide (200+ Questions)
+# Amazon Redshift Interview Questions - Complete Guide (150+ Questions)
 
 ## 📋 Table of Contents
 
-1. [Basic Level Questions (1-3 years experience)](#basic-level-questions-1-3-years-experience)
-2. [Intermediate Level Questions (3-5 years experience)](#intermediate-level-questions-3-5-years-experience)
-3. [Advanced Level Questions (5+ years experience)](#advanced-level-questions-5-years-experience)
-4. [Architecture & Performance](#architecture--performance)
-5. [Streaming & Real-time Processing](#streaming--real-time-processing)
-6. [Production & Operations](#production--operations)
-7. [Scenario-Based Questions](#scenario-based-questions)
+1. [Basic Level Questions (1-3 years experience)](#basic-level-questions-1-3-years-experience) - Q1-Q10
+2. [Intermediate Level Questions (3-5 years experience)](#intermediate-level-questions-3-5-years-experience) - Q11-Q15
+3. [Advanced Level Questions (5+ years experience)](#advanced-level-questions-5-years-experience) - Q16-Q20
+4. [Architecture & Performance](#architecture--performance) - Q21-Q23
+5. [Streaming & Real-time Processing](#streaming--real-time-processing) - Q24-Q25
+6. [Production & Operations](#production--operations) - Q26-Q27
+7. [Scenario-Based Questions](#scenario-based-questions) - Q28-Q30
+8. [Performance Tuning & Optimization](#performance-tuning--optimization) - Q31-Q35
+9. [Data Modeling & Architecture](#data-modeling--architecture) - Q36-Q40
+10. [Security & Compliance](#security--compliance) - Q41-Q45
+11. [Cost Optimization](#cost-optimization) - Q46-Q50
+12. [Troubleshooting & Operations](#troubleshooting--operations) - Q51-Q55
+13. [Advanced Integration](#advanced-integration) - Q56-Q60
 
 ---
 
@@ -3178,6 +3184,906 @@ SELECT
 FROM tenant_management.tenants t
 JOIN tenant_management.resource_usage ru ON t.tenant_id = ru.tenant_id
 WHERE t.is_active = TRUE;
+```
+
+## Performance Tuning & Optimization
+
+### Q31: How do you implement advanced compression strategies?
+
+**Answer:**
+Optimal compression reduces storage costs and improves I/O performance through proper encoding selection.
+
+```sql
+-- Analyze compression effectiveness
+SELECT 
+    schemaname,
+    tablename,
+    column_name,
+    type,
+    encoding,
+    size,
+    size_raw,
+    compression_ratio
+FROM pg_table_def 
+WHERE schemaname = 'analytics'
+AND compression_ratio > 1
+ORDER BY compression_ratio DESC;
+
+-- Test compression on sample data
+ANALYZE COMPRESSION staging.large_table;
+```
+
+### Q32: How do you optimize COPY operations for maximum throughput?
+
+**Answer:**
+COPY optimization involves file sizing, parallelization, and format selection.
+
+```sql
+-- Optimized COPY with multiple files
+COPY fact_sales 
+FROM 's3://bucket/data/'
+IAM_ROLE 'arn:aws:iam::123456789012:role/RedshiftRole'
+FORMAT AS PARQUET
+MANIFEST
+COMPUPDATE ON
+STATUPDATE ON;
+
+-- Monitor COPY performance
+SELECT 
+    query,
+    slice,
+    read_time,
+    write_time,
+    file_size
+FROM stl_load_commits 
+WHERE query = pg_last_query_id();
+```
+
+### Q33: How do you handle large DELETE operations efficiently?
+
+**Answer:**
+Large deletes should use staging tables and CTAS patterns to avoid performance issues.
+
+```sql
+-- Efficient delete using CTAS
+CREATE TABLE fact_sales_new AS
+SELECT * FROM fact_sales
+WHERE sale_date >= '2023-01-01';
+
+DROP TABLE fact_sales;
+ALTER TABLE fact_sales_new RENAME TO fact_sales;
+```
+
+### Q34: How do you implement table maintenance automation?
+
+**Answer:**
+Automated maintenance ensures optimal performance through scheduled VACUUM and ANALYZE operations.
+
+```sql
+-- Maintenance scheduling procedure
+CREATE OR REPLACE PROCEDURE automated_maintenance()
+AS $$
+BEGIN
+    -- Check tables needing VACUUM
+    FOR table_rec IN 
+        SELECT schemaname, tablename
+        FROM svv_table_info
+        WHERE vacuum_sort_benefit > 5
+    LOOP
+        EXECUTE 'VACUUM ' || table_rec.schemaname || '.' || table_rec.tablename;
+    END LOOP;
+    
+    -- Update statistics
+    ANALYZE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Q35: How do you optimize window functions in Redshift?
+
+**Answer:**
+Window function optimization involves proper partitioning and sort key alignment.
+
+```sql
+-- Optimized window function
+SELECT 
+    customer_id,
+    sale_date,
+    total_amount,
+    SUM(total_amount) OVER (
+        PARTITION BY customer_id 
+        ORDER BY sale_date 
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) as running_total
+FROM fact_sales
+WHERE sale_date >= '2023-01-01'
+ORDER BY customer_id, sale_date;
+```
+
+## Data Modeling & Architecture
+
+### Q36: How do you design star schema vs snowflake schema in Redshift?
+
+**Answer:**
+Star schema is preferred in Redshift for better join performance and simpler queries.
+
+```sql
+-- Star schema design
+CREATE TABLE dim_customer (
+    customer_key BIGINT IDENTITY(1,1) PRIMARY KEY,
+    customer_id INTEGER,
+    customer_name VARCHAR(100),
+    segment VARCHAR(50),
+    region VARCHAR(50)
+) DISTSTYLE ALL;
+
+CREATE TABLE fact_orders (
+    order_key BIGINT IDENTITY(1,1),
+    customer_key BIGINT,
+    product_key BIGINT,
+    date_key INTEGER,
+    order_amount DECIMAL(12,2)
+) DISTSTYLE KEY DISTKEY (customer_key);
+```
+
+### Q37: How do you implement slowly changing dimensions (SCD)?
+
+**Answer:**
+SCD Type 2 tracks historical changes with effective dates and current flags.
+
+```sql
+-- SCD Type 2 implementation
+CREATE TABLE dim_customer_scd (
+    customer_key BIGINT IDENTITY(1,1),
+    customer_id INTEGER,
+    customer_name VARCHAR(100),
+    effective_date DATE,
+    expiry_date DATE,
+    is_current BOOLEAN
+) DISTSTYLE ALL;
+
+-- SCD update procedure
+CREATE OR REPLACE PROCEDURE update_customer_scd()
+AS $$
+BEGIN
+    -- Close existing records
+    UPDATE dim_customer_scd 
+    SET expiry_date = CURRENT_DATE - 1,
+        is_current = FALSE
+    WHERE customer_id IN (SELECT customer_id FROM staging_customers)
+    AND is_current = TRUE;
+    
+    -- Insert new records
+    INSERT INTO dim_customer_scd (
+        customer_id, customer_name, effective_date, expiry_date, is_current
+    )
+    SELECT customer_id, customer_name, CURRENT_DATE, '9999-12-31', TRUE
+    FROM staging_customers;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Q38: How do you handle large fact table partitioning strategies?
+
+**Answer:**
+Redshift uses distribution and sort keys instead of traditional partitioning.
+
+```sql
+-- Time-based partitioning using sort keys
+CREATE TABLE fact_sales_partitioned (
+    sale_id BIGINT,
+    sale_date DATE,
+    customer_id INTEGER,
+    amount DECIMAL(12,2)
+)
+DISTSTYLE KEY
+DISTKEY (customer_id)
+SORTKEY (sale_date);  -- Enables zone maps for date filtering
+
+-- Query with partition pruning
+SELECT customer_id, SUM(amount)
+FROM fact_sales_partitioned
+WHERE sale_date BETWEEN '2023-01-01' AND '2023-01-31'
+GROUP BY customer_id;
+```
+
+### Q39: How do you implement data vault modeling in Redshift?
+
+**Answer:**
+Data Vault uses hubs, links, and satellites for flexible data warehousing.
+
+```sql
+-- Hub table
+CREATE TABLE hub_customer (
+    customer_hash_key VARCHAR(32) PRIMARY KEY,
+    customer_id INTEGER,
+    load_date TIMESTAMP,
+    record_source VARCHAR(50)
+) DISTSTYLE ALL;
+
+-- Satellite table
+CREATE TABLE sat_customer (
+    customer_hash_key VARCHAR(32),
+    load_date TIMESTAMP,
+    customer_name VARCHAR(100),
+    email VARCHAR(100),
+    hash_diff VARCHAR(32)
+) DISTSTYLE ALL;
+
+-- Link table
+CREATE TABLE link_customer_order (
+    link_hash_key VARCHAR(32) PRIMARY KEY,
+    customer_hash_key VARCHAR(32),
+    order_hash_key VARCHAR(32),
+    load_date TIMESTAMP
+) DISTSTYLE KEY DISTKEY (customer_hash_key);
+```
+
+### Q40: How do you optimize aggregation tables and materialized views?
+
+**Answer:**
+Pre-aggregated tables and materialized views improve query performance for common patterns.
+
+```sql
+-- Aggregation table
+CREATE TABLE agg_monthly_sales AS
+SELECT 
+    DATE_TRUNC('month', sale_date) as month,
+    customer_id,
+    product_category,
+    SUM(amount) as total_sales,
+    COUNT(*) as transaction_count
+FROM fact_sales
+GROUP BY DATE_TRUNC('month', sale_date), customer_id, product_category;
+
+-- Materialized view
+CREATE MATERIALIZED VIEW mv_customer_summary AS
+SELECT 
+    customer_id,
+    COUNT(*) as order_count,
+    SUM(amount) as total_spent,
+    MAX(sale_date) as last_order_date
+FROM fact_sales
+GROUP BY customer_id;
+
+-- Refresh materialized view
+REFRESH MATERIALIZED VIEW mv_customer_summary;
+```
+
+## Security & Compliance
+
+### Q41: How do you implement column-level security in Redshift?
+
+**Answer:**
+Column-level security uses views and grants to restrict access to sensitive data.
+
+```sql
+-- Secure view with column masking
+CREATE VIEW secure_customer_view AS
+SELECT 
+    customer_id,
+    first_name,
+    CASE 
+        WHEN CURRENT_USER IN ('analyst', 'manager') THEN email
+        ELSE 'REDACTED'
+    END as email,
+    registration_date
+FROM customers;
+
+-- Grant access to secure view
+GRANT SELECT ON secure_customer_view TO analyst_role;
+```
+
+### Q42: How do you implement audit logging for compliance?
+
+**Answer:**
+Comprehensive audit logging tracks all data access and modifications.
+
+```sql
+-- Audit log table
+CREATE TABLE audit_log (
+    log_id BIGINT IDENTITY(1,1),
+    username VARCHAR(50),
+    table_name VARCHAR(100),
+    action VARCHAR(20),
+    timestamp TIMESTAMP DEFAULT GETDATE(),
+    query_text TEXT
+);
+
+-- Monitor user activity
+SELECT 
+    username,
+    COUNT(*) as query_count,
+    MIN(starttime) as first_query,
+    MAX(starttime) as last_query
+FROM stl_query
+WHERE starttime >= CURRENT_DATE - 7
+GROUP BY username;
+```
+
+### Q43: How do you implement data encryption at rest and in transit?
+
+**Answer:**
+Redshift provides encryption options for data protection.
+
+```sql
+-- Check encryption status
+SELECT 
+    cluster_identifier,
+    encrypted,
+    kms_key_id
+FROM stv_cluster_info;
+
+-- SSL connection verification
+SELECT 
+    pid,
+    user_name,
+    ssl,
+    ssl_version
+FROM stv_sessions
+WHERE user_name != 'rdsdb';
+```
+
+### Q44: How do you implement GDPR compliance in Redshift?
+
+**Answer:**
+GDPR compliance requires data subject rights implementation and audit trails.
+
+```sql
+-- Data subject access request
+CREATE OR REPLACE PROCEDURE gdpr_data_export(subject_email VARCHAR)
+AS $$
+BEGIN
+    CREATE TEMP TABLE subject_data AS
+    SELECT 
+        'CUSTOMER' as data_type,
+        customer_id::VARCHAR as identifier,
+        first_name || ' ' || last_name as data_value,
+        'Personal identification' as category
+    FROM customers
+    WHERE email = subject_email
+    
+    UNION ALL
+    
+    SELECT 
+        'ORDERS',
+        order_id::VARCHAR,
+        'Order amount: ' || total_amount::VARCHAR,
+        'Transaction data'
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
+    WHERE c.email = subject_email;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Right to be forgotten
+CREATE OR REPLACE PROCEDURE gdpr_delete_subject(subject_email VARCHAR)
+AS $$
+BEGIN
+    DELETE FROM customers WHERE email = subject_email;
+    DELETE FROM orders WHERE customer_id IN (
+        SELECT customer_id FROM customers WHERE email = subject_email
+    );
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Q45: How do you implement role-based access control (RBAC)?
+
+**Answer:**
+RBAC provides granular permissions through roles and groups.
+
+```sql
+-- Create roles hierarchy
+CREATE ROLE data_viewer;
+CREATE ROLE data_analyst;
+CREATE ROLE data_engineer;
+CREATE ROLE data_admin;
+
+-- Grant role hierarchy
+GRANT data_viewer TO data_analyst;
+GRANT data_analyst TO data_engineer;
+GRANT data_engineer TO data_admin;
+
+-- Schema permissions
+GRANT USAGE ON SCHEMA analytics TO ROLE data_viewer;
+GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO ROLE data_viewer;
+GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA staging TO ROLE data_engineer;
+
+-- User assignment
+CREATE USER john_analyst PASSWORD 'SecurePass123!';
+GRANT data_analyst TO john_analyst;
+```
+
+## Cost Optimization
+
+### Q46: How do you optimize Redshift costs?
+
+**Answer:**
+Cost optimization involves right-sizing, reserved instances, and efficient resource usage.
+
+```sql
+-- Monitor cluster utilization
+SELECT 
+    DATE_TRUNC('hour', starttime) as hour,
+    COUNT(*) as query_count,
+    AVG(DATEDIFF(seconds, starttime, endtime)) as avg_duration
+FROM stl_query
+WHERE starttime >= CURRENT_DATE - 7
+GROUP BY DATE_TRUNC('hour', starttime)
+ORDER BY hour;
+
+-- Storage cost analysis
+SELECT 
+    schemaname,
+    SUM(size) / 1024.0 as size_gb,
+    SUM(size) / 1024.0 * 0.025 as monthly_cost_usd
+FROM svv_table_info
+WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
+GROUP BY schemaname
+ORDER BY size_gb DESC;
+```
+
+### Q47: How do you implement elastic resize and pause/resume?
+
+**Answer:**
+Elastic resize and pause/resume optimize costs for variable workloads.
+
+```sql
+-- Monitor resize operations
+SELECT 
+    resize_id,
+    cluster_identifier,
+    resize_type,
+    start_time,
+    end_time,
+    status
+FROM stl_resize
+WHERE start_time >= CURRENT_DATE - 30
+ORDER BY start_time DESC;
+
+-- Check cluster status for pause/resume
+SELECT 
+    cluster_identifier,
+    cluster_status,
+    cluster_create_time,
+    automated_snapshot_retention_period
+FROM stv_cluster_info;
+```
+
+### Q48: How do you optimize storage with data lifecycle management?
+
+**Answer:**
+Data lifecycle management archives old data to reduce storage costs.
+
+```sql
+-- Identify old data for archival
+SELECT 
+    schemaname,
+    tablename,
+    size,
+    tbl_rows,
+    CASE 
+        WHEN MAX(last_accessed) < CURRENT_DATE - 90 THEN 'ARCHIVE_CANDIDATE'
+        WHEN MAX(last_accessed) < CURRENT_DATE - 30 THEN 'REVIEW'
+        ELSE 'ACTIVE'
+    END as lifecycle_status
+FROM svv_table_info sti
+LEFT JOIN (
+    SELECT 
+        schemaname,
+        tablename,
+        MAX(starttime) as last_accessed
+    FROM stl_scan
+    GROUP BY schemaname, tablename
+) access ON sti.schemaname = access.schemaname 
+    AND sti.tablename = access.tablename
+GROUP BY sti.schemaname, sti.tablename, sti.size, sti.tbl_rows;
+
+-- Archive old data to S3
+UNLOAD ('SELECT * FROM old_transactions WHERE transaction_date < ''2022-01-01''')
+TO 's3://archive-bucket/old_transactions/'
+IAM_ROLE 'arn:aws:iam::123456789012:role/RedshiftUnloadRole'
+PARQUET;
+```
+
+### Q49: How do you implement workload isolation for cost control?
+
+**Answer:**
+Workload isolation prevents resource contention and controls costs.
+
+```sql
+-- WLM queue configuration monitoring
+SELECT 
+    service_class,
+    service_class_name,
+    num_query_tasks,
+    query_working_mem,
+    max_execution_time
+FROM stv_wlm_service_class_config
+ORDER BY service_class;
+
+-- Query queue analysis
+SELECT 
+    w.service_class,
+    w.service_class_name,
+    COUNT(*) as query_count,
+    AVG(w.total_queue_time) as avg_queue_time,
+    AVG(w.total_exec_time) as avg_exec_time
+FROM stl_wlm_query w
+WHERE w.queue_start_time >= CURRENT_DATE - 1
+GROUP BY w.service_class, w.service_class_name
+ORDER BY w.service_class;
+```
+
+### Q50: How do you monitor and optimize concurrency scaling costs?
+
+**Answer:**
+Concurrency scaling monitoring helps control automatic scaling costs.
+
+```sql
+-- Concurrency scaling usage analysis
+SELECT 
+    DATE_TRUNC('day', start_time) as day,
+    COUNT(*) as scaling_events,
+    SUM(DATEDIFF(seconds, start_time, end_time)) / 3600.0 as total_hours,
+    SUM(DATEDIFF(seconds, start_time, end_time)) / 3600.0 * 0.045 as estimated_cost
+FROM stl_concurrency_scaling_usage
+WHERE start_time >= CURRENT_DATE - 30
+GROUP BY DATE_TRUNC('day', start_time)
+ORDER BY day;
+
+-- Identify queries using concurrency scaling
+SELECT 
+    w.query,
+    w.concurrency_scaling_status,
+    q.querytxt,
+    w.total_exec_time
+FROM stl_wlm_query w
+JOIN stl_query q ON w.query = q.query
+WHERE w.concurrency_scaling_status = 'concurrency_scaling'
+AND w.queue_start_time >= CURRENT_DATE - 1;
+```
+
+## Troubleshooting & Operations
+
+### Q51: How do you troubleshoot slow query performance?
+
+**Answer:**
+Query troubleshooting involves analyzing execution plans and system bottlenecks.
+
+```sql
+-- Identify slow queries
+SELECT 
+    query,
+    userid,
+    DATEDIFF(seconds, starttime, endtime) as duration_sec,
+    substring(querytxt, 1, 100) as query_text
+FROM stl_query
+WHERE endtime IS NOT NULL
+AND DATEDIFF(seconds, starttime, endtime) > 300
+AND starttime >= CURRENT_DATE - 1
+ORDER BY duration_sec DESC;
+
+-- Analyze query execution steps
+SELECT 
+    query,
+    segment,
+    step,
+    label,
+    max_time,
+    avg_time,
+    rows
+FROM svl_query_summary
+WHERE query = 12345  -- Replace with actual query ID
+ORDER BY segment, step;
+```
+
+### Q52: How do you diagnose and resolve disk space issues?
+
+**Answer:**
+Disk space monitoring prevents cluster failures and performance degradation.
+
+```sql
+-- Check disk space usage
+SELECT 
+    node,
+    slice,
+    used,
+    capacity,
+    (used::FLOAT / capacity::FLOAT) * 100 as usage_percent
+FROM stv_partitions
+WHERE (used::FLOAT / capacity::FLOAT) > 0.8
+ORDER BY usage_percent DESC;
+
+-- Identify large tables
+SELECT 
+    schemaname,
+    tablename,
+    size as size_mb,
+    tbl_rows,
+    size / NULLIF(tbl_rows, 0) as mb_per_row
+FROM svv_table_info
+WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
+ORDER BY size DESC
+LIMIT 20;
+```
+
+### Q53: How do you handle connection and timeout issues?
+
+**Answer:**
+Connection management involves monitoring sessions and configuring timeouts.
+
+```sql
+-- Monitor active connections
+SELECT 
+    user_name,
+    db_name,
+    pid,
+    starttime,
+    status
+FROM stv_sessions
+WHERE user_name != 'rdsdb'
+ORDER BY starttime;
+
+-- Check for blocked queries
+SELECT 
+    blocked.pid as blocked_pid,
+    blocked.user_name as blocked_user,
+    blocking.pid as blocking_pid,
+    blocking.user_name as blocking_user,
+    blocked.query as blocked_query
+FROM stv_locks blocked
+JOIN stv_locks blocking ON blocked.table_id = blocking.table_id
+WHERE blocked.granted = 'f' AND blocking.granted = 't';
+```
+
+### Q54: How do you resolve data loading errors?
+
+**Answer:**
+Data loading troubleshooting involves error analysis and data validation.
+
+```sql
+-- Check COPY errors
+SELECT 
+    query,
+    filename,
+    line_number,
+    colname,
+    type,
+    position,
+    raw_line,
+    err_reason
+FROM stl_load_errors
+WHERE query = pg_last_query_id()
+ORDER BY starttime DESC;
+
+-- Validate data before loading
+SELECT 
+    COUNT(*) as total_rows,
+    COUNT(CASE WHEN customer_id IS NULL THEN 1 END) as null_customer_ids,
+    COUNT(CASE WHEN sale_date IS NULL THEN 1 END) as null_dates
+FROM staging_table;
+```
+
+### Q55: How do you handle cluster maintenance and upgrades?
+
+**Answer:**
+Maintenance planning minimizes downtime and ensures system health.
+
+```sql
+-- Check maintenance window
+SELECT 
+    cluster_identifier,
+    preferred_maintenance_window,
+    cluster_version,
+    next_maintenance_window_start_time
+FROM stv_cluster_info;
+
+-- Monitor upgrade progress
+SELECT 
+    upgrade_id,
+    cluster_identifier,
+    upgrade_type,
+    start_time,
+    end_time,
+    status
+FROM stl_upgrade
+WHERE start_time >= CURRENT_DATE - 30
+ORDER BY start_time DESC;
+
+-- Pre-upgrade validation
+CREATE OR REPLACE PROCEDURE pre_upgrade_check()
+AS $$
+BEGIN
+    -- Check for long-running queries
+    IF EXISTS (SELECT 1 FROM stl_query WHERE endtime IS NULL AND starttime < GETDATE() - INTERVAL '1 hour') THEN
+        RAISE EXCEPTION 'Long-running queries detected';
+    END IF;
+    
+    -- Validate data integrity
+    PERFORM validate_critical_tables();
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## Advanced Integration
+
+### Q56: How do you integrate Redshift with AWS services?
+
+**Answer:**
+Redshift integrates with multiple AWS services for comprehensive data solutions.
+
+```sql
+-- S3 integration with Spectrum
+CREATE EXTERNAL SCHEMA s3_data
+FROM DATA CATALOG
+DATABASE 'data_lake'
+IAM_ROLE 'arn:aws:iam::123456789012:role/RedshiftSpectrumRole';
+
+-- Query S3 data
+SELECT COUNT(*) FROM s3_data.external_logs
+WHERE log_date >= '2023-01-01';
+
+-- Lambda integration for automation
+SELECT aws_lambda_invoke(
+    'arn:aws:lambda:us-east-1:123456789012:function:ProcessRedshiftData',
+    '{
+        "cluster": "production",
+        "database": "analytics",
+        "action": "refresh_materialized_views"
+    }'
+);
+```
+
+### Q57: How do you implement automated data quality monitoring?
+
+**Answer:**
+Automated monitoring ensures data quality through continuous validation.
+
+```sql
+-- Data quality framework
+CREATE TABLE data_quality_rules (
+    rule_id INTEGER IDENTITY(1,1),
+    table_name VARCHAR(100),
+    column_name VARCHAR(100),
+    rule_type VARCHAR(50),
+    rule_definition TEXT,
+    threshold_value DECIMAL(10,2)
+);
+
+-- Automated quality checks
+CREATE OR REPLACE PROCEDURE run_quality_checks()
+AS $$
+BEGIN
+    -- Null value checks
+    INSERT INTO quality_violations
+    SELECT 
+        'NULL_CHECK',
+        'customers',
+        'email',
+        COUNT(*)
+    FROM customers
+    WHERE email IS NULL
+    HAVING COUNT(*) > 0;
+    
+    -- Duplicate checks
+    INSERT INTO quality_violations
+    SELECT 
+        'DUPLICATE_CHECK',
+        'customers',
+        'customer_id',
+        COUNT(*) - COUNT(DISTINCT customer_id)
+    FROM customers
+    HAVING COUNT(*) - COUNT(DISTINCT customer_id) > 0;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Q58: How do you implement cross-region disaster recovery?
+
+**Answer:**
+Cross-region DR ensures business continuity through automated replication.
+
+```sql
+-- Monitor cross-region snapshots
+SELECT 
+    snapshot_id,
+    cluster_identifier,
+    snapshot_time,
+    status,
+    source_region,
+    destination_region
+FROM stv_snapshot_copy
+WHERE snapshot_time >= CURRENT_DATE - 7
+ORDER BY snapshot_time DESC;
+
+-- DR failover procedure
+CREATE OR REPLACE PROCEDURE execute_dr_failover()
+AS $$
+BEGIN
+    -- Validate DR cluster readiness
+    PERFORM validate_dr_cluster();
+    
+    -- Update DNS records
+    PERFORM update_dns_to_dr();
+    
+    -- Notify applications
+    PERFORM notify_application_teams();
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Q59: How do you implement automated ETL orchestration?
+
+**Answer:**
+ETL orchestration coordinates complex data workflows.
+
+```sql
+-- ETL job metadata
+CREATE TABLE etl_jobs (
+    job_id INTEGER IDENTITY(1,1),
+    job_name VARCHAR(100),
+    job_type VARCHAR(50),
+    schedule_expression VARCHAR(50),
+    dependencies TEXT,
+    last_run_time TIMESTAMP,
+    status VARCHAR(20)
+);
+
+-- ETL orchestration procedure
+CREATE OR REPLACE PROCEDURE orchestrate_etl()
+AS $$
+BEGIN
+    -- Stage 1: Extract
+    PERFORM extract_source_data();
+    
+    -- Stage 2: Transform
+    PERFORM transform_staging_data();
+    
+    -- Stage 3: Load
+    PERFORM load_target_tables();
+    
+    -- Stage 4: Validate
+    PERFORM validate_etl_results();
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Q60: How do you implement machine learning integration?
+
+**Answer:**
+ML integration enables advanced analytics directly in Redshift.
+
+```sql
+-- Create ML model
+CREATE MODEL customer_churn_model
+FROM (
+    SELECT 
+        customer_id,
+        total_orders,
+        avg_order_value,
+        days_since_last_order,
+        churned
+    FROM customer_features
+)
+TARGET churned
+FUNCTION ml_fn_customer_churn
+IAM_ROLE 'arn:aws:iam::123456789012:role/RedshiftMLRole'
+SETTINGS (
+    S3_BUCKET 'ml-models-bucket'
+);
+
+-- Use model for predictions
+SELECT 
+    customer_id,
+    ml_fn_customer_churn(
+        total_orders,
+        avg_order_value,
+        days_since_last_order
+    ) as churn_probability
+FROM customer_features
+WHERE churn_probability > 0.7;
 ```
 
 ---
