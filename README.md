@@ -16,7 +16,7 @@
 | **Career Transition** | [📋 Fundamentals](./docs/FUNDAMENTALS_DEEP_DIVE.md) + [Learning Paths](#-study-recommendations) | 4-6 months |
 
 ### 🚀 **Start Here Based on Your Experience**
-- **🆕 Beginner**: [Fundamentals Deep Dive](./docs/FUNDAMENTALS_DEEP_DIVE.md) → [Python Basics](./Core-Data-Engineering/Programming-Languages/Python/)
+- **🆕 Beginner**: [Fundamentals Deep Dive](./docs/FUNDAMENTALS_DEEP_DIVE.md) → [🐍 Python Key Concepts](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_KEY_CONCEPTS.md)
 - **💼 Experienced**: [Master Tools Index](./ALL_TOOLS_MASTER_INDEX.md) → [Advanced Topics](#-core-data-engineering-topics)
 - **🎯 Interview Ready**: [Quick Examples](./QUICK_EXAMPLES_INDEX.md) → [Interview Questions](#-quick-interview-questions-reference)
 
@@ -240,7 +240,10 @@ Each topic folder contains:
 - **[📋 Architecture & Best Practices](./docs/ARCHITECTURE_AND_BEST_PRACTICES.md)** - Comprehensive architecture patterns and implementation guidelines
 
 ### Programming Languages
-- [Python](./Core-Data-Engineering/Programming-Languages/Python/) - Primary language for data engineering
+- **[Python](./Core-Data-Engineering/Programming-Languages/Python/)** - Primary language for data engineering
+  - **[🆕 Enhanced Key Concepts](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_KEY_CONCEPTS.md)** - Complete beginner-friendly guide with practical examples
+  - **[Interview Questions](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_INTERVIEW_QUESTIONS.md)** - Common questions with detailed answers
+  - **[Quick Reference](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_QUICK_REFERENCE.md)** - Cheat sheet for daily use
 - [SQL](./Core-Data-Engineering/Programming-Languages/SQL/) - Essential for data manipulation
 - [PySpark](./Core-Data-Engineering/Programming-Languages/PySpark/) - Big data processing
 
@@ -422,7 +425,7 @@ Each topic folder contains:
 
 | Week | Focus Area | Key Skills | Resources |
 |------|------------|------------|----------|
-| 1-4 | **Programming Basics** | Python, SQL fundamentals | [Python Guide](./Core-Data-Engineering/Programming-Languages/Python/) |
+| 1-4 | **Programming Basics** | Python, SQL fundamentals | [🐍 Python Key Concepts](./Core-Data-Engineering/Programming-Languages/Python/PYTHON_KEY_CONCEPTS.md) |
 | 5-8 | **Data Fundamentals** | Data types, file formats, ETL concepts | [Fundamentals](./docs/FUNDAMENTALS_DEEP_DIVE.md) |
 | 9-12 | **Cloud Basics** | AWS S3, EC2, basic services | [AWS Basics](./Core-Data-Engineering/Cloud/AWS/) |
 | 13-16 | **Processing Tools** | Pandas, basic Spark | [Data Processing](./Core-Data-Engineering/Data-Processing/) |

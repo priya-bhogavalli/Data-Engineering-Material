@@ -1,308 +1,936 @@
-# SQL for Data Engineering - Key Concepts
+# SQL Key Concepts for Data Engineering
 
-## 🎯 What is SQL in Data Engineering?
-SQL (Structured Query Language) is essential for data extraction, transformation, and analysis in relational databases and data warehouses.
+## 📋 Table of Contents
 
-## 🔑 Core Concepts
+1. [Overview](#-overview)
+2. [SQL Theoretical Concepts](#-sql-theoretical-concepts)
+3. [Data Types & Structures](#-data-types--structures)
+4. [Basic Query Operations](#-basic-query-operations)
+5. [Joins & Relationships](#-joins--relationships)
+6. [Aggregations & Grouping](#-aggregations--grouping)
+7. [Window Functions](#-window-functions)
+8. [Subqueries & CTEs](#-subqueries--ctes)
+9. [Data Modification](#-data-modification)
+10. [Indexes & Performance](#-indexes--performance)
+11. [Transactions & ACID](#-transactions--acid)
+12. [Best Practices](#-best-practices)
+13. [Interview Focus Areas](#-interview-focus-areas)
 
-### 1. Data Retrieval (SELECT)
+---
+
+## 🎯 Overview
+
+SQL (Structured Query Language) is the foundation of data engineering. It's used for querying, manipulating, and managing relational databases, making it essential for data extraction, transformation, and analysis.
+
+**Key Benefits:**
+- **Universal**: Works across all major database systems
+- **Declarative**: Describe what you want, not how to get it
+- **Powerful**: Handle complex data operations efficiently
+- **Scalable**: From small datasets to petabyte-scale warehouses
+- **Standard**: ANSI SQL ensures portability
+
+## 📚 Related Documents
+
+- **[SQL Advanced Database Engineering](./SQL_ADVANCED_DATABASE_ENGINEERING.md)** - Production patterns, optimization, security
+- **[SQL Quick Reference](./SQL_QUICK_REFERENCE.md)** - Essential commands and patterns
+- **[SQL Interview Questions](./SQL_INTERVIEW_QUESTIONS.md)** - Common interview questions
+
+## 🧠 SQL Theoretical Concepts
+
+### Relational Model Fundamentals
+
+**Tables (Relations):**
+A table represents an entity and consists of rows (tuples) and columns (attributes). Each table must have a primary key to uniquely identify rows.
+
 ```sql
--- Basic SELECT
-SELECT column1, column2 FROM table_name;
+-- Example: Users table structure
+CREATE TABLE users (
+    user_id INT PRIMARY KEY,           -- Unique identifier
+    username VARCHAR(50) NOT NULL,     -- Required field
+    email VARCHAR(100) UNIQUE,         -- Must be unique
+    created_at TIMESTAMP DEFAULT NOW(), -- Auto-populated
+    is_active BOOLEAN DEFAULT TRUE     -- Default value
+);
 
--- Filtering
-SELECT * FROM sales WHERE amount > 1000 AND date >= '2023-01-01';
+-- Insert sample data
+INSERT INTO users (user_id, username, email) VALUES
+(1, 'alice', 'alice@example.com'),
+(2, 'bob', 'bob@example.com'),
+(3, 'charlie', 'charlie@example.com');
 
--- Sorting
-SELECT * FROM customers ORDER BY created_date DESC, name ASC;
-
--- Limiting results
-SELECT * FROM products LIMIT 10;
+-- View the data
+SELECT * FROM users;
+-- Output:
+-- user_id | username | email              | created_at          | is_active
+-- 1       | alice    | alice@example.com  | 2024-01-01 10:00:00 | true
+-- 2       | bob      | bob@example.com    | 2024-01-01 10:00:01 | true
+-- 3       | charlie  | charlie@example.com| 2024-01-01 10:00:02 | true
 ```
 
-### 2. Aggregations and Grouping
+**Normalization:**
+The process of organizing data to reduce redundancy and improve data integrity.
+
 ```sql
--- Basic aggregations
+-- Before normalization (1NF violation - repeating groups)
+CREATE TABLE orders_bad (
+    order_id INT,
+    customer_name VARCHAR(100),
+    product1 VARCHAR(100),
+    product2 VARCHAR(100),
+    product3 VARCHAR(100)
+);
+
+-- After normalization (proper design)
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100)
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE
+);
+
+CREATE TABLE order_items (
+    order_id INT REFERENCES orders(order_id),
+    product_name VARCHAR(100),
+    quantity INT,
+    PRIMARY KEY (order_id, product_name)
+);
+```
+
+### Query Execution Process
+
+**SQL Query Execution Order:**
+Understanding how SQL processes queries helps write efficient code.
+
+```sql
+-- Logical execution order (not syntax order)
+SELECT customer_name, COUNT(*) as order_count    -- 5. SELECT
+FROM customers c                                  -- 1. FROM
+JOIN orders o ON c.customer_id = o.customer_id   -- 2. JOIN
+WHERE o.order_date >= '2024-01-01'              -- 3. WHERE
+GROUP BY customer_name                           -- 4. GROUP BY
+HAVING COUNT(*) > 2                             -- 6. HAVING
+ORDER BY order_count DESC                       -- 7. ORDER BY
+LIMIT 10;                                       -- 8. LIMIT
+
+-- This query finds customers with more than 2 orders since 2024
+-- Output example:
+-- customer_name | order_count
+-- Alice         | 5
+-- Bob           | 3
+```
+
+## 📊 Data Types & Structures
+
+### Numeric Types
+
+```sql
+-- Integer types
+CREATE TABLE numeric_examples (
+    small_int SMALLINT,      -- -32,768 to 32,767
+    regular_int INT,         -- -2 billion to 2 billion
+    big_int BIGINT,         -- Very large integers
+    
+    -- Decimal types (exact precision)
+    price DECIMAL(10,2),     -- 10 digits total, 2 after decimal
+    rate NUMERIC(5,4),       -- 5 digits total, 4 after decimal
+    
+    -- Floating point (approximate)
+    measurement FLOAT,       -- Single precision
+    calculation DOUBLE       -- Double precision
+);
+
+-- Insert examples
+INSERT INTO numeric_examples VALUES
+(100, 1000000, 9223372036854775807, 999.99, 0.1234, 3.14159, 2.718281828);
+
+-- Demonstrate precision differences
 SELECT 
-    COUNT(*) as total_orders,
-    SUM(amount) as total_revenue,
-    AVG(amount) as avg_order_value,
-    MAX(amount) as largest_order,
-    MIN(amount) as smallest_order
-FROM orders;
+    price,
+    price + 0.001 as price_plus,           -- Exact arithmetic
+    measurement,
+    measurement + 0.001 as measurement_plus -- Approximate arithmetic
+FROM numeric_examples;
+```
 
--- GROUP BY
+### String Types
+
+```sql
+-- String type examples
+CREATE TABLE string_examples (
+    fixed_char CHAR(10),        -- Fixed length, padded with spaces
+    variable_char VARCHAR(100), -- Variable length, up to 100 chars
+    long_text TEXT,            -- Unlimited length text
+    json_data JSON             -- JSON data type (PostgreSQL/MySQL)
+);
+
+-- String operations
 SELECT 
-    category,
-    COUNT(*) as product_count,
-    AVG(price) as avg_price
-FROM products
-GROUP BY category
-HAVING COUNT(*) > 5;
+    'Hello' || ' ' || 'World' as concatenation,           -- Hello World
+    UPPER('data engineering') as uppercase,               -- DATA ENGINEERING
+    LOWER('SQL QUERIES') as lowercase,                    -- sql queries
+    LENGTH('Hello World') as string_length,               -- 11
+    SUBSTRING('Hello World', 1, 5) as substring,          -- Hello
+    REPLACE('Hello World', 'World', 'SQL') as replaced;   -- Hello SQL
 ```
 
-### 3. Joins
+### Date and Time Types
+
 ```sql
--- INNER JOIN
-SELECT c.name, o.amount, o.order_date
-FROM customers c
-INNER JOIN orders o ON c.customer_id = o.customer_id;
+-- Date/time examples
+CREATE TABLE datetime_examples (
+    just_date DATE,                    -- 2024-01-01
+    just_time TIME,                    -- 14:30:00
+    date_and_time TIMESTAMP,           -- 2024-01-01 14:30:00
+    with_timezone TIMESTAMPTZ          -- 2024-01-01 14:30:00+00
+);
 
--- LEFT JOIN
-SELECT c.name, COALESCE(o.amount, 0) as amount
-FROM customers c
-LEFT JOIN orders o ON c.customer_id = o.customer_id;
-
--- Multiple joins
-SELECT c.name, o.amount, p.product_name
-FROM customers c
-JOIN orders o ON c.customer_id = o.customer_id
-JOIN products p ON o.product_id = p.product_id;
+-- Date operations
+SELECT 
+    CURRENT_DATE as today,                                    -- 2024-01-01
+    CURRENT_TIMESTAMP as now,                                 -- 2024-01-01 14:30:00
+    DATE '2024-01-01' + INTERVAL '30 days' as thirty_days_later, -- 2024-01-31
+    EXTRACT(YEAR FROM CURRENT_DATE) as current_year,          -- 2024
+    EXTRACT(MONTH FROM CURRENT_DATE) as current_month,        -- 1
+    DATE_TRUNC('month', CURRENT_DATE) as month_start;         -- 2024-01-01
 ```
 
-### 4. Window Functions
+## 🔍 Basic Query Operations
+
+### SELECT Fundamentals
+
 ```sql
--- Ranking
+-- Create sample data
+CREATE TABLE employees (
+    emp_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    department VARCHAR(50),
+    salary DECIMAL(10,2),
+    hire_date DATE
+);
+
+INSERT INTO employees VALUES
+(1, 'Alice Johnson', 'Engineering', 75000, '2022-01-15'),
+(2, 'Bob Smith', 'Marketing', 65000, '2022-03-20'),
+(3, 'Charlie Brown', 'Engineering', 80000, '2021-11-10'),
+(4, 'Diana Prince', 'HR', 70000, '2023-02-01'),
+(5, 'Eve Wilson', 'Engineering', 85000, '2021-08-15');
+
+-- Basic SELECT operations
+SELECT name, salary FROM employees;
+-- Output:
+-- name          | salary
+-- Alice Johnson | 75000
+-- Bob Smith     | 65000
+-- Charlie Brown | 80000
+-- Diana Prince  | 70000
+-- Eve Wilson    | 85000
+
+-- SELECT with calculations
 SELECT 
     name,
     salary,
-    RANK() OVER (ORDER BY salary DESC) as salary_rank,
-    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank
+    salary * 12 as annual_salary,
+    salary * 0.1 as monthly_bonus
 FROM employees;
 
--- Running totals
+-- Conditional logic with CASE
 SELECT 
-    date,
-    amount,
-    SUM(amount) OVER (ORDER BY date) as running_total
-FROM daily_sales;
-
--- Moving averages
-SELECT 
-    date,
-    amount,
-    AVG(amount) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as moving_avg_7day
-FROM daily_sales;
+    name,
+    salary,
+    CASE 
+        WHEN salary >= 80000 THEN 'Senior'
+        WHEN salary >= 70000 THEN 'Mid-level'
+        ELSE 'Junior'
+    END as level
+FROM employees;
+-- Output:
+-- name          | salary | level
+-- Alice Johnson | 75000  | Mid-level
+-- Bob Smith     | 65000  | Junior
+-- Charlie Brown | 80000  | Senior
+-- Diana Prince  | 70000  | Mid-level
+-- Eve Wilson    | 85000  | Senior
 ```
 
-### 5. Common Table Expressions (CTEs)
-```sql
--- Basic CTE
-WITH monthly_sales AS (
-    SELECT 
-        DATE_TRUNC('month', order_date) as month,
-        SUM(amount) as total_sales
-    FROM orders
-    GROUP BY DATE_TRUNC('month', order_date)
-)
-SELECT * FROM monthly_sales WHERE total_sales > 10000;
+### Filtering with WHERE
 
--- Recursive CTE (for hierarchical data)
-WITH RECURSIVE employee_hierarchy AS (
-    SELECT employee_id, name, manager_id, 1 as level
+```sql
+-- Basic filtering
+SELECT name, department, salary 
+FROM employees 
+WHERE department = 'Engineering';
+-- Output:
+-- name          | department  | salary
+-- Alice Johnson | Engineering | 75000
+-- Charlie Brown | Engineering | 80000
+-- Eve Wilson    | Engineering | 85000
+
+-- Multiple conditions
+SELECT name, salary 
+FROM employees 
+WHERE department = 'Engineering' 
+  AND salary > 75000;
+-- Output:
+-- name          | salary
+-- Charlie Brown | 80000
+-- Eve Wilson    | 85000
+
+-- Range filtering
+SELECT name, hire_date 
+FROM employees 
+WHERE hire_date BETWEEN '2022-01-01' AND '2022-12-31';
+-- Output:
+-- name          | hire_date
+-- Alice Johnson | 2022-01-15
+-- Bob Smith     | 2022-03-20
+
+-- Pattern matching
+SELECT name 
+FROM employees 
+WHERE name LIKE '%Johnson%';
+-- Output:
+-- name
+-- Alice Johnson
+
+-- NULL handling
+SELECT name, department 
+FROM employees 
+WHERE department IS NOT NULL;
+```
+
+### Sorting with ORDER BY
+
+```sql
+-- Sort by salary (ascending by default)
+SELECT name, salary 
+FROM employees 
+ORDER BY salary;
+-- Output:
+-- name          | salary
+-- Bob Smith     | 65000
+-- Diana Prince  | 70000
+-- Alice Johnson | 75000
+-- Charlie Brown | 80000
+-- Eve Wilson    | 85000
+
+-- Sort by multiple columns
+SELECT name, department, salary 
+FROM employees 
+ORDER BY department, salary DESC;
+-- Output:
+-- name          | department  | salary
+-- Eve Wilson    | Engineering | 85000
+-- Charlie Brown | Engineering | 80000
+-- Alice Johnson | Engineering | 75000
+-- Diana Prince  | HR          | 70000
+-- Bob Smith     | Marketing   | 65000
+```
+
+## 🔗 Joins & Relationships
+
+### Inner Joins
+
+```sql
+-- Create related tables
+CREATE TABLE departments (
+    dept_id INT PRIMARY KEY,
+    dept_name VARCHAR(50),
+    manager_id INT
+);
+
+CREATE TABLE projects (
+    project_id INT PRIMARY KEY,
+    project_name VARCHAR(100),
+    dept_id INT,
+    budget DECIMAL(12,2)
+);
+
+-- Insert sample data
+INSERT INTO departments VALUES
+(1, 'Engineering', 3),
+(2, 'Marketing', 2),
+(3, 'HR', 4);
+
+INSERT INTO projects VALUES
+(101, 'Website Redesign', 1, 50000),
+(102, 'Mobile App', 1, 75000),
+(103, 'Marketing Campaign', 2, 25000),
+(104, 'HR System', 3, 30000);
+
+-- Inner join - only matching records
+SELECT 
+    e.name,
+    d.dept_name,
+    p.project_name,
+    p.budget
+FROM employees e
+INNER JOIN departments d ON e.department = d.dept_name
+INNER JOIN projects p ON d.dept_id = p.dept_id;
+-- Output:
+-- name          | dept_name   | project_name      | budget
+-- Alice Johnson | Engineering | Website Redesign  | 50000
+-- Alice Johnson | Engineering | Mobile App        | 75000
+-- Charlie Brown | Engineering | Website Redesign  | 50000
+-- Charlie Brown | Engineering | Mobile App        | 75000
+-- Eve Wilson    | Engineering | Website Redesign  | 50000
+-- Eve Wilson    | Engineering | Mobile App        | 75000
+-- Bob Smith     | Marketing   | Marketing Campaign| 25000
+-- Diana Prince  | HR          | HR System         | 30000
+```
+
+### Outer Joins
+
+```sql
+-- Left join - all records from left table
+SELECT 
+    e.name,
+    d.dept_name,
+    d.manager_id
+FROM employees e
+LEFT JOIN departments d ON e.department = d.dept_name;
+
+-- Right join - all records from right table
+SELECT 
+    e.name,
+    d.dept_name
+FROM employees e
+RIGHT JOIN departments d ON e.department = d.dept_name;
+
+-- Full outer join - all records from both tables
+SELECT 
+    e.name,
+    d.dept_name
+FROM employees e
+FULL OUTER JOIN departments d ON e.department = d.dept_name;
+```
+
+### Self Joins
+
+```sql
+-- Find employees and their managers
+ALTER TABLE employees ADD COLUMN manager_id INT;
+
+UPDATE employees SET manager_id = 3 WHERE emp_id IN (1, 5);
+UPDATE employees SET manager_id = 2 WHERE emp_id = 4;
+
+SELECT 
+    e.name as employee,
+    m.name as manager
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.emp_id;
+-- Output:
+-- employee      | manager
+-- Alice Johnson | Charlie Brown
+-- Bob Smith     | null
+-- Charlie Brown | null
+-- Diana Prince  | Bob Smith
+-- Eve Wilson    | Charlie Brown
+```
+
+## 📈 Aggregations & Grouping
+
+### Basic Aggregations
+
+```sql
+-- Common aggregate functions
+SELECT 
+    COUNT(*) as total_employees,
+    COUNT(manager_id) as employees_with_managers,
+    AVG(salary) as average_salary,
+    MIN(salary) as minimum_salary,
+    MAX(salary) as maximum_salary,
+    SUM(salary) as total_payroll
+FROM employees;
+-- Output:
+-- total_employees | employees_with_managers | average_salary | minimum_salary | maximum_salary | total_payroll
+-- 5               | 3                       | 75000          | 65000          | 85000          | 375000
+```
+
+### GROUP BY Operations
+
+```sql
+-- Group by department
+SELECT 
+    department,
+    COUNT(*) as employee_count,
+    AVG(salary) as avg_salary,
+    MIN(hire_date) as earliest_hire,
+    MAX(hire_date) as latest_hire
+FROM employees
+GROUP BY department
+ORDER BY avg_salary DESC;
+-- Output:
+-- department  | employee_count | avg_salary | earliest_hire | latest_hire
+-- Engineering | 3              | 80000      | 2021-08-15    | 2022-01-15
+-- HR          | 1              | 70000      | 2023-02-01    | 2023-02-01
+-- Marketing   | 1              | 65000      | 2022-03-20    | 2022-03-20
+```
+
+### HAVING Clause
+
+```sql
+-- Filter groups with HAVING
+SELECT 
+    department,
+    COUNT(*) as employee_count,
+    AVG(salary) as avg_salary
+FROM employees
+GROUP BY department
+HAVING COUNT(*) > 1 AND AVG(salary) > 70000;
+-- Output:
+-- department  | employee_count | avg_salary
+-- Engineering | 3              | 80000
+```
+
+## 🪟 Window Functions
+
+### Basic Window Functions
+
+```sql
+-- Ranking functions
+SELECT 
+    name,
+    department,
+    salary,
+    ROW_NUMBER() OVER (ORDER BY salary DESC) as row_num,
+    RANK() OVER (ORDER BY salary DESC) as rank,
+    DENSE_RANK() OVER (ORDER BY salary DESC) as dense_rank
+FROM employees;
+-- Output:
+-- name          | department  | salary | row_num | rank | dense_rank
+-- Eve Wilson    | Engineering | 85000  | 1       | 1    | 1
+-- Charlie Brown | Engineering | 80000  | 2       | 2    | 2
+-- Alice Johnson | Engineering | 75000  | 3       | 3    | 3
+-- Diana Prince  | HR          | 70000  | 4       | 4    | 4
+-- Bob Smith     | Marketing   | 65000  | 5       | 5    | 5
+```
+
+### Partitioned Window Functions
+
+```sql
+-- Ranking within departments
+SELECT 
+    name,
+    department,
+    salary,
+    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank,
+    AVG(salary) OVER (PARTITION BY department) as dept_avg_salary
+FROM employees;
+-- Output:
+-- name          | department  | salary | dept_rank | dept_avg_salary
+-- Eve Wilson    | Engineering | 85000  | 1         | 80000
+-- Charlie Brown | Engineering | 80000  | 2         | 80000
+-- Alice Johnson | Engineering | 75000  | 3         | 80000
+-- Diana Prince  | HR          | 70000  | 1         | 70000
+-- Bob Smith     | Marketing   | 65000  | 1         | 65000
+```
+
+### Running Totals and Moving Averages
+
+```sql
+-- Running totals and moving averages
+SELECT 
+    name,
+    salary,
+    SUM(salary) OVER (ORDER BY hire_date) as running_total,
+    AVG(salary) OVER (ORDER BY hire_date ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) as moving_avg
+FROM employees
+ORDER BY hire_date;
+-- Output shows cumulative salary costs and 3-point moving averages
+```
+
+## 🔄 Subqueries & CTEs
+
+### Subqueries
+
+```sql
+-- Scalar subquery
+SELECT name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+-- Output:
+-- name          | salary
+-- Charlie Brown | 80000
+-- Eve Wilson    | 85000
+
+-- Correlated subquery
+SELECT 
+    e1.name,
+    e1.department,
+    e1.salary
+FROM employees e1
+WHERE e1.salary > (
+    SELECT AVG(e2.salary)
+    FROM employees e2
+    WHERE e2.department = e1.department
+);
+```
+
+### Common Table Expressions (CTEs)
+
+```sql
+-- Simple CTE
+WITH dept_stats AS (
+    SELECT 
+        department,
+        COUNT(*) as emp_count,
+        AVG(salary) as avg_salary
+    FROM employees
+    GROUP BY department
+)
+SELECT 
+    department,
+    emp_count,
+    avg_salary,
+    CASE 
+        WHEN avg_salary > 75000 THEN 'High Pay'
+        WHEN avg_salary > 65000 THEN 'Medium Pay'
+        ELSE 'Low Pay'
+    END as pay_category
+FROM dept_stats;
+-- Output:
+-- department  | emp_count | avg_salary | pay_category
+-- Engineering | 3         | 80000      | High Pay
+-- HR          | 1         | 70000      | Medium Pay
+-- Marketing   | 1         | 65000      | Low Pay
+```
+
+### Recursive CTEs
+
+```sql
+-- Recursive CTE for organizational hierarchy
+WITH RECURSIVE org_chart AS (
+    -- Base case: top-level managers
+    SELECT emp_id, name, manager_id, 0 as level
     FROM employees
     WHERE manager_id IS NULL
     
     UNION ALL
     
-    SELECT e.employee_id, e.name, e.manager_id, eh.level + 1
+    -- Recursive case: employees with managers
+    SELECT e.emp_id, e.name, e.manager_id, oc.level + 1
     FROM employees e
-    JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id
+    JOIN org_chart oc ON e.manager_id = oc.emp_id
 )
-SELECT * FROM employee_hierarchy;
+SELECT 
+    REPEAT('  ', level) || name as hierarchy,
+    level
+FROM org_chart
+ORDER BY level, name;
 ```
 
-### 6. Data Modification
+## ✏️ Data Modification
+
+### INSERT Operations
+
 ```sql
--- INSERT
-INSERT INTO customers (name, email, created_date)
-VALUES ('John Doe', 'john@example.com', CURRENT_DATE);
+-- Single row insert
+INSERT INTO employees (emp_id, name, department, salary, hire_date)
+VALUES (6, 'Frank Miller', 'Sales', 68000, '2024-01-01');
 
--- UPDATE
-UPDATE products 
-SET price = price * 1.1 
-WHERE category = 'electronics';
+-- Multiple row insert
+INSERT INTO employees VALUES
+(7, 'Grace Lee', 'Sales', 72000, '2024-01-15'),
+(8, 'Henry Davis', 'Engineering', 78000, '2024-02-01');
 
--- DELETE
-DELETE FROM orders 
-WHERE order_date < '2022-01-01';
-
--- UPSERT (PostgreSQL)
-INSERT INTO products (id, name, price)
-VALUES (1, 'Widget', 10.00)
-ON CONFLICT (id) 
-DO UPDATE SET price = EXCLUDED.price;
+-- Insert from SELECT
+INSERT INTO employees (emp_id, name, department, salary, hire_date)
+SELECT 
+    emp_id + 100,
+    'Temp ' || name,
+    'Temporary',
+    salary * 0.8,
+    CURRENT_DATE
+FROM employees
+WHERE department = 'Engineering';
 ```
 
-## 🔄 Advanced Patterns
+### UPDATE Operations
 
-### 1. Data Quality Checks
 ```sql
--- Find duplicates
-SELECT email, COUNT(*) 
-FROM customers 
-GROUP BY email 
-HAVING COUNT(*) > 1;
+-- Simple update
+UPDATE employees 
+SET salary = salary * 1.1 
+WHERE department = 'Engineering';
 
--- Check for nulls
-SELECT 
-    COUNT(*) as total_rows,
-    COUNT(email) as non_null_emails,
-    COUNT(*) - COUNT(email) as null_emails
-FROM customers;
+-- Update with joins
+UPDATE employees 
+SET salary = salary * 1.05
+FROM departments d
+WHERE employees.department = d.dept_name 
+  AND d.dept_id = 1;
 
--- Data validation
-SELECT *
-FROM orders
-WHERE amount <= 0 OR customer_id IS NULL;
+-- Conditional update
+UPDATE employees
+SET salary = CASE 
+    WHEN salary < 70000 THEN salary * 1.15
+    WHEN salary < 80000 THEN salary * 1.10
+    ELSE salary * 1.05
+END;
 ```
 
-### 2. Date/Time Operations
-```sql
--- Date arithmetic
-SELECT 
-    order_date,
-    order_date + INTERVAL '30 days' as due_date,
-    EXTRACT(YEAR FROM order_date) as order_year,
-    DATE_TRUNC('month', order_date) as order_month
-FROM orders;
+### DELETE Operations
 
--- Time-based aggregations
-SELECT 
-    DATE_TRUNC('week', order_date) as week,
-    COUNT(*) as orders_per_week
-FROM orders
-GROUP BY DATE_TRUNC('week', order_date)
-ORDER BY week;
+```sql
+-- Simple delete
+DELETE FROM employees 
+WHERE hire_date < '2022-01-01';
+
+-- Delete with subquery
+DELETE FROM employees
+WHERE salary < (SELECT AVG(salary) FROM employees);
+
+-- Delete with joins
+DELETE e
+FROM employees e
+JOIN departments d ON e.department = d.dept_name
+WHERE d.dept_id = 3;
 ```
 
-### 3. String Operations
+## 📊 Indexes & Performance
+
+### Index Types and Usage
+
 ```sql
--- String manipulation
-SELECT 
-    UPPER(name) as name_upper,
-    LENGTH(name) as name_length,
-    SUBSTRING(email FROM POSITION('@' IN email) + 1) as domain,
-    CONCAT(first_name, ' ', last_name) as full_name
-FROM customers;
-
--- Pattern matching
-SELECT * FROM products 
-WHERE name ILIKE '%widget%' OR description ~ 'electronic.*device';
-```
-
-### 4. Conditional Logic
-```sql
--- CASE statements
-SELECT 
-    name,
-    amount,
-    CASE 
-        WHEN amount < 100 THEN 'Small'
-        WHEN amount < 1000 THEN 'Medium'
-        ELSE 'Large'
-    END as order_size
-FROM orders;
-
--- COALESCE for null handling
-SELECT 
-    name,
-    COALESCE(phone, email, 'No contact') as contact_method
-FROM customers;
-```
-
-## 🏗️ Data Engineering Patterns
-
-### 1. ETL Transformations
-```sql
--- Slowly Changing Dimension (Type 2)
-INSERT INTO dim_customer_history
-SELECT 
-    customer_id,
-    name,
-    email,
-    address,
-    CURRENT_DATE as effective_date,
-    '9999-12-31'::date as end_date,
-    TRUE as is_current
-FROM staging_customers
-WHERE NOT EXISTS (
-    SELECT 1 FROM dim_customer_history d
-    WHERE d.customer_id = staging_customers.customer_id
-    AND d.is_current = TRUE
+-- Primary key index (automatically created)
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,  -- Clustered index
+    name VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10,2)
 );
-```
 
-### 2. Data Deduplication
-```sql
--- Remove duplicates keeping latest record
-DELETE FROM customers 
-WHERE id NOT IN (
-    SELECT MAX(id)
-    FROM customers
-    GROUP BY email
-);
-```
-
-### 3. Pivot Operations
-```sql
--- Pivot sales by month
-SELECT 
-    product_id,
-    SUM(CASE WHEN EXTRACT(MONTH FROM order_date) = 1 THEN amount ELSE 0 END) as jan_sales,
-    SUM(CASE WHEN EXTRACT(MONTH FROM order_date) = 2 THEN amount ELSE 0 END) as feb_sales,
-    SUM(CASE WHEN EXTRACT(MONTH FROM order_date) = 3 THEN amount ELSE 0 END) as mar_sales
-FROM orders
-GROUP BY product_id;
-```
-
-## ⚡ Performance Optimization
-
-### 1. Indexing Strategy
-```sql
--- Create indexes for common queries
-CREATE INDEX idx_orders_customer_date ON orders(customer_id, order_date);
+-- Single column index
 CREATE INDEX idx_products_category ON products(category);
 
--- Partial indexes
-CREATE INDEX idx_active_customers ON customers(created_date) 
-WHERE status = 'active';
+-- Composite index
+CREATE INDEX idx_products_category_price ON products(category, price);
+
+-- Unique index
+CREATE UNIQUE INDEX idx_products_name ON products(name);
+
+-- Partial index (PostgreSQL)
+CREATE INDEX idx_expensive_products ON products(price) 
+WHERE price > 1000;
 ```
 
-### 2. Query Optimization
+### Query Performance Analysis
+
 ```sql
--- Use EXISTS instead of IN for large subqueries
-SELECT * FROM customers c
+-- Use EXPLAIN to analyze query performance
+EXPLAIN ANALYZE
+SELECT p.name, p.price
+FROM products p
+WHERE p.category = 'Electronics'
+  AND p.price > 500
+ORDER BY p.price DESC;
+
+-- Example output interpretation:
+-- Seq Scan on products  (cost=0.00..25.00 rows=5 width=36) (actual time=0.123..0.456 rows=3 loops=1)
+--   Filter: ((category = 'Electronics') AND (price > 500))
+--   Rows Removed by Filter: 97
+-- Planning Time: 0.234 ms
+-- Execution Time: 0.567 ms
+```
+
+## 🔒 Transactions & ACID
+
+### Transaction Basics
+
+```sql
+-- Basic transaction
+BEGIN;
+    UPDATE employees SET salary = salary * 1.1 WHERE department = 'Engineering';
+    INSERT INTO salary_history (emp_id, old_salary, new_salary, change_date)
+    SELECT emp_id, salary / 1.1, salary, CURRENT_DATE
+    FROM employees WHERE department = 'Engineering';
+COMMIT;
+
+-- Transaction with rollback
+BEGIN;
+    DELETE FROM employees WHERE emp_id = 1;
+    -- Oops, wrong employee!
+ROLLBACK;  -- Undoes the delete
+```
+
+### Isolation Levels
+
+```sql
+-- Set transaction isolation level
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+BEGIN;
+    SELECT COUNT(*) FROM employees;  -- Sees committed data only
+    -- Other transactions can modify data
+    SELECT COUNT(*) FROM employees;  -- Might see different count
+COMMIT;
+
+-- Serializable isolation (highest level)
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
+    -- This transaction sees a consistent snapshot
+    SELECT AVG(salary) FROM employees;
+    UPDATE employees SET salary = salary * 1.1;
+COMMIT;
+```
+
+## 📋 Best Practices
+
+### Query Writing Best Practices
+
+```sql
+-- ✅ Good: Use meaningful aliases
+SELECT 
+    e.name as employee_name,
+    d.dept_name as department,
+    p.project_name
+FROM employees e
+JOIN departments d ON e.department = d.dept_name
+JOIN projects p ON d.dept_id = p.dept_id;
+
+-- ❌ Bad: No aliases, unclear intent
+SELECT employees.name, departments.dept_name, projects.project_name
+FROM employees, departments, projects
+WHERE employees.department = departments.dept_name
+  AND departments.dept_id = projects.dept_id;
+
+-- ✅ Good: Use EXISTS for existence checks
+SELECT name FROM employees e
 WHERE EXISTS (
-    SELECT 1 FROM orders o 
-    WHERE o.customer_id = c.customer_id
+    SELECT 1 FROM projects p 
+    JOIN departments d ON p.dept_id = d.dept_id
+    WHERE d.dept_name = e.department
 );
 
--- Limit data early in the pipeline
-SELECT customer_id, SUM(amount)
-FROM orders
-WHERE order_date >= '2023-01-01'  -- Filter early
-GROUP BY customer_id;
+-- ❌ Bad: Use IN with subquery (can be slower)
+SELECT name FROM employees
+WHERE department IN (
+    SELECT d.dept_name FROM projects p
+    JOIN departments d ON p.dept_id = d.dept_id
+);
 ```
 
-## 📊 When to Use SQL
-- **Data extraction**: Querying databases and data warehouses
-- **Data transformation**: ETL processes, data cleaning
-- **Analytics**: Reporting, business intelligence
-- **Data validation**: Quality checks, constraint enforcement
-- **Performance analysis**: Query optimization, indexing
+### Performance Optimization
+
+```sql
+-- ✅ Good: Filter early, join late
+WITH high_salary_employees AS (
+    SELECT emp_id, name, department
+    FROM employees
+    WHERE salary > 75000  -- Filter first
+)
+SELECT hse.name, d.dept_name
+FROM high_salary_employees hse
+JOIN departments d ON hse.department = d.dept_name;
+
+-- ✅ Good: Use appropriate data types
+CREATE TABLE optimized_table (
+    id INT NOT NULL,                    -- Not BIGINT if not needed
+    status CHAR(1),                     -- Not VARCHAR(50) for single char
+    created_date DATE,                  -- Not TIMESTAMP if time not needed
+    amount DECIMAL(10,2)                -- Not FLOAT for money
+);
+```
 
 ## 🎯 Interview Focus Areas
-1. **Joins**: Inner, outer, self-joins
-2. **Window functions**: Ranking, running totals, lag/lead
-3. **CTEs**: Recursive queries, complex transformations
-4. **Performance**: Indexing, query optimization
-5. **Data types**: Handling dates, strings, nulls
-6. **Aggregations**: GROUP BY, HAVING, statistical functions
-7. **Subqueries**: Correlated vs non-correlated
 
-## 📚 Quick References
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [SQL Standard Reference](https://www.iso.org/standard/63555.html)
-- [Window Functions Guide](https://www.postgresql.org/docs/current/tutorial-window.html)
-- [Query Performance Tips](https://www.postgresql.org/docs/current/performance-tips.html)
+### Essential Concepts to Master
+
+1. **JOIN Types**: INNER, LEFT, RIGHT, FULL OUTER, CROSS
+2. **Aggregations**: GROUP BY, HAVING, window functions
+3. **Subqueries**: Correlated vs non-correlated, EXISTS vs IN
+4. **Indexes**: When to use, types, performance impact
+5. **Transactions**: ACID properties, isolation levels
+6. **Performance**: Query optimization, execution plans
+
+### Common Interview Questions
+
+**Q: What's the difference between WHERE and HAVING?**
+```sql
+-- WHERE filters rows before grouping
+SELECT department, AVG(salary)
+FROM employees
+WHERE salary > 70000  -- Filter individual rows first
+GROUP BY department;
+
+-- HAVING filters groups after grouping
+SELECT department, AVG(salary)
+FROM employees
+GROUP BY department
+HAVING AVG(salary) > 70000;  -- Filter groups based on aggregate
+```
+
+**Q: Explain the difference between UNION and UNION ALL**
+```sql
+-- UNION removes duplicates (slower)
+SELECT name FROM employees WHERE department = 'Engineering'
+UNION
+SELECT name FROM employees WHERE salary > 75000;
+
+-- UNION ALL keeps duplicates (faster)
+SELECT name FROM employees WHERE department = 'Engineering'
+UNION ALL
+SELECT name FROM employees WHERE salary > 75000;
+```
+
+**Q: How do you find the second highest salary?**
+```sql
+-- Method 1: Using window functions (preferred)
+SELECT DISTINCT salary
+FROM (
+    SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) as rank
+    FROM employees
+) ranked
+WHERE rank = 2;
+
+-- Method 2: Using subquery
+SELECT MAX(salary)
+FROM employees
+WHERE salary < (SELECT MAX(salary) FROM employees);
+```
+
+### Practice Exercises
+
+**Exercise 1: Complex Joins**
+```sql
+-- Find employees working on projects with budgets > $40,000
+SELECT DISTINCT
+    e.name,
+    e.salary,
+    p.project_name,
+    p.budget
+FROM employees e
+JOIN departments d ON e.department = d.dept_name
+JOIN projects p ON d.dept_id = p.dept_id
+WHERE p.budget > 40000
+ORDER BY e.salary DESC;
+```
+
+**Exercise 2: Window Functions**
+```sql
+-- Calculate running total of salaries by hire date
+SELECT 
+    name,
+    hire_date,
+    salary,
+    SUM(salary) OVER (ORDER BY hire_date) as running_total,
+    RANK() OVER (PARTITION BY department ORDER BY salary DESC) as dept_salary_rank
+FROM employees
+ORDER BY hire_date;
+```
+
+## 🚀 Next Steps
+
+After mastering these SQL concepts:
+
+1. **Advanced Topics**: Study [SQL Advanced Database Engineering](./SQL_ADVANCED_DATABASE_ENGINEERING.md)
+2. **Practice**: Use [SQL Quick Reference](./SQL_QUICK_REFERENCE.md) for daily operations
+3. **Specialization**: Learn database-specific features (PostgreSQL, MySQL, SQL Server)
+4. **Integration**: Combine with Python, Spark, and other data tools
+5. **Performance**: Master query optimization and database tuning
+
+SQL is the foundation of data engineering - master it well! 🎯

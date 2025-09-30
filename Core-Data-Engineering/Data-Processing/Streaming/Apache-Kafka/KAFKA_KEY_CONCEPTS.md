@@ -1,973 +1,1366 @@
-# Apache Kafka Key Concepts for Data Engineers
+# 🚀 Apache Kafka - Key Concepts & Fundamentals
+
+[![Kafka Version](https://img.shields.io/badge/Kafka-3.6+-blue)](https://kafka.apache.org/)
+[![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-yellow)](https://github.com/yourusername/Data-Engineering-Material)
+[![Interview Frequency](https://img.shields.io/badge/Interview%20Frequency-Very%20High-red)](https://github.com/yourusername/Data-Engineering-Material)
+
+> **The complete guide to Apache Kafka for data engineering - from fundamentals to production streaming**
 
 ## 📋 Table of Contents
 
-1. [Platform Overview](#platform-overview)
-2. [Core Architecture](#core-architecture)
-3. [Topics and Partitions](#topics-and-partitions)
-4. [Producers and Consumers](#producers-and-consumers)
-5. [Replication and Fault Tolerance](#replication-and-fault-tolerance)
-6. [Stream Processing](#stream-processing)
-7. [Performance Optimization](#performance-optimization)
-8. [Production Best Practices](#production-best-practices)
+1. [What is Apache Kafka?](#-what-is-apache-kafka)
+2. [Core Architecture](#-core-architecture)
+3. [Key Components](#-key-components)
+4. [Topics and Partitions](#-topics-and-partitions)
+5. [Producers and Consumers](#-producers-and-consumers)
+6. [Message Delivery Semantics](#-message-delivery-semantics)
+7. [Kafka Connect](#-kafka-connect)
+8. [Kafka Streams](#-kafka-streams)
+9. [Configuration Essentials](#-configuration-essentials)
+10. [Common Use Cases](#-common-use-cases)
+11. [Best Practices](#-best-practices)
+12. [Interview Preparation](#-interview-preparation)
 
 ---
 
-## Platform Overview
+## 🎯 What is Apache Kafka?
 
-### What is Apache Kafka?
+Apache Kafka is a **distributed streaming platform** designed for building real-time data pipelines and streaming applications. Think of it as a high-performance message bus that can handle millions of events per second.
 
-**Apache Kafka** is a distributed streaming platform designed for building real-time data pipelines and streaming applications.
+### 🔑 Key Characteristics
 
-#### 🎯 **Core Capabilities**
-- **Publish-Subscribe**: Decouple data producers from consumers
-- **High Throughput**: Handle millions of messages per second
-- **Fault Tolerance**: Replicated, persistent, fault-tolerant
-- **Scalability**: Horizontally scalable across machines
-- **Real-time**: Low-latency message delivery
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Apache Kafka                             │
+├─────────────────────────────────────────────────────────────┤
+│ ✅ Distributed & Fault-Tolerant                            │
+│ ✅ High Throughput (millions of messages/sec)              │
+│ ✅ Low Latency (sub-millisecond)                           │
+│ ✅ Persistent Storage (configurable retention)             │
+│ ✅ Horizontal Scalability                                  │
+│ ✅ Real-time Stream Processing                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🏗️ Traditional vs Kafka Architecture
 
 ```python
-from kafka import KafkaProducer, KafkaConsumer
-import json
-import time
+# Traditional Message Queue (Point-to-Point)
+"""
+Producer → Queue → Consumer
+- One message consumed by one consumer
+- Message deleted after consumption
+- Limited scalability
+"""
 
-# Basic Kafka setup demonstration
-def kafka_overview_demo():
-    """Demonstrate basic Kafka concepts"""
+# Kafka Pub/Sub Model
+"""
+Producer → Topic (Partitioned) → Multiple Consumer Groups
+- Messages retained for configured time
+- Multiple consumers can read same message
+- Horizontal scaling through partitions
+"""
+```
+
+---
+
+## 🏗️ Core Architecture
+
+### 🎯 High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Kafka Cluster                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │   Broker 1  │  │   Broker 2  │  │   Broker 3  │        │
+│  │             │  │             │  │             │        │
+│  │ Topic A     │  │ Topic A     │  │ Topic B     │        │
+│  │ Partition 0 │  │ Partition 1 │  │ Partition 0 │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+└─────────────────────────────────────────────────────────────┘
+           ▲                                    │
+           │                                    ▼
+    ┌─────────────┐                    ┌─────────────┐
+    │  Producers  │                    │  Consumers  │
+    │             │                    │             │
+    │ App 1       │                    │ App A       │
+    │ App 2       │                    │ App B       │
+    │ App 3       │                    │ App C       │
+    └─────────────┘                    └─────────────┘
+```
+
+### 🔧 Core Components Interaction
+
+```python
+# Conceptual flow of data in Kafka
+def kafka_data_flow():
+    """
+    1. Producer sends message to Topic
+    2. Kafka stores message in Partition
+    3. Message replicated across Brokers
+    4. Consumer reads from assigned Partitions
+    5. Consumer commits offset
+    """
     
-    # Producer - sends data to Kafka
-    producer = KafkaProducer(
-        bootstrap_servers=['localhost:9092'],
-        value_serializer=lambda v: json.dumps(v).encode('utf-8')
-    )
-    
-    # Sample streaming data
-    events = [
-        {"timestamp": time.time(), "user_id": "user_1", "action": "login"},
-        {"timestamp": time.time(), "user_id": "user_2", "action": "purchase", "amount": 99.99},
-        {"timestamp": time.time(), "user_id": "user_1", "action": "logout"}
+    flow_steps = [
+        "Producer → Topic Selection",
+        "Topic → Partition Assignment (by key/round-robin)",
+        "Partition → Broker Storage",
+        "Broker → Replication (if configured)",
+        "Consumer → Partition Assignment",
+        "Consumer → Message Processing",
+        "Consumer → Offset Commit"
     ]
     
-    print("📤 Producing messages to Kafka:")
-    for event in events:
-        future = producer.send('demo-topic', value=event)
-        result = future.get(timeout=10)
-        print(f"  ✅ Sent: {event['action']} -> Partition {result.partition}, Offset {result.offset}")
-    
-    producer.close()
-    
-    # Consumer - reads data from Kafka
-    consumer = KafkaConsumer(
-        'demo-topic',
-        bootstrap_servers=['localhost:9092'],
-        value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-        auto_offset_reset='earliest',
-        consumer_timeout_ms=5000
-    )
-    
-    print("\n📥 Consuming messages from Kafka:")
-    for message in consumer:
-        print(f"  📨 Received: {message.value}")
-    
-    consumer.close()
+    return flow_steps
 
-# Run the demo
-kafka_overview_demo()
-```
+print("Kafka Data Flow:")
+for i, step in enumerate(kafka_data_flow(), 1):
+    print(f"{i}. {step}")
 
-**Output:**
-```
-📤 Producing messages to Kafka:
-  ✅ Sent: login -> Partition 0, Offset 1001
-  ✅ Sent: purchase -> Partition 1, Offset 2001
-  ✅ Sent: logout -> Partition 0, Offset 1002
-
-📥 Consuming messages from Kafka:
-  📨 Received: {'timestamp': 1705312200.123, 'user_id': 'user_1', 'action': 'login'}
-  📨 Received: {'timestamp': 1705312200.456, 'user_id': 'user_2', 'action': 'purchase', 'amount': 99.99}
-  📨 Received: {'timestamp': 1705312200.789, 'user_id': 'user_1', 'action': 'logout'}
-```
-
-### Use Cases
-
-#### 🎯 **Common Kafka Use Cases**
-- **Real-time Analytics**: Stream processing for immediate insights
-- **Event Sourcing**: Store all changes as sequence of events
-- **Log Aggregation**: Centralized logging from multiple services
-- **Data Integration**: Connect different systems and databases
-- **Microservices Communication**: Asynchronous service communication
-
----
-
-## Core Architecture
-
-### Kafka Cluster Components
-
-#### 🎯 **Architecture Overview**
-- **Brokers**: Kafka servers that store and serve data
-- **Zookeeper**: Coordination service (being replaced by KRaft)
-- **Topics**: Logical channels for data organization
-- **Partitions**: Physical storage units for scalability
-- **Replicas**: Copies of partitions for fault tolerance
-
-```python
-from kafka.admin import KafkaAdminClient, NewTopic
-from kafka import KafkaProducer
-import json
-
-def explore_kafka_architecture():
-    """Explore Kafka cluster architecture"""
-    
-    # Admin client to manage cluster
-    admin_client = KafkaAdminClient(
-        bootstrap_servers=['localhost:9092'],
-        client_id='architecture-explorer'
-    )
-    
-    # Create topic with specific configuration
-    topic_config = NewTopic(
-        name='architecture-demo',
-        num_partitions=3,
-        replication_factor=1,
-        topic_configs={
-            'retention.ms': '604800000',  # 7 days
-            'segment.ms': '86400000',     # 1 day segments
-            'compression.type': 'gzip'
-        }
-    )
-    
-    try:
-        admin_client.create_topics([topic_config])
-        print("✅ Topic 'architecture-demo' created")
-    except Exception as e:
-        print(f"Topic exists or error: {e}")
-    
-    # Get cluster metadata
-    metadata = admin_client.describe_topics(['architecture-demo'])
-    
-    print("\n🏗️ Cluster Architecture:")
-    for topic_name, topic_metadata in metadata.items():
-        print(f"Topic: {topic_name}")
-        print(f"  Partitions: {len(topic_metadata.partitions)}")
-        
-        for partition in topic_metadata.partitions:
-            print(f"    Partition {partition.partition_id}:")
-            print(f"      Leader Broker: {partition.leader}")
-            print(f"      Replica Brokers: {partition.replicas}")
-            print(f"      In-Sync Replicas: {partition.isr}")
-    
-    # Demonstrate partition assignment
-    producer = KafkaProducer(
-        bootstrap_servers=['localhost:9092'],
-        value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-        key_serializer=lambda k: k.encode('utf-8')
-    )
-    
-    print("\n📊 Partition Assignment Demo:")
-    test_keys = ['user_1', 'user_2', 'user_3', 'user_4', 'user_5']
-    
-    for key in test_keys:
-        message = {"user": key, "data": f"test_data_for_{key}"}
-        future = producer.send('architecture-demo', key=key, value=message)
-        result = future.get(timeout=10)
-        print(f"  Key '{key}' -> Partition {result.partition}")
-    
-    producer.close()
-    admin_client.close()
-
-explore_kafka_architecture()
-```
-
-**Output:**
-```
-✅ Topic 'architecture-demo' created
-
-🏗️ Cluster Architecture:
-Topic: architecture-demo
-  Partitions: 3
-    Partition 0:
-      Leader Broker: 1
-      Replica Brokers: [1]
-      In-Sync Replicas: [1]
-    Partition 1:
-      Leader Broker: 1
-      Replica Brokers: [1]
-      In-Sync Replicas: [1]
-    Partition 2:
-      Leader Broker: 1
-      Replica Brokers: [1]
-      In-Sync Replicas: [1]
-
-📊 Partition Assignment Demo:
-  Key 'user_1' -> Partition 2
-  Key 'user_2' -> Partition 0
-  Key 'user_3' -> Partition 1
-  Key 'user_4' -> Partition 2
-  Key 'user_5' -> Partition 0
+# Output:
+# Kafka Data Flow:
+# 1. Producer → Topic Selection
+# 2. Topic → Partition Assignment (by key/round-robin)
+# 3. Partition → Broker Storage
+# 4. Broker → Replication (if configured)
+# 5. Consumer → Partition Assignment
+# 6. Consumer → Message Processing
+# 7. Consumer → Offset Commit
 ```
 
 ---
 
-## Topics and Partitions
+## 🧩 Key Components
 
-### Topic Management
+### 1️⃣ **Broker**
 
-**Topics** are logical channels that organize related messages. **Partitions** enable parallel processing and scalability.
-
-#### 🎯 **Partition Strategy**
-- **Key-based**: Messages with same key go to same partition
-- **Round-robin**: Even distribution when no key provided
-- **Custom**: Use custom partitioner for specific logic
+A Kafka server that stores and serves data. Multiple brokers form a cluster.
 
 ```python
-from kafka.admin import KafkaAdminClient, NewTopic, ConfigResource, ConfigResourceType
-from kafka import KafkaProducer
-import hashlib
+# Broker responsibilities
+broker_functions = {
+    "storage": "Persist messages to disk",
+    "replication": "Maintain copies of partitions",
+    "serving": "Handle producer/consumer requests",
+    "coordination": "Participate in leader election",
+    "metadata": "Store topic/partition information"
+}
 
-class CustomPartitioner:
-    """Custom partitioner based on user region"""
-    
-    def __init__(self, partitions):
-        self.partitions = partitions
-    
-    def partition(self, key, all_partitions, available_partitions):
-        """Partition based on user region extracted from key"""
-        if key is None:
-            return 0
-        
-        # Extract region from key (assuming format: region_userid)
-        if '_' in key:
-            region = key.split('_')[0]
-            region_hash = hash(region) % len(all_partitions)
-            return region_hash
-        
-        # Default hash-based partitioning
-        return hash(key) % len(all_partitions)
+# Example broker configuration
+broker_config = {
+    "broker.id": 1,
+    "listeners": "PLAINTEXT://localhost:9092",
+    "log.dirs": "/var/kafka-logs",
+    "num.network.threads": 8,
+    "num.io.threads": 8,
+    "socket.send.buffer.bytes": 102400,
+    "socket.receive.buffer.bytes": 102400
+}
 
-def demonstrate_partitioning():
-    """Demonstrate different partitioning strategies"""
+print("Broker Configuration Example:")
+for key, value in broker_config.items():
+    print(f"  {key}: {value}")
+```
+
+### 2️⃣ **ZooKeeper** (Legacy) / **KRaft** (New)
+
+Coordination service for managing cluster metadata.
+
+```python
+# ZooKeeper vs KRaft comparison
+coordination_comparison = {
+    "ZooKeeper (Legacy)": {
+        "pros": ["Mature", "Battle-tested", "External service"],
+        "cons": ["Additional complexity", "Separate maintenance", "Scaling limitations"]
+    },
+    "KRaft (Kafka 2.8+)": {
+        "pros": ["Simplified architecture", "Better scaling", "Reduced latency"],
+        "cons": ["Newer technology", "Migration required"]
+    }
+}
+
+print("Coordination Services Comparison:")
+for service, details in coordination_comparison.items():
+    print(f"\n{service}:")
+    print(f"  Pros: {', '.join(details['pros'])}")
+    print(f"  Cons: {', '.join(details['cons'])}")
+```
+
+### 3️⃣ **Topic**
+
+A category or feed name to which messages are published.
+
+```python
+# Topic characteristics
+def explain_topic_structure():
+    """
+    Topic: Logical grouping of messages
+    - Similar to a database table
+    - Contains related messages
+    - Divided into partitions for scalability
+    """
     
-    admin_client = KafkaAdminClient(bootstrap_servers=['localhost:9092'])
+    topic_example = {
+        "name": "user-events",
+        "partitions": 3,
+        "replication_factor": 2,
+        "retention_ms": 604800000,  # 7 days
+        "cleanup_policy": "delete"
+    }
     
-    # Create topic for partitioning demo
-    partitioning_topic = NewTopic(
-        name='partitioning-demo',
-        num_partitions=4,
-        replication_factor=1
-    )
+    return topic_example
+
+topic_info = explain_topic_structure()
+print("Topic Example:")
+for key, value in topic_info.items():
+    print(f"  {key}: {value}")
+
+# Output:
+# Topic Example:
+#   name: user-events
+#   partitions: 3
+#   replication_factor: 2
+#   retention_ms: 604800000
+#   cleanup_policy: delete
+```
+
+---
+
+## 📊 Topics and Partitions
+
+### 🎯 Partition Fundamentals
+
+```python
+# Partition concept visualization
+def visualize_partitions():
+    """
+    Topic: user-events (3 partitions)
     
-    try:
-        admin_client.create_topics([partitioning_topic])
-        print("✅ Partitioning demo topic created")
-    except:
-        print("Topic already exists")
+    Partition 0: [msg1] [msg4] [msg7] [msg10]
+    Partition 1: [msg2] [msg5] [msg8] [msg11]
+    Partition 2: [msg3] [msg6] [msg9] [msg12]
     
-    # Producer with default partitioning
-    producer = KafkaProducer(
-        bootstrap_servers=['localhost:9092'],
-        value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-        key_serializer=lambda k: k.encode('utf-8') if k else None
-    )
+    - Messages within partition are ordered
+    - Messages across partitions are not ordered
+    - Each partition can be on different brokers
+    """
     
-    print("\n🎯 Partitioning Strategies:")
+    partitions = {
+        0: ["msg1", "msg4", "msg7", "msg10"],
+        1: ["msg2", "msg5", "msg8", "msg11"],
+        2: ["msg3", "msg6", "msg9", "msg12"]
+    }
     
-    # 1. Key-based partitioning
-    print("\n1. Key-based partitioning:")
-    user_data = [
-        ('us_user1', {'region': 'us', 'action': 'login'}),
-        ('eu_user1', {'region': 'eu', 'action': 'login'}),
-        ('us_user2', {'region': 'us', 'action': 'purchase'}),
-        ('eu_user2', {'region': 'eu', 'action': 'purchase'}),
-        ('asia_user1', {'region': 'asia', 'action': 'login'})
+    print("Topic: user-events")
+    for partition_id, messages in partitions.items():
+        print(f"Partition {partition_id}: {' → '.join(messages)}")
+    
+    return partitions
+
+visualize_partitions()
+
+# Output:
+# Topic: user-events
+# Partition 0: msg1 → msg4 → msg7 → msg10
+# Partition 1: msg2 → msg5 → msg8 → msg11
+# Partition 2: msg3 → msg6 → msg9 → msg12
+```
+
+### 🔑 Partitioning Strategies
+
+```python
+# Different partitioning approaches
+def partitioning_strategies():
+    """
+    1. Key-based: Messages with same key go to same partition
+    2. Round-robin: Messages distributed evenly across partitions
+    3. Custom: User-defined partitioning logic
+    """
+    
+    # Example: Key-based partitioning
+    def get_partition_by_key(key, num_partitions):
+        """Hash-based partition assignment"""
+        return hash(key) % num_partitions
+    
+    # Test with user IDs
+    user_messages = [
+        {"user_id": "user1", "event": "login"},
+        {"user_id": "user2", "event": "purchase"},
+        {"user_id": "user1", "event": "logout"},  # Same partition as first user1
+        {"user_id": "user3", "event": "signup"}
     ]
     
-    for key, data in user_data:
-        future = producer.send('partitioning-demo', key=key, value=data)
-        result = future.get(timeout=10)
-        print(f"  Key '{key}' -> Partition {result.partition}")
+    num_partitions = 3
     
-    # 2. No key (round-robin)
-    print("\n2. Round-robin partitioning (no key):")
-    for i in range(5):
-        data = {'message_id': i, 'data': f'message_{i}'}
-        future = producer.send('partitioning-demo', value=data)
-        result = future.get(timeout=10)
-        print(f"  Message {i} -> Partition {result.partition}")
+    print("Key-based Partitioning Example:")
+    for msg in user_messages:
+        partition = get_partition_by_key(msg["user_id"], num_partitions)
+        print(f"  {msg['user_id']} ({msg['event']}) → Partition {partition}")
     
-    producer.close()
-    
-    # Topic configuration management
-    print("\n⚙️ Topic Configuration:")
-    configs = admin_client.describe_configs(
-        config_resources=[ConfigResource(ConfigResourceType.TOPIC, 'partitioning-demo')]
-    )
-    
-    for resource, config in configs.items():
-        print(f"Topic: {resource.name}")
-        important_configs = ['retention.ms', 'segment.ms', 'compression.type', 'cleanup.policy']
-        for config_name in important_configs:
-            if config_name in config.configs:
-                print(f"  {config_name}: {config.configs[config_name].value}")
-    
-    admin_client.close()
+    return user_messages
 
-demonstrate_partitioning()
+partitioning_strategies()
+
+# Output:
+# Key-based Partitioning Example:
+#   user1 (login) → Partition 2
+#   user2 (purchase) → Partition 0
+#   user1 (logout) → Partition 2
+#   user3 (signup) → Partition 1
 ```
 
-**Output:**
-```
-✅ Partitioning demo topic created
-
-🎯 Partitioning Strategies:
-
-1. Key-based partitioning:
-  Key 'us_user1' -> Partition 1
-  Key 'eu_user1' -> Partition 3
-  Key 'us_user2' -> Partition 1
-  Key 'eu_user2' -> Partition 3
-  Key 'asia_user1' -> Partition 0
-
-2. Round-robin partitioning (no key):
-  Message 0 -> Partition 0
-  Message 1 -> Partition 1
-  Message 2 -> Partition 2
-  Message 3 -> Partition 3
-  Message 4 -> Partition 0
-
-⚙️ Topic Configuration:
-Topic: partitioning-demo
-  retention.ms: 604800000
-  segment.ms: 604800000
-  compression.type: producer
-  cleanup.policy: delete
-```
-
-### Offset Management
-
-#### 🎯 **Offset Concepts**
-- **Current Offset**: Last message read by consumer
-- **Committed Offset**: Last successfully processed message
-- **Log End Offset**: Latest message in partition
-- **Lag**: Difference between log end and current offset
+### 📈 Partition Scaling Considerations
 
 ```python
-from kafka import KafkaConsumer, TopicPartition, OffsetAndMetadata
-import time
-
-def demonstrate_offset_management():
-    """Demonstrate offset management and tracking"""
+# Partition planning guidelines
+def partition_planning_guide():
+    """
+    Factors to consider when choosing partition count:
+    """
     
-    # Create consumer with manual offset management
-    consumer = KafkaConsumer(
-        bootstrap_servers=['localhost:9092'],
-        group_id='offset-demo-group',
-        value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-        key_deserializer=lambda m: m.decode('utf-8') if m else None,
-        enable_auto_commit=False,  # Manual offset management
-        auto_offset_reset='earliest'
-    )
-    
-    # Subscribe to topic
-    topic = 'partitioning-demo'
-    consumer.subscribe([topic])
-    
-    print("🔍 Offset Management Demo:")
-    
-    # Get partition assignment (may take a moment)
-    consumer.poll(timeout_ms=1000)
-    partitions = consumer.assignment()
-    
-    if not partitions:
-        print("No partitions assigned")
-        consumer.close()
-        return
-    
-    print(f"Assigned partitions: {[p.partition for p in partitions]}")
-    
-    # Get current positions and committed offsets
-    print("\n📊 Offset Information:")
-    for partition in partitions:
-        # Current position (next message to read)
-        position = consumer.position(partition)
-        
-        # Last committed offset
-        committed = consumer.committed(partition)
-        committed_offset = committed.offset if committed else "None"
-        
-        # High water mark (latest available offset)
-        high_water_mark = consumer.end_offsets([partition])[partition]
-        
-        # Calculate lag
-        lag = high_water_mark - position if position is not None else "Unknown"
-        
-        print(f"  Partition {partition.partition}:")
-        print(f"    Current Position: {position}")
-        print(f"    Committed Offset: {committed_offset}")
-        print(f"    High Water Mark: {high_water_mark}")
-        print(f"    Consumer Lag: {lag}")
-    
-    # Consume some messages with manual commit
-    print("\n📥 Consuming with manual offset management:")
-    message_count = 0
-    batch_size = 3
-    
-    for message in consumer:
-        print(f"  📨 Partition {message.partition}, Offset {message.offset}: {message.value}")
-        message_count += 1
-        
-        # Commit every batch_size messages
-        if message_count % batch_size == 0:
-            # Manual commit
-            consumer.commit()
-            print(f"    ✅ Committed offset {message.offset + 1}")
-        
-        if message_count >= 6:  # Limit for demo
-            break
-    
-    # Demonstrate seeking to specific offset
-    print("\n🎯 Seeking to specific offset:")
-    if partitions:
-        partition = list(partitions)[0]
-        
-        # Seek to beginning
-        consumer.seek_to_beginning(partition)
-        position_after_seek = consumer.position(partition)
-        print(f"  After seek_to_beginning: Position = {position_after_seek}")
-        
-        # Seek to specific offset
-        consumer.seek(partition, 5)
-        position_after_specific_seek = consumer.position(partition)
-        print(f"  After seek to offset 5: Position = {position_after_specific_seek}")
-    
-    consumer.close()
-
-demonstrate_offset_management()
-```
-
-**Output:**
-```
-🔍 Offset Management Demo:
-Assigned partitions: [0, 1, 2, 3]
-
-📊 Offset Information:
-  Partition 0:
-    Current Position: 0
-    Committed Offset: None
-    High Water Mark: 3
-    Consumer Lag: 3
-  Partition 1:
-    Current Position: 0
-    Committed Offset: None
-    High Water Mark: 2
-    Consumer Lag: 2
-  Partition 2:
-    Current Position: 0
-    Committed Offset: None
-    High Water Mark: 1
-    Consumer Lag: 1
-  Partition 3:
-    Current Position: 0
-    Committed Offset: None
-    High Water Mark: 2
-    Consumer Lag: 2
-
-📥 Consuming with manual offset management:
-  📨 Partition 0, Offset 0: {'message_id': 0, 'data': 'message_0'}
-  📨 Partition 0, Offset 1: {'message_id': 4, 'data': 'message_4'}
-  📨 Partition 0, Offset 2: {'region': 'asia', 'action': 'login'}
-    ✅ Committed offset 3
-  📨 Partition 1, Offset 0: {'region': 'us', 'action': 'login'}
-  📨 Partition 1, Offset 1: {'region': 'us', 'action': 'purchase'}
-  📨 Partition 2, Offset 0: {'message_id': 2, 'data': 'message_2'}
-    ✅ Committed offset 1
-
-🎯 Seeking to specific offset:
-  After seek_to_beginning: Position = 0
-  After seek to offset 5: Position = 5
-```
-
----
-
-## Producers and Consumers
-
-### Producer Configuration
-
-#### 🎯 **Key Producer Settings**
-- **acks**: Acknowledgment level (0, 1, all)
-- **retries**: Number of retry attempts
-- **batch.size**: Batch size for efficiency
-- **linger.ms**: Wait time for batching
-- **compression.type**: Compression algorithm
-
-```python
-from kafka import KafkaProducer
-import json
-import time
-import threading
-
-def demonstrate_producer_configurations():
-    """Demonstrate different producer configurations and their impact"""
-    
-    configurations = [
-        {
-            'name': 'High Throughput',
-            'config': {
-                'acks': 1,
-                'retries': 0,
-                'batch_size': 32768,  # 32KB
-                'linger_ms': 50,
-                'compression_type': 'gzip',
-                'buffer_memory': 67108864  # 64MB
-            }
+    considerations = {
+        "throughput": {
+            "rule": "More partitions = higher throughput",
+            "example": "1M msgs/sec might need 10-50 partitions"
         },
-        {
-            'name': 'High Durability',
-            'config': {
-                'acks': 'all',
-                'retries': 3,
-                'batch_size': 16384,  # 16KB
-                'linger_ms': 0,
-                'compression_type': 'snappy',
-                'max_in_flight_requests_per_connection': 1
-            }
+        "parallelism": {
+            "rule": "Max consumers = number of partitions",
+            "example": "3 partitions = max 3 consumers in group"
         },
-        {
-            'name': 'Balanced',
-            'config': {
-                'acks': 1,
-                'retries': 1,
-                'batch_size': 16384,
-                'linger_ms': 10,
-                'compression_type': 'lz4'
-            }
+        "ordering": {
+            "rule": "Ordering only within partition",
+            "example": "User events need same partition for ordering"
+        },
+        "rebalancing": {
+            "rule": "More partitions = longer rebalancing",
+            "example": "100+ partitions can cause delays"
         }
-    ]
+    }
     
-    # Test data
-    test_messages = [
-        {'id': i, 'data': f'test_message_{i}', 'timestamp': time.time()}
-        for i in range(100)
-    ]
+    print("Partition Planning Considerations:")
+    for factor, details in considerations.items():
+        print(f"\n{factor.upper()}:")
+        print(f"  Rule: {details['rule']}")
+        print(f"  Example: {details['example']}")
     
-    print("🚀 Producer Configuration Comparison:")
-    
-    for config_test in configurations:
-        print(f"\n📊 Testing {config_test['name']} Configuration:")
-        
-        # Create producer with specific configuration
-        producer_config = {
-            'bootstrap_servers': ['localhost:9092'],
-            'value_serializer': lambda v: json.dumps(v).encode('utf-8'),
-            'key_serializer': lambda k: str(k).encode('utf-8'),
-            **config_test['config']
-        }
-        
-        producer = KafkaProducer(**producer_config)
-        
-        # Measure performance
-        start_time = time.time()
-        futures = []
-        
-        for i, message in enumerate(test_messages):
-            future = producer.send('performance-test', key=i, value=message)
-            futures.append(future)
-        
-        # Wait for all messages to be sent
-        for future in futures:
-            try:
-                result = future.get(timeout=10)
-            except Exception as e:
-                print(f"  ❌ Send failed: {e}")
-        
-        producer.flush()
-        end_time = time.time()
-        
-        duration = end_time - start_time
-        throughput = len(test_messages) / duration
-        
-        print(f"  ⏱️ Duration: {duration:.3f}s")
-        print(f"  📈 Throughput: {throughput:.1f} messages/sec")
-        print(f"  ⚙️ Config: acks={config_test['config']['acks']}, "
-              f"batch_size={config_test['config']['batch_size']}, "
-              f"linger_ms={config_test['config']['linger_ms']}")
-        
-        producer.close()
+    return considerations
 
-demonstrate_producer_configurations()
-```
-
-**Output:**
-```
-🚀 Producer Configuration Comparison:
-
-📊 Testing High Throughput Configuration:
-  ⏱️ Duration: 0.234s
-  📈 Throughput: 427.4 messages/sec
-  ⚙️ Config: acks=1, batch_size=32768, linger_ms=50
-
-📊 Testing High Durability Configuration:
-  ⏱️ Duration: 0.456s
-  📈 Throughput: 219.3 messages/sec
-  ⚙️ Config: acks=all, batch_size=16384, linger_ms=0
-
-📊 Testing Balanced Configuration:
-  ⏱️ Duration: 0.312s
-  📈 Throughput: 320.5 messages/sec
-  ⚙️ Config: acks=1, batch_size=16384, linger_ms=10
-```
-
-### Consumer Groups and Rebalancing
-
-#### 🎯 **Consumer Group Benefits**
-- **Load Distribution**: Partitions distributed across consumers
-- **Fault Tolerance**: Automatic rebalancing on failures
-- **Scalability**: Add/remove consumers dynamically
-
-```python
-from kafka import KafkaConsumer
-import threading
-import time
-import json
-
-class ConsumerGroupDemo:
-    def __init__(self, group_id, topic):
-        self.group_id = group_id
-        self.topic = topic
-        self.consumers = []
-        self.threads = []
-        self.running = True
-    
-    def create_consumer(self, consumer_id):
-        """Create a consumer with rebalance listeners"""
-        
-        def on_assign(consumer, partitions):
-            print(f"🔄 Consumer {consumer_id}: Assigned partitions {[p.partition for p in partitions]}")
-        
-        def on_revoke(consumer, partitions):
-            print(f"🔄 Consumer {consumer_id}: Revoked partitions {[p.partition for p in partitions]}")
-        
-        consumer = KafkaConsumer(
-            self.topic,
-            bootstrap_servers=['localhost:9092'],
-            group_id=self.group_id,
-            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-            key_deserializer=lambda m: m.decode('utf-8') if m else None,
-            auto_offset_reset='earliest',
-            consumer_timeout_ms=5000,
-            session_timeout_ms=30000,
-            heartbeat_interval_ms=10000
-        )
-        
-        # Subscribe with rebalance listener
-        consumer.subscribe([self.topic], 
-                          listener=type('RebalanceListener', (), {
-                              'on_partitions_assigned': on_assign,
-                              'on_partitions_revoked': on_revoke
-                          })())
-        
-        return consumer
-    
-    def consume_messages(self, consumer, consumer_id):
-        """Consume messages and handle rebalancing"""
-        print(f"🚀 Consumer {consumer_id} started")
-        message_count = 0
-        
-        try:
-            while self.running:
-                message_batch = consumer.poll(timeout_ms=1000)
-                
-                for topic_partition, messages in message_batch.items():
-                    for message in messages:
-                        print(f"📨 Consumer {consumer_id}: "
-                              f"Partition {message.partition}, "
-                              f"Offset {message.offset}, "
-                              f"Value: {message.value}")
-                        message_count += 1
-                        
-                        # Simulate processing time
-                        time.sleep(0.1)
-                        
-                        if message_count >= 5:  # Limit for demo
-                            self.running = False
-                            break
-                    
-                    if not self.running:
-                        break
-                
-                if not self.running:
-                    break
-                    
-        except Exception as e:
-            print(f"❌ Consumer {consumer_id} error: {e}")
-        finally:
-            consumer.close()
-            print(f"🛑 Consumer {consumer_id} stopped after processing {message_count} messages")
-    
-    def start_consumer(self, consumer_id):
-        """Start a consumer in a separate thread"""
-        consumer = self.create_consumer(consumer_id)
-        self.consumers.append(consumer)
-        
-        thread = threading.Thread(
-            target=self.consume_messages,
-            args=(consumer, consumer_id)
-        )
-        self.threads.append(thread)
-        thread.start()
-        
-        return consumer, thread
-    
-    def demonstrate_rebalancing(self):
-        """Demonstrate consumer group rebalancing"""
-        print(f"🎯 Consumer Group Rebalancing Demo (Group: {self.group_id})")
-        
-        # Start first consumer
-        print("\n1️⃣ Starting first consumer...")
-        self.start_consumer("consumer_1")
-        time.sleep(2)
-        
-        # Start second consumer (triggers rebalancing)
-        print("\n2️⃣ Starting second consumer (triggers rebalancing)...")
-        self.start_consumer("consumer_2")
-        time.sleep(2)
-        
-        # Start third consumer (triggers another rebalancing)
-        print("\n3️⃣ Starting third consumer (triggers rebalancing)...")
-        self.start_consumer("consumer_3")
-        time.sleep(3)
-        
-        # Stop one consumer (triggers rebalancing)
-        print("\n4️⃣ Stopping one consumer (triggers rebalancing)...")
-        if self.consumers:
-            self.consumers[0].close()
-        
-        # Wait for all threads to complete
-        for thread in self.threads:
-            thread.join(timeout=10)
-        
-        print("\n✅ Consumer group demo completed")
-
-# Run the consumer group demo
-demo = ConsumerGroupDemo('rebalancing-demo-group', 'partitioning-demo')
-demo.demonstrate_rebalancing()
-```
-
-**Output:**
-```
-🎯 Consumer Group Rebalancing Demo (Group: rebalancing-demo-group)
-
-1️⃣ Starting first consumer...
-🚀 Consumer consumer_1 started
-🔄 Consumer consumer_1: Assigned partitions [0, 1, 2, 3]
-
-2️⃣ Starting second consumer (triggers rebalancing)...
-🚀 Consumer consumer_2 started
-🔄 Consumer consumer_1: Revoked partitions [0, 1, 2, 3]
-🔄 Consumer consumer_1: Assigned partitions [0, 1]
-🔄 Consumer consumer_2: Assigned partitions [2, 3]
-
-3️⃣ Starting third consumer (triggers rebalancing)...
-🚀 Consumer consumer_3 started
-🔄 Consumer consumer_1: Revoked partitions [0, 1]
-🔄 Consumer consumer_2: Revoked partitions [2, 3]
-🔄 Consumer consumer_1: Assigned partitions [0]
-🔄 Consumer consumer_2: Assigned partitions [1]
-🔄 Consumer consumer_3: Assigned partitions [2, 3]
-
-📨 Consumer consumer_1: Partition 0, Offset 0, Value: {'message_id': 0, 'data': 'message_0'}
-📨 Consumer consumer_2: Partition 1, Offset 0, Value: {'region': 'us', 'action': 'login'}
-📨 Consumer consumer_3: Partition 2, Offset 0, Value: {'message_id': 2, 'data': 'message_2'}
-
-4️⃣ Stopping one consumer (triggers rebalancing)...
-🔄 Consumer consumer_2: Revoked partitions [1]
-🔄 Consumer consumer_3: Revoked partitions [2, 3]
-🔄 Consumer consumer_2: Assigned partitions [1, 2]
-🔄 Consumer consumer_3: Assigned partitions [3]
-
-🛑 Consumer consumer_1 stopped after processing 2 messages
-🛑 Consumer consumer_2 stopped after processing 3 messages
-🛑 Consumer consumer_3 stopped after processing 2 messages
-
-✅ Consumer group demo completed
+partition_planning_guide()
 ```
 
 ---
 
-## Replication and Fault Tolerance
+## 🔄 Producers and Consumers
 
-### Replication Mechanism
-
-#### 🎯 **Replication Concepts**
-- **Leader**: Handles all reads and writes for partition
-- **Followers**: Replicate leader's log
-- **ISR**: In-Sync Replicas that are caught up with leader
-- **Unclean Leader Election**: Allow out-of-sync replica to become leader
+### 📤 Producer Fundamentals
 
 ```python
-from kafka.admin import KafkaAdminClient, NewTopic
-from kafka import KafkaProducer, KafkaConsumer
-import json
-import time
+# Producer configuration and behavior
+def producer_concepts():
+    """
+    Producer: Application that sends messages to Kafka topics
+    """
+    
+    # Key producer configurations
+    producer_config = {
+        "bootstrap.servers": "localhost:9092",
+        "key.serializer": "org.apache.kafka.common.serialization.StringSerializer",
+        "value.serializer": "org.apache.kafka.common.serialization.StringSerializer",
+        "acks": "all",  # Wait for all replicas
+        "retries": 3,
+        "batch.size": 16384,
+        "linger.ms": 5,
+        "buffer.memory": 33554432
+    }
+    
+    # Producer delivery guarantees
+    acks_options = {
+        "0": "Fire and forget (fastest, least reliable)",
+        "1": "Wait for leader acknowledgment (balanced)",
+        "all/-1": "Wait for all replicas (slowest, most reliable)"
+    }
+    
+    print("Producer Configuration Example:")
+    for key, value in producer_config.items():
+        print(f"  {key}: {value}")
+    
+    print("\nAcknowledgment Options:")
+    for ack, description in acks_options.items():
+        print(f"  acks={ack}: {description}")
+    
+    return producer_config, acks_options
 
-def demonstrate_replication_and_fault_tolerance():
-    """Demonstrate Kafka's replication and fault tolerance"""
+producer_concepts()
+```
+
+### 📥 Consumer Fundamentals
+
+```python
+# Consumer concepts and patterns
+def consumer_concepts():
+    """
+    Consumer: Application that reads messages from Kafka topics
+    """
     
-    admin_client = KafkaAdminClient(bootstrap_servers=['localhost:9092'])
+    # Consumer group behavior
+    consumer_group_example = {
+        "group_id": "analytics-service",
+        "consumers": [
+            {"id": "consumer-1", "assigned_partitions": [0, 1]},
+            {"id": "consumer-2", "assigned_partitions": [2]},
+            {"id": "consumer-3", "assigned_partitions": []}  # Idle if more consumers than partitions
+        ],
+        "rebalancing": "Automatic partition reassignment when consumers join/leave"
+    }
     
-    # Create highly replicated topic
-    replicated_topic = NewTopic(
-        name='fault-tolerance-demo',
-        num_partitions=2,
-        replication_factor=3,  # 3 replicas for fault tolerance
-        topic_configs={
-            'min.insync.replicas': '2',  # Require 2 replicas for writes
-            'unclean.leader.election.enable': 'false',  # Prevent data loss
-            'retention.ms': '86400000'  # 1 day retention
+    # Consumer configuration
+    consumer_config = {
+        "bootstrap.servers": "localhost:9092",
+        "group.id": "analytics-service",
+        "key.deserializer": "org.apache.kafka.common.serialization.StringDeserializer",
+        "value.deserializer": "org.apache.kafka.common.serialization.StringDeserializer",
+        "auto.offset.reset": "earliest",
+        "enable.auto.commit": "false",  # Manual offset management
+        "max.poll.records": 500
+    }
+    
+    print("Consumer Group Example:")
+    print(f"  Group ID: {consumer_group_example['group_id']}")
+    for consumer in consumer_group_example['consumers']:
+        partitions = consumer['assigned_partitions'] or ['none']
+        print(f"  {consumer['id']}: partitions {partitions}")
+    
+    print(f"\nRebalancing: {consumer_group_example['rebalancing']}")
+    
+    return consumer_config
+
+consumer_concepts()
+```
+
+### 🎯 Consumer Groups Deep Dive
+
+```python
+# Consumer group coordination
+def consumer_group_coordination():
+    """
+    Consumer groups enable parallel processing and fault tolerance
+    """
+    
+    # Scenario: 3 partitions, different consumer group sizes
+    scenarios = {
+        "optimal": {
+            "partitions": 3,
+            "consumers": 3,
+            "assignment": "1 consumer per partition",
+            "efficiency": "100%"
+        },
+        "under_utilized": {
+            "partitions": 3,
+            "consumers": 2,
+            "assignment": "consumer-1: [0,1], consumer-2: [2]",
+            "efficiency": "Uneven load"
+        },
+        "over_provisioned": {
+            "partitions": 3,
+            "consumers": 5,
+            "assignment": "3 active, 2 idle consumers",
+            "efficiency": "Wasted resources"
         }
-    )
+    }
     
-    try:
-        admin_client.create_topics([replicated_topic])
-        print("✅ Highly replicated topic created")
-    except Exception as e:
-        print(f"Topic creation: {e}")
+    print("Consumer Group Scenarios:")
+    for scenario, details in scenarios.items():
+        print(f"\n{scenario.upper()}:")
+        for key, value in details.items():
+            print(f"  {key}: {value}")
     
-    # Examine replication setup
-    metadata = admin_client.describe_topics(['fault-tolerance-demo'])
+    return scenarios
+
+consumer_group_coordination()
+```
+
+---
+
+## 🎯 Message Delivery Semantics
+
+### 📋 Delivery Guarantees
+
+```python
+# Different delivery semantic options
+def delivery_semantics():
+    """
+    Kafka supports different delivery guarantees based on configuration
+    """
     
-    print("\n🔄 Replication Configuration:")
-    for topic_name, topic_metadata in metadata.items():
-        print(f"Topic: {topic_name}")
-        for partition in topic_metadata.partitions:
-            print(f"  Partition {partition.partition_id}:")
-            print(f"    Leader: Broker {partition.leader}")
-            print(f"    Replicas: Brokers {partition.replicas}")
-            print(f"    ISR (In-Sync Replicas): Brokers {partition.isr}")
-            
-            # Calculate replication health
-            replication_factor = len(partition.replicas)
-            isr_count = len(partition.isr)
-            health_percentage = (isr_count / replication_factor) * 100
-            
-            print(f"    Replication Health: {health_percentage:.1f}% ({isr_count}/{replication_factor} replicas in sync)")
+    semantics = {
+        "at_most_once": {
+            "description": "Messages may be lost but never duplicated",
+            "use_case": "Metrics, logs where some loss is acceptable",
+            "config": "acks=0, retries=0",
+            "risk": "Message loss"
+        },
+        "at_least_once": {
+            "description": "Messages never lost but may be duplicated",
+            "use_case": "Most common pattern, handle duplicates in consumer",
+            "config": "acks=all, retries>0, enable.idempotence=false",
+            "risk": "Duplicate processing"
+        },
+        "exactly_once": {
+            "description": "Messages delivered exactly once (complex)",
+            "use_case": "Financial transactions, critical data",
+            "config": "enable.idempotence=true, transactional.id set",
+            "risk": "Performance overhead"
+        }
+    }
     
-    # Producer with strong durability guarantees
-    producer = KafkaProducer(
-        bootstrap_servers=['localhost:9092'],
-        value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-        key_serializer=lambda k: k.encode('utf-8'),
-        acks='all',  # Wait for all ISR replicas
-        retries=5,
-        retry_backoff_ms=100,
-        request_timeout_ms=30000
-    )
+    print("Message Delivery Semantics:")
+    for semantic, details in semantics.items():
+        print(f"\n{semantic.upper().replace('_', ' ')}:")
+        for key, value in details.items():
+            print(f"  {key}: {value}")
     
-    print("\n📤 Sending messages with strong durability guarantees:")
+    return semantics
+
+delivery_semantics()
+```
+
+### 🔄 Offset Management
+
+```python
+# Understanding Kafka offsets
+def offset_management():
+    """
+    Offsets track consumer position in each partition
+    """
     
-    critical_messages = [
-        {"id": 1, "type": "financial_transaction", "amount": 1000.00, "timestamp": time.time()},
-        {"id": 2, "type": "user_registration", "user_id": "user_12345", "timestamp": time.time()},
-        {"id": 3, "type": "order_confirmation", "order_id": "order_67890", "timestamp": time.time()}
+    # Offset example for a partition
+    partition_state = {
+        "partition_id": 0,
+        "messages": [
+            {"offset": 0, "key": "user1", "value": "login"},
+            {"offset": 1, "key": "user2", "value": "purchase"},
+            {"offset": 2, "key": "user1", "value": "logout"},
+            {"offset": 3, "key": "user3", "value": "signup"}
+        ],
+        "high_water_mark": 4,  # Next offset to be written
+        "consumer_offset": 2    # Last committed offset
+    }
+    
+    # Offset commit strategies
+    commit_strategies = {
+        "auto_commit": {
+            "config": "enable.auto.commit=true",
+            "pros": ["Simple", "Automatic"],
+            "cons": ["Potential message loss", "Duplicate processing"]
+        },
+        "manual_commit_sync": {
+            "config": "enable.auto.commit=false + commitSync()",
+            "pros": ["Precise control", "Reliable"],
+            "cons": ["Blocking operation", "Performance impact"]
+        },
+        "manual_commit_async": {
+            "config": "enable.auto.commit=false + commitAsync()",
+            "pros": ["Non-blocking", "Better performance"],
+            "cons": ["No guarantee of success", "Complex error handling"]
+        }
+    }
+    
+    print("Partition State Example:")
+    print(f"  Partition: {partition_state['partition_id']}")
+    print(f"  High Water Mark: {partition_state['high_water_mark']}")
+    print(f"  Consumer Offset: {partition_state['consumer_offset']}")
+    print(f"  Unread Messages: {partition_state['high_water_mark'] - partition_state['consumer_offset']}")
+    
+    print("\nOffset Commit Strategies:")
+    for strategy, details in commit_strategies.items():
+        print(f"\n{strategy.upper()}:")
+        print(f"  Config: {details['config']}")
+        print(f"  Pros: {', '.join(details['pros'])}")
+        print(f"  Cons: {', '.join(details['cons'])}")
+    
+    return partition_state, commit_strategies
+
+offset_management()
+```
+
+---
+
+## 🔌 Kafka Connect
+
+### 🎯 Connect Framework Overview
+
+```python
+# Kafka Connect concepts
+def kafka_connect_overview():
+    """
+    Kafka Connect: Framework for connecting Kafka with external systems
+    """
+    
+    connect_components = {
+        "connectors": {
+            "source": "Import data FROM external systems TO Kafka",
+            "sink": "Export data FROM Kafka TO external systems"
+        },
+        "tasks": "Actual work units that move data",
+        "workers": "Processes that execute connectors and tasks",
+        "converters": "Handle data serialization/deserialization"
+    }
+    
+    # Popular connectors
+    popular_connectors = {
+        "source_connectors": [
+            "JDBC Source (databases)",
+            "File Source (files)",
+            "S3 Source (AWS S3)",
+            "MongoDB Source",
+            "Salesforce Source"
+        ],
+        "sink_connectors": [
+            "JDBC Sink (databases)",
+            "S3 Sink (AWS S3)",
+            "Elasticsearch Sink",
+            "HDFS Sink",
+            "BigQuery Sink"
+        ]
+    }
+    
+    print("Kafka Connect Components:")
+    for component, description in connect_components.items():
+        if isinstance(description, dict):
+            print(f"\n{component.upper()}:")
+            for key, value in description.items():
+                print(f"  {key}: {value}")
+        else:
+            print(f"  {component}: {description}")
+    
+    print("\nPopular Connectors:")
+    for connector_type, connectors in popular_connectors.items():
+        print(f"\n{connector_type.upper()}:")
+        for connector in connectors:
+            print(f"  • {connector}")
+    
+    return connect_components, popular_connectors
+
+kafka_connect_overview()
+```
+
+### 🔧 Connect Configuration Example
+
+```python
+# Example connector configurations
+def connect_configuration_examples():
+    """
+    Sample configurations for common connectors
+    """
+    
+    # JDBC Source Connector (Database → Kafka)
+    jdbc_source_config = {
+        "name": "postgres-source",
+        "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+        "connection.url": "jdbc:postgresql://localhost:5432/mydb",
+        "connection.user": "postgres",
+        "connection.password": "password",
+        "table.whitelist": "users,orders",
+        "mode": "incrementing",
+        "incrementing.column.name": "id",
+        "topic.prefix": "postgres-",
+        "poll.interval.ms": 5000
+    }
+    
+    # S3 Sink Connector (Kafka → S3)
+    s3_sink_config = {
+        "name": "s3-sink",
+        "connector.class": "io.confluent.connect.s3.S3SinkConnector",
+        "topics": "user-events,order-events",
+        "s3.bucket.name": "my-kafka-data",
+        "s3.region": "us-west-2",
+        "flush.size": 1000,
+        "rotate.interval.ms": 60000,
+        "format.class": "io.confluent.connect.s3.format.json.JsonFormat",
+        "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
+        "path.format": "year=YYYY/month=MM/day=dd/hour=HH"
+    }
+    
+    print("JDBC Source Connector Configuration:")
+    for key, value in jdbc_source_config.items():
+        print(f"  {key}: {value}")
+    
+    print("\nS3 Sink Connector Configuration:")
+    for key, value in s3_sink_config.items():
+        print(f"  {key}: {value}")
+    
+    return jdbc_source_config, s3_sink_config
+
+connect_configuration_examples()
+```
+
+---
+
+## 🌊 Kafka Streams
+
+### 🎯 Streams Processing Concepts
+
+```python
+# Kafka Streams fundamentals
+def kafka_streams_concepts():
+    """
+    Kafka Streams: Library for building stream processing applications
+    """
+    
+    streams_features = {
+        "stateless_operations": [
+            "filter() - Remove unwanted records",
+            "map() - Transform records",
+            "flatMap() - One-to-many transformation",
+            "foreach() - Side effects (logging, etc.)"
+        ],
+        "stateful_operations": [
+            "groupBy() - Group records by key",
+            "aggregate() - Compute aggregations",
+            "join() - Join streams/tables",
+            "windowing() - Time-based operations"
+        ],
+        "key_concepts": [
+            "KStream - Record stream (immutable)",
+            "KTable - Changelog stream (mutable)",
+            "GlobalKTable - Replicated table",
+            "Topology - Processing graph"
+        ]
+    }
+    
+    print("Kafka Streams Features:")
+    for category, operations in streams_features.items():
+        print(f"\n{category.upper().replace('_', ' ')}:")
+        for operation in operations:
+            print(f"  • {operation}")
+    
+    return streams_features
+
+kafka_streams_concepts()
+```
+
+### 🔄 Stream Processing Patterns
+
+```python
+# Common stream processing patterns
+def stream_processing_patterns():
+    """
+    Typical patterns in stream processing applications
+    """
+    
+    # Pattern 1: Filtering and transformation
+    def filter_transform_pattern():
+        """
+        Input: user-events
+        Process: Filter active users, transform to analytics format
+        Output: analytics-events
+        """
+        return {
+            "input_topic": "user-events",
+            "processing": [
+                "filter(event -> event.user.isActive())",
+                "map(event -> new AnalyticsEvent(event))"
+            ],
+            "output_topic": "analytics-events"
+        }
+    
+    # Pattern 2: Aggregation with windowing
+    def windowed_aggregation_pattern():
+        """
+        Input: page-views
+        Process: Count views per page in 5-minute windows
+        Output: page-view-counts
+        """
+        return {
+            "input_topic": "page-views",
+            "processing": [
+                "groupByKey()",
+                "windowedBy(TimeWindows.of(Duration.ofMinutes(5)))",
+                "count()"
+            ],
+            "output_topic": "page-view-counts"
+        }
+    
+    # Pattern 3: Stream-table join
+    def stream_table_join_pattern():
+        """
+        Input: orders (stream) + users (table)
+        Process: Enrich orders with user information
+        Output: enriched-orders
+        """
+        return {
+            "input_stream": "orders",
+            "input_table": "users",
+            "processing": [
+                "orders.join(users, (order, user) -> enrichOrder(order, user))"
+            ],
+            "output_topic": "enriched-orders"
+        }
+    
+    patterns = {
+        "filter_transform": filter_transform_pattern(),
+        "windowed_aggregation": windowed_aggregation_pattern(),
+        "stream_table_join": stream_table_join_pattern()
+    }
+    
+    print("Stream Processing Patterns:")
+    for pattern_name, pattern_details in patterns.items():
+        print(f"\n{pattern_name.upper().replace('_', ' ')}:")
+        for key, value in pattern_details.items():
+            if isinstance(value, list):
+                print(f"  {key}:")
+                for item in value:
+                    print(f"    • {item}")
+            else:
+                print(f"  {key}: {value}")
+    
+    return patterns
+
+stream_processing_patterns()
+```
+
+---
+
+## ⚙️ Configuration Essentials
+
+### 🔧 Broker Configuration
+
+```python
+# Essential broker configurations
+def broker_configuration_guide():
+    """
+    Key broker settings for different environments
+    """
+    
+    # Development environment
+    dev_config = {
+        "num.network.threads": 3,
+        "num.io.threads": 8,
+        "socket.send.buffer.bytes": 102400,
+        "socket.receive.buffer.bytes": 102400,
+        "socket.request.max.bytes": 104857600,
+        "log.retention.hours": 168,  # 7 days
+        "log.segment.bytes": 1073741824,  # 1GB
+        "log.retention.check.interval.ms": 300000,
+        "num.partitions": 1,
+        "default.replication.factor": 1,
+        "min.insync.replicas": 1
+    }
+    
+    # Production environment
+    prod_config = {
+        "num.network.threads": 8,
+        "num.io.threads": 16,
+        "socket.send.buffer.bytes": 102400,
+        "socket.receive.buffer.bytes": 102400,
+        "socket.request.max.bytes": 104857600,
+        "log.retention.hours": 168,
+        "log.segment.bytes": 1073741824,
+        "log.retention.check.interval.ms": 300000,
+        "num.partitions": 3,
+        "default.replication.factor": 3,
+        "min.insync.replicas": 2,
+        "unclean.leader.election.enable": "false",
+        "auto.create.topics.enable": "false"
+    }
+    
+    print("Development Configuration:")
+    for key, value in dev_config.items():
+        print(f"  {key}: {value}")
+    
+    print("\nProduction Configuration:")
+    for key, value in prod_config.items():
+        print(f"  {key}: {value}")
+    
+    return dev_config, prod_config
+
+broker_configuration_guide()
+```
+
+### 🎛️ Performance Tuning Parameters
+
+```python
+# Performance-related configurations
+def performance_tuning_guide():
+    """
+    Key parameters for optimizing Kafka performance
+    """
+    
+    tuning_categories = {
+        "throughput_optimization": {
+            "batch.size": "16384 (producer batching)",
+            "linger.ms": "5 (wait time for batching)",
+            "compression.type": "snappy (reduce network I/O)",
+            "buffer.memory": "33554432 (producer buffer)",
+            "fetch.min.bytes": "1024 (consumer fetch size)"
+        },
+        "latency_optimization": {
+            "linger.ms": "0 (no batching delay)",
+            "batch.size": "1 (minimal batching)",
+            "fetch.min.bytes": "1 (immediate fetch)",
+            "replica.fetch.wait.max.ms": "500 (replica sync)"
+        },
+        "durability_optimization": {
+            "acks": "all (wait for all replicas)",
+            "retries": "2147483647 (max retries)",
+            "enable.idempotence": "true (exactly-once)",
+            "min.insync.replicas": "2 (minimum replicas)"
+        }
+    }
+    
+    print("Performance Tuning Categories:")
+    for category, configs in tuning_categories.items():
+        print(f"\n{category.upper().replace('_', ' ')}:")
+        for param, description in configs.items():
+            print(f"  {param}: {description}")
+    
+    return tuning_categories
+
+performance_tuning_guide()
+```
+
+---
+
+## 🎯 Common Use Cases
+
+### 📊 Real-World Applications
+
+```python
+# Common Kafka use cases with examples
+def kafka_use_cases():
+    """
+    Real-world applications of Apache Kafka
+    """
+    
+    use_cases = {
+        "event_streaming": {
+            "description": "Real-time event processing and analytics",
+            "examples": [
+                "User activity tracking (clicks, views, purchases)",
+                "IoT sensor data processing",
+                "Financial transaction monitoring",
+                "Application log aggregation"
+            ],
+            "pattern": "High-volume, low-latency event ingestion"
+        },
+        "data_integration": {
+            "description": "Connect disparate systems and data sources",
+            "examples": [
+                "Database change data capture (CDC)",
+                "ETL pipeline orchestration",
+                "Microservices communication",
+                "Legacy system modernization"
+            ],
+            "pattern": "Reliable data movement between systems"
+        },
+        "stream_processing": {
+            "description": "Real-time data transformation and enrichment",
+            "examples": [
+                "Fraud detection in payment processing",
+                "Real-time recommendation engines",
+                "Anomaly detection in monitoring",
+                "Live dashboard updates"
+            ],
+            "pattern": "Stateful processing with windowing"
+        },
+        "message_queuing": {
+            "description": "Asynchronous communication between services",
+            "examples": [
+                "Order processing workflows",
+                "Email/notification services",
+                "Background job processing",
+                "Event-driven architecture"
+            ],
+            "pattern": "Reliable message delivery with ordering"
+        }
+    }
+    
+    print("Kafka Use Cases:")
+    for use_case, details in use_cases.items():
+        print(f"\n{use_case.upper().replace('_', ' ')}:")
+        print(f"  Description: {details['description']}")
+        print(f"  Pattern: {details['pattern']}")
+        print("  Examples:")
+        for example in details['examples']:
+            print(f"    • {example}")
+    
+    return use_cases
+
+kafka_use_cases()
+```
+
+### 🏗️ Architecture Patterns
+
+```python
+# Common architectural patterns with Kafka
+def kafka_architecture_patterns():
+    """
+    Typical architectural patterns using Kafka
+    """
+    
+    patterns = {
+        "event_sourcing": {
+            "description": "Store all changes as sequence of events",
+            "components": ["Event Store (Kafka)", "Event Handlers", "Read Models"],
+            "benefits": ["Complete audit trail", "Replay capability", "Temporal queries"],
+            "challenges": ["Event schema evolution", "Snapshot management"]
+        },
+        "cqrs": {
+            "description": "Command Query Responsibility Segregation",
+            "components": ["Command Side", "Event Bus (Kafka)", "Query Side"],
+            "benefits": ["Optimized read/write models", "Independent scaling"],
+            "challenges": ["Eventual consistency", "Complexity"]
+        },
+        "lambda_architecture": {
+            "description": "Batch and stream processing layers",
+            "components": ["Batch Layer", "Speed Layer (Kafka Streams)", "Serving Layer"],
+            "benefits": ["Fault tolerance", "Low latency + high throughput"],
+            "challenges": ["Code duplication", "Complexity"]
+        },
+        "kappa_architecture": {
+            "description": "Stream processing only (simplified lambda)",
+            "components": ["Stream Processing (Kafka Streams)", "Serving Layer"],
+            "benefits": ["Simplified architecture", "Single codebase"],
+            "challenges": ["Reprocessing complexity", "State management"]
+        }
+    }
+    
+    print("Kafka Architecture Patterns:")
+    for pattern, details in patterns.items():
+        print(f"\n{pattern.upper().replace('_', ' ')}:")
+        print(f"  Description: {details['description']}")
+        print(f"  Components: {', '.join(details['components'])}")
+        print(f"  Benefits: {', '.join(details['benefits'])}")
+        print(f"  Challenges: {', '.join(details['challenges'])}")
+    
+    return patterns
+
+kafka_architecture_patterns()
+```
+
+---
+
+## 🎯 Best Practices
+
+### 🏆 Production Guidelines
+
+```python
+# Kafka best practices for production
+def kafka_best_practices():
+    """
+    Essential best practices for running Kafka in production
+    """
+    
+    best_practices = {
+        "topic_design": [
+            "Choose partition count based on throughput requirements",
+            "Use meaningful topic names with consistent naming convention",
+            "Set appropriate retention policies based on use case",
+            "Consider key distribution for even partition loading",
+            "Plan for topic evolution and schema compatibility"
+        ],
+        "producer_optimization": [
+            "Use appropriate serialization format (Avro, JSON, Protobuf)",
+            "Implement proper error handling and retry logic",
+            "Choose correct acks setting based on durability needs",
+            "Monitor producer metrics (throughput, latency, errors)",
+            "Use compression for large messages (snappy, lz4, gzip)"
+        ],
+        "consumer_optimization": [
+            "Process messages idempotently to handle duplicates",
+            "Commit offsets after successful processing",
+            "Handle consumer rebalancing gracefully",
+            "Monitor consumer lag and processing time",
+            "Use appropriate fetch sizes for your use case"
+        ],
+        "operational_excellence": [
+            "Monitor cluster health and key metrics",
+            "Implement proper logging and alerting",
+            "Plan for capacity and scaling requirements",
+            "Regular backup of critical topics",
+            "Test disaster recovery procedures"
+        ]
+    }
+    
+    print("Kafka Production Best Practices:")
+    for category, practices in best_practices.items():
+        print(f"\n{category.upper().replace('_', ' ')}:")
+        for practice in practices:
+            print(f"  • {practice}")
+    
+    return best_practices
+
+kafka_best_practices()
+```
+
+### ⚠️ Common Pitfalls
+
+```python
+# Common mistakes and how to avoid them
+def kafka_common_pitfalls():
+    """
+    Frequent mistakes in Kafka implementations and solutions
+    """
+    
+    pitfalls = {
+        "too_many_partitions": {
+            "problem": "Creating topics with excessive partitions",
+            "impact": "Longer rebalancing, increased memory usage",
+            "solution": "Start with fewer partitions, scale as needed"
+        },
+        "uneven_partition_distribution": {
+            "problem": "Poor key selection causing hot partitions",
+            "impact": "Uneven load, reduced throughput",
+            "solution": "Choose keys with good distribution, monitor partition sizes"
+        },
+        "ignoring_consumer_lag": {
+            "problem": "Not monitoring consumer processing lag",
+            "impact": "Delayed processing, potential data loss",
+            "solution": "Set up lag monitoring and alerting"
+        },
+        "improper_serialization": {
+            "problem": "Using inefficient serialization formats",
+            "impact": "Increased network usage, slower processing",
+            "solution": "Use binary formats like Avro or Protobuf"
+        },
+        "missing_error_handling": {
+            "problem": "Not handling producer/consumer errors properly",
+            "impact": "Data loss, application crashes",
+            "solution": "Implement comprehensive error handling and retry logic"
+        }
+    }
+    
+    print("Common Kafka Pitfalls:")
+    for pitfall, details in pitfalls.items():
+        print(f"\n{pitfall.upper().replace('_', ' ')}:")
+        print(f"  Problem: {details['problem']}")
+        print(f"  Impact: {details['impact']}")
+        print(f"  Solution: {details['solution']}")
+    
+    return pitfalls
+
+kafka_common_pitfalls()
+```
+
+---
+
+## 🎯 Interview Preparation
+
+> **Essential Kafka concepts for data engineering interviews**
+
+### 🔥 Core Concepts to Master
+
+```python
+# Key interview topics
+interview_topics = {
+    "architecture": [
+        "Explain Kafka's distributed architecture",
+        "What is the role of ZooKeeper/KRaft?",
+        "How does partition replication work?",
+        "Describe the producer-broker-consumer flow"
+    ],
+    "scalability": [
+        "How do you scale Kafka horizontally?",
+        "What factors determine partition count?",
+        "How does consumer group rebalancing work?",
+        "Explain partition assignment strategies"
+    ],
+    "reliability": [
+        "What are the different delivery semantics?",
+        "How do you achieve exactly-once processing?",
+        "Explain offset management strategies",
+        "How does Kafka handle broker failures?"
+    ],
+    "performance": [
+        "How do you optimize producer throughput?",
+        "What causes consumer lag and how to fix it?",
+        "Explain batching and compression benefits",
+        "How do you tune Kafka for low latency?"
     ]
-    
-    for msg in critical_messages:
-        try:
-            future = producer.send('fault-tolerance-demo', key=str(msg['id']), value=msg)
-            result = future.get(timeout=30)  # Wait for acknowledgment
-            print(f"  ✅ Message {msg['id']} replicated to partition {result.partition}")
-            print(f"     Offset: {result.offset}, Topic: {result.topic}")
-        except Exception as e:
-            print(f"  ❌ Failed to send message {msg['id']}: {e}")
-    
-    producer.close()
-    
-    # Demonstrate fault-tolerant consumption
-    print("\n📥 Fault-tolerant message consumption:")
-    
-    consumer = KafkaConsumer(
-        'fault-tolerance-demo',
-        bootstrap_servers=['localhost:9092'],
-        group_id='fault-tolerant-consumers',
-        value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-        key_deserializer=lambda m: m.decode('utf-8'),
-        auto_offset_reset='earliest',
-        enable_auto_commit=False,  # Manual commit for reliability
-        consumer_timeout_ms=10000
-    )
-    
-    processed_messages = []
-    
-    try:
-        for message in consumer:
-            print(f"  📨 Processing message: {message.value}")
-            
-            # Simulate message processing
-            time.sleep(0.1)
-            
-            # Store processed message
-            processed_messages.append({
-                'partition': message.partition,
-                'offset': message.offset,
-                'key': message.key,
-                'value': message.value
-            })
-            
-            # Manual commit after successful processing
-            consumer.commit()
-            print(f"     ✅ Committed offset {message.offset + 1}")
-            
-            if len(processed_messages) >= 3:  # Limit for demo
-                break
-                
-    except Exception as e:
-        print(f"  ❌ Consumer error: {e}")
-    finally:
-        consumer.close()
-    
-    print(f"\n📊 Successfully processed {len(processed_messages)} messages with fault tolerance")
-    
-    # Cleanup
-    admin_client.close()
+}
 
-demonstrate_replication_and_fault_tolerance()
+print("Kafka Interview Topics:")
+for category, questions in interview_topics.items():
+    print(f"\n{category.upper()}:")
+    for question in questions:
+        print(f"  • {question}")
 ```
 
-**Output:**
+### 💡 Sample Interview Questions & Answers
+
+**Q: Explain the difference between Kafka and traditional message queues.**
+
+```python
+def kafka_vs_traditional_mq():
+    """
+    Key differences between Kafka and traditional message queues
+    """
+    
+    comparison = {
+        "message_persistence": {
+            "traditional_mq": "Messages deleted after consumption",
+            "kafka": "Messages retained for configured time/size"
+        },
+        "consumption_model": {
+            "traditional_mq": "Point-to-point (one consumer per message)",
+            "kafka": "Pub/sub (multiple consumers can read same message)"
+        },
+        "ordering_guarantees": {
+            "traditional_mq": "Global ordering within queue",
+            "kafka": "Ordering within partition only"
+        },
+        "scalability": {
+            "traditional_mq": "Vertical scaling, limited throughput",
+            "kafka": "Horizontal scaling through partitions"
+        },
+        "use_cases": {
+            "traditional_mq": "Request/response, job queues",
+            "kafka": "Event streaming, data integration, analytics"
+        }
+    }
+    
+    print("Kafka vs Traditional Message Queues:")
+    for aspect, details in comparison.items():
+        print(f"\n{aspect.upper().replace('_', ' ')}:")
+        print(f"  Traditional MQ: {details['traditional_mq']}")
+        print(f"  Kafka: {details['kafka']}")
+    
+    return comparison
+
+kafka_vs_traditional_mq()
 ```
-✅ Highly replicated topic created
 
-🔄 Replication Configuration:
-Topic: fault-tolerance-demo
-  Partition 0:
-    Leader: Broker 1
-    Replicas: Brokers [1, 2, 3]
-    ISR (In-Sync Replicas): Brokers [1, 2, 3]
-    Replication Health: 100.0% (3/3 replicas in sync)
-  Partition 1:
-    Leader: Broker 2
-    Replicas: Brokers [2, 3, 1]
-    ISR (In-Sync Replicas): Brokers [2, 3, 1]
-    Replication Health: 100.0% (3/3 replicas in sync)
+**Q: How would you design a real-time analytics system using Kafka?**
 
-📤 Sending messages with strong durability guarantees:
-  ✅ Message 1 replicated to partition 0
-     Offset: 0, Topic: fault-tolerance-demo
-  ✅ Message 2 replicated to partition 1
-     Offset: 0, Topic: fault-tolerance-demo
-  ✅ Message 3 replicated to partition 0
-     Offset: 1, Topic: fault-tolerance-demo
+```python
+def design_realtime_analytics_system():
+    """
+    Architecture for real-time analytics using Kafka
+    """
+    
+    system_design = {
+        "data_ingestion": {
+            "component": "Kafka Producers",
+            "responsibility": "Collect events from web apps, mobile apps, APIs",
+            "topics": ["user-events", "transaction-events", "system-events"]
+        },
+        "stream_processing": {
+            "component": "Kafka Streams / Apache Flink",
+            "responsibility": "Real-time aggregations, filtering, enrichment",
+            "operations": ["Windowed counts", "Join with reference data", "Anomaly detection"]
+        },
+        "data_storage": {
+            "component": "Kafka Connect + Sinks",
+            "responsibility": "Store processed data for queries",
+            "destinations": ["Elasticsearch (search)", "ClickHouse (analytics)", "S3 (archival)"]
+        },
+        "visualization": {
+            "component": "Grafana / Kibana",
+            "responsibility": "Real-time dashboards and alerts",
+            "features": ["Live metrics", "Anomaly alerts", "Historical trends"]
+        }
+    }
+    
+    print("Real-time Analytics System Design:")
+    for layer, details in system_design.items():
+        print(f"\n{layer.upper().replace('_', ' ')}:")
+        print(f"  Component: {details['component']}")
+        print(f"  Responsibility: {details['responsibility']}")
+        if 'topics' in details:
+            print(f"  Topics: {', '.join(details['topics'])}")
+        if 'operations' in details:
+            print(f"  Operations: {', '.join(details['operations'])}")
+        if 'destinations' in details:
+            print(f"  Destinations: {', '.join(details['destinations'])}")
+        if 'features' in details:
+            print(f"  Features: {', '.join(details['features'])}")
+    
+    return system_design
 
-📥 Fault-tolerant message consumption:
-  📨 Processing message: {'id': 1, 'type': 'financial_transaction', 'amount': 1000.0, 'timestamp': 1705312200.123}
-     ✅ Committed offset 1
-  📨 Processing message: {'id': 3, 'type': 'order_confirmation', 'order_id': 'order_67890', 'timestamp': 1705312200.789}
-     ✅ Committed offset 2
-  📨 Processing message: {'id': 2, 'type': 'user_registration', 'user_id': 'user_12345', 'timestamp': 1705312200.456}
-     ✅ Committed offset 1
-
-📊 Successfully processed 3 messages with fault tolerance
+design_realtime_analytics_system()
 ```
 
-This comprehensive Kafka documentation provides practical, executable examples with expected outputs, following the same pattern as the Spark and Databricks files. The examples cover all essential Kafka concepts from basic producer/consumer operations to advanced replication and fault tolerance mechanisms.
+**Q: How do you handle schema evolution in Kafka?**
 
-Would you like me to continue with the next tool (Apache Airflow) or would you prefer to see additional sections for Kafka first?
+```python
+def schema_evolution_strategies():
+    """
+    Approaches for handling schema changes in Kafka
+    """
+    
+    strategies = {
+        "schema_registry": {
+            "description": "Centralized schema management with Confluent Schema Registry",
+            "benefits": ["Version control", "Compatibility checking", "Schema evolution rules"],
+            "compatibility_types": ["BACKWARD", "FORWARD", "FULL", "NONE"]
+        },
+        "avro_serialization": {
+            "description": "Use Avro for schema evolution support",
+            "benefits": ["Compact binary format", "Built-in schema evolution", "Code generation"],
+            "evolution_rules": ["Add optional fields", "Remove fields with defaults", "Rename fields"]
+        },
+        "versioned_topics": {
+            "description": "Create new topics for schema changes",
+            "benefits": ["Simple approach", "No compatibility issues"],
+            "drawbacks": ["Topic proliferation", "Consumer complexity"]
+        },
+        "envelope_pattern": {
+            "description": "Wrap messages in versioned envelope",
+            "benefits": ["Backward compatibility", "Gradual migration"],
+            "implementation": ["Version field in message", "Router based on version"]
+        }
+    }
+    
+    print("Schema Evolution Strategies:")
+    for strategy, details in strategies.items():
+        print(f"\n{strategy.upper().replace('_', ' ')}:")
+        print(f"  Description: {details['description']}")
+        print(f"  Benefits: {', '.join(details['benefits'])}")
+        if 'compatibility_types' in details:
+            print(f"  Compatibility Types: {', '.join(details['compatibility_types'])}")
+        if 'evolution_rules' in details:
+            print(f"  Evolution Rules: {', '.join(details['evolution_rules'])}")
+        if 'drawbacks' in details:
+            print(f"  Drawbacks: {', '.join(details['drawbacks'])}")
+        if 'implementation' in details:
+            print(f"  Implementation: {', '.join(details['implementation'])}")
+    
+    return strategies
+
+schema_evolution_strategies()
+```
+
+---
+
+## 🎓 Next Steps
+
+Congratulations! You now have a solid foundation in Apache Kafka. Here's your learning path:
+
+### 🚀 **Immediate Next Steps**
+1. **Hands-on Practice**: Set up local Kafka cluster, create topics, produce/consume messages
+2. **Kafka Connect**: Practice with JDBC and file connectors
+3. **Kafka Streams**: Build simple stream processing applications
+4. **Monitoring**: Learn Kafka metrics and monitoring tools
+
+### 📚 **Advanced Topics**
+- **[Kafka Advanced Patterns](./KAFKA_ADVANCED_STREAMING_ARCHITECTURE.md)** - Production optimization and complex patterns
+- **Schema Registry**: Confluent Schema Registry for schema management
+- **KSQL/ksqlDB**: SQL interface for stream processing
+- **Multi-cluster**: Cross-datacenter replication and disaster recovery
+
+### 🛠️ **Build Projects**
+1. **Real-time Analytics Pipeline** - Web events → Kafka → Stream processing → Dashboard
+2. **Change Data Capture** - Database changes → Kafka → Multiple downstream systems
+3. **Event-Driven Microservices** - Service communication through Kafka events
+4. **IoT Data Processing** - Sensor data → Kafka → Real-time alerts and storage
+
+### 📖 **Keep Learning**
+- Join Kafka community (Confluent Community, Apache Kafka users)
+- Follow Kafka blogs and conferences (Kafka Summit, Confluent events)
+- Practice with Kafka certification programs
+- Contribute to Kafka ecosystem projects
+
+Remember: **Kafka is the backbone of modern data architecture!** Master these concepts and you'll be well-prepared for any streaming data challenge.
+
+Happy streaming! 🌊✨
