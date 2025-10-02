@@ -16,7 +16,7 @@
 
 ### 1. What are Python's built-in data types and their characteristics?
 
-**Answer:** Python has several built-in data types with different characteristics.
+**Answer:** Python provides built-in data types organized into categories: numeric types (int, float, complex), sequence types (str, list, tuple, range), mapping types (dict), set types (set, frozenset), and boolean type (bool). Each type has specific characteristics regarding mutability, ordering, and performance. Immutable types (int, float, str, tuple) cannot be changed after creation, while mutable types (list, dict, set) can be modified in-place.
 
 #### **Numeric Types**
 ```python
@@ -40,21 +40,22 @@ print(f"Complex: {complex_num}, Real: {complex_num.real}, Imag: {complex_num.ima
 
 #### **Sequence Types**
 ```python
-# String - immutable sequence of characters
-text = "Data Engineering"
-print(f"String: {text}, Length: {len(text)}, Upper: {text.upper()}")
-# Output: String: Data Engineering, Length: 16, Upper: DATA ENGINEERING
+# String - immutable, optimized for text processing
+file_path = "/data/warehouse/users.parquet"
+print(f"Extension: {file_path.split('.')[-1]}")
+# Output: Extension: parquet
 
-# List - mutable sequence
-numbers = [1, 2, 3, 4, 5]
-numbers.append(6)
-print(f"List: {numbers}, Type: {type(numbers)}")
-# Output: List: [1, 2, 3, 4, 5, 6], Type: <class 'list'>
+# List - mutable, dynamic arrays
+columns = ["user_id", "name", "email"]
+columns.append("created_at")
+print(f"Columns: {columns}")
+# Output: Columns: ['user_id', 'name', 'email', 'created_at']
 
-# Tuple - immutable sequence
-coordinates = (10.5, 20.3)
-print(f"Tuple: {coordinates}, Immutable: {coordinates}")
-# Output: Tuple: (10.5, 20.3), Immutable: (10.5, 20.3)
+# Tuple - immutable, memory efficient for fixed data
+db_config = ("localhost", 5432, "postgres")
+host, port, db = db_config  # Unpacking
+print(f"Connection: {host}:{port}/{db}")
+# Output: Connection: localhost:5432/postgres
 ```
 
 #### **Mapping and Set Types**
@@ -73,54 +74,77 @@ print(f"Set: {unique_ids}")
 
 ### 2. Explain the difference between lists and tuples.
 
-**Answer:** Lists and tuples are both sequence types but have key differences.
+**Answer:** Lists and tuples are both sequence types but differ in mutability. Lists are mutable, allowing modification after creation, making them suitable for dynamic collections. Tuples are immutable, providing data integrity and better performance for fixed structures. Tuples use less memory, have faster access times, and can be used as dictionary keys due to their hashable nature.
 
 ```python
-# Lists - mutable
-my_list = [1, 2, 3]
-my_list[0] = 10  # Modification allowed
-my_list.append(4)  # Can add elements
-print(f"Modified list: {my_list}")
-# Output: Modified list: [10, 2, 3, 4]
+# Lists - mutable, for dynamic collections
+data_sources = ["s3://bucket1", "s3://bucket2"]
+data_sources.append("s3://bucket3")  # Dynamic growth
+data_sources[0] = "s3://new-bucket1"  # Modification
+print(f"Sources: {data_sources}")
+# Output: Sources: ['s3://new-bucket1', 's3://bucket2', 's3://bucket3']
 
-# Tuples - immutable
-my_tuple = (1, 2, 3)
-# my_tuple[0] = 10  # This would raise TypeError
-print(f"Tuple: {my_tuple}")
-# Output: Tuple: (1, 2, 3)
+# Tuples - immutable, for fixed structures
+schema_field = ("user_id", "INTEGER", "NOT NULL")
+name, data_type, constraint = schema_field
+print(f"Field: {name} {data_type} {constraint}")
+# Output: Field: user_id INTEGER NOT NULL
 
-# Performance comparison
+# Memory efficiency comparison
 import sys
-import time
+list_coords = [40.7128, -74.0060]
+tuple_coords = (40.7128, -74.0060)
 
-list_data = [1, 2, 3, 4, 5]
-tuple_data = (1, 2, 3, 4, 5)
+print(f"List: {sys.getsizeof(list_coords)} bytes")
+print(f"Tuple: {sys.getsizeof(tuple_coords)} bytes")
+# Output: List: 80 bytes
+#         Tuple: 64 bytes
 
-print(f"List size: {sys.getsizeof(list_data)} bytes")
-print(f"Tuple size: {sys.getsizeof(tuple_data)} bytes")
-# Output: List size: 104 bytes
-#         Tuple size: 80 bytes
-
-# Access time comparison
-start = time.time()
-for _ in range(1000000):
-    _ = list_data[2]
-list_time = time.time() - start
-
-start = time.time()
-for _ in range(1000000):
-    _ = tuple_data[2]
-tuple_time = time.time() - start
-
-print(f"List access time: {list_time:.6f}s")
-print(f"Tuple access time: {tuple_time:.6f}s")
-# Output: List access time: 0.123456s
-#         Tuple access time: 0.098765s
+# Use cases in data engineering
+partition_keys = ("year", "month", "day")  # Fixed structure
+batch_files = []  # Dynamic collection
+for i in range(3):
+    batch_files.append(f"batch_{i}.parquet")
+print(f"Partitions: {partition_keys}")
+print(f"Files: {batch_files}")
+# Output: Partitions: ('year', 'month', 'day')
+#         Files: ['batch_0.parquet', 'batch_1.parquet', 'batch_2.parquet']
 ```
 
 ### 3. How do dictionaries work internally in Python?
 
-**Answer:** Python dictionaries use hash tables for O(1) average-case lookup.
+**Theoretical Answer:**
+
+Python dictionaries are implemented as hash tables (hash maps) with several sophisticated optimizations that make them one of the most efficient data structures in Python.
+
+**Core Implementation Details:**
+
+1. **Hash Table Structure**: Dictionaries use a hash table with open addressing and random probing for collision resolution
+2. **Compact Representation**: Python 3.6+ uses a compact dict implementation that reduces memory usage by 20-25%
+3. **Insertion Order Preservation**: Since Python 3.7, dictionaries maintain insertion order as a language guarantee
+4. **Dynamic Resizing**: Hash tables automatically resize when load factor exceeds 2/3 to maintain O(1) performance
+
+**Hash Function Process:**
+
+1. **Key Hashing**: Keys are converted to hash values using the built-in `hash()` function
+2. **Index Calculation**: Hash values are mapped to array indices using modulo operation
+3. **Collision Handling**: When multiple keys hash to the same index, Python uses random probing
+4. **Probe Sequence**: Uses a pseudo-random sequence to find the next available slot
+
+**Memory Layout (Python 3.6+):**
+- **Sparse Array**: Contains indices pointing to the dense array
+- **Dense Array**: Stores key-value pairs in insertion order
+- **Memory Efficiency**: Reduces memory overhead and improves cache locality
+
+**Performance Characteristics:**
+- **Average Case**: O(1) for lookup, insertion, and deletion
+- **Worst Case**: O(n) when all keys hash to the same value (rare with good hash functions)
+- **Space Complexity**: O(n) with low overhead due to compact representation
+
+**Optimization Features:**
+- **String Interning**: Common string keys are interned for faster comparison
+- **Combined Table**: Shared keys optimization for objects with similar attribute sets
+- **Resize Strategy**: Grows by factor of 4 until 50,000 elements, then by factor of 2
 
 ```python
 # Hash table demonstration
@@ -154,7 +178,7 @@ print(f"Squared dict: {squared_dict}")
 
 ### 4. What is the difference between `==` and `is` operators?
 
-**Answer:** `==` compares values while `is` compares object identity.
+**Answer:** The `==` operator compares object values by calling the `__eq__()` method, while `is` compares object identity (memory addresses). Python optimizes small integers (-5 to 256) and short strings through interning, making them share the same memory location. For None comparisons, always use `is` since None is a singleton object.
 
 ```python
 # Value comparison with ==
@@ -170,34 +194,166 @@ list3 = list1
 print(f"list1 is list3: {list1 is list3}")  # True - same object
 # Output: list1 is list3: True
 
-# Small integer caching
+# Python Integer Caching (Interning) - WHY 'a is b' returns True
+# Python pre-creates integers from -5 to 256 for performance optimization
 a = 256
 b = 256
-print(f"a is b (256): {a is b}")  # True - cached
+print(f"a is b (256): {a is b}")  # True - same cached object
+print(f"id(a): {id(a)}, id(b): {id(b)}")  # Same memory address
 # Output: a is b (256): True
+#         id(a): 140712234567456, id(b): 140712234567456
 
+# Large integers are NOT cached - new objects created each time
 c = 257
 d = 257
-print(f"c is d (257): {c is d}")  # False - not cached
+print(f"c is d (257): {c is d}")  # False - different objects
+print(f"id(c): {id(c)}, id(d): {id(d)}")  # Different memory addresses
 # Output: c is d (257): False
+#         id(c): 140712234568912, id(d): 140712234568944
 
-# String interning
+# Demonstration of caching boundary
+for i in [255, 256, 257]:
+    x = i
+    y = i
+    print(f"{i}: x is y = {x is y}, same id = {id(x) == id(y)}")
+# Output: 255: x is y = True, same id = True
+#         256: x is y = True, same id = True  
+#         257: x is y = False, same id = False
+
+# Python String Interning - Detailed Explanation
+# String interning is Python's optimization where identical strings share memory
+# This happens automatically for certain strings to save memory and improve performance
+
+# 1. Compile-time interning (string literals)
 str1 = "hello"
 str2 = "hello"
-print(f"str1 is str2: {str1 is str2}")  # True - interned
+print(f"str1 is str2: {str1 is str2}")  # True - same object
+print(f"id(str1): {id(str1)}, id(str2): {id(str2)}")  # Same memory address
 # Output: str1 is str2: True
+#         id(str1): 140712234567890, id(str2): 140712234567890
 
-# None comparison - always use 'is'
+# 2. Identifier-like strings are automatically interned
+var1 = "python_variable"
+var2 = "python_variable"
+print(f"Identifier-like: {var1 is var2}")  # True
+# Output: Identifier-like: True
+
+# 3. Strings with spaces/special chars may NOT be interned
+space1 = "hello world"
+space2 = "hello world"
+print(f"With spaces: {space1 is space2}")  # May be False (implementation dependent)
+# Output: With spaces: False (or True depending on Python version)
+
+# 4. Runtime string creation - usually NOT interned
+runtime1 = "hel" + "lo"
+runtime2 = "hel" + "lo"
+print(f"Runtime created: {runtime1 is runtime2}")  # Usually False
+print(f"But values equal: {runtime1 == runtime2}")  # Always True
+# Output: Runtime created: False
+#         But values equal: True
+
+# 5. Manual interning with sys.intern()
+import sys
+manual1 = sys.intern("hello world")
+manual2 = sys.intern("hello world")
+print(f"Manually interned: {manual1 is manual2}")  # True
+# Output: Manually interned: True
+
+# 6. Demonstration of interning rules
+test_strings = [
+    ("abc", "abc"),                    # Simple identifier-like
+    ("hello_world", "hello_world"),    # Underscore allowed
+    ("hello world", "hello world"),    # Space - may not be interned
+    ("hello-world", "hello-world"),    # Hyphen - may not be interned
+    ("", ""),                          # Empty string - always interned
+    ("a" * 20, "a" * 20),             # Long string - may not be interned
+]
+
+for s1, s2 in test_strings:
+    print(f"'{s1}' is interned: {s1 is s2}")
+# Output varies by Python implementation and version
+
+# 7. Performance implications
+import time
+
+# Interned strings - fast comparison
+start = time.time()
+for _ in range(1000000):
+    result = "python" is "python"  # Very fast
+interned_time = time.time() - start
+
+# Non-interned strings - slower comparison
+long_str1 = "a" * 1000
+long_str2 = "a" * 1000
+start = time.time()
+for _ in range(1000000):
+    result = long_str1 == long_str2  # Character-by-character comparison
+comparison_time = time.time() - start
+
+print(f"Interned comparison: {interned_time:.6f}s")
+print(f"Regular comparison: {comparison_time:.6f}s")
+print(f"Speedup: {comparison_time/interned_time:.1f}x")
+# Output: Interned comparison: 0.045000s
+#         Regular comparison: 0.234000s
+#         Speedup: 5.2x
+
+# None comparison - always use 'is' (None is a singleton)
 value = None
 print(f"value is None: {value is None}")  # Correct
 print(f"value == None: {value == None}")  # Works but not recommended
 # Output: value is None: True
 #         value == None: True
+
+# Key takeaway: Use == for value comparison, 'is' only for identity
+# Always use 'is' with None, True, False (singletons)
+data = [1, 2, 3]
+if data is not None:  # Correct
+    print("Data exists")
+if len(data) == 3:    # Correct for value comparison
+    print("Data has 3 elements")
 ```
 
 ### 5. Explain Python's memory management and garbage collection.
 
-**Answer:** Python uses reference counting with cycle detection for memory management.
+**Theoretical Answer:**
+
+Python employs a sophisticated multi-layered memory management system that combines reference counting with cyclic garbage collection to automatically handle memory allocation and deallocation.
+
+**Memory Management Layers:**
+
+1. **Operating System Level**: Raw memory allocation through malloc/free
+2. **Python Memory Manager**: PyMalloc - Python's custom memory allocator
+3. **Object-Specific Allocators**: Specialized allocators for different object types
+4. **Reference Counting**: Primary mechanism for immediate memory reclamation
+5. **Garbage Collector**: Handles circular references and complex object graphs
+
+**Reference Counting Mechanism:**
+
+- **Immediate Deallocation**: Objects are freed as soon as their reference count reaches zero
+- **Reference Tracking**: Each object maintains a count of references pointing to it
+- **Automatic Management**: No explicit memory management required from programmer
+- **Deterministic Cleanup**: Objects are cleaned up immediately when no longer referenced
+
+**Cyclic Garbage Collection:**
+
+- **Generational Collection**: Uses three generations (0, 1, 2) based on object age
+- **Mark and Sweep**: Identifies unreachable objects in reference cycles
+- **Threshold-Based**: Triggers collection when allocation thresholds are exceeded
+- **Incremental**: Can be tuned or disabled for performance-critical applications
+
+**PyMalloc Allocator:**
+
+- **Small Object Optimization**: Efficient allocation for objects < 512 bytes
+- **Memory Pools**: Pre-allocated memory blocks to reduce fragmentation
+- **Arena Management**: Large memory chunks divided into pools
+- **Fast Allocation**: Optimized for Python's allocation patterns
+
+**Memory Optimization Strategies:**
+
+- **Object Interning**: Reuses immutable objects (small integers, strings)
+- **Free Lists**: Maintains pools of deallocated objects for reuse
+- **Memory Mapping**: Uses mmap for large allocations
+- **Weak References**: Allows references without affecting reference count
 
 ```python
 import gc
@@ -255,7 +411,38 @@ print(f"GC stats after: {gc.get_stats()}")
 
 ### 6. What are Python decorators and how do they work?
 
-**Answer:** Decorators are functions that modify or extend other functions without changing their code.
+**Theoretical Answer:** 
+
+Decorators are a powerful design pattern in Python that allows you to modify or extend the behavior of functions, methods, or classes without permanently altering their code. They leverage Python's first-class function support and closure properties.
+
+**Core Concepts:**
+
+1. **Function as First-Class Objects**: In Python, functions are objects that can be passed around, assigned to variables, and returned from other functions
+2. **Higher-Order Functions**: Decorators are functions that take other functions as arguments and return modified versions
+3. **Closure**: Decorators often use closures to maintain access to variables from their enclosing scope
+4. **Syntactic Sugar**: The `@decorator` syntax is equivalent to `function = decorator(function)`
+
+**How Decorators Work:**
+
+1. **Wrapper Pattern**: Decorators typically create a wrapper function that calls the original function
+2. **Execution Flow**: When a decorated function is called, the decorator's wrapper executes first
+3. **State Preservation**: The original function's metadata can be preserved using `functools.wraps`
+4. **Parameterized Decorators**: Decorators can accept arguments by using nested functions
+
+**Common Use Cases:**
+- **Cross-cutting Concerns**: Logging, timing, authentication, caching
+- **Input Validation**: Parameter checking and sanitization
+- **Rate Limiting**: API throttling and access control
+- **Retry Logic**: Automatic retry mechanisms for unreliable operations
+- **Memoization**: Caching function results for performance
+
+**Types of Decorators:**
+- **Function Decorators**: Modify function behavior
+- **Class Decorators**: Modify class definitions
+- **Method Decorators**: Modify class method behavior
+- **Property Decorators**: Create computed properties
+
+**Practical Examples:**
 
 ```python
 import functools
@@ -329,7 +516,53 @@ except Exception as e:
 
 ### 7. Explain list comprehensions and their benefits.
 
-**Answer:** List comprehensions provide a concise way to create lists with optional filtering and transformation.
+**Theoretical Answer:**
+
+List comprehensions are a Pythonic way to create lists using a concise, readable syntax that combines iteration, conditional logic, and transformation in a single expression. They're based on mathematical set notation and functional programming concepts.
+
+**Core Concepts:**
+
+1. **Declarative Syntax**: Describes what you want rather than how to get it
+2. **Functional Programming**: Inspired by mathematical set-builder notation
+3. **Single Expression**: Combines iteration, filtering, and transformation
+4. **Lazy Evaluation**: More memory-efficient than equivalent loops
+
+**Syntax Structure:**
+```python
+[expression for item in iterable if condition]
+```
+
+**Components:**
+- **Expression**: Transformation applied to each item
+- **Item**: Variable representing current element
+- **Iterable**: Source collection to iterate over
+- **Condition**: Optional filter predicate
+
+**Benefits:**
+
+**Performance:**
+- **Faster Execution**: Optimized at C level in CPython
+- **Reduced Function Calls**: Eliminates append() method calls
+- **Memory Efficiency**: More efficient than equivalent loops
+- **Bytecode Optimization**: Generates more efficient bytecode
+
+**Readability:**
+- **Concise Syntax**: Reduces code verbosity
+- **Self-Documenting**: Intent is clear from structure
+- **Functional Style**: Promotes immutable programming patterns
+- **Reduced Boilerplate**: Eliminates loop setup code
+
+**Types of Comprehensions:**
+- **List Comprehensions**: `[expr for item in iterable]`
+- **Dict Comprehensions**: `{key: value for item in iterable}`
+- **Set Comprehensions**: `{expr for item in iterable}`
+- **Generator Expressions**: `(expr for item in iterable)`
+
+**Advanced Features:**
+- **Nested Loops**: Multiple for clauses
+- **Multiple Conditions**: Multiple if clauses
+- **Nested Comprehensions**: Comprehensions within comprehensions
+- **Conditional Expressions**: Ternary operators within expressions
 
 ```python
 # Basic list comprehension
@@ -394,79 +627,548 @@ print(f"Unique lengths: {unique_lengths}")
 
 ### 8. What are generators and how do they differ from lists?
 
-**Answer:** Generators are memory-efficient iterators that produce values on-demand.
+**Theoretical Answer:** 
+
+Generators are a special type of iterator in Python that implement lazy evaluation - they produce values on-demand rather than computing and storing all values upfront. They are created using generator functions (with `yield` keyword) or generator expressions.
+
+**Core Concepts:**
+
+1. **Lazy Evaluation**: Generators compute values only when requested, making them memory-efficient for large datasets
+2. **State Preservation**: Generator functions maintain their execution state between calls, resuming from where they left off
+3. **Iterator Protocol**: Generators implement `__iter__()` and `__next__()` methods automatically
+4. **Single Traversal**: Generators are consumed once - they become exhausted after full iteration
+
+**Fundamental Differences from Lists:**
+
+| Aspect | Generators | Lists |
+|--------|------------|-------|
+| **Memory Usage** | O(1) - constant | O(n) - linear |
+| **Evaluation** | Lazy (on-demand) | Eager (immediate) |
+| **Iteration** | Single-use (exhaustible) | Reusable (multiple iterations) |
+| **Creation** | `yield` or `()` expression | `[]` or `list()` |
+| **Random Access** | Not supported | Supported via indexing |
+| **Performance** | Fast for large datasets | Fast for small datasets |
+| **Use Cases** | Streaming, large data, pipelines | Small collections, random access |
+
+**When to Use Generators:**
+- Processing large datasets that don't fit in memory
+- Creating data pipelines with transformations
+- Implementing infinite sequences
+- Reading large files line by line
+- Stream processing applications
+
+**When to Use Lists:**
+- Need random access to elements
+- Small datasets that fit comfortably in memory
+- Require multiple iterations over the same data
+- Need to modify elements in place
+- Sorting or reversing operations
 
 ```python
 import sys
 
+# Memory comparison
+list_data = [x**2 for x in range(1000000)]  # 8MB+ memory
+gen_data = (x**2 for x in range(1000000))   # ~104 bytes
+
+print(f"List: {sys.getsizeof(list_data):,} bytes")
+print(f"Generator: {sys.getsizeof(gen_data)} bytes")
+# Output: List: 8,448,728 bytes
+#         Generator: 104 bytes
+
 # Generator function
-def fibonacci_generator(n):
+def fibonacci_gen(n):
     a, b = 0, 1
-    count = 0
-    while count < n:
+    for _ in range(n):
         yield a
         a, b = b, a + b
-        count += 1
 
-# Generator expression
-squares_gen = (x**2 for x in range(1000000))
+# Usage
+fib = fibonacci_gen(10)
+print(list(fib))  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+print(list(fib))  # [] - Generator exhausted!
 
-# List for comparison
-squares_list = [x**2 for x in range(1000)]
+# Lazy evaluation
+def expensive_calc(x):
+    print(f"Computing {x}")
+    return x ** 2
 
-# Memory usage comparison
-print(f"Generator size: {sys.getsizeof(squares_gen)} bytes")
-print(f"List size: {sys.getsizeof(squares_list)} bytes")
-# Output: Generator size: 104 bytes
-#         List size: 8856 bytes
+# List - computes all immediately
+list_comp = [expensive_calc(x) for x in range(3)]
+# Output: Computing 0, Computing 1, Computing 2
 
-# Using generators
-fib_gen = fibonacci_generator(10)
-print("Fibonacci sequence:")
-for num in fib_gen:
-    print(num, end=" ")
-print()
-# Output: Fibonacci sequence:
-#         0 1 1 2 3 5 8 13 21 34
+# Generator - computes on demand
+gen_comp = (expensive_calc(x) for x in range(3))
+print(next(gen_comp))  # Only prints "Computing 0", returns 0
 
-# Generator state preservation
-def counter_generator():
-    count = 0
+# Infinite sequences
+def infinite_numbers():
+    n = 0
     while True:
-        count += 1
-        yield count
+        yield n
+        n += 1
 
-counter = counter_generator()
-print(f"Next: {next(counter)}")  # 1
-print(f"Next: {next(counter)}")  # 2
-print(f"Next: {next(counter)}")  # 3
-# Output: Next: 1
-#         Next: 2
-#         Next: 3
+nums = infinite_numbers()
+first_5 = [next(nums) for _ in range(5)]
+print(first_5)  # [0, 1, 2, 3, 4]
 
-# Generator pipeline for data processing
-def read_data():
-    """Simulate reading data"""
-    for i in range(100):
-        yield f"record_{i}"
+# Data pipeline
+def process_data(data):
+    for item in data:
+        if item % 2 == 0:  # Filter evens
+            yield item ** 2  # Square them
 
-def filter_data(data_gen):
-    """Filter data"""
-    for item in data_gen:
-        if int(item.split('_')[1]) % 2 == 0:
-            yield item
+result = list(process_data(range(10)))
+print(result)  # [0, 4, 16, 36, 64]
 
-def transform_data(data_gen):
-    """Transform data"""
-    for item in data_gen:
-        yield item.upper()
+# When to use each:
+# Lists: Random access, multiple iterations, small data
+# Generators: Large data, streaming, memory constraints
 
-# Chain generators
-pipeline = transform_data(filter_data(read_data()))
-first_five = [next(pipeline) for _ in range(5)]
-print(f"Pipeline result: {first_five}")
-# Output: Pipeline result: ['RECORD_0', 'RECORD_2', 'RECORD_4', 'RECORD_6', 'RECORD_8']
+# Generator function for data processing
+def process_csv_rows(filename):
+    """Memory-efficient CSV processing"""
+    with open(filename, 'r') as file:
+        for line_num, line in enumerate(file, 1):
+            if line.strip():  # Skip empty lines
+                row = line.strip().split(',')
+                yield {
+                    'line_number': line_num,
+                    'data': row,
+                    'processed_at': time.time()
+                }
+
+# Generator pipeline - chaining operations
+def extract_records():
+    """Extract data records"""
+    for i in range(1000):
+        yield {'id': i, 'value': i * 2, 'category': 'A' if i % 2 == 0 else 'B'}
+
+def filter_category_a(records):
+    """Filter only category A records"""
+    for record in records:
+        if record['category'] == 'A':
+            yield record
+
+def transform_values(records):
+    """Transform values"""
+    for record in records:
+        record['transformed_value'] = record['value'] ** 2
+        yield record
+
+# Chained generator pipeline
+pipeline = transform_values(filter_category_a(extract_records()))
+results = [next(pipeline) for _ in range(5)]  # Process only first 5
+print(f"Pipeline results: {results}")
+# Output: Pipeline results: [{'id': 0, 'value': 0, 'category': 'A', 'transformed_value': 0}, ...]
+
+# Generator state and exhaustion
+def demo_generator_state():
+    """Demonstrate generator state preservation"""
+    def countdown(n):
+        while n > 0:
+            yield n
+            n -= 1
+    
+    gen = countdown(3)
+    print(f"First iteration: {list(gen)}")      # [3, 2, 1]
+    print(f"Second iteration: {list(gen)}")     # [] - generator exhausted
+    
+    # Create new generator for reuse
+    gen2 = countdown(3)
+    print(f"New generator: {next(gen2)}, {next(gen2)}")  # 3, 2
+    print(f"Remaining: {list(gen2)}")          # [1]
+
+demo_generator_state()
+# Output: First iteration: [3, 2, 1]
+#         Second iteration: []
+#         New generator: 3, 2
+#         Remaining: [1]
+
+# Infinite generators
+def fibonacci_infinite():
+    """Infinite Fibonacci sequence"""
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
+
+# Safe consumption of infinite generator
+fib = fibonacci_infinite()
+first_10_fib = [next(fib) for _ in range(10)]
+print(f"First 10 Fibonacci: {first_10_fib}")
+# Output: First 10 Fibonacci: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+# Performance comparison for data processing
+def performance_comparison():
+    """Compare generator vs list performance"""
+    
+    # List approach - loads everything into memory
+    start = time.time()
+    data_list = [x for x in range(1000000) if x % 1000 == 0]
+    list_creation_time = time.time() - start
+    
+    start = time.time()
+    list_sum = sum(data_list)
+    list_processing_time = time.time() - start
+    
+    # Generator approach - processes on-demand
+    start = time.time()
+    data_gen = (x for x in range(1000000) if x % 1000 == 0)
+    gen_creation_time = time.time() - start
+    
+    start = time.time()
+    gen_sum = sum(data_gen)
+    gen_processing_time = time.time() - start
+    
+    print(f"List creation: {list_creation_time:.4f}s, processing: {list_processing_time:.4f}s")
+    print(f"Gen creation: {gen_creation_time:.6f}s, processing: {gen_processing_time:.4f}s")
+    print(f"Results equal: {list_sum == gen_sum}")
+
+performance_comparison()
+# Output: List creation: 0.0234s, processing: 0.0001s
+#         Gen creation: 0.000001s, processing: 0.0235s
+#         Results equal: True
+
+# Real-world data engineering use case
+def process_large_dataset(data_source):
+    """Process large dataset efficiently"""
+    def read_batches(source, batch_size=1000):
+        batch = []
+        for item in source:
+            batch.append(item)
+            if len(batch) >= batch_size:
+                yield batch
+                batch = []
+        if batch:  # Yield remaining items
+            yield batch
+    
+    def validate_batch(batch):
+        """Validate and clean batch"""
+        return [item for item in batch if item.get('value', 0) > 0]
+    
+    # Process in memory-efficient batches
+    total_processed = 0
+    for batch in read_batches(data_source):
+
 ```
+
+### 13. What are lambda functions and when should you use them?
+
+**Theoretical Answer:**
+
+Lambda functions are anonymous, inline functions in Python that can have any number of parameters but can only contain a single expression. They are defined using the `lambda` keyword and are primarily used for short, simple operations that don't warrant a full function definition.
+
+**Core Concepts:**
+
+1. **Anonymous Functions**: Lambda functions don't have a name and exist only where they're defined
+2. **Single Expression**: Can only contain one expression, not statements (no `return`, `print`, assignments)
+3. **Functional Programming**: Enable functional programming paradigms like map, filter, reduce
+4. **Closures**: Can capture variables from their enclosing scope
+5. **First-Class Objects**: Can be assigned to variables, passed as arguments, and returned from functions
+
+**Syntax and Structure:**
+```
+lambda parameters: expression
+```
+
+**Fundamental Characteristics:**
+
+| Aspect | Lambda Functions | Regular Functions |
+|--------|------------------|-------------------|
+| **Definition** | `lambda x: x * 2` | `def func(x): return x * 2` |
+| **Name** | Anonymous | Named |
+| **Body** | Single expression only | Multiple statements |
+| **Return** | Implicit return | Explicit `return` |
+| **Scope** | Local to where defined | Global/module scope |
+| **Debugging** | Harder to debug | Easier to debug |
+| **Reusability** | Limited | High |
+| **Documentation** | No docstrings | Can have docstrings |
+
+**When to Use Lambda Functions:**
+- Short, simple operations (1-2 lines equivalent)
+- Functional programming with `map()`, `filter()`, `reduce()`
+- Event-driven programming (callbacks, event handlers)
+- Sorting with custom key functions
+- Data transformations in pandas/data processing
+- Temporary functions that won't be reused
+
+**When NOT to Use Lambda Functions:**
+- Complex logic requiring multiple statements
+- Functions that need documentation
+- Reusable functions used in multiple places
+- Functions requiring error handling
+- When readability would be compromised
+
+**Data Engineering Use Cases:**
+- Data cleaning and transformation pipelines
+- Filtering and mapping operations on datasets
+- Custom sorting of data records
+- Event processing in streaming applications
+- Configuration-driven data processing
+
+```python
+# Basic lambda syntax
+square = lambda x: x ** 2
+print(square(5))  # 25
+
+# Multiple parameters
+add = lambda x, y: x + y
+print(add(3, 4))  # 7
+
+# With default parameters
+greet = lambda name, greeting="Hello": f"{greeting}, {name}!"
+print(greet("Alice"))  # Hello, Alice!
+print(greet("Bob", "Hi"))  # Hi, Bob!
+
+# Functional programming with map, filter, reduce
+from functools import reduce
+
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Map - transform each element
+squares = list(map(lambda x: x ** 2, numbers))
+print(f"Squares: {squares}")
+# Output: Squares: [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+
+# Filter - select elements based on condition
+evens = list(filter(lambda x: x % 2 == 0, numbers))
+print(f"Evens: {evens}")
+# Output: Evens: [2, 4, 6, 8, 10]
+
+# Reduce - aggregate elements
+product = reduce(lambda x, y: x * y, numbers)
+print(f"Product: {product}")
+# Output: Product: 3628800
+
+# Sorting with custom key functions
+students = [
+    {'name': 'Alice', 'grade': 85, 'age': 20},
+    {'name': 'Bob', 'grade': 92, 'age': 19},
+    {'name': 'Charlie', 'grade': 78, 'age': 21}
+]
+
+# Sort by grade (descending)
+by_grade = sorted(students, key=lambda s: s['grade'], reverse=True)
+print(f"By grade: {[s['name'] for s in by_grade]}")
+# Output: By grade: ['Bob', 'Alice', 'Charlie']
+
+# Sort by multiple criteria (age, then grade)
+by_age_grade = sorted(students, key=lambda s: (s['age'], -s['grade']))
+print(f"By age then grade: {[s['name'] for s in by_age_grade]}")
+# Output: By age then grade: ['Bob', 'Alice', 'Charlie']
+
+# Data processing pipeline
+data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Chain operations using lambdas
+result = list(
+    map(lambda x: x ** 2,                    # Square
+        filter(lambda x: x % 2 == 0,         # Filter evens
+               map(lambda x: x + 1, data)))  # Add 1 to each
+)
+print(f"Pipeline result: {result}")
+# Output: Pipeline result: [4, 16, 36, 64, 100]
+
+# Closures - capturing variables from enclosing scope
+def create_multiplier(factor):
+    return lambda x: x * factor
+
+double = create_multiplier(2)
+triple = create_multiplier(3)
+
+print(f"Double 5: {double(5)}")  # 10
+print(f"Triple 5: {triple(5)}")  # 15
+
+# Event-driven programming simulation
+event_handlers = {
+    'click': lambda event: f"Clicked at {event['x']}, {event['y']}",
+    'hover': lambda event: f"Hovering over {event['element']}",
+    'keypress': lambda event: f"Key '{event['key']}' pressed"
+}
+
+events = [
+    {'type': 'click', 'x': 100, 'y': 200},
+    {'type': 'hover', 'element': 'button'},
+    {'type': 'keypress', 'key': 'Enter'}
+]
+
+for event in events:
+    handler = event_handlers.get(event['type'])
+    if handler:
+        print(handler(event))
+# Output: Clicked at 100, 200
+#         Hovering over button
+#         Key 'Enter' pressed
+
+# Data engineering: ETL pipeline with lambdas
+import json
+from datetime import datetime
+
+# Sample data records
+raw_data = [
+    '{"user_id": 1, "amount": "100.50", "timestamp": "2024-01-15T10:30:00"}',
+    '{"user_id": 2, "amount": "75.25", "timestamp": "2024-01-15T11:45:00"}',
+    '{"user_id": 1, "amount": "200.00", "timestamp": "2024-01-15T14:20:00"}'
+]
+
+# ETL pipeline using lambdas
+# Extract: Parse JSON
+extracted = list(map(lambda x: json.loads(x), raw_data))
+
+# Transform: Convert amount to float, parse timestamp
+transformed = list(map(
+    lambda record: {
+        **record,
+        'amount': float(record['amount']),
+        'timestamp': datetime.fromisoformat(record['timestamp']),
+        'date': record['timestamp'][:10]
+    },
+    extracted
+))
+
+# Filter: Only amounts > 80
+filtered = list(filter(lambda x: x['amount'] > 80, transformed))
+
+print(f"Processed {len(filtered)} records")
+for record in filtered:
+    print(f"User {record['user_id']}: ${record['amount']} on {record['date']}")
+# Output: Processed 2 records
+#         User 1: $100.5 on 2024-01-15
+#         User 1: $200.0 on 2024-01-15
+
+# Advanced: Higher-order functions with lambdas
+def apply_operation(operation):
+    """Return a function that applies operation to a list"""
+    return lambda data: list(map(operation, data))
+
+# Create specialized functions
+square_all = apply_operation(lambda x: x ** 2)
+double_all = apply_operation(lambda x: x * 2)
+abs_all = apply_operation(lambda x: abs(x))
+
+test_data = [-3, -1, 0, 2, 5]
+print(f"Original: {test_data}")
+print(f"Squared: {square_all(test_data)}")
+print(f"Doubled: {double_all(test_data)}")
+print(f"Absolute: {abs_all(test_data)}")
+# Output: Original: [-3, -1, 0, 2, 5]
+#         Squared: [9, 1, 0, 4, 25]
+#         Doubled: [-6, -2, 0, 4, 10]
+#         Absolute: [3, 1, 0, 2, 5]
+
+# Performance comparison: lambda vs regular function
+import time
+
+def regular_square(x):
+    return x ** 2
+
+lambda_square = lambda x: x ** 2
+
+data = list(range(100000))
+
+# Regular function
+start = time.time()
+result1 = list(map(regular_square, data))
+regular_time = time.time() - start
+
+# Lambda function
+start = time.time()
+result2 = list(map(lambda_square, data))
+lambda_time = time.time() - start
+
+print(f"Regular function: {regular_time:.4f}s")
+print(f"Lambda function: {lambda_time:.4f}s")
+print(f"Results equal: {result1 == result2}")
+# Output: Regular function: 0.0234s
+#         Lambda function: 0.0235s
+#         Results equal: True
+
+# When NOT to use lambdas - complex logic example
+# BAD: Complex lambda (hard to read)
+complex_bad = lambda x: x ** 2 if x > 0 else -x ** 2 if x < 0 else 0
+
+# GOOD: Regular function for complex logic
+def complex_good(x):
+    """Apply different operations based on sign"""
+    if x > 0:
+        return x ** 2
+    elif x < 0:
+        return -x ** 2
+    else:
+        return 0
+
+# Lambda limitations
+try:
+    # This won't work - lambdas can't contain statements
+    # bad_lambda = lambda x: print(f"Processing {x}"); return x * 2
+    pass
+except SyntaxError as e:
+    print(f"Lambda limitation: {e}")
+
+# Best practices for lambdas in data engineering
+
+# 1. Data validation pipeline
+validators = {
+    'email': lambda x: '@' in x and '.' in x,
+    'age': lambda x: isinstance(x, int) and 0 <= x <= 150,
+    'salary': lambda x: isinstance(x, (int, float)) and x >= 0
+}
+
+user_data = {'email': 'user@example.com', 'age': 25, 'salary': 50000}
+valid = all(validators[field](user_data[field]) for field in validators)
+print(f"User data valid: {valid}")
+# Output: User data valid: True
+
+# 2. Configuration-driven transformations
+transformations = {
+    'uppercase': lambda x: x.upper() if isinstance(x, str) else x,
+    'round_2': lambda x: round(x, 2) if isinstance(x, float) else x,
+    'abs_value': lambda x: abs(x) if isinstance(x, (int, float)) else x
+}
+
+data_record = {'name': 'alice', 'score': 85.6789, 'balance': -100.50}
+config = ['uppercase', 'round_2', 'abs_value']
+
+for field, value in data_record.items():
+    for transform in config:
+        if transform in transformations:
+            data_record[field] = transformations[transform](value)
+            
+print(f"Transformed: {data_record}")
+# Output: Transformed: {'name': 'ALICE', 'score': 85.68, 'balance': 100.5}
+
+# 3. Streaming data processing
+def process_stream(data_stream, processors):
+    """Process streaming data with lambda functions"""
+    for item in data_stream:
+        for processor in processors:
+            item = processor(item)
+        yield item
+
+# Define processing pipeline
+stream_processors = [
+    lambda x: x.strip(),                    # Remove whitespace
+    lambda x: x.lower(),                    # Convert to lowercase
+    lambda x: x.replace(' ', '_'),          # Replace spaces with underscores
+    lambda x: ''.join(c for c in x if c.isalnum() or c == '_')  # Keep only alphanumeric and underscore
+]
+
+input_stream = ["  Hello World  ", "Data Engineering!", "Python Lambda"]
+processed = list(process_stream(input_stream, stream_processors))
+print(f"Processed stream: {processed}")
+# Output: Processed stream: ['hello_world', 'data_engineering', 'python_lambda']
+        valid_items = validate_batch(batch)
+        total_processed += len(valid_items)
+        # Process batch (save to database, etc.)
+    
+    return total_processed
+
+# Simulate large dataset
+large_dataset = ({'id': i, 'value': i if i % 3 != 0 else 0} for i in range(100000))
+processed_count = process_large_dataset(large_dataset)
+print(f"Processed {processed_count} valid records")
+# Output: Processed 66,667 valid records
 
 ### 9. Explain exception handling in Python.
 
@@ -597,7 +1299,49 @@ except DataProcessingError as e:
 
 ### 10. What is the Global Interpreter Lock (GIL) and its implications?
 
-**Answer:** The GIL is a mutex that prevents multiple native threads from executing Python bytecodes simultaneously.
+**Theoretical Answer:**
+
+The Global Interpreter Lock (GIL) is a mutex (mutual exclusion lock) in CPython that prevents multiple native threads from executing Python bytecode simultaneously. It's one of the most important concepts affecting Python's concurrency model.
+
+**Core Concepts:**
+
+1. **Mutual Exclusion**: Only one thread can execute Python bytecode at a time
+2. **Thread Safety**: Protects Python's internal data structures from race conditions
+3. **Reference Counting**: Ensures thread-safe reference counting for memory management
+4. **Bytecode Execution**: Applies only to Python bytecode, not C extensions
+
+**Why the GIL Exists:**
+
+- **Memory Management**: Protects reference counting from race conditions
+- **C API Safety**: Ensures thread safety for Python's C API
+- **Simplicity**: Simplifies CPython's internal implementation
+- **Historical Reasons**: Easier to implement than fine-grained locking
+
+**GIL Behavior:**
+
+- **Automatic Release**: GIL is released during I/O operations and C extension calls
+- **Tick-Based**: Released every 100 bytecode instructions (configurable)
+- **Voluntary Release**: Threads can voluntarily release the GIL
+- **Priority**: No thread priority system - threads compete equally
+
+**Performance Implications:**
+
+**CPU-Bound Tasks:**
+- **Single-threaded Performance**: No benefit from multiple threads
+- **Context Switching Overhead**: May actually slow down due to thread switching
+- **Serialized Execution**: Threads execute one at a time
+
+**I/O-Bound Tasks:**
+- **Effective Parallelism**: GIL released during I/O operations
+- **Improved Throughput**: Multiple threads can wait for I/O simultaneously
+- **Network Operations**: Excellent for web scraping, API calls
+
+**Workarounds and Alternatives:**
+
+- **Multiprocessing**: Use separate processes instead of threads
+- **Async Programming**: Use asyncio for concurrent I/O operations
+- **C Extensions**: Write performance-critical code in C
+- **Alternative Implementations**: PyPy, Jython, IronPython don't have GIL
 
 ```python
 import threading
@@ -803,7 +1547,160 @@ set_operations()
 
 ### 12. How do you handle file I/O in Python?
 
-**Answer:** Python provides multiple ways to handle file operations with proper resource management.
+**Theoretical Answer:**
+
+Python's file I/O system provides comprehensive tools for working with files and I/O operations, emphasizing safety, efficiency, and cross-platform compatibility through a well-designed abstraction layer.
+
+**File Object Architecture:**
+
+**Core Components:**
+- **File Descriptor**: Low-level OS handle to the file resource
+- **Buffer Management**: Python manages read/write buffers for performance optimization
+- **Encoding Handling**: Automatic text encoding/decoding for text files with configurable codecs
+- **Position Tracking**: Current file position maintained for sequential and random access operations
+- **Mode Management**: Controls access permissions and behavior (read, write, append, binary)
+
+**File Modes and Access Patterns:**
+
+**Text vs Binary Modes:**
+- **Text Mode ('t')**: Default mode with automatic encoding/decoding, newline translation
+- **Binary Mode ('b')**: Raw byte access without encoding, preserves exact file content
+- **Universal Newlines**: Handles different newline conventions across platforms
+
+**Access Modes:**
+- **Read ('r')**: Open for reading, file must exist, position at start
+- **Write ('w')**: Open for writing, truncates existing file or creates new one
+- **Append ('a')**: Open for writing, position at end, preserves existing content
+- **Exclusive ('x')**: Create new file, fails if file already exists
+- **Update Modes**: '+' suffix allows both reading and writing
+
+**Buffering Strategies:**
+- **Line Buffering**: Buffer until newline encountered (text files)
+- **Full Buffering**: Buffer until buffer size reached (binary files)
+- **Unbuffered**: Direct I/O operations (binary mode only)
+- **Custom Buffer Size**: Specify buffer size for performance tuning
+
+**Context Manager Integration:**
+
+**Resource Management:**
+- **Automatic Cleanup**: `with` statement ensures file closure even during exceptions
+- **Exception Safety**: Files closed properly regardless of error conditions
+- **Resource Leak Prevention**: Prevents file descriptor exhaustion
+- **Deterministic Cleanup**: Cleanup occurs at predictable times
+
+**Context Manager Protocol:**
+- **`__enter__()`**: Returns file object for use in with block
+- **`__exit__()`**: Handles cleanup, closes file, manages exceptions
+- **Exception Propagation**: Allows exceptions to bubble up while ensuring cleanup
+
+**Advanced File Operations:**
+
+**Random Access:**
+- **`seek(offset, whence)`**: Move file position to specific location
+- **`tell()`**: Get current file position
+- **Whence Parameters**: SEEK_SET (0), SEEK_CUR (1), SEEK_END (2)
+- **Binary vs Text**: Different behavior for text files due to encoding
+
+**File Manipulation:**
+- **`truncate(size)`**: Resize file to specified size
+- **`flush()`**: Force write of buffered data to disk
+- **`fileno()`**: Get underlying file descriptor for low-level operations
+
+**Performance Considerations:**
+
+**Buffering Optimization:**
+- **Default Buffering**: Python chooses optimal buffer size based on file type
+- **Custom Buffering**: Tune buffer size for specific use cases
+- **Memory vs Speed**: Larger buffers reduce I/O calls but use more memory
+- **Sequential vs Random**: Different strategies for different access patterns
+
+**Efficient Reading Strategies:**
+- **Chunk Reading**: Read large files in manageable chunks
+- **Line Iteration**: Memory-efficient line-by-line processing
+- **Generator Patterns**: Lazy evaluation for large file processing
+- **Memory Mapping**: Use `mmap` for very large files
+
+**Error Handling and Robustness:**
+
+**Common Exceptions:**
+- **FileNotFoundError**: File doesn't exist for read operations
+- **PermissionError**: Insufficient permissions for requested operation
+- **IsADirectoryError**: Attempting to open directory as file
+- **OSError**: General I/O errors (disk full, network issues, device errors)
+- **UnicodeDecodeError**: Encoding issues in text mode
+
+**Error Recovery Strategies:**
+- **Graceful Degradation**: Handle missing files appropriately
+- **Retry Logic**: Implement retry mechanisms for transient errors
+- **Validation**: Check file existence and permissions before operations
+- **Logging**: Comprehensive error logging for debugging
+
+**Encoding and Text Processing:**
+
+**Character Encoding:**
+- **Default Encoding**: Platform-dependent (UTF-8 on most modern systems)
+- **Explicit Encoding**: Always specify encoding for cross-platform compatibility
+- **Error Handling**: Configure behavior for encoding errors (strict, ignore, replace)
+- **BOM Handling**: Byte Order Mark detection and handling
+
+**Newline Handling:**
+- **Universal Newlines**: Automatic conversion between different newline conventions
+- **Platform Differences**: \n (Unix), \r\n (Windows), \r (old Mac)
+- **Preservation**: Binary mode preserves original newline characters
+
+**Specialized File Operations:**
+
+**Path Manipulation:**
+- **pathlib Module**: Object-oriented path manipulation and file operations
+- **Cross-platform**: Handles path separators and conventions automatically
+- **Path Validation**: Check path existence, permissions, and properties
+
+**Temporary Files:**
+- **tempfile Module**: Secure temporary file creation with automatic cleanup
+- **Security**: Proper permissions and secure file creation
+- **Cleanup**: Automatic deletion when no longer needed
+
+**File System Operations:**
+- **shutil Module**: High-level file operations (copy, move, delete, archive)
+- **Atomic Operations**: Ensure file operations complete successfully or not at all
+- **Metadata Preservation**: Maintain file timestamps, permissions during operations
+
+**Best Practices:**
+
+**Resource Management:**
+- **Always Use Context Managers**: Ensure proper file closure and resource cleanup
+- **Explicit Encoding**: Specify text encoding for cross-platform compatibility
+- **Exception Handling**: Handle file I/O exceptions appropriately
+- **Path Validation**: Validate file paths and check permissions before operations
+
+**Performance Optimization:**
+- **Appropriate Buffer Sizes**: Choose buffer sizes based on file size and access patterns
+- **Batch Operations**: Group multiple file operations for efficiency
+- **Memory Management**: Consider memory usage when processing large files
+- **Lazy Loading**: Use generators and iterators for memory-efficient processing
+
+**Security Considerations:**
+- **Path Traversal**: Validate and sanitize file paths to prevent directory traversal attacks
+- **Permission Checks**: Verify file permissions before operations
+- **Temporary Files**: Use secure temporary file creation methods
+- **Input Validation**: Validate file content and format before processing
+
+**Integration Patterns:**
+
+**Data Processing Pipelines:**
+- **Stream Processing**: Process files as streams for memory efficiency
+- **Format Detection**: Automatically detect and handle different file formats
+- **Error Recovery**: Implement robust error handling for data processing workflows
+
+**Configuration Management:**
+- **Configuration Files**: Handle various configuration file formats (JSON, YAML, INI)
+- **Environment-specific**: Support different configurations for different environments
+- **Validation**: Validate configuration file structure and content
+
+**Logging and Monitoring:**
+- **File-based Logging**: Efficient file-based logging with rotation and compression
+- **Monitoring**: Track file I/O performance and error rates
+- **Audit Trails**: Maintain logs of file operations for compliance and debugging
 
 ```python
 import os
@@ -1130,7 +2027,58 @@ print(f"Is date1 before date2: {date1 < date2}")
 
 ### 17. What are context managers and how do you create them?
 
-**Answer:** Context managers ensure proper resource management using the with statement.
+**Theoretical Answer:**
+
+Context managers are Python objects that define the runtime context for executing a block of code. They implement the context management protocol to ensure proper resource acquisition and cleanup, following the RAII (Resource Acquisition Is Initialization) pattern.
+
+**Core Concepts:**
+
+1. **Context Management Protocol**: Defines `__enter__()` and `__exit__()` methods
+2. **Resource Management**: Automatic setup and cleanup of resources
+3. **Exception Safety**: Guaranteed cleanup even when exceptions occur
+4. **RAII Pattern**: Resources are tied to object lifetime
+
+**Context Management Protocol:**
+
+**`__enter__()` Method:**
+- Called when entering the `with` block
+- Performs resource acquisition and setup
+- Returns the resource object (or self)
+- Can perform initialization logic
+
+**`__exit__(exc_type, exc_val, exc_tb)` Method:**
+- Called when exiting the `with` block
+- Performs cleanup and resource release
+- Receives exception information if an exception occurred
+- Returns True to suppress exceptions, False to propagate
+
+**Benefits:**
+
+**Resource Safety:**
+- **Guaranteed Cleanup**: Resources are always released
+- **Exception Safety**: Cleanup occurs even during exceptions
+- **Memory Management**: Prevents resource leaks
+- **Deterministic Cleanup**: Cleanup happens at predictable times
+
+**Code Quality:**
+- **Reduced Boilerplate**: Eliminates try/finally blocks
+- **Clear Intent**: Makes resource management explicit
+- **Reusability**: Context managers can be reused across code
+- **Composability**: Multiple context managers can be combined
+
+**Creation Methods:**
+
+1. **Class-Based**: Implement `__enter__` and `__exit__` methods
+2. **Function-Based**: Use `@contextmanager` decorator with `yield`
+3. **Built-in**: Use existing context managers (files, locks, etc.)
+4. **Library-Based**: Use context managers from libraries
+
+**Common Use Cases:**
+- **File Operations**: Automatic file closing
+- **Database Connections**: Connection and transaction management
+- **Thread Synchronization**: Lock acquisition and release
+- **Temporary State**: Setup and restore operations
+- **Resource Pooling**: Acquire and return pooled resources
 
 ```python
 # Built-in context managers
@@ -1218,7 +2166,57 @@ if os.path.exists('example.txt'):
 
 ### 18. How do you handle regular expressions in Python?
 
-**Answer:** Python's re module provides powerful pattern matching capabilities.
+**Theoretical Answer:**
+
+Regular expressions provide a powerful pattern-matching language for string processing, enabling complex text parsing, validation, and transformation operations with concise syntax.
+
+**Pattern Matching Engine:**
+- **Finite State Automaton**: Regex engine builds state machines for pattern matching
+- **Backtracking**: Engine tries different paths when patterns don't match
+- **Compilation**: Patterns compiled to bytecode for efficient repeated use
+- **Unicode Support**: Full Unicode character class and property support
+
+**Core Metacharacters:**
+- **Anchors**: `^` (start), `$` (end), `\b` (word boundary), `\A` (string start), `\Z` (string end)
+- **Quantifiers**: `*` (0+), `+` (1+), `?` (0-1), `{n,m}` (n to m repetitions)
+- **Character Classes**: `[abc]` (any of a,b,c), `[^abc]` (not a,b,c), `\d` (digits), `\w` (word chars), `\s` (whitespace)
+- **Grouping**: `()` (capture groups), `(?:)` (non-capturing), `(?P<name>)` (named groups)
+
+**Advanced Features:**
+- **Lookahead/Lookbehind**: `(?=...)` (positive lookahead), `(?!...)` (negative lookahead)
+- **Conditional Matching**: `(?(condition)yes|no)` patterns
+- **Atomic Groups**: `(?>...)` prevent backtracking
+- **Flags**: `re.IGNORECASE`, `re.MULTILINE`, `re.DOTALL`, `re.VERBOSE`
+
+**Performance Optimization:**
+- **Compilation**: Use `re.compile()` for repeated pattern use
+- **Greedy vs Non-greedy**: `*?`, `+?` for minimal matching
+- **Catastrophic Backtracking**: Avoid nested quantifiers that cause exponential time
+- **Anchoring**: Use `^` and `$` to limit search space
+
+**Common Use Cases:**
+- **Validation**: Email, phone numbers, URLs, credit cards
+- **Parsing**: Log files, configuration files, structured text
+- **Extraction**: Data mining from unstructured text
+- **Transformation**: Text cleaning, format conversion, templating
+
+**Best Practices:**
+- **Raw Strings**: Use `r"pattern"` to avoid escaping backslashes
+- **Specific Patterns**: Be as specific as possible to avoid false matches
+- **Testing**: Test patterns thoroughly with edge cases
+- **Readability**: Use `re.VERBOSE` flag for complex patterns with comments
+- **Alternatives**: Consider `str` methods for simple operations
+
+**Error Handling:**
+- **re.error**: Invalid regex syntax
+- **Match Objects**: Check if match is `None` before accessing groups
+- **Group Validation**: Verify group exists before accessing
+
+**Integration with Python:**
+- **String Methods**: `str.split()`, `str.replace()` for simple cases
+- **Match Objects**: Rich interface for accessing groups and match information
+- **Substitution Functions**: Callable replacements for complex transformations
+- **Scanner Objects**: Efficient tokenization of input streams
 
 ```python
 import re
@@ -1311,7 +2309,84 @@ print(f"Speedup: {regular_time/compiled_time:.2f}x")
 
 ### 19. What are Python's special methods (magic methods)?
 
-**Answer:** Special methods (dunder methods) define how objects behave with built-in operations.
+**Theoretical Answer:**
+
+Special methods (also called "dunder" methods for double underscore) are Python's mechanism for implementing operator overloading and defining how objects interact with built-in functions and operators.
+
+**Core Concepts:**
+
+1. **Protocol-Based Programming**: Special methods implement protocols that define object behavior
+2. **Operator Overloading**: Allow custom objects to work with Python operators (+, -, ==, etc.)
+3. **Built-in Integration**: Enable objects to work seamlessly with built-in functions
+4. **Pythonic Design**: Make custom objects behave like built-in types
+
+**Categories of Special Methods:**
+
+**Object Lifecycle:**
+- **`__new__()`**: Controls object creation (called before `__init__`)
+- **`__init__()`**: Object initialization after creation
+- **`__del__()`**: Object destruction (finalizer)
+
+**String Representation:**
+- **`__str__()`**: Human-readable string representation (for end users)
+- **`__repr__()`**: Developer-friendly representation (for debugging)
+- **`__format__()`**: Custom formatting with format() function
+
+**Comparison Operations:**
+- **`__eq__()`**: Equality comparison (==)
+- **`__lt__()`, `__le__()`, `__gt__()`, `__ge__()`**: Ordering comparisons
+- **`__hash__()`**: Hash value for use in sets and dictionaries
+
+**Arithmetic Operations:**
+- **`__add__()`, `__sub__()`, `__mul__()`, `__truediv__()`**: Basic arithmetic
+- **`__radd__()`, `__rsub__()`**: Right-hand side operations
+- **`__iadd__()`, `__isub__()`**: In-place operations (+=, -=)
+
+**Container Protocol:**
+- **`__len__()`**: Length of container (len() function)
+- **`__getitem__()`, `__setitem__()`, `__delitem__()`**: Index access
+- **`__contains__()`**: Membership testing (in operator)
+- **`__iter__()`**: Iterator protocol
+
+**Callable Objects:**
+- **`__call__()`**: Makes objects callable like functions
+
+**Context Management:**
+- **`__enter__()`, `__exit__()`**: Context manager protocol (with statements)
+
+**Attribute Access:**
+- **`__getattr__()`, `__setattr__()`, `__delattr__()`**: Dynamic attribute access
+- **`__getattribute__()`**: Intercepts all attribute access
+
+**Benefits:**
+
+**Intuitive APIs:**
+- Objects behave like built-in types
+- Natural syntax for domain-specific operations
+- Consistent interface across different object types
+
+**Integration:**
+- Work seamlessly with built-in functions
+- Compatible with Python's standard library
+- Enable polymorphism and duck typing
+
+**Expressiveness:**
+- Domain-specific languages within Python
+- Mathematical notation for custom types
+- Fluent interfaces and method chaining
+
+**Best Practices:**
+- Implement related methods together (e.g., all comparison methods)
+- Follow Python's conventions for method behavior
+- Provide both `__str__` and `__repr__` for better debugging
+- Use `@functools.total_ordering` decorator for comparison methods
+- Ensure `__hash__` is consistent with `__eq__`
+
+**Common Patterns:**
+- **Value Objects**: Implement comparison and hashing for immutable objects
+- **Container Classes**: Implement sequence or mapping protocols
+- **Numeric Types**: Implement arithmetic operations
+- **Context Managers**: Implement resource management protocols
 
 ```python
 class BankAccount:
@@ -1442,7 +2517,94 @@ for key, value in container:  # Uses __iter__
 
 ### 20. How do you work with JSON data in Python?
 
-**Answer:** Python's json module provides easy JSON serialization and deserialization.
+**Theoretical Answer:**
+
+JSON (JavaScript Object Notation) is a lightweight, text-based data interchange format that has become the standard for web APIs and configuration files. Python's `json` module provides comprehensive support for JSON processing.
+
+**JSON Format Characteristics:**
+
+1. **Human-Readable**: Text-based format that's easy to read and write
+2. **Language-Independent**: Supported by virtually all programming languages
+3. **Lightweight**: Minimal syntax overhead compared to XML
+4. **Structured**: Supports nested objects and arrays
+
+**Python-JSON Type Mapping:**
+
+| Python Type | JSON Type | Notes |
+|-------------|-----------|-------|
+| `dict` | Object | Key-value pairs |
+| `list`, `tuple` | Array | Ordered collections |
+| `str` | String | Unicode text |
+| `int`, `float` | Number | Numeric values |
+| `True`, `False` | Boolean | true/false |
+| `None` | null | Null value |
+
+**Core Operations:**
+
+**Serialization (Python → JSON):**
+- **`json.dumps()`**: Convert Python object to JSON string
+- **`json.dump()`**: Write Python object to JSON file
+- **Parameters**: `indent`, `sort_keys`, `separators`, `ensure_ascii`
+
+**Deserialization (JSON → Python):**
+- **`json.loads()`**: Parse JSON string to Python object
+- **`json.load()`**: Read JSON file to Python object
+- **Parameters**: `object_hook`, `parse_float`, `parse_int`
+
+**Advanced Features:**
+
+**Custom Serialization:**
+- **Custom Encoders**: Extend `JSONEncoder` class for complex objects
+- **Default Function**: Handle non-serializable objects
+- **Object Hooks**: Custom deserialization logic
+
+**Error Handling:**
+- **`JSONDecodeError`**: Invalid JSON syntax
+- **`TypeError`**: Non-serializable objects
+- **Validation**: Schema validation with external libraries
+
+**Performance Considerations:**
+
+**Optimization Strategies:**
+- **Streaming**: Process large JSON files incrementally
+- **Compression**: Combine with gzip for large datasets
+- **Caching**: Cache parsed objects for repeated access
+- **Alternative Libraries**: `ujson`, `orjson` for better performance
+
+**Memory Management:**
+- **Large Files**: Use streaming parsers for memory efficiency
+- **Lazy Loading**: Load data on-demand
+- **Object Pooling**: Reuse objects to reduce allocation overhead
+
+**Best Practices:**
+
+**Data Validation:**
+- Validate JSON structure before processing
+- Use schema validation libraries (jsonschema)
+- Handle missing or unexpected fields gracefully
+
+**Security:**
+- Validate input size to prevent DoS attacks
+- Sanitize data before processing
+- Use safe parsing options
+
+**API Design:**
+- Use consistent naming conventions
+- Include version information in API responses
+- Provide clear error messages in JSON format
+
+**Common Use Cases:**
+- **Web APIs**: Request/response data format
+- **Configuration Files**: Application settings and parameters
+- **Data Exchange**: Between different systems and services
+- **Logging**: Structured log data
+- **Caching**: Serialized application state
+
+**Integration Patterns:**
+- **RESTful APIs**: Standard format for HTTP APIs
+- **Microservices**: Inter-service communication
+- **Data Pipelines**: Intermediate data format
+- **Configuration Management**: Environment-specific settings
 
 ```python
 import json
@@ -1606,7 +2768,103 @@ if os.path.exists('employees.json'):
 
 ### 21. What is the difference between `*args` and `**kwargs`?
 
-**Answer:** `*args` and `**kwargs` allow functions to accept variable numbers of arguments.
+**Theoretical Answer:**
+
+`*args` and `**kwargs` are Python's mechanisms for handling variable-length argument lists, enabling flexible function signatures and supporting various calling patterns.
+
+**Core Concepts:**
+
+**`*args` (Arbitrary Positional Arguments):**
+- **Purpose**: Accepts any number of positional arguments
+- **Type**: Tuple containing all extra positional arguments
+- **Usage**: When you don't know how many arguments will be passed
+- **Unpacking**: Can unpack sequences into individual arguments
+
+**`**kwargs` (Arbitrary Keyword Arguments):**
+- **Purpose**: Accepts any number of keyword arguments
+- **Type**: Dictionary containing all extra keyword arguments
+- **Usage**: When you want to accept named parameters dynamically
+- **Unpacking**: Can unpack dictionaries into keyword arguments
+
+**Function Definition Syntax:**
+```python
+def function_name(regular_args, *args, **kwargs):
+    # regular_args: normal positional parameters
+    # args: tuple of extra positional arguments
+    # kwargs: dict of extra keyword arguments
+```
+
+**Parameter Order Rules:**
+1. **Regular positional parameters**
+2. **`*args`** (variable positional)
+3. **Keyword-only parameters** (after `*args`)
+4. **`**kwargs`** (variable keyword)
+
+**Argument Unpacking:**
+
+**Sequence Unpacking (`*`):**
+- Unpacks sequences (lists, tuples) into positional arguments
+- `func(*[1, 2, 3])` equivalent to `func(1, 2, 3)`
+
+**Dictionary Unpacking (`**`):**
+- Unpacks dictionaries into keyword arguments
+- `func(**{'a': 1, 'b': 2})` equivalent to `func(a=1, b=2)`
+
+**Common Use Cases:**
+
+**Function Wrappers and Decorators:**
+- Pass through all arguments to wrapped function
+- Maintain original function signature
+- Add functionality without changing interface
+
+**API Design:**
+- Flexible function interfaces
+- Backward compatibility when adding parameters
+- Configuration functions with many optional parameters
+
+**Delegation Patterns:**
+- Proxy objects that forward method calls
+- Factory functions with flexible initialization
+- Plugin architectures with variable parameters
+
+**Benefits:**
+
+**Flexibility:**
+- Functions can accept varying numbers of arguments
+- Enables generic programming patterns
+- Supports different calling conventions
+
+**Code Reusability:**
+- Write functions that work with different argument patterns
+- Create generic wrappers and utilities
+- Build extensible APIs
+
+**Maintainability:**
+- Add new parameters without breaking existing code
+- Create backward-compatible interfaces
+- Simplify function signatures
+
+**Best Practices:**
+
+**Documentation:**
+- Clearly document expected argument types
+- Provide examples of valid calling patterns
+- Explain the purpose of variable arguments
+
+**Validation:**
+- Validate argument types and values when necessary
+- Provide meaningful error messages
+- Handle edge cases gracefully
+
+**Performance:**
+- Be aware that tuple/dict creation has overhead
+- Consider fixed signatures for performance-critical code
+- Use type hints for better IDE support
+
+**Naming Conventions:**
+- `*args` and `**kwargs` are conventional names
+- Use descriptive names when the purpose is specific
+- Follow team/project conventions consistently
 
 ```python
 def example_function(*args, **kwargs):
@@ -1631,7 +2889,111 @@ print(f"Total: ${total:.2f}")
 
 ### 22. How do you implement inheritance in Python?
 
-**Answer:** Python supports single and multiple inheritance with method resolution order.
+**Theoretical Answer:**
+
+Inheritance is a fundamental object-oriented programming concept that allows classes to inherit attributes and methods from parent classes, promoting code reuse and establishing hierarchical relationships.
+
+**Core Inheritance Concepts:**
+
+**Single Inheritance:**
+- **Definition**: A class inherits from exactly one parent class
+- **Syntax**: `class Child(Parent):`
+- **Benefits**: Simple, clear hierarchy, easy to understand
+- **Use Cases**: Specialization, extending functionality
+
+**Multiple Inheritance:**
+- **Definition**: A class inherits from multiple parent classes
+- **Syntax**: `class Child(Parent1, Parent2, Parent3):`
+- **Benefits**: Combines functionality from multiple sources
+- **Challenges**: Diamond problem, method resolution complexity
+
+**Method Resolution Order (MRO):**
+
+**C3 Linearization Algorithm:**
+- **Purpose**: Determines which method to call in multiple inheritance
+- **Properties**: Consistent, preserves local precedence order
+- **Monotonicity**: Respects inheritance hierarchy
+- **Access**: View with `Class.__mro__` or `Class.mro()`
+
+**MRO Rules:**
+1. **Depth-First**: Search deeper before moving to siblings
+2. **Left-to-Right**: Follow inheritance list order
+3. **No Duplicates**: Each class appears only once
+4. **Consistent**: Maintains relative ordering
+
+**Super() Function:**
+
+**Cooperative Inheritance:**
+- **Purpose**: Call methods in the next class in MRO
+- **Dynamic Resolution**: Resolved at runtime based on actual object type
+- **Parameter Passing**: Ensures all classes receive appropriate arguments
+- **Best Practice**: Always use `super()` in multiple inheritance
+
+**Super() Mechanics:**
+- **Proxy Object**: Returns a proxy object for method calls
+- **MRO Traversal**: Follows method resolution order
+- **Automatic Arguments**: Passes `self` and class automatically
+
+**Inheritance Types:**
+
+**Implementation Inheritance:**
+- **Purpose**: Reuse code from parent class
+- **Relationship**: "is-a" relationship
+- **Example**: `Dog` inherits from `Animal`
+
+**Interface Inheritance:**
+- **Purpose**: Define contracts and protocols
+- **Implementation**: Abstract base classes
+- **Relationship**: "can-do" relationship
+
+**Mixin Classes:**
+- **Purpose**: Provide specific functionality to multiple classes
+- **Characteristics**: Small, focused, reusable
+- **Pattern**: Multiple inheritance with mixins
+
+**Advanced Inheritance Patterns:**
+
+**Abstract Base Classes:**
+- **Purpose**: Define interfaces and enforce implementation
+- **Module**: `abc` module
+- **Decorators**: `@abstractmethod`, `@abstractproperty`
+
+**Template Method Pattern:**
+- **Structure**: Define algorithm skeleton in base class
+- **Customization**: Subclasses implement specific steps
+- **Benefits**: Code reuse with customization points
+
+**Composition vs Inheritance:**
+
+**When to Use Inheritance:**
+- Clear "is-a" relationship exists
+- Need to override or extend behavior
+- Polymorphism is required
+
+**When to Use Composition:**
+- "has-a" relationship is more appropriate
+- Need flexibility in object relationships
+- Want to avoid inheritance complexity
+
+**Best Practices:**
+
+**Design Principles:**
+- **Liskov Substitution Principle**: Subclasses should be substitutable for base classes
+- **Interface Segregation**: Prefer small, focused interfaces
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+**Implementation Guidelines:**
+- Use `super()` for method calls in inheritance hierarchies
+- Keep inheritance hierarchies shallow and focused
+- Prefer composition over inheritance when relationships are unclear
+- Use abstract base classes to define clear interfaces
+- Document inheritance relationships and expected behavior
+
+**Common Pitfalls:**
+- **Diamond Problem**: Multiple inheritance with common ancestors
+- **Method Signature Conflicts**: Incompatible method signatures in multiple inheritance
+- **Tight Coupling**: Over-reliance on inheritance creating rigid designs
+- **Deep Hierarchies**: Complex inheritance chains that are hard to maintain
 
 ```python
 class Animal:
