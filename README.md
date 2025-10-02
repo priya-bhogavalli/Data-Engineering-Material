@@ -122,30 +122,62 @@
 
 ## 📋 Table of Contents
 
-1. [Purpose](#-purpose)
+### 🚀 **Quick Access**
+- [🎯 Quick Start Paths](#-quick-start---choose-your-learning-path) | [🔥 Interview Questions](#-quick-interview-questions-reference) | [🛠️ Tool References](#️-comprehensive-tool-references--decision-guides)
+- [📚 Learning Paths](#-learning-paths-by-experience-level) | [🎯 Goal-Based Guides](#-quick-start-guides-by-goal) | [🧭 Navigation Guide](#-complete-navigation-guide)
+
+### 📖 **Main Sections**
+
+#### **🎯 Getting Started**
+1. [Why This Repository?](#-why-this-repository)
 2. [Complete Navigation Guide](#-complete-navigation-guide)
-3. [Repository Structure](#-repository-structure)
-4. [Core Data Engineering Topics](#-core-data-engineering-topics)
-   - [Programming Languages](#programming-languages)
-   - [Cloud Platforms](#cloud-platforms)
-   - [Databases](#databases)
-   - [Data Processing & Pipelines](#data-processing--pipelines)
-   - [Data Warehousing](#data-warehousing)
-   - [Data Architecture & Principles](#data-architecture--principles)
-5. [Supporting Tools & Technologies](#-supporting-tools--technologies)
-   - [DevOps & Automation](#devops--automation)
-   - [Version Control](#version-control)
-   - [Visualization & Reporting](#visualization--reporting)
-   - [AI & Machine Learning](#ai--machine-learning)
-   - [Programming & Development](#programming--development)
-   - [Systems & Infrastructure](#systems--infrastructure)
-   - [Monitoring & Management](#monitoring--management)
-   - [Project Management](#project-management)
-6. [How to Use This Repository](#-how-to-use-this-repository)
-7. [Study Recommendations](#-study-recommendations)
-8. [Quick Start Guide](#-quick-start-guide)
-9. [How to Contribute](#-how-to-contribute)
-10. [License](#-license)
+3. [How to Use This Repository](#-how-to-use-this-repository)
+4. [Repository Structure](#-repository-structure)
+
+#### **🛠️ Technology References**
+5. [Comprehensive Tool References & Decision Guides](#️-comprehensive-tool-references--decision-guides)
+6. [Core Data Engineering Topics](#️-core-data-engineering-topics)
+   - [📚 Theoretical Foundations](#-new-theoretical-foundations)
+   - [🐍 Programming Languages](#programming-languages) - Python, SQL, PySpark
+   - [☁️ Cloud Platforms](#cloud-platforms) - AWS, Azure, GCP
+   - [🗄️ Databases](#databases) - SQL, NoSQL, Specialized DBs
+   - [🔄 Data Processing & Pipelines](#data-processing--pipelines) - Spark, Kafka, Airflow
+   - [🏢 Data Warehousing](#data-warehousing) - Snowflake, Redshift
+   - [🏗️ Data Architecture & Principles](#data-architecture--principles) - Data Mesh, Vault 2.0
+   - [📋 Data Governance](#data-governance) - Governance frameworks
+   - [🔧 Software Engineering](#software-engineering-principles) - Best practices
+   - [🔒 Security & Compliance](#data-security-ethics--compliance) - Data protection
+
+7. [Supporting Tools & Technologies](#️-supporting-tools--technologies)
+   - [🚀 DevOps & Automation](#devops--automation) - Docker, K8s, Terraform
+   - [📝 Version Control](#version-control) - Git, GitLab
+   - [📊 Visualization & Reporting](#visualization--reporting) - Tableau, Power BI
+   - [🤖 AI & Machine Learning](#ai--machine-learning) - MLOps, GenAI, Vector DBs
+   - [💻 Programming & Development](#programming--development) - Extended languages
+   - [🖥️ Systems & Infrastructure](#systems--infrastructure) - Linux, Networking
+   - [📈 Monitoring & Management](#monitoring--management) - Grafana, Datadog
+   - [📋 Project Management](#project-management) - Agile, Leadership
+
+#### **📚 Learning & Career**
+8. [Learning Paths by Experience Level](#-learning-paths-by-experience-level)
+   - [🆕 Beginner (0-1 years)](#-beginner-0-1-years---foundation-building)
+   - [💼 Intermediate (1-3 years)](#-intermediate-1-3-years---skill-expansion)
+   - [🚀 Advanced (3+ years)](#-advanced-3-years---specialization)
+
+9. [Quick Start Guides by Goal](#-quick-start-guides-by-goal)
+   - [🚨 Interview Prep (1-2 weeks)](#-interview-in-1-2-weeks-crash-course)
+   - [📚 New to Data Engineering](#-new-to-data-engineering-structured-learning)
+   - [🔄 Career Transition](#-career-transition-from-software-engineering)
+   - [🎯 Skill Expansion](#-skill-expansion-current-data-engineers)
+
+#### **🆕 Advanced Content (2024)**
+10. [Real-World Architecture](#️-real-world-architecture)
+11. [Emerging Technologies](#-emerging-technologies)
+12. [Advanced Analytics](#-advanced-analytics)
+
+#### **🤝 Community**
+13. [How to Contribute](#-how-to-contribute)
+14. [License](#-license)
 
 ---
 

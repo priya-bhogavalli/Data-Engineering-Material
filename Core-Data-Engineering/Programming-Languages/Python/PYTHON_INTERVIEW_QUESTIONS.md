@@ -3,12 +3,103 @@
 
 ## 📋 Table of Contents
 
-1. [Basic Level Questions (1-50)](#basic-level-questions-1-50)
-2. [Intermediate Level Questions (51-100)](#intermediate-level-questions-51-100)
-3. [Advanced Level Questions (101-150)](#advanced-level-questions-101-150)
-4. [Expert Level Questions (151-200)](#expert-level-questions-151-200)
-5. [Production & Enterprise (201-230)](#production--enterprise-201-230)
-6. [Cloud & Modern Patterns (231-250)](#cloud--modern-patterns-231-250)
+### 🚀 **Quick Access**
+- [🎯 Most Asked Questions](#-most-asked-questions) | [🔥 Core Concepts](#-core-concepts) | [💻 Practical Examples](#-practical-examples)
+- [📊 By Difficulty](#-by-difficulty-level) | [🏷️ By Topic](#-by-topic-category) | [⏱️ By Interview Type](#-by-interview-type)
+
+### 📖 **Question Categories**
+
+#### **🎯 By Difficulty Level**
+1. [🟢 Basic Level (1-25)](#-basic-level-questions-1-25) - **Foundation Concepts**
+   - [Data Types & Variables](#1-what-are-pythons-built-in-data-types-and-their-characteristics) | [Lists vs Tuples](#2-explain-the-difference-between-lists-and-tuples) | [Dictionaries](#3-how-do-dictionaries-work-internally-in-python)
+   - [Operators](#4-what-is-the-difference-between--and-is-operators) | [Memory Management](#5-explain-pythons-memory-management-and-garbage-collection) | [Decorators](#6-what-are-python-decorators-and-how-do-they-work)
+
+2. [🟡 Intermediate Level (26-50)](#-intermediate-level-questions-26-50) - **Core Programming**
+   - [List Comprehensions](#7-explain-list-comprehensions-and-their-benefits) | [Generators](#8-what-are-generators-and-how-do-they-differ-from-lists) | [Exception Handling](#9-explain-exception-handling-in-python)
+   - [GIL](#10-what-is-the-global-interpreter-lock-gil-and-its-implications) | [Data Structures](#11-what-are-pythons-data-structures-and-their-time-complexities) | [File I/O](#12-how-do-you-handle-file-io-in-python)
+
+3. [🟠 Advanced Level (51-100)](#-advanced-level-questions-51-100) - **Advanced Concepts**
+   - [Lambda Functions](#13-what-are-lambda-functions-and-when-should-you-use-them) | [Modules & Packages](#14-explain-pythons-module-and-package-system) | [Built-in Functions](#15-what-are-pythons-built-in-functions-and-how-do-you-use-them)
+   - [Date/Time](#16-how-do-you-work-with-dates-and-times-in-python) | [Context Managers](#17-what-are-context-managers-and-how-do-you-create-them) | [Regular Expressions](#18-how-do-you-handle-regular-expressions-in-python)
+
+4. [🔴 Expert Level (101-150)](#-expert-level-questions-101-150) - **Mastery Topics**
+   - [Magic Methods](#19-what-are-pythons-special-methods-magic-methods) | [JSON Processing](#20-how-do-you-work-with-json-data-in-python) | [Args & Kwargs](#21-what-is-the-difference-between-args-and-kwargs)
+   - [Inheritance](#22-how-do-you-implement-inheritance-in-python) | [Metaclasses](#32-what-are-metaclasses) | [Descriptors](#what-are-python-descriptors)
+
+5. [⚫ Production & Enterprise (151-200)](#-production--enterprise-151-200) - **Real-World Applications**
+   - [ETL Pipelines](#56-how-do-you-implement-etl-pipelines-in-python) | [Data Quality](#57-how-do-you-handle-data-quality-and-validation-in-python) | [Stream Processing](#58-how-do-you-implement-stream-processing-in-python)
+   - [Data Warehousing](#59-how-do-you-implement-data-warehousing-concepts-in-python) | [Memory Optimization](#60-how-do-you-implement-memory-optimization-techniques-in-python)
+
+6. [🚀 Cloud & Modern Patterns (201-250)](#-cloud--modern-patterns-201-250) - **Cutting-Edge Topics**
+   - [Async Programming](#29-what-are-asyncawait-features) | [Microservices](#30-how-do-you-implement-design-patterns) | [Cloud Integration](#93-what-are-pythons-cloud-integration-patterns)
+
+#### **🏷️ By Topic Category**
+
+**📚 Core Language Features**
+- [Data Types & Structures](#1-what-are-pythons-built-in-data-types-and-their-characteristics) | [Control Flow](#7-explain-list-comprehensions-and-their-benefits) | [Functions](#13-what-are-lambda-functions-and-when-should-you-use-them) | [Classes & OOP](#22-how-do-you-implement-inheritance-in-python)
+
+**🔧 Advanced Programming**
+- [Decorators & Metaclasses](#6-what-are-python-decorators-and-how-do-they-work) | [Context Managers](#17-what-are-context-managers-and-how-do-you-create-them) | [Generators & Iterators](#8-what-are-generators-and-how-do-they-differ-from-lists) | [Magic Methods](#19-what-are-pythons-special-methods-magic-methods)
+
+**💾 Data & File Handling**
+- [File I/O](#12-how-do-you-handle-file-io-in-python) | [JSON Processing](#20-how-do-you-work-with-json-data-in-python) | [Regular Expressions](#18-how-do-you-handle-regular-expressions-in-python) | [Binary Data](#67-how-do-you-work-with-binary-data)
+
+**🏗️ System & Architecture**
+- [Memory Management](#5-explain-pythons-memory-management-and-garbage-collection) | [GIL](#10-what-is-the-global-interpreter-lock-gil-and-its-implications) | [Modules & Packages](#14-explain-pythons-module-and-package-system) | [Threading & Async](#29-what-are-asyncawait-features)
+
+**📊 Data Engineering Specific**
+- [ETL Pipelines](#56-how-do-you-implement-etl-pipelines-in-python) | [Data Validation](#57-how-do-you-handle-data-quality-and-validation-in-python) | [Stream Processing](#58-how-do-you-implement-stream-processing-in-python) | [Data Warehousing](#59-how-do-you-implement-data-warehousing-concepts-in-python)
+
+**⚡ Performance & Optimization**
+- [Memory Optimization](#60-how-do-you-implement-memory-optimization-techniques-in-python) | [Profiling](#46-what-are-performance-profiling-tools) | [Caching](#33-how-do-you-implement-caching) | [Concurrency](#43-how-do-you-implement-multithreadingmultiprocessing)
+
+#### **⏱️ By Interview Type**
+
+**🎯 Technical Screening (30-45 min)**
+- [Basic Syntax](#1-what-are-pythons-built-in-data-types-and-their-characteristics) | [Data Structures](#2-explain-the-difference-between-lists-and-tuples) | [Functions](#13-what-are-lambda-functions-and-when-should-you-use-them) | [Exception Handling](#9-explain-exception-handling-in-python)
+
+**💻 Coding Interview (60-90 min)**
+- [Algorithms](#7-explain-list-comprehensions-and-their-benefits) | [Data Processing](#8-what-are-generators-and-how-do-they-differ-from-lists) | [File Handling](#12-how-do-you-handle-file-io-in-python) | [Problem Solving](#practical-examples)
+
+**🏗️ System Design (90+ min)**
+- [Architecture Patterns](#30-how-do-you-implement-design-patterns) | [Scalability](#43-how-do-you-implement-multithreadingmultiprocessing) | [Data Pipelines](#56-how-do-you-implement-etl-pipelines-in-python) | [Performance](#60-how-do-you-implement-memory-optimization-techniques-in-python)
+
+**🚀 Senior/Lead Roles**
+- [Advanced Concepts](#32-what-are-metaclasses) | [Best Practices](#44-what-are-security-best-practices) | [Team Leadership](#team-leadership) | [Architecture Decisions](#real-world-applications)
+
+#### **📈 Preparation Roadmap**
+
+**Week 1-2: Foundation**
+- Master basic data types, control structures, and functions
+- Understand OOP concepts and inheritance
+- Practice file I/O and exception handling
+
+**Week 3-4: Intermediate**
+- Learn decorators, generators, and context managers
+- Understand memory management and GIL
+- Practice with modules and packages
+
+**Week 5-6: Advanced**
+- Master metaclasses, descriptors, and magic methods
+- Learn async programming and concurrency
+- Understand performance optimization
+
+**Week 7-8: Specialization**
+- Focus on data engineering specific topics
+- Practice ETL pipelines and data processing
+- Learn cloud integration patterns
+
+### 🎯 **Most Asked Questions**
+1. [Python Data Types](#1-what-are-pythons-built-in-data-types-and-their-characteristics) ⭐⭐⭐⭐⭐
+2. [List vs Tuple](#2-explain-the-difference-between-lists-and-tuples) ⭐⭐⭐⭐⭐
+3. [Dictionary Internals](#3-how-do-dictionaries-work-internally-in-python) ⭐⭐⭐⭐
+4. [== vs is](#4-what-is-the-difference-between--and-is-operators) ⭐⭐⭐⭐⭐
+5. [Memory Management](#5-explain-pythons-memory-management-and-garbage-collection) ⭐⭐⭐⭐
+6. [Decorators](#6-what-are-python-decorators-and-how-do-they-work) ⭐⭐⭐⭐
+7. [List Comprehensions](#7-explain-list-comprehensions-and-their-benefits) ⭐⭐⭐⭐⭐
+8. [Generators](#8-what-are-generators-and-how-do-they-differ-from-lists) ⭐⭐⭐⭐
+9. [Exception Handling](#9-explain-exception-handling-in-python) ⭐⭐⭐⭐⭐
+10. [GIL](#10-what-is-the-global-interpreter-lock-gil-and-its-implications) ⭐⭐⭐
 
 ---
 
@@ -1172,129 +1263,346 @@ print(f"Processed {processed_count} valid records")
 
 ### 9. Explain exception handling in Python.
 
-**Answer:** Python uses try-except blocks for handling exceptions with optional else and finally clauses.
+**Theoretical Answer:**
+
+Python's exception handling system provides a robust mechanism for managing errors and exceptional conditions that occur during program execution. It follows a structured approach that separates normal program flow from error handling logic.
+
+**Core Concepts:**
+
+1. **Exception Hierarchy**: All exceptions inherit from BaseException, with Exception being the base for most user-defined exceptions
+2. **Exception Propagation**: Exceptions bubble up the call stack until caught or reaching the top level
+3. **Exception Objects**: Carry information about the error including type, message, and traceback
+4. **Resource Management**: Ensures proper cleanup through finally blocks and context managers
+
+**Exception Handling Structure:**
+
+**Try-Except Block:**
+- **try**: Contains code that might raise an exception
+- **except**: Handles specific exception types
+- **else**: Executes only if no exception occurred
+- **finally**: Always executes for cleanup
+
+**Exception Types:**
+
+**Built-in Exceptions:**
+- **SyntaxError**: Invalid Python syntax
+- **TypeError**: Wrong data type for operation
+- **ValueError**: Correct type but invalid value
+- **KeyError**: Dictionary key not found
+- **IndexError**: List index out of range
+- **FileNotFoundError**: File doesn't exist
+- **AttributeError**: Object has no attribute
+- **ImportError**: Module import failed
+
+**Exception Handling Best Practices:**
+
+**Specific Exception Handling:**
+- Catch specific exceptions rather than using bare except
+- Handle exceptions at the appropriate level
+- Provide meaningful error messages
+- Log exceptions for debugging
+
+**Resource Management:**
+- Use finally blocks for cleanup
+- Prefer context managers for resource handling
+- Ensure resources are properly released
+
+**Custom Exceptions:**
+- Create domain-specific exception classes
+- Include relevant context information
+- Follow naming conventions (Error suffix)
+- Provide helpful error messages
+
+**Exception Chaining:**
+- Use "raise from" to preserve original exception context
+- Maintain exception history for debugging
+- Provide clear error propagation paths
+
+**Performance Considerations:**
+- Exceptions are expensive operations
+- Use exceptions for exceptional cases, not control flow
+- Validate inputs to prevent common exceptions
+- Consider EAFP (Easier to Ask for Forgiveness than Permission) vs LBYL (Look Before You Leap)
+
+**Advanced Exception Handling:**
+
+**Exception Groups (Python 3.11+):**
+- Handle multiple exceptions simultaneously
+- Useful for concurrent operations
+- Provides structured exception handling
+
+**Exception Context:**
+- Automatic exception chaining with __cause__ and __context__
+- Preserves original exception information
+- Enables better debugging and error analysis
+
+**Logging Integration:**
+- Structured exception logging
+- Include relevant context information
+- Use appropriate log levels
+- Implement centralized error handling
 
 ```python
 import logging
+import traceback
+from typing import Optional, Any
+from contextlib import contextmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Basic exception handling
-def safe_divide(a, b):
-    try:
-        result = a / b
-        return result
-    except ZeroDivisionError:
-        logger.error("Division by zero attempted")
-        return None
-    except TypeError as e:
-        logger.error(f"Type error: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        return None
-
-# Multiple exception types
-def process_data(data):
-    try:
-        # Validate input
-        if not isinstance(data, (list, tuple)):
-            raise TypeError("Data must be a list or tuple")
-        
-        if len(data) == 0:
-            raise ValueError("Data cannot be empty")
-        
-        # Process data
-        result = sum(data) / len(data)
-        return result
-    
-    except (TypeError, ValueError) as e:
-        logger.error(f"Input validation error: {e}")
-        raise  # Re-raise the exception
-    
-    except Exception as e:
-        logger.error(f"Processing error: {e}")
-        return None
-
-# Try-except-else-finally
-def file_processor(filename):
-    file_handle = None
-    try:
-        file_handle = open(filename, 'r')
-        content = file_handle.read()
-        
-        # Validate content
-        if not content.strip():
-            raise ValueError("File is empty")
-        
-        return content
-    
-    except FileNotFoundError:
-        logger.error(f"File not found: {filename}")
-        return None
-    
-    except ValueError as e:
-        logger.error(f"File validation error: {e}")
-        return None
-    
-    else:
-        # Executed if no exception occurred
-        logger.info(f"Successfully processed file: {filename}")
-    
-    finally:
-        # Always executed
-        if file_handle:
-            file_handle.close()
-            logger.info("File handle closed")
-
-# Custom exceptions
+# Custom exception hierarchy
 class DataProcessingError(Exception):
-    """Custom exception for data processing errors"""
-    
-    def __init__(self, message, error_code=None):
+    """Base exception for data processing errors"""
+    def __init__(self, message: str, error_code: Optional[str] = None, context: Optional[dict] = None):
         super().__init__(message)
         self.error_code = error_code
+        self.context = context or {}
         self.timestamp = time.time()
 
-def validate_user_data(user_data):
-    """Validate user data with custom exceptions"""
+class ValidationError(DataProcessingError):
+    """Data validation failed"""
+    pass
+
+class TransformationError(DataProcessingError):
+    """Data transformation failed"""
+    pass
+
+class LoadError(DataProcessingError):
+    """Data loading failed"""
+    pass
+
+# Exception handling with context
+class DataProcessor:
+    def __init__(self):
+        self.processed_count = 0
+        self.error_count = 0
     
-    if not user_data.get('email'):
-        raise DataProcessingError(
-            "Email is required", 
-            error_code="MISSING_EMAIL"
-        )
+    def process_record(self, record: dict) -> dict:
+        """Process a single data record with comprehensive error handling"""
+        try:
+            # Validation phase
+            validated_record = self._validate_record(record)
+            
+            # Transformation phase
+            transformed_record = self._transform_record(validated_record)
+            
+            # Success
+            self.processed_count += 1
+            return transformed_record
+            
+        except ValidationError as e:
+            self.error_count += 1
+            logger.error(f"Validation failed for record: {e}", extra={
+                'error_code': e.error_code,
+                'context': e.context,
+                'record_id': record.get('id', 'unknown')
+            })
+            raise  # Re-raise to caller
+            
+        except TransformationError as e:
+            self.error_count += 1
+            logger.error(f"Transformation failed: {e}", extra={
+                'error_code': e.error_code,
+                'context': e.context
+            })
+            # Could return default value or re-raise
+            return self._get_default_record()
+            
+        except Exception as e:
+            self.error_count += 1
+            logger.exception(f"Unexpected error processing record: {e}")
+            # Log full traceback for debugging
+            logger.debug(f"Full traceback: {traceback.format_exc()}")
+            raise DataProcessingError(
+                f"Unexpected error: {str(e)}",
+                error_code="UNEXPECTED_ERROR",
+                context={'original_exception': type(e).__name__}
+            ) from e
     
-    if '@' not in user_data['email']:
-        raise DataProcessingError(
-            "Invalid email format", 
-            error_code="INVALID_EMAIL"
-        )
+    def _validate_record(self, record: dict) -> dict:
+        """Validate record structure and content"""
+        required_fields = ['id', 'name', 'value']
+        
+        for field in required_fields:
+            if field not in record:
+                raise ValidationError(
+                    f"Missing required field: {field}",
+                    error_code="MISSING_FIELD",
+                    context={'missing_field': field, 'available_fields': list(record.keys())}
+                )
+        
+        if not isinstance(record['value'], (int, float)):
+            raise ValidationError(
+                f"Invalid value type: expected number, got {type(record['value']).__name__}",
+                error_code="INVALID_TYPE",
+                context={'field': 'value', 'expected_type': 'number', 'actual_type': type(record['value']).__name__}
+            )
+        
+        return record
     
-    return True
+    def _transform_record(self, record: dict) -> dict:
+        """Transform record with error handling"""
+        try:
+            transformed = record.copy()
+            transformed['processed_value'] = record['value'] * 2
+            transformed['status'] = 'processed'
+            return transformed
+        except (TypeError, ValueError) as e:
+            raise TransformationError(
+                f"Failed to transform record: {str(e)}",
+                error_code="TRANSFORM_FAILED",
+                context={'record_id': record.get('id'), 'operation': 'value_multiplication'}
+            ) from e
+    
+    def _get_default_record(self) -> dict:
+        """Return default record for failed transformations"""
+        return {
+            'id': 'default',
+            'name': 'default_record',
+            'value': 0,
+            'processed_value': 0,
+            'status': 'failed_with_default'
+        }
+
+# Context manager for exception handling
+@contextmanager
+def error_handling_context(operation_name: str):
+    """Context manager for consistent error handling"""
+    start_time = time.time()
+    try:
+        logger.info(f"Starting operation: {operation_name}")
+        yield
+        duration = time.time() - start_time
+        logger.info(f"Operation {operation_name} completed successfully in {duration:.3f}s")
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Operation {operation_name} failed after {duration:.3f}s: {str(e)}")
+        logger.debug(f"Exception details: {traceback.format_exc()}")
+        raise
+
+# Advanced exception handling patterns
+class RetryableOperation:
+    def __init__(self, max_retries: int = 3, backoff_factor: float = 1.0):
+        self.max_retries = max_retries
+        self.backoff_factor = backoff_factor
+    
+    def execute_with_retry(self, operation, *args, **kwargs):
+        """Execute operation with retry logic"""
+        last_exception = None
+        
+        for attempt in range(self.max_retries + 1):
+            try:
+                return operation(*args, **kwargs)
+            except (ConnectionError, TimeoutError) as e:
+                last_exception = e
+                if attempt < self.max_retries:
+                    wait_time = self.backoff_factor * (2 ** attempt)
+                    logger.warning(f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {str(e)}")
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"All {self.max_retries + 1} attempts failed")
+            except Exception as e:
+                # Don't retry for non-transient errors
+                logger.error(f"Non-retryable error: {str(e)}")
+                raise
+        
+        raise last_exception
 
 # Usage examples
-print(f"Safe divide: {safe_divide(10, 2)}")  # 5.0
-print(f"Safe divide by zero: {safe_divide(10, 0)}")  # None
-# Output: Safe divide: 5.0
-#         ERROR:__main__:Division by zero attempted
-#         Safe divide by zero: None
+def demonstrate_exception_handling():
+    processor = DataProcessor()
+    retry_handler = RetryableOperation(max_retries=3)
+    
+    # Test data with various error conditions
+    test_records = [
+        {'id': 1, 'name': 'valid_record', 'value': 100},
+        {'id': 2, 'name': 'missing_value'},  # Missing required field
+        {'id': 3, 'name': 'invalid_type', 'value': 'not_a_number'},  # Invalid type
+        {'id': 4, 'name': 'valid_record_2', 'value': 200}
+    ]
+    
+    results = []
+    
+    for record in test_records:
+        with error_handling_context(f"processing_record_{record.get('id', 'unknown')}"):
+            try:
+                result = processor.process_record(record)
+                results.append(result)
+                logger.info(f"Successfully processed record {record.get('id')}")
+            except ValidationError as e:
+                logger.warning(f"Skipping invalid record {record.get('id')}: {e.error_code}")
+                # Continue processing other records
+                continue
+            except DataProcessingError as e:
+                logger.error(f"Processing error for record {record.get('id')}: {e.error_code}")
+                # Could implement fallback logic here
+                continue
+    
+    print(f"Processing complete. Processed: {processor.processed_count}, Errors: {processor.error_count}")
+    print(f"Successful results: {len(results)}")
+    
+    # Demonstrate retry logic
+    def unreliable_network_operation():
+        import random
+        if random.random() < 0.7:  # 70% chance of failure
+            raise ConnectionError("Network temporarily unavailable")
+        return "Success!"
+    
+    try:
+        result = retry_handler.execute_with_retry(unreliable_network_operation)
+        print(f"Retry operation result: {result}")
+    except Exception as e:
+        print(f"Retry operation ultimately failed: {e}")
 
-try:
-    result = process_data([1, 2, 3, 4, 5])
-    print(f"Process result: {result}")
-except Exception as e:
-    print(f"Processing failed: {e}")
-# Output: INFO:__main__:Successfully processed data
-#         Process result: 3.0
+# Exception handling best practices demonstration
+class BestPracticesExample:
+    
+    def good_exception_handling(self, filename: str) -> Optional[dict]:
+        """Demonstrates good exception handling practices"""
+        try:
+            with open(filename, 'r') as file:
+                import json
+                data = json.load(file)
+                
+                # Validate data structure
+                if not isinstance(data, dict):
+                    raise ValueError("Expected JSON object, got {type(data).__name__}")
+                
+                return data
+                
+        except FileNotFoundError:
+            logger.warning(f"Configuration file not found: {filename}")
+            return None  # Return None for missing optional config
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in {filename}: {e}")
+            raise ValueError(f"Configuration file contains invalid JSON: {e}") from e
+            
+        except PermissionError:
+            logger.error(f"Permission denied reading {filename}")
+            raise  # Re-raise as this is a system configuration issue
+            
+        except Exception as e:
+            logger.exception(f"Unexpected error reading {filename}")
+            raise RuntimeError(f"Failed to load configuration: {e}") from e
+    
+    def bad_exception_handling(self, filename: str):
+        """Demonstrates poor exception handling practices"""
+        try:
+            with open(filename, 'r') as file:
+                import json
+                return json.load(file)
+        except:  # Too broad - catches everything including KeyboardInterrupt
+            pass  # Silently ignores all errors - very bad!
+            return {}  # Returns misleading default
 
-try:
-    validate_user_data({'name': 'John'})
-except DataProcessingError as e:
-    print(f"Validation error: {e} (Code: {e.error_code})")
-# Output: Validation error: Email is required (Code: MISSING_EMAIL)
+# Run demonstration
+demonstrate_exception_handling()
+print("Exception handling patterns demonstrated")
+
+
 ```
 
 ### 10. What is the Global Interpreter Lock (GIL) and its implications?
@@ -1826,203 +2134,1078 @@ print(f"Sorted by grade: {sorted_by_grade}")
 
 ### 14. Explain Python's module and package system.
 
-**Answer:** Python's module system allows code organization and reusability.
+**Theoretical Answer:**
+
+Python's module and package system provides a hierarchical namespace organization that enables code reusability, maintainability, and logical structuring of applications. It implements a sophisticated import mechanism that supports various organizational patterns.
+
+**Core Concepts:**
+
+**Modules:**
+- **Definition**: A module is a single Python file containing definitions, statements, and executable code
+- **Namespace**: Each module creates its own namespace to avoid naming conflicts
+- **Compilation**: Modules are compiled to bytecode (.pyc files) for faster loading
+- **Caching**: The import system caches modules in sys.modules for efficiency
+
+**Packages:**
+- **Definition**: A package is a directory containing multiple modules with an __init__.py file
+- **Hierarchy**: Packages can contain sub-packages, creating nested namespaces
+- **Initialization**: __init__.py controls package initialization and public interface
+- **Distribution**: Packages enable distribution and installation of related modules
+
+**Import Mechanism:**
+
+**Import Process:**
+1. **Module Search**: Python searches for modules in sys.path locations
+2. **Module Loading**: Loads and compiles the module if not already cached
+3. **Module Execution**: Executes module code to populate namespace
+4. **Name Binding**: Binds imported names to local namespace
+
+**Search Path (sys.path):**
+- **Current Directory**: Directory containing the script
+- **PYTHONPATH**: Environment variable directories
+- **Standard Library**: Built-in module locations
+- **Site-packages**: Third-party package installations
+
+**Import Variations:**
+
+**Basic Import Styles:**
+- **`import module`**: Imports entire module namespace
+- **`from module import name`**: Imports specific names
+- **`from module import *`**: Imports all public names (discouraged)
+- **`import module as alias`**: Creates alias for module
+
+**Advanced Import Features:**
+- **Relative Imports**: Import from package hierarchy using dot notation
+- **Conditional Imports**: Import modules based on runtime conditions
+- **Dynamic Imports**: Use importlib for programmatic imports
+- **Lazy Imports**: Defer imports until needed for performance
+
+**Package Structure:**
+
+**Standard Package Layout:**
+```
+my_package/
+    __init__.py          # Package initialization
+    module1.py           # Individual modules
+    module2.py
+    subpackage/
+        __init__.py      # Sub-package initialization
+        submodule.py
+    tests/
+        __init__.py
+        test_module1.py
+```
+
+**__init__.py Functions:**
+- **Package Initialization**: Execute setup code when package is imported
+- **Public Interface**: Control what gets imported with `from package import *`
+- **Namespace Packages**: Enable namespace packages (PEP 420)
+- **Version Information**: Define package metadata and version
+
+**Module Attributes:**
+
+**Special Attributes:**
+- **`__name__`**: Module name or '__main__' for executed scripts
+- **`__file__`**: Path to module file
+- **`__doc__`**: Module docstring
+- **`__package__`**: Package name for relative imports
+- **`__path__`**: Package search path (for packages only)
+
+**Best Practices:**
+
+**Module Design:**
+- **Single Responsibility**: Each module should have a focused purpose
+- **Clear Interface**: Define public API explicitly
+- **Documentation**: Provide comprehensive docstrings
+- **Testing**: Include unit tests for module functionality
+
+**Import Guidelines:**
+- **Explicit Imports**: Prefer explicit imports over wildcard imports
+- **Import Order**: Follow PEP 8 import ordering (standard, third-party, local)
+- **Avoid Circular Imports**: Design modules to minimize circular dependencies
+- **Performance**: Consider import costs for frequently imported modules
+
+**Advanced Features:**
+
+**Namespace Packages:**
+- **Definition**: Packages split across multiple directories
+- **Use Cases**: Plugin architectures, distributed development
+- **Implementation**: No __init__.py required (PEP 420)
+
+**Import Hooks:**
+- **Meta Path Finders**: Customize module discovery
+- **Path Entry Finders**: Handle specific path types
+- **Loaders**: Control module loading and execution
+
+**Module Reloading:**
+- **importlib.reload()**: Reload modules during development
+- **Limitations**: Existing references not updated
+- **Use Cases**: Interactive development, plugin systems
 
 ```python
-# Creating a module (save as math_utils.py)
+# Creating a comprehensive module (save as data_utils.py)
 """
-math_utils.py - Mathematical utility functions
+data_utils.py - Data processing utility functions
+
+This module provides utilities for data processing, validation,
+and transformation operations commonly used in data engineering.
 """
 
-def factorial(n):
-    """Calculate factorial of n"""
-    if n <= 1:
-        return 1
-    return n * factorial(n - 1)
+import json
+import csv
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+import logging
 
-def fibonacci(n):
-    """Generate fibonacci sequence up to n terms"""
-    sequence = []
-    a, b = 0, 1
-    for _ in range(n):
-        sequence.append(a)
-        a, b = b, a + b
-    return sequence
+# Module-level constants
+DEFAULT_DATE_FORMAT = "%Y-%m-%d"
+MAX_BATCH_SIZE = 1000
+VERSION = "1.0.0"
 
-def is_prime(n):
-    """Check if number is prime"""
-    if n < 2:
-        return False
-    for i in range(2, int(n**0.5) + 1):
-        if n % i == 0:
-            return False
+# Module-level logger
+logger = logging.getLogger(__name__)
+
+class DataValidationError(Exception):
+    """Custom exception for data validation errors"""
+    pass
+
+def validate_record(record: Dict[str, Any], required_fields: List[str]) -> bool:
+    """Validate that record contains all required fields"""
+    missing_fields = [field for field in required_fields if field not in record]
+    if missing_fields:
+        raise DataValidationError(f"Missing required fields: {missing_fields}")
     return True
 
-# Module-level variables
-PI = 3.14159
-E = 2.71828
+def clean_numeric_field(value: Any) -> Optional[float]:
+    """Clean and convert numeric field to float"""
+    if value is None or value == '':
+        return None
+    try:
+        return float(str(value).replace(',', '').replace('$', ''))
+    except ValueError:
+        logger.warning(f"Could not convert '{value}' to numeric")
+        return None
 
-# Using the module
-import math_utils
+def parse_date_field(date_str: str, format_str: str = DEFAULT_DATE_FORMAT) -> Optional[datetime]:
+    """Parse date string to datetime object"""
+    if not date_str:
+        return None
+    try:
+        return datetime.strptime(date_str, format_str)
+    except ValueError:
+        logger.warning(f"Could not parse date '{date_str}' with format '{format_str}'")
+        return None
 
-# Access functions and variables
-result = math_utils.factorial(5)
-print(f"Factorial of 5: {result}")
-# Output: Factorial of 5: 120
+def batch_process(data: List[Any], batch_size: int = MAX_BATCH_SIZE):
+    """Process data in batches"""
+    for i in range(0, len(data), batch_size):
+        yield data[i:i + batch_size]
+
+def load_json_config(filename: str) -> Dict[str, Any]:
+    """Load JSON configuration file"""
+    try:
+        with open(filename, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.error(f"Configuration file not found: {filename}")
+        return {}
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in {filename}: {e}")
+        return {}
+
+# Module initialization code
+if __name__ == "__main__":
+    # This runs only when module is executed directly
+    print(f"Data Utils Module v{VERSION}")
+    print("Available functions:")
+    for name in dir():
+        if callable(globals()[name]) and not name.startswith('_'):
+            print(f"  - {name}")
+
+# Package structure example
+# Create package directory: data_processing/
+# __init__.py content:
+"""
+Data Processing Package
+
+A comprehensive package for data processing operations.
+"""
+
+# Package version
+__version__ = "2.0.0"
+__author__ = "Data Engineering Team"
+
+# Import key modules for easy access
+from .extractors import CSVExtractor, JSONExtractor
+from .transformers import DataCleaner, DataValidator
+from .loaders import DatabaseLoader, FileLoader
+from .utils import batch_process, validate_record
+
+# Define public API
+__all__ = [
+    'CSVExtractor', 'JSONExtractor',
+    'DataCleaner', 'DataValidator', 
+    'DatabaseLoader', 'FileLoader',
+    'batch_process', 'validate_record'
+]
+
+# Package-level configuration
+DEFAULT_CONFIG = {
+    'batch_size': 1000,
+    'max_errors': 100,
+    'log_level': 'INFO'
+}
+
+def get_version():
+    """Get package version"""
+    return __version__
+
+def configure_package(config: Dict[str, Any]):
+    """Configure package settings"""
+    global DEFAULT_CONFIG
+    DEFAULT_CONFIG.update(config)
+    
+    # Configure logging
+    logging.basicConfig(level=getattr(logging, config.get('log_level', 'INFO')))
+
+# Usage examples
+import data_utils
+
+# Basic module usage
+test_record = {'id': 1, 'name': 'John', 'amount': '$1,234.56', 'date': '2024-01-15'}
+required_fields = ['id', 'name', 'amount']
+
+try:
+    data_utils.validate_record(test_record, required_fields)
+    clean_amount = data_utils.clean_numeric_field(test_record['amount'])
+    parsed_date = data_utils.parse_date_field(test_record['date'])
+    
+    print(f"Validation passed")
+    print(f"Clean amount: {clean_amount}")
+    print(f"Parsed date: {parsed_date}")
+except data_utils.DataValidationError as e:
+    print(f"Validation failed: {e}")
 
 # Different import styles
-from math_utils import fibonacci, PI
-fib_sequence = fibonacci(10)
-print(f"Fibonacci sequence: {fib_sequence}")
-# Output: Fibonacci sequence: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+from data_utils import validate_record, clean_numeric_field
+from data_utils import batch_process as process_in_batches
 
-# Import with alias
-import math_utils as mu
-primes = [i for i in range(2, 20) if mu.is_prime(i)]
-print(f"Primes under 20: {primes}")
-# Output: Primes under 20: [2, 3, 5, 7, 11, 13, 17, 19]
+# Alias import
+import data_utils as du
+
+# Package usage (if package exists)
+# import data_processing
+# extractor = data_processing.CSVExtractor('data.csv')
+# cleaner = data_processing.DataCleaner()
+
+# Dynamic import example
+import importlib
+
+def load_plugin(plugin_name: str):
+    """Dynamically load a plugin module"""
+    try:
+        plugin_module = importlib.import_module(f"plugins.{plugin_name}")
+        return plugin_module
+    except ImportError as e:
+        print(f"Failed to load plugin {plugin_name}: {e}")
+        return None
+
+# Conditional import
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
+    print("Pandas not available, using basic data structures")
+
+def process_dataframe(data):
+    """Process data with pandas if available"""
+    if HAS_PANDAS:
+        return pd.DataFrame(data).fillna(0)
+    else:
+        # Fallback implementation
+        return [row for row in data if all(v is not None for v in row.values())]
+
+# Module introspection
+print(f"Module name: {data_utils.__name__}")
+print(f"Module file: {data_utils.__file__}")
+print(f"Module doc: {data_utils.__doc__[:50]}...")
+
+# List module contents
+print("Module contents:")
+for attr_name in dir(data_utils):
+    attr = getattr(data_utils, attr_name)
+    if not attr_name.startswith('_'):
+        print(f"  {attr_name}: {type(attr).__name__}")
+
+print("Module and package system demonstrated")
 ```
 
 ### 15. What are Python's built-in functions and how do you use them?
 
-**Answer:** Python provides many built-in functions for common operations.
+**Theoretical Answer:**
+
+Python's built-in functions form the core foundation of the language, providing essential operations that are immediately available without imports. These functions are implemented in C for optimal performance and cover fundamental programming operations.
+
+**Categories of Built-in Functions:**
+
+**Mathematical and Numeric Functions:**
+- **`abs(x)`**: Returns absolute value, works with numbers and objects implementing __abs__
+- **`sum(iterable, start=0)`**: Sums numeric values with optional starting value
+- **`min(iterable)` / `max(iterable)`**: Find minimum/maximum values with optional key function
+- **`round(number, ndigits=None)`**: Round to specified decimal places
+- **`pow(base, exp, mod=None)`**: Power operation with optional modulo
+- **`divmod(a, b)`**: Returns quotient and remainder as tuple
+
+**Type Conversion Functions:**
+- **`int(x, base=10)`**: Convert to integer with optional base specification
+- **`float(x)`**: Convert to floating-point number
+- **`str(object)`**: Convert to string representation
+- **`bool(x)`**: Convert to boolean using truthiness rules
+- **`complex(real, imag=0)`**: Create complex number
+- **`bytes(source, encoding)`**: Create bytes object
+- **`bytearray(source, encoding)`**: Create mutable bytes array
+
+**Sequence and Collection Functions:**
+- **`len(s)`**: Return length of sequence or collection
+- **`sorted(iterable, key=None, reverse=False)`**: Return sorted list
+- **`reversed(seq)`**: Return reverse iterator
+- **`enumerate(iterable, start=0)`**: Return enumerated pairs
+- **`zip(*iterables)`**: Combine multiple iterables element-wise
+- **`range(start, stop, step)`**: Generate arithmetic sequences
+- **`slice(start, stop, step)`**: Create slice objects
+
+**Functional Programming Functions:**
+- **`map(function, iterable)`**: Apply function to each element
+- **`filter(function, iterable)`**: Filter elements based on predicate
+- **`all(iterable)`**: Return True if all elements are truthy
+- **`any(iterable)`**: Return True if any element is truthy
+- **`next(iterator, default)`**: Get next item from iterator
+
+**Object and Type Inspection:**
+- **`type(object)`**: Return object's type
+- **`isinstance(object, classinfo)`**: Check if object is instance of class
+- **`issubclass(class, classinfo)`**: Check class inheritance
+- **`hasattr(object, name)`**: Check if object has attribute
+- **`getattr(object, name, default)`**: Get attribute value
+- **`setattr(object, name, value)`**: Set attribute value
+- **`delattr(object, name)`**: Delete attribute
+- **`dir(object)`**: List object's attributes and methods
+- **`vars(object)`**: Return object's __dict__ attribute
+- **`id(object)`**: Return object's unique identifier
+
+**Input/Output Functions:**
+- **`print(*objects, sep=' ', end='\n', file=sys.stdout)`**: Output to console
+- **`input(prompt='')`**: Read line from input
+- **`open(file, mode='r', encoding=None)`**: Open file for reading/writing
+
+**Advanced Functions:**
+- **`eval(expression, globals=None, locals=None)`**: Evaluate Python expression
+- **`exec(object, globals=None, locals=None)`**: Execute Python code
+- **`compile(source, filename, mode)`**: Compile source into code object
+- **`globals()`**: Return global namespace dictionary
+- **`locals()`**: Return local namespace dictionary
+- **`callable(object)`**: Check if object is callable
+
+**Memory and Object Management:**
+- **`hash(object)`**: Return hash value for hashable objects
+- **`repr(object)`**: Return developer-friendly string representation
+- **`format(value, format_spec)`**: Format value according to specification
+- **`ascii(object)`**: Return ASCII-safe string representation
+
+**Performance Characteristics:**
+
+**Optimization Benefits:**
+- **C Implementation**: Built-in functions are implemented in C for speed
+- **No Import Overhead**: Immediately available without module loading
+- **Optimized Algorithms**: Use efficient algorithms and data structures
+- **Memory Efficiency**: Minimal memory overhead and garbage collection
+
+**Usage Patterns:**
+- **Functional Style**: Enable functional programming patterns
+- **Data Processing**: Essential for data transformation pipelines
+- **Type Safety**: Provide type checking and conversion capabilities
+- **Debugging**: Support introspection and debugging workflows
+
+**Best Practices:**
+
+**Performance Considerations:**
+- Use built-in functions over custom implementations when possible
+- Leverage key functions in sorted() and min()/max() for complex sorting
+- Prefer any()/all() over manual loops for boolean operations
+- Use isinstance() instead of type() for type checking
+
+**Functional Programming:**
+- Combine map(), filter(), and reduce() for data processing pipelines
+- Use zip() for parallel iteration over multiple sequences
+- Leverage enumerate() when both index and value are needed
+- Apply next() with default values for safe iterator consumption
+
+**Type Handling:**
+- Use hasattr() before getattr() to avoid AttributeError
+- Prefer isinstance() for polymorphic type checking
+- Use callable() to check if objects can be invoked
+- Apply repr() for debugging and logging
 
 ```python
-# Numeric functions
-numbers = [1, 2, 3, 4, 5, -1, -2]
-print(f"Sum: {sum(numbers)}")
-print(f"Min: {min(numbers)}")
-print(f"Max: {max(numbers)}")
-print(f"Absolute values: {[abs(x) for x in numbers]}")
-# Output: Sum: 12
-#         Min: -2
-#         Max: 5
-#         Absolute values: [1, 2, 3, 4, 5, 1, 2]
+from functools import reduce
+from typing import Any, Callable, Iterable, Optional
+import operator
 
-# Type conversion functions
-print(f"int('42'): {int('42')}")
-print(f"float('3.14'): {float('3.14')}")
-print(f"str(123): {str(123)}")
-print(f"bool(0): {bool(0)}")
-print(f"bool(1): {bool(1)}")
-# Output: int('42'): 42
-#         float('3.14'): 3.14
-#         str(123): 123
-#         bool(0): False
-#         bool(1): True
+# Comprehensive built-in functions demonstration
+class BuiltinFunctionsDemo:
+    
+    @staticmethod
+    def numeric_operations_demo():
+        """Demonstrate numeric built-in functions"""
+        numbers = [1, -2, 3.5, -4.7, 5, 0]
+        
+        print("=== Numeric Operations ===")
+        print(f"Original: {numbers}")
+        print(f"Sum: {sum(numbers)}")
+        print(f"Min: {min(numbers)}")
+        print(f"Max: {max(numbers)}")
+        print(f"Absolute values: {[abs(x) for x in numbers]}")
+        print(f"Rounded: {[round(x, 1) for x in numbers]}")
+        
+        # Advanced numeric operations
+        print(f"Sum of squares: {sum(x**2 for x in numbers)}")
+        print(f"Max by absolute value: {max(numbers, key=abs)}")
+        print(f"Min positive: {min(filter(lambda x: x > 0, numbers))}")
+    
+    @staticmethod
+    def type_conversion_demo():
+        """Demonstrate type conversion functions"""
+        print("\n=== Type Conversions ===")
+        
+        # String to numeric conversions
+        str_numbers = ['42', '3.14', '0xFF', '0b1010']
+        print(f"String numbers: {str_numbers}")
+        print(f"To int: {[int(x) if x.isdigit() else 'invalid' for x in str_numbers[:2]]}")
+        print(f"To float: {[float(x) if '.' in x else int(x) for x in str_numbers[:2]]}")
+        print(f"Hex to int: {int(str_numbers[2], 16)}")
+        print(f"Binary to int: {int(str_numbers[3], 2)}")
+        
+        # Boolean conversions
+        test_values = [0, 1, [], [1], '', 'hello', None, {}, {'a': 1}]
+        print(f"Boolean conversions: {[(val, bool(val)) for val in test_values]}")
+        
+        # Complex type conversions
+        print(f"Complex number: {complex(3, 4)}")
+        print(f"Bytes from string: {bytes('hello', 'utf-8')}")
+    
+    @staticmethod
+    def sequence_operations_demo():
+        """Demonstrate sequence manipulation functions"""
+        print("\n=== Sequence Operations ===")
+        
+        data = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3]
+        print(f"Original data: {data}")
+        print(f"Length: {len(data)}")
+        print(f"Sorted: {sorted(data)}")
+        print(f"Sorted descending: {sorted(data, reverse=True)}")
+        print(f"Unique sorted: {sorted(set(data))}")
+        print(f"Reversed: {list(reversed(data))}")
+        
+        # Enumeration and zipping
+        words = ['apple', 'banana', 'cherry']
+        prices = [1.20, 0.80, 2.50]
+        quantities = [10, 15, 8]
+        
+        print(f"Enumerated: {list(enumerate(words, start=1))}")
+        print(f"Zipped: {list(zip(words, prices, quantities))}")
+        
+        # Advanced sequence operations
+        inventory = list(zip(words, prices, quantities))
+        total_values = [price * qty for _, price, qty in inventory]
+        print(f"Total values: {total_values}")
+        print(f"Most expensive item: {max(inventory, key=lambda x: x[1])}")
+    
+    @staticmethod
+    def functional_programming_demo():
+        """Demonstrate functional programming built-ins"""
+        print("\n=== Functional Programming ===")
+        
+        numbers = range(1, 11)
+        
+        # Map operations
+        squares = list(map(lambda x: x**2, numbers))
+        print(f"Squares: {squares}")
+        
+        # Filter operations
+        evens = list(filter(lambda x: x % 2 == 0, numbers))
+        print(f"Even numbers: {evens}")
+        
+        # Reduce operations (sum, product)
+        total = reduce(operator.add, numbers)
+        product = reduce(operator.mul, numbers)
+        print(f"Sum using reduce: {total}")
+        print(f"Product using reduce: {product}")
+        
+        # Boolean operations
+        conditions = [True, True, False, True]
+        print(f"Any true: {any(conditions)}")
+        print(f"All true: {all(conditions)}")
+        
+        # Advanced functional patterns
+        data = [1, 2, 3, 4, 5]
+        pipeline_result = list(
+            map(lambda x: x * 2,
+                filter(lambda x: x % 2 == 0,
+                       map(lambda x: x + 1, data)))
+        )
+        print(f"Pipeline result: {pipeline_result}")
+    
+    @staticmethod
+    def object_introspection_demo():
+        """Demonstrate object inspection functions"""
+        print("\n=== Object Introspection ===")
+        
+        class SampleClass:
+            def __init__(self, value):
+                self.value = value
+            
+            def method(self):
+                return self.value * 2
+        
+        obj = SampleClass(42)
+        
+        print(f"Object type: {type(obj)}")
+        print(f"Is instance: {isinstance(obj, SampleClass)}")
+        print(f"Has attribute 'value': {hasattr(obj, 'value')}")
+        print(f"Get attribute: {getattr(obj, 'value', 'default')}")
+        print(f"Object ID: {id(obj)}")
+        print(f"Object representation: {repr(obj)}")
+        
+        # Directory listing
+        methods = [attr for attr in dir(obj) if not attr.startswith('_')]
+        print(f"Public methods/attributes: {methods}")
+        
+        # Callable check
+        print(f"Object callable: {callable(obj)}")
+        print(f"Method callable: {callable(obj.method)}")
+    
+    @staticmethod
+    def advanced_usage_patterns():
+        """Demonstrate advanced usage patterns"""
+        print("\n=== Advanced Patterns ===")
+        
+        # Custom sorting with multiple criteria
+        employees = [
+            {'name': 'Alice', 'dept': 'Engineering', 'salary': 75000},
+            {'name': 'Bob', 'dept': 'Sales', 'salary': 65000},
+            {'name': 'Charlie', 'dept': 'Engineering', 'salary': 80000},
+            {'name': 'Diana', 'dept': 'Sales', 'salary': 70000}
+        ]
+        
+        # Sort by department, then by salary (descending)
+        sorted_employees = sorted(
+            employees, 
+            key=lambda emp: (emp['dept'], -emp['salary'])
+        )
+        print("Sorted employees:")
+        for emp in sorted_employees:
+            print(f"  {emp['name']}: {emp['dept']} - ${emp['salary']:,}")
+        
+        # Using zip for data transformation
+        headers = ['name', 'age', 'city']
+        data_rows = [
+            ['Alice', 30, 'NYC'],
+            ['Bob', 25, 'SF'],
+            ['Charlie', 35, 'Chicago']
+        ]
+        
+        # Convert to list of dictionaries
+        records = [dict(zip(headers, row)) for row in data_rows]
+        print(f"Records: {records}")
+        
+        # Transpose data using zip
+        transposed = list(zip(*data_rows))
+        print(f"Transposed data: {dict(zip(headers, transposed))}")
+        
+        # Safe iteration with next()
+        numbers_iter = iter([1, 2, 3])
+        print(f"Next values: {next(numbers_iter)}, {next(numbers_iter)}")
+        print(f"Safe next: {next(numbers_iter, 'No more items')}")
+        print(f"Safe next: {next(numbers_iter, 'No more items')}")
+    
+    @staticmethod
+    def performance_comparison():
+        """Compare built-in vs custom implementations"""
+        print("\n=== Performance Comparison ===")
+        import time
+        
+        data = list(range(100000))
+        
+        # Built-in sum vs manual loop
+        start = time.time()
+        builtin_sum = sum(data)
+        builtin_time = time.time() - start
+        
+        start = time.time()
+        manual_sum = 0
+        for x in data:
+            manual_sum += x
+        manual_time = time.time() - start
+        
+        print(f"Built-in sum: {builtin_time:.6f}s")
+        print(f"Manual sum: {manual_time:.6f}s")
+        print(f"Speedup: {manual_time/builtin_time:.2f}x")
+        print(f"Results equal: {builtin_sum == manual_sum}")
+        
+        # Built-in max vs manual implementation
+        start = time.time()
+        builtin_max = max(data)
+        builtin_max_time = time.time() - start
+        
+        start = time.time()
+        manual_max = data[0]
+        for x in data[1:]:
+            if x > manual_max:
+                manual_max = x
+        manual_max_time = time.time() - start
+        
+        print(f"Built-in max: {builtin_max_time:.6f}s")
+        print(f"Manual max: {manual_max_time:.6f}s")
+        print(f"Speedup: {manual_max_time/builtin_max_time:.2f}x")
 
-# Sequence functions
-data = [3, 1, 4, 1, 5, 9, 2, 6]
-print(f"Length: {len(data)}")
-print(f"Sorted: {sorted(data)}")
-print(f"Reversed: {list(reversed(data))}")
-print(f"Enumerated: {list(enumerate(data))}")
-# Output: Length: 8
-#         Sorted: [1, 1, 2, 3, 4, 5, 6, 9]
-#         Reversed: [6, 2, 9, 5, 1, 4, 1, 3]
-#         Enumerated: [(0, 3), (1, 1), (2, 4), (3, 1), (4, 5), (5, 9), (6, 2), (7, 6)]
+# Run comprehensive demonstration
+demo = BuiltinFunctionsDemo()
+demo.numeric_operations_demo()
+demo.type_conversion_demo()
+demo.sequence_operations_demo()
+demo.functional_programming_demo()
+demo.object_introspection_demo()
+demo.advanced_usage_patterns()
+demo.performance_comparison()
 
-# Iterator functions
-words = ['python', 'data', 'engineering']
-lengths = list(map(len, words))
-long_words = list(filter(lambda w: len(w) > 4, words))
-print(f"Word lengths: {lengths}")
-print(f"Long words: {long_words}")
-# Output: Word lengths: [6, 4, 11]
-#         Long words: ['python', 'engineering']
-
-# zip function for parallel iteration
-names = ['Alice', 'Bob', 'Charlie']
-ages = [25, 30, 35]
-cities = ['NYC', 'SF', 'Chicago']
-combined = list(zip(names, ages, cities))
-print(f"Combined data: {combined}")
-# Output: Combined data: [('Alice', 25, 'NYC'), ('Bob', 30, 'SF'), ('Charlie', 35, 'Chicago')]
-
-# any and all functions
-conditions = [True, True, False, True]
-print(f"Any true: {any(conditions)}")
-print(f"All true: {all(conditions)}")
-# Output: Any true: True
-#         All true: False
-
-# isinstance and type checking
-value = 42
-print(f"isinstance(value, int): {isinstance(value, int)}")
-print(f"type(value): {type(value)}")
-print(f"type(value).__name__: {type(value).__name__}")
-# Output: isinstance(value, int): True
-#         type(value): <class 'int'>
-#         type(value).__name__: int
+print("\nBuilt-in functions comprehensive demonstration completed")
 ```
 
 ### 16. How do you work with dates and times in Python?
 
-**Answer:** Python's datetime module provides comprehensive date and time functionality.
+**Theoretical Answer:**
+
+Python's date and time handling system provides comprehensive functionality for temporal data processing, which is crucial for data engineering applications involving time series, logging, scheduling, and data pipeline orchestration.
+
+**Core Date/Time Classes:**
+
+**datetime Module Classes:**
+- **`date`**: Represents calendar dates (year, month, day)
+- **`time`**: Represents time of day (hour, minute, second, microsecond)
+- **`datetime`**: Combines date and time information
+- **`timedelta`**: Represents duration between two dates/times
+- **`timezone`**: Represents timezone information
+- **`tzinfo`**: Abstract base class for timezone implementations
+
+**Key Concepts:**
+
+**Naive vs Aware Objects:**
+- **Naive**: No timezone information, assumes local time
+- **Aware**: Contains timezone information for unambiguous representation
+- **Best Practice**: Always use aware objects for production systems
+
+**Immutability:**
+- All datetime objects are immutable
+- Operations return new objects rather than modifying existing ones
+- Thread-safe by design
+- Enables safe caching and sharing
+
+**Precision and Limits:**
+- **Microsecond precision**: Up to 6 decimal places for seconds
+- **Year range**: 1 to 9999 (MAXYEAR)
+- **Platform independence**: Consistent behavior across systems
+
+**Date/Time Operations:**
+
+**Creation Methods:**
+- **Constructor**: Direct instantiation with parameters
+- **Class methods**: `now()`, `today()`, `utcnow()`, `fromtimestamp()`
+- **Parsing**: `strptime()` for string parsing
+- **ISO formats**: `fromisoformat()` for ISO 8601 strings
+
+**Formatting and Parsing:**
+- **`strftime()`**: Format datetime to string using format codes
+- **`strptime()`**: Parse string to datetime using format codes
+- **ISO format**: Standard format for data exchange
+- **Custom formats**: Flexible formatting for various requirements
+
+**Arithmetic Operations:**
+- **Addition/Subtraction**: Use timedelta for date arithmetic
+- **Comparison**: All comparison operators supported
+- **Duration calculation**: Automatic timedelta creation
+- **Business logic**: Calculate working days, age, etc.
+
+**Timezone Handling:**
+
+**Timezone Concepts:**
+- **UTC**: Coordinated Universal Time, standard reference
+- **Local time**: System's local timezone
+- **Timezone conversion**: Convert between different timezones
+- **DST handling**: Automatic daylight saving time adjustments
+
+**Third-party Libraries:**
+- **pytz**: Comprehensive timezone database (being deprecated)
+- **zoneinfo**: Python 3.9+ standard library timezone support
+- **dateutil**: Enhanced parsing and timezone handling
+- **arrow**: Human-friendly date/time library
+
+**Performance Considerations:**
+
+**Optimization Strategies:**
+- **Caching**: Cache frequently used timezone objects
+- **Batch operations**: Process multiple dates efficiently
+- **Native operations**: Use datetime arithmetic over manual calculations
+- **Timezone awareness**: Minimize timezone conversions
+
+**Data Engineering Applications:**
+
+**Time Series Processing:**
+- **Timestamp indexing**: Use datetime for time series data
+- **Resampling**: Aggregate data by time periods
+- **Window functions**: Calculate rolling statistics
+- **Seasonality analysis**: Extract temporal patterns
+
+**ETL Pipeline Scheduling:**
+- **Cron-like scheduling**: Calculate next execution times
+- **Dependency management**: Handle time-based dependencies
+- **Data freshness**: Track data age and staleness
+- **SLA monitoring**: Monitor processing time windows
+
+**Logging and Auditing:**
+- **Timestamp logging**: Consistent timestamp formats
+- **Event correlation**: Match events across time
+- **Performance monitoring**: Measure execution times
+- **Compliance**: Maintain audit trails with timestamps
+
+**Best Practices:**
+
+**Timezone Management:**
+- Always store timestamps in UTC
+- Convert to local time only for display
+- Use timezone-aware objects in production
+- Document timezone assumptions clearly
+
+**Format Standardization:**
+- Use ISO 8601 format for data exchange
+- Consistent format strings across applications
+- Validate date inputs thoroughly
+- Handle parsing errors gracefully
+
+**Performance Optimization:**
+- Cache timezone objects
+- Use appropriate precision (avoid microseconds if not needed)
+- Batch date operations when possible
+- Consider using timestamps for high-frequency data
 
 ```python
 from datetime import datetime, date, time, timedelta, timezone
+from zoneinfo import ZoneInfo  # Python 3.9+
 import time as time_module
+from typing import Optional, List, Dict, Any
+import calendar
 
-# Current date and time
-now = datetime.now()
-today = date.today()
-current_time = datetime.now().time()
+class DateTimeProcessor:
+    """Comprehensive date/time processing for data engineering"""
+    
+    def __init__(self):
+        self.utc = timezone.utc
+        self.local_tz = datetime.now().astimezone().tzinfo
+    
+    def create_datetime_examples(self):
+        """Demonstrate various datetime creation methods"""
+        print("=== DateTime Creation ===")
+        
+        # Current date/time
+        now_naive = datetime.now()
+        now_utc = datetime.now(timezone.utc)
+        today = date.today()
+        
+        print(f"Naive now: {now_naive}")
+        print(f"UTC now: {now_utc}")
+        print(f"Today: {today}")
+        
+        # Specific date/time creation
+        specific_date = date(2024, 12, 25)
+        specific_datetime = datetime(2024, 12, 25, 15, 30, 0, tzinfo=timezone.utc)
+        specific_time = time(14, 30, 0)
+        
+        print(f"Christmas 2024: {specific_date}")
+        print(f"Christmas afternoon UTC: {specific_datetime}")
+        print(f"Afternoon time: {specific_time}")
+        
+        # From timestamp
+        timestamp = 1704067800  # Unix timestamp
+        from_timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        print(f"From timestamp: {from_timestamp}")
+        
+        # ISO format parsing
+        iso_string = "2024-01-15T14:30:00+00:00"
+        from_iso = datetime.fromisoformat(iso_string)
+        print(f"From ISO: {from_iso}")
+    
+    def parsing_and_formatting_examples(self):
+        """Demonstrate parsing and formatting operations"""
+        print("\n=== Parsing and Formatting ===")
+        
+        # Common format patterns
+        date_formats = {
+            "ISO 8601": "%Y-%m-%dT%H:%M:%S",
+            "US Format": "%m/%d/%Y %I:%M %p",
+            "European": "%d.%m.%Y %H:%M:%S",
+            "Log Format": "%Y-%m-%d %H:%M:%S.%f",
+            "Date Only": "%Y-%m-%d"
+        }
+        
+        sample_datetime = datetime(2024, 1, 15, 14, 30, 45, 123456, tzinfo=timezone.utc)
+        
+        print("Format examples:")
+        for name, fmt in date_formats.items():
+            try:
+                formatted = sample_datetime.strftime(fmt)
+                print(f"  {name}: {formatted}")
+            except ValueError as e:
+                print(f"  {name}: Error - {e}")
+        
+        # Parsing examples
+        date_strings = [
+            ("2024-01-15T14:30:45", "%Y-%m-%dT%H:%M:%S"),
+            ("01/15/2024 02:30 PM", "%m/%d/%Y %I:%M %p"),
+            ("15.01.2024 14:30:45", "%d.%m.%Y %H:%M:%S")
+        ]
+        
+        print("\nParsing examples:")
+        for date_str, fmt in date_strings:
+            try:
+                parsed = datetime.strptime(date_str, fmt)
+                print(f"  '{date_str}' -> {parsed}")
+            except ValueError as e:
+                print(f"  '{date_str}' -> Error: {e}")
+    
+    def timezone_operations(self):
+        """Demonstrate timezone operations"""
+        print("\n=== Timezone Operations ===")
+        
+        # Create timezone-aware datetime
+        utc_time = datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+        print(f"UTC time: {utc_time}")
+        
+        # Convert to different timezones
+        try:
+            # Using zoneinfo (Python 3.9+)
+            ny_tz = ZoneInfo("America/New_York")
+            tokyo_tz = ZoneInfo("Asia/Tokyo")
+            london_tz = ZoneInfo("Europe/London")
+            
+            ny_time = utc_time.astimezone(ny_tz)
+            tokyo_time = utc_time.astimezone(tokyo_tz)
+            london_time = utc_time.astimezone(london_tz)
+            
+            print(f"New York: {ny_time}")
+            print(f"Tokyo: {tokyo_time}")
+            print(f"London: {london_time}")
+            
+        except ImportError:
+            print("zoneinfo not available (Python < 3.9)")
+            # Fallback to basic timezone offsets
+            est_offset = timezone(timedelta(hours=-5))
+            jst_offset = timezone(timedelta(hours=9))
+            
+            est_time = utc_time.astimezone(est_offset)
+            jst_time = utc_time.astimezone(jst_offset)
+            
+            print(f"EST: {est_time}")
+            print(f"JST: {jst_time}")
+        
+        # Timezone-naive to timezone-aware conversion
+        naive_dt = datetime(2024, 1, 15, 12, 0, 0)
+        aware_dt = naive_dt.replace(tzinfo=timezone.utc)
+        print(f"Naive -> Aware: {naive_dt} -> {aware_dt}")
+    
+    def date_arithmetic_examples(self):
+        """Demonstrate date arithmetic operations"""
+        print("\n=== Date Arithmetic ===")
+        
+        base_date = datetime(2024, 1, 15, 12, 0, 0)
+        print(f"Base date: {base_date}")
+        
+        # Timedelta operations
+        future_date = base_date + timedelta(days=30, hours=5, minutes=30)
+        past_date = base_date - timedelta(weeks=2, days=3)
+        
+        print(f"30 days, 5.5 hours later: {future_date}")
+        print(f"2 weeks, 3 days earlier: {past_date}")
+        
+        # Calculate differences
+        diff = future_date - base_date
+        print(f"Difference: {diff}")
+        print(f"Total seconds: {diff.total_seconds()}")
+        print(f"Days: {diff.days}")
+        
+        # Business day calculations
+        def add_business_days(start_date: date, days: int) -> date:
+            """Add business days (excluding weekends)"""
+            current = start_date
+            added_days = 0
+            
+            while added_days < days:
+                current += timedelta(days=1)
+                if current.weekday() < 5:  # Monday = 0, Sunday = 6
+                    added_days += 1
+            
+            return current
+        
+        start = date(2024, 1, 15)  # Monday
+        business_date = add_business_days(start, 10)
+        print(f"10 business days from {start}: {business_date}")
+    
+    def time_series_operations(self):
+        """Demonstrate time series operations for data engineering"""
+        print("\n=== Time Series Operations ===")
+        
+        # Generate time series data
+        start_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        time_series = []
+        
+        for i in range(24 * 7):  # One week of hourly data
+            timestamp = start_time + timedelta(hours=i)
+            value = 100 + (i % 24) * 2 + (i // 24) * 5  # Simulated data
+            time_series.append((timestamp, value))
+        
+        print(f"Generated {len(time_series)} data points")
+        print(f"First point: {time_series[0]}")
+        print(f"Last point: {time_series[-1]}")
+        
+        # Time-based aggregations
+        daily_aggregates = {}
+        for timestamp, value in time_series:
+            day_key = timestamp.date()
+            if day_key not in daily_aggregates:
+                daily_aggregates[day_key] = []
+            daily_aggregates[day_key].append(value)
+        
+        # Calculate daily averages
+        daily_averages = {
+            day: sum(values) / len(values)
+            for day, values in daily_aggregates.items()
+        }
+        
+        print("\nDaily averages:")
+        for day, avg in sorted(daily_averages.items()):
+            print(f"  {day}: {avg:.2f}")
+    
+    def performance_monitoring(self):
+        """Demonstrate performance monitoring with datetime"""
+        print("\n=== Performance Monitoring ===")
+        
+        class PerformanceTimer:
+            def __init__(self, operation_name: str):
+                self.operation_name = operation_name
+                self.start_time = None
+                self.end_time = None
+            
+            def __enter__(self):
+                self.start_time = datetime.now(timezone.utc)
+                return self
+            
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                self.end_time = datetime.now(timezone.utc)
+                duration = self.end_time - self.start_time
+                print(f"{self.operation_name}: {duration.total_seconds():.6f} seconds")
+        
+        # Usage example
+        with PerformanceTimer("Data processing simulation"):
+            # Simulate some work
+            total = sum(range(100000))
+        
+        # Batch timing
+        operations = ["load_data", "transform_data", "validate_data", "save_data"]
+        timings = {}
+        
+        for op in operations:
+            start = datetime.now(timezone.utc)
+            # Simulate operation
+            time_module.sleep(0.01 * (len(op) % 3 + 1))
+            end = datetime.now(timezone.utc)
+            timings[op] = (end - start).total_seconds()
+        
+        print("\nOperation timings:")
+        for op, duration in timings.items():
+            print(f"  {op}: {duration:.6f}s")
+        
+        total_time = sum(timings.values())
+        print(f"Total pipeline time: {total_time:.6f}s")
+    
+    def data_engineering_patterns(self):
+        """Demonstrate common data engineering datetime patterns"""
+        print("\n=== Data Engineering Patterns ===")
+        
+        # Partition key generation
+        def generate_partition_key(dt: datetime) -> str:
+            """Generate Hive-style partition key"""
+            return f"year={dt.year}/month={dt.month:02d}/day={dt.day:02d}/hour={dt.hour:02d}"
+        
+        sample_dt = datetime(2024, 1, 15, 14, 30, 0)
+        partition_key = generate_partition_key(sample_dt)
+        print(f"Partition key: {partition_key}")
+        
+        # Data freshness checking
+        def check_data_freshness(last_update: datetime, max_age_hours: int = 24) -> Dict[str, Any]:
+            """Check if data is fresh enough"""
+            now = datetime.now(timezone.utc)
+            if last_update.tzinfo is None:
+                last_update = last_update.replace(tzinfo=timezone.utc)
+            
+            age = now - last_update
+            max_age = timedelta(hours=max_age_hours)
+            
+            return {
+                'is_fresh': age <= max_age,
+                'age_hours': age.total_seconds() / 3600,
+                'max_age_hours': max_age_hours,
+                'last_update': last_update,
+                'checked_at': now
+            }
+        
+        # Test data freshness
+        old_data = datetime.now(timezone.utc) - timedelta(hours=30)
+        fresh_data = datetime.now(timezone.utc) - timedelta(hours=2)
+        
+        old_check = check_data_freshness(old_data)
+        fresh_check = check_data_freshness(fresh_data)
+        
+        print(f"Old data freshness: {old_check}")
+        print(f"Fresh data freshness: {fresh_check}")
+        
+        # Schedule calculation
+        def calculate_next_run(cron_hour: int = 2, cron_minute: int = 0) -> datetime:
+            """Calculate next scheduled run time"""
+            now = datetime.now(timezone.utc)
+            next_run = now.replace(hour=cron_hour, minute=cron_minute, second=0, microsecond=0)
+            
+            # If time has passed today, schedule for tomorrow
+            if next_run <= now:
+                next_run += timedelta(days=1)
+            
+            return next_run
+        
+        next_scheduled = calculate_next_run(2, 30)  # 2:30 AM UTC
+        print(f"Next scheduled run: {next_scheduled}")
+        
+        time_until_run = next_scheduled - datetime.now(timezone.utc)
+        print(f"Time until next run: {time_until_run}")
 
-print(f"Current datetime: {now}")
-print(f"Today's date: {today}")
-print(f"Current time: {current_time}")
-# Output: Current datetime: 2024-01-01 10:30:45.123456
-#         Today's date: 2024-01-01
-#         Current time: 10:30:45.123456
+# Run comprehensive demonstration
+processor = DateTimeProcessor()
+processor.create_datetime_examples()
+processor.parsing_and_formatting_examples()
+processor.timezone_operations()
+processor.date_arithmetic_examples()
+processor.time_series_operations()
+processor.performance_monitoring()
+processor.data_engineering_patterns()
 
-# Creating specific dates and times
-specific_date = date(2024, 12, 25)
-specific_datetime = datetime(2024, 12, 25, 15, 30, 0)
-print(f"Christmas 2024: {specific_date}")
-print(f"Christmas afternoon: {specific_datetime}")
-# Output: Christmas 2024: 2024-12-25
-#         Christmas afternoon: 2024-12-25 15:30:00
-
-# Parsing and formatting dates
-date_string = "2024-01-15 14:30:00"
-parsed_date = datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
-formatted_date = parsed_date.strftime("%B %d, %Y at %I:%M %p")
-print(f"Parsed: {parsed_date}")
-print(f"Formatted: {formatted_date}")
-# Output: Parsed: 2024-01-15 14:30:00
-#         Formatted: January 15, 2024 at 02:30 PM
-
-# Date arithmetic with timedelta
-future_date = now + timedelta(days=30, hours=5, minutes=30)
-past_date = now - timedelta(weeks=2)
-print(f"30 days and 5.5 hours from now: {future_date}")
-print(f"2 weeks ago: {past_date}")
-# Output: 30 days and 5.5 hours from now: 2024-01-31 16:00:45.123456
-#         2 weeks ago: 2023-12-18 10:30:45.123456
-
-# Working with timezones
-utc_now = datetime.now(timezone.utc)
-print(f"UTC time: {utc_now}")
-# Output: UTC time: 2024-01-01 15:30:45.123456+00:00
-
-# Measuring execution time
-start_time = time_module.time()
-# Simulate some work
-time_module.sleep(0.1)
-end_time = time_module.time()
-execution_time = end_time - start_time
-print(f"Execution time: {execution_time:.3f} seconds")
-# Output: Execution time: 0.101 seconds
-
-# Date comparisons and calculations
-date1 = date(2024, 1, 1)
-date2 = date(2024, 12, 31)
-difference = date2 - date1
-print(f"Days between dates: {difference.days}")
-print(f"Is date1 before date2: {date1 < date2}")
-# Output: Days between dates: 365
-#         Is date1 before date2: True
+print("\nDate and time processing demonstration completed")
 ```
 
 ### 17. What are context managers and how do you create them?
@@ -2081,87 +3264,243 @@ Context managers are Python objects that define the runtime context for executin
 - **Resource Pooling**: Acquire and return pooled resources
 
 ```python
-# Built-in context managers
-with open('example.txt', 'w') as file:
-    file.write("Hello, World!")
-# File is automatically closed
-
-# Creating context managers with classes
-class DatabaseConnection:
-    def __init__(self, connection_string):
-        self.connection_string = connection_string
-        self.connection = None
-    
-    def __enter__(self):
-        print(f"Opening connection to {self.connection_string}")
-        self.connection = f"Connected to {self.connection_string}"
-        return self.connection
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print("Closing database connection")
-        self.connection = None
-        
-        if exc_type is not None:
-            print(f"Exception occurred: {exc_type.__name__}: {exc_val}")
-        
-        return False  # Don't suppress exceptions
-
-# Using custom context manager
-with DatabaseConnection("postgresql://localhost:5432/db") as conn:
-    print(f"Using connection: {conn}")
-    # Connection automatically closed when exiting block
-# Output: Opening connection to postgresql://localhost:5432/db
-#         Using connection: Connected to postgresql://localhost:5432/db
-#         Closing database connection
-
-# Context manager using contextlib
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
+import threading
 import time
+from typing import Any, Optional, Generator
 
-@contextmanager
-def timer_context(operation_name):
-    start_time = time.time()
-    print(f"Starting {operation_name}")
-    
-    try:
-        yield start_time
-    finally:
-        end_time = time.time()
-        print(f"{operation_name} completed in {end_time - start_time:.3f} seconds")
-
-# Using contextlib context manager
-with timer_context("data processing") as start:
-    time.sleep(0.1)  # Simulate work
-    print("Processing data...")
-# Output: Starting data processing
-#         Processing data...
-#         data processing completed in 0.101 seconds
-
-# Multiple context managers
-class ResourceManager:
-    def __init__(self, name):
-        self.name = name
+# Class-based context manager
+class DatabaseTransaction:
+    def __init__(self, connection):
+        self.connection = connection
+        self.transaction = None
+        self.committed = False
     
     def __enter__(self):
-        print(f"Acquiring {self.name}")
+        print("Starting database transaction")
+        self.transaction = "transaction_id_123"
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print(f"Releasing {self.name}")
+        if exc_type is None and not self.committed:
+            print("Committing transaction")
+            self.committed = True
+        else:
+            print("Rolling back transaction")
+        return False  # Don't suppress exceptions
+    
+    def commit(self):
+        if not self.committed:
+            print("Manual commit")
+            self.committed = True
 
-# Using multiple context managers
-with ResourceManager("Resource A"), ResourceManager("Resource B"):
-    print("Using both resources")
-# Output: Acquiring Resource A
-#         Acquiring Resource B
-#         Using both resources
-#         Releasing Resource B
-#         Releasing Resource A
+# Function-based context manager using @contextmanager
+@contextmanager
+def performance_monitor(operation_name: str) -> Generator[dict, None, None]:
+    """Monitor performance of operations"""
+    start_time = time.time()
+    start_memory = 0  # Simplified
+    metrics = {'operation': operation_name}
+    
+    try:
+        print(f"Starting {operation_name}")
+        yield metrics
+    except Exception as e:
+        metrics['error'] = str(e)
+        print(f"Error in {operation_name}: {e}")
+        raise
+    finally:
+        end_time = time.time()
+        metrics['duration'] = end_time - start_time
+        print(f"{operation_name} completed in {metrics['duration']:.3f}s")
 
-# Cleanup
-import os
-if os.path.exists('example.txt'):
-    os.remove('example.txt')
+# Advanced context manager with state management
+class ResourcePool:
+    def __init__(self, resource_factory, max_size=10):
+        self.resource_factory = resource_factory
+        self.max_size = max_size
+        self.pool = []
+        self.in_use = set()
+        self.lock = threading.Lock()
+    
+    def acquire(self):
+        with self.lock:
+            if self.pool:
+                resource = self.pool.pop()
+            else:
+                resource = self.resource_factory()
+            self.in_use.add(id(resource))
+            return resource
+    
+    def release(self, resource):
+        with self.lock:
+            resource_id = id(resource)
+            if resource_id in self.in_use:
+                self.in_use.remove(resource_id)
+                if len(self.pool) < self.max_size:
+                    self.pool.append(resource)
+
+class PooledResource:
+    def __init__(self, pool, resource):
+        self.pool = pool
+        self.resource = resource
+    
+    def __enter__(self):
+        return self.resource
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pool.release(self.resource)
+        return False
+
+# Context manager for temporary directory
+@contextmanager
+def temporary_directory(prefix="temp_"):
+    """Create and cleanup temporary directory"""
+    import tempfile
+    import shutil
+    
+    temp_dir = tempfile.mkdtemp(prefix=prefix)
+    try:
+        print(f"Created temporary directory: {temp_dir}")
+        yield temp_dir
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        print(f"Cleaned up temporary directory: {temp_dir}")
+
+# Context manager for configuration changes
+class ConfigurationContext:
+    def __init__(self, config_dict, **temporary_settings):
+        self.config = config_dict
+        self.temporary_settings = temporary_settings
+        self.original_values = {}
+    
+    def __enter__(self):
+        # Save original values
+        for key, value in self.temporary_settings.items():
+            self.original_values[key] = self.config.get(key)
+            self.config[key] = value
+        return self.config
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Restore original values
+        for key, original_value in self.original_values.items():
+            if original_value is None:
+                self.config.pop(key, None)
+            else:
+                self.config[key] = original_value
+        return False
+
+# Usage examples
+def demonstrate_context_managers():
+    print("=== Context Manager Demonstrations ===")
+    
+    # Database transaction example
+    print("\n1. Database Transaction:")
+    with DatabaseTransaction("db_connection") as tx:
+        print("Performing database operations")
+        # tx.commit()  # Uncomment to test manual commit
+    
+    # Performance monitoring
+    print("\n2. Performance Monitoring:")
+    with performance_monitor("data processing") as metrics:
+        time.sleep(0.1)
+        metrics['records_processed'] = 1000
+    
+    # Temporary directory
+    print("\n3. Temporary Directory:")
+    with temporary_directory("data_processing_") as temp_dir:
+        print(f"Working in: {temp_dir}")
+        # Create some files here
+    
+    # Configuration context
+    print("\n4. Configuration Management:")
+    app_config = {'debug': False, 'timeout': 30}
+    print(f"Original config: {app_config}")
+    
+    with ConfigurationContext(app_config, debug=True, timeout=60) as config:
+        print(f"Temporary config: {config}")
+    
+    print(f"Restored config: {app_config}")
+    
+    # Multiple context managers
+    print("\n5. Multiple Context Managers:")
+    with performance_monitor("multi-resource operation") as metrics, \
+         temporary_directory("multi_") as temp_dir:
+        print(f"Using temp dir: {temp_dir}")
+        time.sleep(0.05)
+        metrics['temp_dir'] = temp_dir
+
+# Advanced patterns
+class AsyncContextManager:
+    """Async context manager example"""
+    
+    async def __aenter__(self):
+        print("Async enter")
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        print("Async exit")
+        return False
+
+# Context manager for exception handling
+@contextmanager
+def ignore_errors(*exception_types):
+    """Context manager to ignore specific exceptions"""
+    try:
+        yield
+    except exception_types as e:
+        print(f"Ignoring {type(e).__name__}: {e}")
+
+# Context manager for timing out operations
+@contextmanager
+def timeout_context(seconds):
+    """Simple timeout context (demonstration only)"""
+    import signal
+    
+    def timeout_handler(signum, frame):
+        raise TimeoutError(f"Operation timed out after {seconds} seconds")
+    
+    # Set up timeout
+    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(seconds)
+    
+    try:
+        yield
+    finally:
+        # Clean up
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
+
+# ExitStack for dynamic context management
+def demonstrate_exit_stack():
+    """Demonstrate ExitStack for dynamic context managers"""
+    print("\n=== ExitStack Demonstration ===")
+    
+    files_to_process = ['file1.txt', 'file2.txt', 'file3.txt']
+    
+    with ExitStack() as stack:
+        # Dynamically add context managers
+        file_handles = []
+        for filename in files_to_process:
+            try:
+                # This would normally open real files
+                print(f"Opening {filename}")
+                # file_handle = stack.enter_context(open(filename, 'w'))
+                # file_handles.append(file_handle)
+            except FileNotFoundError:
+                print(f"File {filename} not found, skipping")
+        
+        # Add cleanup callback
+        stack.callback(print, "All files processed and closed")
+        
+        print("Processing files...")
+        # All files will be automatically closed when exiting
+
+# Run demonstrations
+demonstrate_context_managers()
+demonstrate_exit_stack()
+
+print("\nContext managers demonstration completed")
 ```
 
 ### 18. How do you handle regular expressions in Python?
@@ -2220,91 +3559,297 @@ Regular expressions provide a powerful pattern-matching language for string proc
 
 ```python
 import re
+import time
+from typing import Dict, List, Optional, Pattern, Match
+from dataclasses import dataclass
 
-# Basic pattern matching
-text = "The quick brown fox jumps over the lazy dog"
-pattern = r"fox"
-match = re.search(pattern, text)
-if match:
-    print(f"Found '{pattern}' at position {match.start()}-{match.end()}")
-# Output: Found 'fox' at position 16-19
+@dataclass
+class RegexMatch:
+    """Structured representation of regex match"""
+    text: str
+    start: int
+    end: int
+    groups: Dict[str, str]
+    named_groups: Dict[str, str]
 
-# Finding all matches
-email_text = "Contact us at info@company.com or support@company.org"
-email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-emails = re.findall(email_pattern, email_text)
-print(f"Found emails: {emails}")
-# Output: Found emails: ['info@company.com', 'support@company.org']
-
-# Pattern groups and capturing
-phone_text = "Call us at (555) 123-4567 or (555) 987-6543"
-phone_pattern = r'\((\d{3})\)\s(\d{3})-(\d{4})'
-matches = re.finditer(phone_pattern, phone_text)
-
-for match in matches:
-    area_code = match.group(1)
-    exchange = match.group(2)
-    number = match.group(3)
-    full_match = match.group(0)
-    print(f"Phone: {full_match} -> Area: {area_code}, Exchange: {exchange}, Number: {number}")
-# Output: Phone: (555) 123-4567 -> Area: 555, Exchange: 123, Number: 4567
-#         Phone: (555) 987-6543 -> Area: 555, Exchange: 987, Number: 6543
-
-# String substitution
-messy_text = "Hello    world!   How   are    you?"
-cleaned_text = re.sub(r'\s+', ' ', messy_text)  # Replace multiple spaces with single space
-print(f"Cleaned text: '{cleaned_text}'")
-# Output: Cleaned text: 'Hello world! How are you?'
-
-# Validation patterns
-def validate_data(data):
-    patterns = {
-        'email': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-        'phone': r'^\(\d{3}\)\s\d{3}-\d{4}$',
-        'ssn': r'^\d{3}-\d{2}-\d{4}$',
-        'zip_code': r'^\d{5}(-\d{4})?$'
-    }
+class RegexProcessor:
+    """Comprehensive regex processing for data engineering"""
     
-    results = {}
-    for field, pattern in patterns.items():
-        value = data.get(field, '')
-        results[field] = bool(re.match(pattern, value))
+    def __init__(self):
+        self.compiled_patterns = {}
+        self.match_cache = {}
     
-    return results
+    def get_compiled_pattern(self, pattern: str, flags: int = 0) -> Pattern:
+        """Get compiled pattern with caching"""
+        cache_key = (pattern, flags)
+        if cache_key not in self.compiled_patterns:
+            self.compiled_patterns[cache_key] = re.compile(pattern, flags)
+        return self.compiled_patterns[cache_key]
+    
+    def validate_patterns(self):
+        """Demonstrate various validation patterns"""
+        print("=== Validation Patterns ===")
+        
+        validation_patterns = {
+            'email': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+            'phone_us': r'^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$',
+            'ssn': r'^\d{3}-?\d{2}-?\d{4}$',
+            'credit_card': r'^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})$',
+            'ip_address': r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$',
+            'url': r'^https?:\/\/(?:[-\w.])+(?:\:[0-9]+)?(?:\/(?:[\w\/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:[\w.])*)?)?$',
+            'date_iso': r'^\d{4}-\d{2}-\d{2}$',
+            'time_24h': r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$',
+            'postal_code_us': r'^\d{5}(?:-\d{4})?$',
+            'hex_color': r'^#(?:[0-9a-fA-F]{3}){1,2}$'
+        }
+        
+        test_data = {
+            'email': ['user@example.com', 'invalid.email', 'test@domain.co.uk'],
+            'phone_us': ['(555) 123-4567', '555-123-4567', '5551234567', '123-456-789'],
+            'ssn': ['123-45-6789', '123456789', '12-345-6789'],
+            'ip_address': ['192.168.1.1', '255.255.255.255', '300.1.1.1', '192.168.1'],
+            'url': ['https://example.com', 'http://test.org/path?query=1', 'ftp://invalid']
+        }
+        
+        for pattern_name, pattern in validation_patterns.items():
+            if pattern_name in test_data:
+                compiled_pattern = self.get_compiled_pattern(pattern)
+                print(f"\n{pattern_name.upper()} validation:")
+                for test_value in test_data[pattern_name]:
+                    is_valid = bool(compiled_pattern.match(test_value))
+                    status = "✓" if is_valid else "✗"
+                    print(f"  {status} {test_value}")
+    
+    def extraction_patterns(self):
+        """Demonstrate data extraction patterns"""
+        print("\n=== Data Extraction Patterns ===")
+        
+        # Log file parsing
+        log_text = '''
+        2024-01-15 10:30:45 INFO [user123] Login successful from 192.168.1.100
+        2024-01-15 10:31:02 ERROR [user456] Failed login attempt from 10.0.0.50
+        2024-01-15 10:31:15 WARN [system] High memory usage: 85%
+        '''
+        
+        log_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (\w+) \[([^\]]+)\] (.+)'
+        compiled_log = self.get_compiled_pattern(log_pattern)
+        
+        print("Log entries:")
+        for match in compiled_log.finditer(log_text):
+            timestamp, level, user, message = match.groups()
+            print(f"  {timestamp} | {level:5} | {user:8} | {message}")
+        
+        # Email extraction with named groups
+        email_text = "Contact: john.doe@company.com, support@help.org, or admin@system.net"
+        email_pattern = r'(?P<username>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})'
+        
+        print("\nExtracted emails:")
+        for match in re.finditer(email_pattern, email_text):
+            print(f"  Username: {match.group('username')}, Domain: {match.group('domain')}")
+        
+        # Price extraction
+        price_text = "Items: $19.99, €25.50, £15.75, ¥1000"
+        price_pattern = r'([\$€£¥])(\d+(?:\.\d{2})?)'
+        
+        print("\nExtracted prices:")
+        for match in re.finditer(price_pattern, price_text):
+            currency, amount = match.groups()
+            print(f"  {currency}{amount}")
+    
+    def text_cleaning_patterns(self):
+        """Demonstrate text cleaning and transformation"""
+        print("\n=== Text Cleaning Patterns ===")
+        
+        messy_text = """  Hello    World!   
+        This   is    a    messy     text   with   
+        extra   spaces,   tabs\t\tand   newlines.\n\n
+        Email: JOHN.DOE@EXAMPLE.COM   Phone: (555) 123-4567  """
+        
+        print(f"Original text: {repr(messy_text)}")
+        
+        # Clean multiple whitespace
+        cleaned = re.sub(r'\s+', ' ', messy_text.strip())
+        print(f"Whitespace cleaned: {repr(cleaned)}")
+        
+        # Extract and normalize email
+        email_match = re.search(r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', cleaned)
+        if email_match:
+            normalized_email = email_match.group(1).lower()
+            print(f"Normalized email: {normalized_email}")
+        
+        # Extract and format phone
+        phone_match = re.search(r'\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})', cleaned)
+        if phone_match:
+            formatted_phone = f"({phone_match.group(1)}) {phone_match.group(2)}-{phone_match.group(3)}"
+            print(f"Formatted phone: {formatted_phone}")
+    
+    def advanced_patterns(self):
+        """Demonstrate advanced regex features"""
+        print("\n=== Advanced Patterns ===")
+        
+        # Lookahead and lookbehind
+        password_text = "password123 strongP@ssw0rd weakpass"
+        # Password must contain: letter, digit, special char, 8+ chars
+        strong_password_pattern = r'(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])\w{8,}'
+        
+        print("Password strength check:")
+        for word in password_text.split():
+            is_strong = bool(re.match(strong_password_pattern, word))
+            strength = "Strong" if is_strong else "Weak"
+            print(f"  {word}: {strength}")
+        
+        # Non-capturing groups and alternatives
+        date_text = "Dates: 2024-01-15, 01/15/2024, 15-Jan-2024"
+        date_pattern = r'(?:\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4}|\d{2}-\w{3}-\d{4})'
+        
+        dates = re.findall(date_pattern, date_text)
+        print(f"\nFound dates: {dates}")
+        
+        # Verbose regex with comments
+        complex_pattern = re.compile(r'''
+            ^                   # Start of string
+            (?P<protocol>https?) # Protocol (http or https)
+            ://                 # Separator
+            (?P<domain>         # Domain group
+                (?:[a-zA-Z0-9-]+\.)+ # Subdomains
+                [a-zA-Z]{2,}    # TLD
+            )
+            (?::(?P<port>\d+))? # Optional port
+            (?P<path>/.*)?      # Optional path
+            $                   # End of string
+        ''', re.VERBOSE)
+        
+        urls = [
+            "https://www.example.com:8080/path/to/resource",
+            "http://subdomain.test.org",
+            "https://api.service.com/v1/data"
+        ]
+        
+        print("\nURL parsing with verbose regex:")
+        for url in urls:
+            match = complex_pattern.match(url)
+            if match:
+                print(f"  {url}:")
+                for name, value in match.groupdict().items():
+                    if value:
+                        print(f"    {name}: {value}")
+    
+    def performance_optimization(self):
+        """Demonstrate regex performance optimization"""
+        print("\n=== Performance Optimization ===")
+        
+        # Test data
+        large_text = "email1@test.com, email2@example.org, " * 10000
+        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        
+        # Compiled vs non-compiled performance
+        compiled_pattern = re.compile(email_pattern)
+        
+        # Non-compiled
+        start_time = time.time()
+        for _ in range(100):
+            matches = re.findall(email_pattern, large_text)
+        non_compiled_time = time.time() - start_time
+        
+        # Compiled
+        start_time = time.time()
+        for _ in range(100):
+            matches = compiled_pattern.findall(large_text)
+        compiled_time = time.time() - start_time
+        
+        print(f"Non-compiled: {non_compiled_time:.4f}s")
+        print(f"Compiled: {compiled_time:.4f}s")
+        print(f"Speedup: {non_compiled_time/compiled_time:.2f}x")
+        
+        # Greedy vs non-greedy quantifiers
+        html_text = "<div>Content 1</div><div>Content 2</div>"
+        
+        greedy_pattern = r'<div>.*</div>'  # Matches entire string
+        non_greedy_pattern = r'<div>.*?</div>'  # Matches individual tags
+        
+        greedy_matches = re.findall(greedy_pattern, html_text)
+        non_greedy_matches = re.findall(non_greedy_pattern, html_text)
+        
+        print(f"\nGreedy matches: {greedy_matches}")
+        print(f"Non-greedy matches: {non_greedy_matches}")
+    
+    def data_engineering_applications(self):
+        """Demonstrate regex in data engineering contexts"""
+        print("\n=== Data Engineering Applications ===")
+        
+        # CSV field extraction with quoted fields
+        csv_line = 'John,"Doe, Jr.",30,"New York, NY",Engineer'
+        csv_pattern = r'"([^"]*)"|([^,]+)'
+        
+        fields = []
+        for match in re.finditer(csv_pattern, csv_line):
+            # Use quoted field if available, otherwise unquoted
+            field = match.group(1) if match.group(1) is not None else match.group(2)
+            fields.append(field)
+        
+        print(f"CSV fields: {fields}")
+        
+        # Log level extraction and counting
+        log_data = """
+        2024-01-15 10:30:45 INFO Application started
+        2024-01-15 10:30:46 DEBUG Loading configuration
+        2024-01-15 10:30:47 WARN Configuration file not found, using defaults
+        2024-01-15 10:30:48 ERROR Database connection failed
+        2024-01-15 10:30:49 INFO Retrying database connection
+        2024-01-15 10:30:50 INFO Database connected successfully
+        """
+        
+        log_levels = re.findall(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} (\w+)', log_data)
+        level_counts = {}
+        for level in log_levels:
+            level_counts[level] = level_counts.get(level, 0) + 1
+        
+        print(f"Log level counts: {level_counts}")
+        
+        # Data validation for ETL pipeline
+        def validate_record(record_string):
+            """Validate a pipe-delimited record"""
+            # Pattern: ID|Name|Email|Date|Amount
+            pattern = r'^(\d+)\|([^|]+)\|([^|]+@[^|]+\.[^|]+)\|(\d{4}-\d{2}-\d{2})\|(\d+\.\d{2})$'
+            match = re.match(pattern, record_string)
+            
+            if match:
+                return {
+                    'id': int(match.group(1)),
+                    'name': match.group(2),
+                    'email': match.group(3),
+                    'date': match.group(4),
+                    'amount': float(match.group(5)),
+                    'valid': True
+                }
+            else:
+                return {'valid': False, 'raw': record_string}
+        
+        test_records = [
+            "123|John Doe|john@example.com|2024-01-15|99.99",
+            "456|Jane Smith|jane@test.org|2024-01-16|150.00",
+            "invalid|record|format",
+            "789|Bob Johnson|bob@company.net|2024-01-17|75.50"
+        ]
+        
+        print("\nRecord validation:")
+        for record in test_records:
+            result = validate_record(record)
+            if result['valid']:
+                print(f"  ✓ ID: {result['id']}, Name: {result['name']}, Amount: ${result['amount']}")
+            else:
+                print(f"  ✗ Invalid: {result['raw']}")
 
-# Test validation
-test_data = {
-    'email': 'user@example.com',
-    'phone': '(555) 123-4567',
-    'ssn': '123-45-6789',
-    'zip_code': '12345-6789'
-}
+# Run comprehensive demonstration
+processor = RegexProcessor()
+processor.validate_patterns()
+processor.extraction_patterns()
+processor.text_cleaning_patterns()
+processor.advanced_patterns()
+processor.performance_optimization()
+processor.data_engineering_applications()
 
-validation_results = validate_data(test_data)
-print(f"Validation results: {validation_results}")
-# Output: Validation results: {'email': True, 'phone': True, 'ssn': True, 'zip_code': True}
-
-# Compiled patterns for better performance
-compiled_email_pattern = re.compile(email_pattern)
-large_text = email_text * 1000  # Simulate large text
-
-# Using compiled pattern is faster for repeated use
-start_time = time.time()
-for _ in range(100):
-    matches = compiled_email_pattern.findall(large_text)
-compiled_time = time.time() - start_time
-
-start_time = time.time()
-for _ in range(100):
-    matches = re.findall(email_pattern, large_text)
-regular_time = time.time() - start_time
-
-print(f"Compiled pattern time: {compiled_time:.4f}s")
-print(f"Regular pattern time: {regular_time:.4f}s")
-print(f"Speedup: {regular_time/compiled_time:.2f}x")
-# Output: Compiled pattern time: 0.0123s
-#         Regular pattern time: 0.0234s
-#         Speedup: 1.90x
+print("\nRegular expressions demonstration completed")
 ```
 
 ### 19. What are Python's special methods (magic methods)?
@@ -2389,130 +3934,309 @@ Special methods (also called "dunder" methods for double underscore) are Python'
 - **Context Managers**: Implement resource management protocols
 
 ```python
-class BankAccount:
-    def __init__(self, account_number, initial_balance=0):
-        self.account_number = account_number
-        self.balance = initial_balance
-        self.transactions = []
+from functools import total_ordering
+from typing import Any, Iterator, Optional
+import operator
+
+# Comprehensive special methods demonstration
+@total_ordering
+class Vector:
+    """Mathematical vector with full special method implementation"""
     
+    def __init__(self, *components):
+        self.components = tuple(components)
+    
+    # String representation methods
     def __str__(self):
-        """String representation for users"""
-        return f"Account {self.account_number}: ${self.balance:.2f}"
+        """User-friendly string representation"""
+        return f"Vector{self.components}"
     
     def __repr__(self):
-        """String representation for developers"""
-        return f"BankAccount('{self.account_number}', {self.balance})"
+        """Developer-friendly representation"""
+        return f"Vector{self.components}"
     
+    def __format__(self, format_spec):
+        """Custom formatting support"""
+        if format_spec == 'magnitude':
+            return f"{self.magnitude():.2f}"
+        elif format_spec == 'unit':
+            unit = self.unit_vector()
+            return f"Unit{unit.components if unit else 'undefined'}"
+        return str(self)
+    
+    # Comparison methods
     def __eq__(self, other):
         """Equality comparison"""
-        if isinstance(other, BankAccount):
-            return self.account_number == other.account_number
+        if isinstance(other, Vector):
+            return self.components == other.components
         return False
     
     def __lt__(self, other):
-        """Less than comparison (for sorting)"""
-        if isinstance(other, BankAccount):
-            return self.balance < other.balance
+        """Less than comparison (by magnitude)"""
+        if isinstance(other, Vector):
+            return self.magnitude() < other.magnitude()
         return NotImplemented
     
-    def __add__(self, amount):
-        """Addition operation (deposit)"""
-        if isinstance(amount, (int, float)) and amount > 0:
-            new_account = BankAccount(self.account_number, self.balance + amount)
-            return new_account
-        raise ValueError("Amount must be a positive number")
+    def __hash__(self):
+        """Hash for use in sets and dictionaries"""
+        return hash(self.components)
     
-    def __sub__(self, amount):
-        """Subtraction operation (withdrawal)"""
-        if isinstance(amount, (int, float)) and amount > 0:
-            if self.balance >= amount:
-                new_account = BankAccount(self.account_number, self.balance - amount)
-                return new_account
-            raise ValueError("Insufficient funds")
-        raise ValueError("Amount must be a positive number")
+    # Arithmetic operations
+    def __add__(self, other):
+        """Vector addition"""
+        if isinstance(other, Vector):
+            if len(self.components) != len(other.components):
+                raise ValueError("Vectors must have same dimensions")
+            return Vector(*(a + b for a, b in zip(self.components, other.components)))
+        return NotImplemented
     
+    def __sub__(self, other):
+        """Vector subtraction"""
+        if isinstance(other, Vector):
+            if len(self.components) != len(other.components):
+                raise ValueError("Vectors must have same dimensions")
+            return Vector(*(a - b for a, b in zip(self.components, other.components)))
+        return NotImplemented
+    
+    def __mul__(self, other):
+        """Scalar multiplication or dot product"""
+        if isinstance(other, (int, float)):
+            # Scalar multiplication
+            return Vector(*(component * other for component in self.components))
+        elif isinstance(other, Vector):
+            # Dot product
+            if len(self.components) != len(other.components):
+                raise ValueError("Vectors must have same dimensions")
+            return sum(a * b for a, b in zip(self.components, other.components))
+        return NotImplemented
+    
+    def __rmul__(self, other):
+        """Right multiplication (scalar * vector)"""
+        return self.__mul__(other)
+    
+    def __truediv__(self, other):
+        """Scalar division"""
+        if isinstance(other, (int, float)):
+            if other == 0:
+                raise ZeroDivisionError("Cannot divide by zero")
+            return Vector(*(component / other for component in self.components))
+        return NotImplemented
+    
+    def __neg__(self):
+        """Unary negation"""
+        return Vector(*(-component for component in self.components))
+    
+    def __abs__(self):
+        """Absolute value (magnitude)"""
+        return self.magnitude()
+    
+    # Container protocol
     def __len__(self):
-        """Length operation (number of transactions)"""
-        return len(self.transactions)
+        """Number of components"""
+        return len(self.components)
     
     def __getitem__(self, index):
-        """Index access to transactions"""
-        return self.transactions[index]
-    
-    def __contains__(self, transaction):
-        """Membership testing"""
-        return transaction in self.transactions
-    
-    def __call__(self, amount):
-        """Make object callable (quick balance check)"""
-        return f"Balance after ${amount} deposit would be: ${self.balance + amount:.2f}"
-
-# Using special methods
-account1 = BankAccount("ACC001", 1000)
-account2 = BankAccount("ACC002", 1500)
-
-print(f"Account 1: {account1}")  # Uses __str__
-print(f"Account 2 repr: {repr(account2)}")  # Uses __repr__
-# Output: Account 1: Account ACC001: $1000.00
-#         Account 2 repr: BankAccount('ACC002', 1500)
-
-# Comparison operations
-print(f"account1 == account2: {account1 == account2}")  # Uses __eq__
-print(f"account1 < account2: {account1 < account2}")    # Uses __lt__
-# Output: account1 == account2: False
-#         account1 < account2: True
-
-# Arithmetic operations
-account3 = account1 + 500  # Uses __add__
-account4 = account2 - 200  # Uses __sub__
-print(f"After deposit: {account3}")
-print(f"After withdrawal: {account4}")
-# Output: After deposit: Account ACC001: $1500.00
-#         After withdrawal: Account ACC002: $1300.00
-
-# Callable object
-print(account1(250))  # Uses __call__
-# Output: Balance after $250 deposit would be: $1250.00
-
-# Container-like behavior
-class DataContainer:
-    def __init__(self):
-        self.data = {}
-    
-    def __setitem__(self, key, value):
-        """Set item using [] notation"""
-        self.data[key] = value
-    
-    def __getitem__(self, key):
-        """Get item using [] notation"""
-        return self.data[key]
-    
-    def __delitem__(self, key):
-        """Delete item using del statement"""
-        del self.data[key]
+        """Get component by index"""
+        return self.components[index]
     
     def __iter__(self):
-        """Make object iterable"""
-        return iter(self.data.items())
+        """Iterate over components"""
+        return iter(self.components)
+    
+    def __contains__(self, value):
+        """Check if value is a component"""
+        return value in self.components
+    
+    # Utility methods
+    def magnitude(self):
+        """Calculate vector magnitude"""
+        return sum(component ** 2 for component in self.components) ** 0.5
+    
+    def unit_vector(self):
+        """Return unit vector"""
+        mag = self.magnitude()
+        if mag == 0:
+            return None
+        return self / mag
+
+# Advanced container class with full protocol
+class SmartDict:
+    """Dictionary-like container with advanced features"""
+    
+    def __init__(self, **kwargs):
+        self._data = dict(kwargs)
+        self._access_count = {}
+    
+    # Container protocol
+    def __getitem__(self, key):
+        """Get item with access tracking"""
+        self._access_count[key] = self._access_count.get(key, 0) + 1
+        return self._data[key]
+    
+    def __setitem__(self, key, value):
+        """Set item"""
+        self._data[key] = value
+    
+    def __delitem__(self, key):
+        """Delete item"""
+        del self._data[key]
+        self._access_count.pop(key, None)
+    
+    def __contains__(self, key):
+        """Membership testing"""
+        return key in self._data
     
     def __len__(self):
-        """Return length"""
-        return len(self.data)
+        """Number of items"""
+        return len(self._data)
+    
+    def __iter__(self):
+        """Iterate over keys"""
+        return iter(self._data)
+    
+    # String representation
+    def __str__(self):
+        return f"SmartDict({dict(self._data)})"
+    
+    def __repr__(self):
+        return f"SmartDict({', '.join(f'{k}={v!r}' for k, v in self._data.items())})"
+    
+    # Comparison
+    def __eq__(self, other):
+        if isinstance(other, SmartDict):
+            return self._data == other._data
+        elif isinstance(other, dict):
+            return self._data == other
+        return False
+    
+    # Callable interface
+    def __call__(self, key, default=None):
+        """Callable interface for safe access"""
+        return self._data.get(key, default)
+    
+    # Access statistics
+    def get_access_stats(self):
+        return dict(self._access_count)
 
-# Using container methods
-container = DataContainer()
-container['name'] = 'Alice'  # Uses __setitem__
-container['age'] = 30
-print(f"Name: {container['name']}")  # Uses __getitem__
-print(f"Container length: {len(container)}")  # Uses __len__
+# Callable class example
+class Accumulator:
+    """Callable object that accumulates values"""
+    
+    def __init__(self, initial=0):
+        self.total = initial
+        self.count = 0
+    
+    def __call__(self, value):
+        """Add value to accumulator"""
+        self.total += value
+        self.count += 1
+        return self.total
+    
+    def __str__(self):
+        return f"Accumulator(total={self.total}, count={self.count})"
+    
+    def average(self):
+        return self.total / self.count if self.count > 0 else 0
 
-# Iteration
-for key, value in container:  # Uses __iter__
-    print(f"{key}: {value}")
-# Output: Name: Alice
-#         Container length: 2
-#         name: Alice
-#         age: 30
+# Context manager with special methods
+class ManagedResource:
+    """Resource with context management and special methods"""
+    
+    def __init__(self, name):
+        self.name = name
+        self.is_open = False
+        self.operations = []
+    
+    def __enter__(self):
+        self.is_open = True
+        self.operations.append(f"Opened {self.name}")
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.is_open = False
+        self.operations.append(f"Closed {self.name}")
+        return False
+    
+    def __str__(self):
+        status = "open" if self.is_open else "closed"
+        return f"ManagedResource({self.name}, {status})"
+    
+    def __len__(self):
+        return len(self.operations)
+    
+    def __getitem__(self, index):
+        return self.operations[index]
+
+# Demonstration of all special methods
+def demonstrate_special_methods():
+    print("=== Special Methods Demonstration ===")
+    
+    # Vector operations
+    print("\n1. Vector Operations:")
+    v1 = Vector(3, 4)
+    v2 = Vector(1, 2)
+    
+    print(f"v1: {v1}")
+    print(f"v2: {v2}")
+    print(f"v1 + v2: {v1 + v2}")
+    print(f"v1 - v2: {v1 - v2}")
+    print(f"v1 * 2: {v1 * 2}")
+    print(f"v1 • v2 (dot product): {v1 * v2}")
+    print(f"|v1| (magnitude): {abs(v1):.2f}")
+    print(f"v1 < v2: {v1 < v2}")
+    print(f"v1 == v2: {v1 == v2}")
+    print(f"Format magnitude: {v1:magnitude}")
+    print(f"Format unit: {v1:unit}")
+    
+    # SmartDict operations
+    print("\n2. SmartDict Operations:")
+    smart_dict = SmartDict(name="Alice", age=30, city="NYC")
+    
+    print(f"SmartDict: {smart_dict}")
+    print(f"Name: {smart_dict['name']}")
+    print(f"Age: {smart_dict['age']}")
+    print(f"Name again: {smart_dict['name']}")
+    print(f"Length: {len(smart_dict)}")
+    print(f"Contains 'age': {'age' in smart_dict}")
+    print(f"Callable access: {smart_dict('name', 'Unknown')}")
+    print(f"Access stats: {smart_dict.get_access_stats()}")
+    
+    # Accumulator (callable object)
+    print("\n3. Accumulator (Callable Object):")
+    acc = Accumulator()
+    print(f"Initial: {acc}")
+    print(f"Add 10: {acc(10)}")
+    print(f"Add 20: {acc(20)}")
+    print(f"Add 30: {acc(30)}")
+    print(f"Final: {acc}")
+    print(f"Average: {acc.average()}")
+    
+    # Managed resource
+    print("\n4. Managed Resource:")
+    with ManagedResource("Database Connection") as resource:
+        print(f"Resource: {resource}")
+        print(f"Operations so far: {len(resource)}")
+    
+    print(f"After context: {resource}")
+    print(f"All operations: {list(resource)}")
+    
+    # Set operations with vectors
+    print("\n5. Set Operations with Vectors:")
+    vectors = {Vector(1, 0), Vector(0, 1), Vector(1, 0), Vector(1, 1)}
+    print(f"Unique vectors: {vectors}")
+    print(f"Vector(1,0) in set: {Vector(1, 0) in vectors}")
+    
+    # Sorting vectors
+    vector_list = [Vector(3, 4), Vector(1, 1), Vector(0, 5), Vector(2, 0)]
+    sorted_vectors = sorted(vector_list)
+    print(f"\n6. Sorted Vectors (by magnitude):")
+    for v in sorted_vectors:
+        print(f"  {v} (magnitude: {abs(v):.2f})")
+
+# Run demonstration
+demonstrate_special_methods()
+
+print("\nSpecial methods demonstration completed")
 ```
 
 ### 20. How do you work with JSON data in Python?
@@ -2608,162 +4332,452 @@ JSON (JavaScript Object Notation) is a lightweight, text-based data interchange 
 
 ```python
 import json
-from datetime import datetime
+import gzip
+from datetime import datetime, date
 from decimal import Decimal
 from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+import time
 
-# Basic JSON operations
-data = {
-    "name": "Alice Johnson",
-    "age": 30,
-    "email": "alice@example.com",
-    "skills": ["Python", "SQL", "Machine Learning"],
-    "is_active": True,
-    "salary": None
-}
-
-# Serialize to JSON string
-json_string = json.dumps(data, indent=2)
-print("JSON string:")
-print(json_string)
-# Output: JSON string:
-#         {
-#           "name": "Alice Johnson",
-#           "age": 30,
-#           "email": "alice@example.com",
-#           "skills": [
-#             "Python",
-#             "SQL",
-#             "Machine Learning"
-#           ],
-#           "is_active": true,
-#           "salary": null
-#         }
-
-# Deserialize from JSON string
-parsed_data = json.loads(json_string)
-print(f"Parsed name: {parsed_data['name']}")
-print(f"Skills: {parsed_data['skills']}")
-# Output: Parsed name: Alice Johnson
-#         Skills: ['Python', 'SQL', 'Machine Learning']
-
-# Working with JSON files
-employees = [
-    {"id": 1, "name": "Alice", "department": "Engineering", "salary": 75000},
-    {"id": 2, "name": "Bob", "department": "Sales", "salary": 65000},
-    {"id": 3, "name": "Charlie", "department": "Marketing", "salary": 60000}
-]
-
-# Write to JSON file
-with open('employees.json', 'w') as file:
-    json.dump(employees, file, indent=2)
-
-# Read from JSON file
-with open('employees.json', 'r') as file:
-    loaded_employees = json.load(file)
-
-print(f"Loaded {len(loaded_employees)} employees")
-for emp in loaded_employees:
-    print(f"  {emp['name']}: ${emp['salary']:,}")
-# Output: Loaded 3 employees
-#           Alice: $75,000
-#           Bob: $65,000
-#           Charlie: $60,000
-
-# Custom JSON encoder for special types
-class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        elif isinstance(obj, Decimal):
-            return float(obj)
-        elif hasattr(obj, '__dict__'):
-            return obj.__dict__
-        return super().default(obj)
-
-# Data with special types
-complex_data = {
-    "timestamp": datetime.now(),
-    "price": Decimal('99.99'),
-    "metadata": {
-        "created_by": "system",
-        "version": 1.0
-    }
-}
-
-# Serialize with custom encoder
-custom_json = json.dumps(complex_data, cls=CustomJSONEncoder, indent=2)
-print("Custom JSON:")
-print(custom_json)
-# Output: Custom JSON:
-#         {
-#           "timestamp": "2024-01-01T10:30:45.123456",
-#           "price": 99.99,
-#           "metadata": {
-#             "created_by": "system",
-#             "version": 1.0
-#           }
-#         }
-
-# JSON validation and error handling
-def safe_json_parse(json_string):
-    try:
-        return json.loads(json_string), None
-    except json.JSONDecodeError as e:
-        return None, f"JSON decode error: {e}"
-
-# Test with valid and invalid JSON
-valid_json = '{"name": "Alice", "age": 30}'
-invalid_json = '{"name": "Alice", "age": 30'  # Missing closing brace
-
-result, error = safe_json_parse(valid_json)
-if error:
-    print(f"Error: {error}")
-else:
-    print(f"Valid JSON parsed: {result}")
-
-result, error = safe_json_parse(invalid_json)
-if error:
-    print(f"Error: {error}")
-else:
-    print(f"Valid JSON parsed: {result}")
-# Output: Valid JSON parsed: {'name': 'Alice', 'age': 30}
-#         Error: JSON decode error: Expecting ',' delimiter: line 1 column 26 (char 25)
-
-# Working with nested JSON
-nested_data = {
-    "company": "TechCorp",
-    "departments": {
-        "engineering": {
-            "employees": [
-                {"name": "Alice", "role": "Senior Developer"},
-                {"name": "Bob", "role": "DevOps Engineer"}
-            ],
-            "budget": 500000
-        },
-        "sales": {
-            "employees": [
-                {"name": "Charlie", "role": "Sales Manager"},
-                {"name": "Diana", "role": "Account Executive"}
-            ],
-            "budget": 300000
+class JSONProcessor:
+    """Comprehensive JSON processing for data engineering"""
+    
+    def __init__(self):
+        self.custom_encoders = {}
+        self.custom_decoders = {}
+    
+    def basic_operations(self):
+        """Demonstrate basic JSON operations"""
+        print("=== Basic JSON Operations ===")
+        
+        # Sample data structure
+        employee_data = {
+            "employee_id": 12345,
+            "personal_info": {
+                "name": "Alice Johnson",
+                "age": 30,
+                "email": "alice@company.com",
+                "address": {
+                    "street": "123 Main St",
+                    "city": "New York",
+                    "zip_code": "10001"
+                }
+            },
+            "job_info": {
+                "title": "Senior Data Engineer",
+                "department": "Engineering",
+                "salary": 95000.00,
+                "skills": ["Python", "SQL", "Apache Spark", "AWS"],
+                "is_remote": True,
+                "start_date": "2022-03-15"
+            },
+            "performance_metrics": {
+                "projects_completed": 15,
+                "avg_rating": 4.7,
+                "certifications": ["AWS Solutions Architect", "Databricks Certified"]
+            }
         }
-    }
-}
+        
+        # Serialization with different formatting options
+        compact_json = json.dumps(employee_data, separators=(',', ':'))
+        pretty_json = json.dumps(employee_data, indent=2, sort_keys=True)
+        
+        print(f"Compact JSON length: {len(compact_json)} characters")
+        print(f"Pretty JSON length: {len(pretty_json)} characters")
+        print("\nPretty formatted JSON:")
+        print(pretty_json[:200] + "..." if len(pretty_json) > 200 else pretty_json)
+        
+        # Deserialization and data access
+        parsed_data = json.loads(pretty_json)
+        print(f"\nEmployee: {parsed_data['personal_info']['name']}")
+        print(f"Department: {parsed_data['job_info']['department']}")
+        print(f"Skills: {', '.join(parsed_data['job_info']['skills'])}")
+    
+    def file_operations(self):
+        """Demonstrate JSON file operations"""
+        print("\n=== JSON File Operations ===")
+        
+        # Sample dataset
+        sales_data = [
+            {
+                "transaction_id": "TXN001",
+                "customer_id": "CUST123",
+                "product": "Laptop",
+                "quantity": 1,
+                "unit_price": 999.99,
+                "total": 999.99,
+                "timestamp": "2024-01-15T10:30:00Z",
+                "payment_method": "credit_card"
+            },
+            {
+                "transaction_id": "TXN002",
+                "customer_id": "CUST456",
+                "product": "Mouse",
+                "quantity": 2,
+                "unit_price": 29.99,
+                "total": 59.98,
+                "timestamp": "2024-01-15T11:15:00Z",
+                "payment_method": "debit_card"
+            }
+        ]
+        
+        # Write to JSON file
+        with open('sales_data.json', 'w') as file:
+            json.dump(sales_data, file, indent=2)
+        
+        # Read from JSON file
+        with open('sales_data.json', 'r') as file:
+            loaded_data = json.load(file)
+        
+        print(f"Loaded {len(loaded_data)} transactions")
+        total_revenue = sum(txn['total'] for txn in loaded_data)
+        print(f"Total revenue: ${total_revenue:.2f}")
+        
+        # Compressed JSON for large datasets
+        with gzip.open('sales_data.json.gz', 'wt') as file:
+            json.dump(sales_data, file)
+        
+        # Read compressed JSON
+        with gzip.open('sales_data.json.gz', 'rt') as file:
+            compressed_data = json.load(file)
+        
+        print(f"Compressed data matches: {loaded_data == compressed_data}")
+        
+        # File size comparison
+        original_size = Path('sales_data.json').stat().st_size
+        compressed_size = Path('sales_data.json.gz').stat().st_size
+        compression_ratio = (1 - compressed_size / original_size) * 100
+        print(f"Compression ratio: {compression_ratio:.1f}%")
+    
+    def custom_serialization(self):
+        """Demonstrate custom JSON serialization"""
+        print("\n=== Custom JSON Serialization ===")
+        
+        @dataclass
+        class Employee:
+            id: int
+            name: str
+            hire_date: date
+            salary: Decimal
+            is_active: bool = True
+        
+        class EnhancedJSONEncoder(json.JSONEncoder):
+            """Custom encoder for complex Python objects"""
+            
+            def default(self, obj):
+                if isinstance(obj, datetime):
+                    return {
+                        '__type__': 'datetime',
+                        'value': obj.isoformat()
+                    }
+                elif isinstance(obj, date):
+                    return {
+                        '__type__': 'date',
+                        'value': obj.isoformat()
+                    }
+                elif isinstance(obj, Decimal):
+                    return {
+                        '__type__': 'decimal',
+                        'value': str(obj)
+                    }
+                elif hasattr(obj, '__dict__'):
+                    return {
+                        '__type__': obj.__class__.__name__,
+                        '__data__': obj.__dict__
+                    }
+                return super().default(obj)
+        
+        def enhanced_json_decoder(dct):
+            """Custom decoder for complex objects"""
+            if '__type__' in dct:
+                obj_type = dct['__type__']
+                if obj_type == 'datetime':
+                    return datetime.fromisoformat(dct['value'])
+                elif obj_type == 'date':
+                    return date.fromisoformat(dct['value'])
+                elif obj_type == 'decimal':
+                    return Decimal(dct['value'])
+                elif obj_type == 'Employee':
+                    data = dct['__data__']
+                    # Convert date string back to date object
+                    if isinstance(data['hire_date'], str):
+                        data['hire_date'] = date.fromisoformat(data['hire_date'])
+                    if isinstance(data['salary'], str):
+                        data['salary'] = Decimal(data['salary'])
+                    return Employee(**data)
+            return dct
+        
+        # Create complex data
+        employees = [
+            Employee(1, "Alice Johnson", date(2022, 3, 15), Decimal('95000.00')),
+            Employee(2, "Bob Smith", date(2021, 7, 20), Decimal('87500.50')),
+            Employee(3, "Carol Davis", date(2023, 1, 10), Decimal('102000.75'))
+        ]
+        
+        complex_data = {
+            "company": "TechCorp",
+            "report_date": datetime.now(),
+            "employees": employees,
+            "total_payroll": sum(emp.salary for emp in employees)
+        }
+        
+        # Serialize with custom encoder
+        serialized = json.dumps(complex_data, cls=EnhancedJSONEncoder, indent=2)
+        print("Serialized complex data:")
+        print(serialized[:300] + "..." if len(serialized) > 300 else serialized)
+        
+        # Deserialize with custom decoder
+        deserialized = json.loads(serialized, object_hook=enhanced_json_decoder)
+        print(f"\nDeserialized company: {deserialized['company']}")
+        print(f"Report date type: {type(deserialized['report_date'])}")
+        print(f"First employee type: {type(deserialized['employees'][0])}")
+        print(f"First employee: {deserialized['employees'][0]}")
+    
+    def error_handling_and_validation(self):
+        """Demonstrate JSON error handling and validation"""
+        print("\n=== Error Handling and Validation ===")
+        
+        def safe_json_operation(operation, *args, **kwargs):
+            """Safely execute JSON operations with error handling"""
+            try:
+                return operation(*args, **kwargs), None
+            except json.JSONDecodeError as e:
+                return None, f"JSON decode error: {e.msg} at line {e.lineno}, column {e.colno}"
+            except TypeError as e:
+                return None, f"Type error: {e}"
+            except Exception as e:
+                return None, f"Unexpected error: {e}"
+        
+        # Test various JSON scenarios
+        test_cases = [
+            ('{"name": "Alice", "age": 30}', "Valid JSON"),
+            ('{"name": "Bob", "age": }', "Missing value"),
+            ('{"name": "Charlie" "age": 25}', "Missing comma"),
+            ('{"name": "Diana", "age": 30,}', "Trailing comma"),
+            ('{\'name\': \'Eve\', \'age\': 28}', "Single quotes"),
+            ('{"name": "Frank", "data": undefined}', "Undefined value")
+        ]
+        
+        print("JSON parsing test results:")
+        for json_str, description in test_cases:
+            result, error = safe_json_operation(json.loads, json_str)
+            status = "✓" if result else "✗"
+            print(f"  {status} {description}: {error or 'Success'}")
+        
+        # Schema validation example (conceptual)
+        def validate_employee_schema(data):
+            """Simple schema validation for employee data"""
+            required_fields = ['id', 'name', 'department']
+            errors = []
+            
+            if not isinstance(data, dict):
+                return ["Data must be an object"]
+            
+            for field in required_fields:
+                if field not in data:
+                    errors.append(f"Missing required field: {field}")
+            
+            if 'id' in data and not isinstance(data['id'], int):
+                errors.append("Field 'id' must be an integer")
+            
+            if 'name' in data and not isinstance(data['name'], str):
+                errors.append("Field 'name' must be a string")
+            
+            return errors
+        
+        # Test schema validation
+        test_employees = [
+            {"id": 1, "name": "Alice", "department": "Engineering"},
+            {"id": "2", "name": "Bob", "department": "Sales"},
+            {"name": "Charlie", "department": "Marketing"},
+            {"id": 3, "department": "HR"}
+        ]
+        
+        print("\nSchema validation results:")
+        for i, emp_data in enumerate(test_employees):
+            errors = validate_employee_schema(emp_data)
+            status = "✓" if not errors else "✗"
+            print(f"  {status} Employee {i+1}: {errors or 'Valid'}")
+    
+    def performance_optimization(self):
+        """Demonstrate JSON performance optimization techniques"""
+        print("\n=== Performance Optimization ===")
+        
+        # Generate large dataset for testing
+        large_dataset = [
+            {
+                "id": i,
+                "name": f"User_{i}",
+                "email": f"user{i}@example.com",
+                "data": list(range(10)),
+                "metadata": {"created": f"2024-01-{(i % 28) + 1:02d}", "active": i % 2 == 0}
+            }
+            for i in range(10000)
+        ]
+        
+        # Test different serialization approaches
+        approaches = [
+            ("Compact", lambda data: json.dumps(data, separators=(',', ':'))),
+            ("Pretty", lambda data: json.dumps(data, indent=2)),
+            ("Sorted", lambda data: json.dumps(data, sort_keys=True)),
+            ("No ASCII", lambda data: json.dumps(data, ensure_ascii=False))
+        ]
+        
+        print("Serialization performance comparison:")
+        for name, serializer in approaches:
+            start_time = time.time()
+            result = serializer(large_dataset[:100])  # Use subset for demo
+            duration = time.time() - start_time
+            size = len(result)
+            print(f"  {name}: {duration:.4f}s, {size:,} chars")
+        
+        # Streaming JSON processing for large files
+        def process_json_stream(filename, processor_func):
+            """Process JSON file in streaming fashion"""
+            with open(filename, 'r') as file:
+                data = json.load(file)
+                if isinstance(data, list):
+                    for item in data:
+                        yield processor_func(item)
+                else:
+                    yield processor_func(data)
+        
+        # Save test data
+        with open('large_dataset.json', 'w') as file:
+            json.dump(large_dataset[:1000], file)  # Smaller subset for demo
+        
+        # Process streaming
+        def extract_summary(item):
+            return {
+                'id': item['id'],
+                'name': item['name'],
+                'active': item['metadata']['active']
+            }
+        
+        summaries = list(process_json_stream('large_dataset.json', extract_summary))
+        print(f"\nProcessed {len(summaries)} items in streaming fashion")
+        active_count = sum(1 for s in summaries if s['active'])
+        print(f"Active users: {active_count}")
+    
+    def data_engineering_patterns(self):
+        """Demonstrate JSON patterns in data engineering"""
+        print("\n=== Data Engineering Patterns ===")
+        
+        # Configuration management
+        config_template = {
+            "database": {
+                "host": "${DB_HOST}",
+                "port": "${DB_PORT}",
+                "name": "${DB_NAME}"
+            },
+            "api": {
+                "base_url": "${API_BASE_URL}",
+                "timeout": 30,
+                "retries": 3
+            },
+            "processing": {
+                "batch_size": 1000,
+                "max_workers": 4
+            }
+        }
+        
+        def resolve_config_variables(config, env_vars):
+            """Resolve environment variables in configuration"""
+            config_str = json.dumps(config)
+            for var, value in env_vars.items():
+                config_str = config_str.replace(f"${{{var}}}", str(value))
+            return json.loads(config_str)
+        
+        env_vars = {
+            "DB_HOST": "localhost",
+            "DB_PORT": "5432",
+            "DB_NAME": "production",
+            "API_BASE_URL": "https://api.example.com"
+        }
+        
+        resolved_config = resolve_config_variables(config_template, env_vars)
+        print("Resolved configuration:")
+        print(json.dumps(resolved_config, indent=2))
+        
+        # ETL metadata tracking
+        etl_metadata = {
+            "pipeline_id": "daily_sales_etl",
+            "run_id": "20240115_103045",
+            "source": {
+                "type": "database",
+                "connection": "sales_db",
+                "query": "SELECT * FROM sales WHERE date >= '2024-01-15'"
+            },
+            "transformations": [
+                {"step": 1, "operation": "filter_nulls", "records_before": 10000, "records_after": 9850},
+                {"step": 2, "operation": "calculate_totals", "records_before": 9850, "records_after": 9850},
+                {"step": 3, "operation": "aggregate_by_region", "records_before": 9850, "records_after": 50}
+            ],
+            "destination": {
+                "type": "data_warehouse",
+                "table": "sales_summary",
+                "mode": "append"
+            },
+            "execution": {
+                "start_time": "2024-01-15T10:30:45Z",
+                "end_time": "2024-01-15T10:35:12Z",
+                "status": "success",
+                "records_processed": 9850,
+                "records_loaded": 50
+            }
+        }
+        
+        print("\nETL Pipeline Metadata:")
+        print(f"Pipeline: {etl_metadata['pipeline_id']}")
+        print(f"Status: {etl_metadata['execution']['status']}")
+        print(f"Records processed: {etl_metadata['execution']['records_processed']:,}")
+        
+        # Data lineage tracking
+        lineage_info = {
+            "dataset_id": "customer_analytics_v2",
+            "upstream_dependencies": [
+                {"dataset": "raw_customer_data", "last_updated": "2024-01-15T09:00:00Z"},
+                {"dataset": "transaction_history", "last_updated": "2024-01-15T08:30:00Z"},
+                {"dataset": "product_catalog", "last_updated": "2024-01-14T18:00:00Z"}
+            ],
+            "transformations_applied": [
+                "customer_segmentation",
+                "purchase_behavior_analysis",
+                "churn_prediction_features"
+            ],
+            "downstream_consumers": [
+                "marketing_dashboard",
+                "customer_success_reports",
+                "ml_model_training"
+            ]
+        }
+        
+        print("\nData Lineage Information:")
+        print(f"Dataset: {lineage_info['dataset_id']}")
+        print(f"Upstream sources: {len(lineage_info['upstream_dependencies'])}")
+        print(f"Downstream consumers: {len(lineage_info['downstream_consumers'])}")
+    
+    def cleanup_files(self):
+        """Clean up created files"""
+        files_to_remove = ['sales_data.json', 'sales_data.json.gz', 'large_dataset.json']
+        for filename in files_to_remove:
+            try:
+                Path(filename).unlink()
+            except FileNotFoundError:
+                pass
 
-# Navigate nested structure
-eng_employees = nested_data["departments"]["engineering"]["employees"]
-print("Engineering employees:")
-for emp in eng_employees:
-    print(f"  {emp['name']}: {emp['role']}")
-# Output: Engineering employees:
-#           Alice: Senior Developer
-#           Bob: DevOps Engineer
+# Run comprehensive demonstration
+processor = JSONProcessor()
+processor.basic_operations()
+processor.file_operations()
+processor.custom_serialization()
+processor.error_handling_and_validation()
+processor.performance_optimization()
+processor.data_engineering_patterns()
+processor.cleanup_files()
 
-# Cleanup
-import os
-if os.path.exists('employees.json'):
-    os.remove('employees.json')
+print("\nJSON processing demonstration completed")
 ```
 
 ### 21. What is the difference between `*args` and `**kwargs`?
@@ -3045,106 +5059,605 @@ print(Bird.__mro__)  # Method Resolution Order
 #         (<class '__main__.Bird'>, <class '__main__.Animal'>, <class '__main__.Flyable'>, <class 'object'>)
 ```
 
-### 23-80. Additional Questions (Brief Format)
+## Intermediate Level Questions (23-55)
 
-**23. What are Python's data classes?**
-Use @dataclass decorator to automatically generate special methods for classes.
+### 23. What are Python's data classes?
 
-**24. How do iterators work?**
-Implement `__iter__` and `__next__` methods for custom iteration behavior.
+**Answer:** Data classes provide a decorator and functions for automatically adding generated special methods to user-defined classes.
 
-**25. What are Python's built-in data structures?**
-Collections module provides defaultdict, Counter, deque, OrderedDict, namedtuple.
+```python
+from dataclasses import dataclass, field
+from typing import List, Optional
+from datetime import datetime
 
-**26. How do you handle command-line arguments?**
-Use argparse for robust argument parsing with validation and help.
+@dataclass
+class Employee:
+    id: int
+    name: str
+    department: str
+    salary: float
+    skills: List[str] = field(default_factory=list)
+    hire_date: Optional[datetime] = None
+    is_active: bool = True
 
-**27. What are string methods and formatting?**
-Extensive string manipulation with format(), f-strings, and method chaining.
+# Usage
+emp = Employee(1, "Alice", "Engineering", 75000, ["Python", "SQL"])
+print(emp)
+# Output: Employee(id=1, name='Alice', department='Engineering', salary=75000, skills=['Python', 'SQL'], hire_date=None, is_active=True)
 
-**28. How do you work with databases?**
-Use DB-API, SQLAlchemy ORM, or simple database wrappers for data persistence.
+# Comparison works automatically
+emp2 = Employee(1, "Alice", "Engineering", 75000, ["Python", "SQL"])
+print(emp == emp2)  # True
+```
 
-**29. What are async/await features?**
-Asynchronous programming for I/O-bound operations with coroutines and event loops.
+### 24. How do iterators work in Python?
 
-**30. How do you implement design patterns?**
-Singleton, Factory, Observer, Strategy patterns using Python's flexible syntax.
+**Answer:** Iterators implement the iterator protocol with `__iter__()` and `__next__()` methods.
 
-**31. How do you work with APIs and HTTP?**
-Use requests library for HTTP operations with proper error handling and sessions.
+```python
+class NumberSequence:
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+        self.current = start
+    
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        if self.current >= self.end:
+            raise StopIteration
+        else:
+            self.current += 1
+            return self.current - 1
 
-**32. What are metaclasses?**
-Control class creation and modify class behavior at definition time.
+# Usage
+for num in NumberSequence(1, 5):
+    print(num)
+# Output: 1, 2, 3, 4
 
-**33. How do you implement caching?**
-Use functools.lru_cache, custom caches, or external systems like Redis.
+# Manual iteration
+iterator = iter(NumberSequence(1, 3))
+print(next(iterator))  # 1
+print(next(iterator))  # 2
+```
 
-**34. What are type hints?**
-Static type information using typing module for better code documentation.
+### 25. What are Python's collections module data structures?
 
-**35. How do you handle configuration?**
-Use environment variables, config files, and configuration classes.
+**Answer:** The collections module provides specialized container datatypes.
 
-**36. How do you implement logging?**
-Structured logging with Python's logging module and custom formatters.
+```python
+from collections import defaultdict, Counter, deque, OrderedDict, namedtuple
 
-**37. How do you work with CSV/Excel?**
-Use csv module and pandas for data file operations and analysis.
+# defaultdict - provides default values
+dd = defaultdict(list)
+dd['fruits'].append('apple')
+print(dd)  # defaultdict(<class 'list'>, {'fruits': ['apple']})
 
-**38. How do you implement unit testing?**
-Use unittest, pytest, and mocking for comprehensive test coverage.
+# Counter - counts hashable objects
+text = "hello world"
+counter = Counter(text)
+print(counter)  # Counter({'l': 3, 'o': 2, 'h': 1, 'e': 1, ' ': 1, 'w': 1, 'r': 1, 'd': 1})
 
-**39. How do you work with environment variables?**
-Use os module for system interaction and configuration management.
+# deque - double-ended queue
+dq = deque([1, 2, 3])
+dq.appendleft(0)
+dq.append(4)
+print(dq)  # deque([0, 1, 2, 3, 4])
 
-**40. How do you implement data validation?**
-Custom validators, schema checking, and input sanitization.
+# namedtuple - tuple with named fields
+Point = namedtuple('Point', ['x', 'y'])
+p = Point(1, 2)
+print(f"x: {p.x}, y: {p.y}")  # x: 1, y: 2
+```
 
-**41. How do you work with web scraping?**
-Use requests and BeautifulSoup for extracting data from web pages.
+### 26. How do you handle command-line arguments?
 
-**42. What are packaging tools?**
-Use setuptools, pip, and virtual environments for package management.
+**Answer:** Use argparse for robust command-line argument parsing.
 
-**43. How do you implement multithreading/multiprocessing?**
-Use threading for I/O-bound and multiprocessing for CPU-bound tasks.
+```python
+import argparse
 
-**44. What are security best practices?**
-Input validation, secure coding, encryption, and dependency management.
+def main():
+    parser = argparse.ArgumentParser(description='Data processing script')
+    parser.add_argument('input_file', help='Input data file')
+    parser.add_argument('-o', '--output', default='output.csv', help='Output file')
+    parser.add_argument('--batch-size', type=int, default=1000, help='Batch size')
+    parser.add_argument('--verbose', action='store_true', help='Verbose output')
+    
+    args = parser.parse_args()
+    
+    print(f"Processing {args.input_file}")
+    print(f"Output: {args.output}")
+    print(f"Batch size: {args.batch_size}")
+    if args.verbose:
+        print("Verbose mode enabled")
 
-**45. How do you work with XML?**
-Use xml.etree.ElementTree for parsing and creating XML documents.
+if __name__ == '__main__':
+    main()
+```
 
-**46. What are performance profiling tools?**
-Use cProfile, line_profiler, and memory_profiler for optimization.
+### 27. What are string methods and formatting?
 
-**47. How do you implement design patterns for data?**
-Pipeline, Observer, Strategy patterns for data processing workflows.
+**Answer:** Python provides extensive string manipulation methods and formatting options.
 
-**48. How do you handle large datasets?**
-Use chunking, generators, and memory-efficient processing techniques.
+```python
+# String methods
+text = "  Hello, World!  "
+print(text.strip())           # "Hello, World!"
+print(text.lower())           # "  hello, world!  "
+print(text.replace("World", "Python"))  # "  Hello, Python!  "
+print(text.split(","))        # ['  Hello', ' World!  ']
 
-**49. How do you implement caching strategies?**
-Multi-level caching with TTL, LRU eviction, and cache warming.
+# String formatting
+name = "Alice"
+age = 30
+salary = 75000.50
 
-**50. How do you work with message queues?**
-Use Celery, RQ, or custom queue systems for distributed processing.
+# f-strings (Python 3.6+)
+print(f"Name: {name}, Age: {age}, Salary: ${salary:,.2f}")
+# Output: Name: Alice, Age: 30, Salary: $75,000.50
 
-**51. How do you implement data serialization?**
-Use pickle, JSON, and custom serialization for data persistence.
+# format() method
+print("Name: {}, Age: {}, Salary: ${:,.2f}".format(name, age, salary))
 
-**52. What are networking capabilities?**
-Socket programming, HTTP clients, and network protocols.
+# % formatting (older style)
+print("Name: %s, Age: %d, Salary: $%.2f" % (name, age, salary))
+```
 
-**53. How do you implement data validation and schema checking?**
-Validation libraries and custom validators for robust data validation.
+### 28. How do you work with databases?
 
-**54. How do you work with ORMs?**
-SQLAlchemy for object-relational mapping with database abstraction.
+**Answer:** Use DB-API 2.0 compliant drivers or ORMs like SQLAlchemy.
 
-**55. How do you implement monitoring systems?**
-Metrics collection, alerting, and dashboards for system monitoring.
+```python
+import sqlite3
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+# Raw SQL with sqlite3
+conn = sqlite3.connect(':memory:')
+cursor = conn.cursor()
+
+cursor.execute('''
+    CREATE TABLE employees (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        department TEXT
+    )
+''')
+
+cursor.execute("INSERT INTO employees (name, department) VALUES (?, ?)", 
+               ("Alice", "Engineering"))
+conn.commit()
+
+# SQLAlchemy ORM
+Base = declarative_base()
+
+class Employee(Base):
+    __tablename__ = 'employees'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+    department = Column(String(50))
+
+engine = create_engine('sqlite:///:memory:')
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Add employee
+emp = Employee(name="Bob", department="Sales")
+session.add(emp)
+session.commit()
+```
+
+### 29. What are async/await features?
+
+**Answer:** Async/await enables asynchronous programming for I/O-bound operations.
+
+```python
+import asyncio
+import aiohttp
+import time
+
+async def fetch_data(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return await response.text()
+
+async def process_urls(urls):
+    tasks = [fetch_data(url) for url in urls]
+    results = await asyncio.gather(*tasks)
+    return results
+
+# Async generator
+async def async_range(n):
+    for i in range(n):
+        await asyncio.sleep(0.1)  # Simulate async work
+        yield i
+
+async def main():
+    # Async iteration
+    async for num in async_range(5):
+        print(f"Number: {num}")
+    
+    # Context manager
+    async with aiohttp.ClientSession() as session:
+        async with session.get('https://httpbin.org/json') as resp:
+            data = await resp.json()
+            print(data)
+
+# Run async code
+# asyncio.run(main())
+```
+
+### 30. How do you implement design patterns?
+
+**Answer:** Python's flexibility makes implementing design patterns straightforward.
+
+```python
+# Singleton Pattern
+class DatabaseConnection:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+# Factory Pattern
+class DataProcessor:
+    @staticmethod
+    def create_processor(data_type):
+        if data_type == 'csv':
+            return CSVProcessor()
+        elif data_type == 'json':
+            return JSONProcessor()
+        else:
+            raise ValueError(f"Unknown data type: {data_type}")
+
+# Observer Pattern
+class Subject:
+    def __init__(self):
+        self._observers = []
+    
+    def attach(self, observer):
+        self._observers.append(observer)
+    
+    def notify(self, message):
+        for observer in self._observers:
+            observer.update(message)
+
+class Observer:
+    def update(self, message):
+        print(f"Received: {message}")
+
+# Strategy Pattern
+class SortStrategy:
+    def sort(self, data):
+        raise NotImplementedError
+
+class QuickSort(SortStrategy):
+    def sort(self, data):
+        return sorted(data)  # Simplified
+
+class Context:
+    def __init__(self, strategy):
+        self.strategy = strategy
+    
+    def execute_sort(self, data):
+        return self.strategy.sort(data)
+```
+
+### 31. How do you work with APIs and HTTP?
+
+**Answer:** Use the requests library for HTTP operations with proper error handling.
+
+```python
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+class APIClient:
+    def __init__(self, base_url, timeout=30):
+        self.base_url = base_url
+        self.session = requests.Session()
+        self.timeout = timeout
+        
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504]
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+    
+    def get(self, endpoint, params=None):
+        try:
+            response = self.session.get(
+                f"{self.base_url}/{endpoint}",
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"API request failed: {e}")
+            return None
+    
+    def post(self, endpoint, data=None, json=None):
+        try:
+            response = self.session.post(
+                f"{self.base_url}/{endpoint}",
+                data=data,
+                json=json,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"API request failed: {e}")
+            return None
+
+# Usage
+client = APIClient("https://api.example.com")
+data = client.get("users", params={"page": 1, "limit": 10})
+```
+
+### 32. What are metaclasses?
+
+**Answer:** Metaclasses control class creation and modify class behavior at definition time.
+
+```python
+class SingletonMeta(type):
+    _instances = {}
+    
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class Database(metaclass=SingletonMeta):
+    def __init__(self):
+        self.connection = "Connected"
+
+# Usage
+db1 = Database()
+db2 = Database()
+print(db1 is db2)  # True - same instance
+
+# Attribute validation metaclass
+class ValidatedMeta(type):
+    def __new__(mcs, name, bases, attrs):
+        # Add validation to all methods
+        for key, value in attrs.items():
+            if callable(value) and not key.startswith('_'):
+                attrs[key] = mcs.add_validation(value)
+        return super().__new__(mcs, name, bases, attrs)
+    
+    @staticmethod
+    def add_validation(func):
+        def wrapper(*args, **kwargs):
+            print(f"Validating call to {func.__name__}")
+            return func(*args, **kwargs)
+        return wrapper
+
+class DataProcessor(metaclass=ValidatedMeta):
+    def process(self, data):
+        return f"Processing {data}"
+
+processor = DataProcessor()
+processor.process("test")  # Prints validation message
+```
+
+### 33. How do you implement caching?
+
+**Answer:** Use functools.lru_cache, custom caches, or external systems.
+
+```python
+from functools import lru_cache, wraps
+import time
+from typing import Any, Dict, Optional
+
+# Built-in LRU cache
+@lru_cache(maxsize=128)
+def expensive_function(n):
+    time.sleep(1)  # Simulate expensive operation
+    return n ** 2
+
+# Custom cache decorator
+class TTLCache:
+    def __init__(self, ttl_seconds=300):
+        self.cache: Dict[str, tuple] = {}
+        self.ttl = ttl_seconds
+    
+    def get(self, key: str) -> Optional[Any]:
+        if key in self.cache:
+            value, timestamp = self.cache[key]
+            if time.time() - timestamp < self.ttl:
+                return value
+            else:
+                del self.cache[key]
+        return None
+    
+    def set(self, key: str, value: Any):
+        self.cache[key] = (value, time.time())
+
+def ttl_cache(ttl_seconds=300):
+    cache = TTLCache(ttl_seconds)
+    
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            key = str(args) + str(sorted(kwargs.items()))
+            result = cache.get(key)
+            if result is None:
+                result = func(*args, **kwargs)
+                cache.set(key, result)
+            return result
+        return wrapper
+    return decorator
+
+@ttl_cache(ttl_seconds=60)
+def fetch_user_data(user_id):
+    # Simulate database call
+    time.sleep(0.5)
+    return {"id": user_id, "name": f"User {user_id}"}
+
+# Redis cache example (conceptual)
+class RedisCache:
+    def __init__(self, redis_client):
+        self.redis = redis_client
+    
+    def cache_result(self, key_prefix, ttl=3600):
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                cache_key = f"{key_prefix}:{hash(str(args) + str(kwargs))}"
+                
+                # Try to get from cache
+                cached = self.redis.get(cache_key)
+                if cached:
+                    return json.loads(cached)
+                
+                # Execute function and cache result
+                result = func(*args, **kwargs)
+                self.redis.setex(cache_key, ttl, json.dumps(result))
+                return result
+            return wrapper
+        return decorator
+```
+
+### 34. What are type hints?
+
+**Answer:** Type hints provide static type information for better code documentation and IDE support.
+
+```python
+from typing import List, Dict, Optional, Union, Callable, TypeVar, Generic
+from dataclasses import dataclass
+
+# Basic type hints
+def process_data(data: List[int], multiplier: float = 1.0) -> List[float]:
+    return [x * multiplier for x in data]
+
+# Complex types
+def analyze_sales(sales_data: Dict[str, Union[int, float]]) -> Optional[Dict[str, float]]:
+    if not sales_data:
+        return None
+    
+    total = sum(sales_data.values())
+    return {"total": total, "average": total / len(sales_data)}
+
+# Generic types
+T = TypeVar('T')
+
+class DataContainer(Generic[T]):
+    def __init__(self, items: List[T]):
+        self.items = items
+    
+    def get_first(self) -> Optional[T]:
+        return self.items[0] if self.items else None
+
+# Function types
+ProcessorFunc = Callable[[List[int]], List[int]]
+
+def apply_processor(data: List[int], processor: ProcessorFunc) -> List[int]:
+    return processor(data)
+
+# Class with type hints
+@dataclass
+class Employee:
+    id: int
+    name: str
+    salary: Optional[float] = None
+    skills: List[str] = None
+    
+    def __post_init__(self):
+        if self.skills is None:
+            self.skills = []
+
+# Usage with type checking
+employees: List[Employee] = [
+    Employee(1, "Alice", 75000, ["Python", "SQL"]),
+    Employee(2, "Bob", skills=["Java", "Spring"])
+]
+
+def get_high_earners(employees: List[Employee], threshold: float) -> List[Employee]:
+    return [emp for emp in employees if emp.salary and emp.salary > threshold]
+```
+
+### 35. How do you handle configuration?
+
+**Answer:** Use environment variables, config files, and configuration classes.
+
+```python
+import os
+import json
+from dataclasses import dataclass
+from typing import Optional
+from pathlib import Path
+
+@dataclass
+class DatabaseConfig:
+    host: str
+    port: int
+    database: str
+    username: str
+    password: str
+    
+    @classmethod
+    def from_env(cls):
+        return cls(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', '5432')),
+            database=os.getenv('DB_NAME', 'mydb'),
+            username=os.getenv('DB_USER', 'user'),
+            password=os.getenv('DB_PASSWORD', '')
+        )
+
+@dataclass
+class AppConfig:
+    debug: bool
+    database: DatabaseConfig
+    api_key: str
+    batch_size: int = 1000
+    
+    @classmethod
+    def load_config(cls, config_path: Optional[str] = None):
+        # Load from file if provided
+        if config_path and Path(config_path).exists():
+            with open(config_path) as f:
+                file_config = json.load(f)
+        else:
+            file_config = {}
+        
+        # Override with environment variables
+        return cls(
+            debug=os.getenv('DEBUG', 'false').lower() == 'true',
+            database=DatabaseConfig.from_env(),
+            api_key=os.getenv('API_KEY', file_config.get('api_key', '')),
+            batch_size=int(os.getenv('BATCH_SIZE', file_config.get('batch_size', 1000)))
+        )
+
+# Configuration manager
+class ConfigManager:
+    def __init__(self, config_file: Optional[str] = None):
+        self.config = AppConfig.load_config(config_file)
+    
+    def get_database_url(self) -> str:
+        db = self.config.database
+        return f"postgresql://{db.username}:{db.password}@{db.host}:{db.port}/{db.database}"
+    
+    def is_development(self) -> bool:
+        return self.config.debug
+
+# Usage
+config = ConfigManager('config.json')
+print(f"Database URL: {config.get_database_url()}")
+print(f"Debug mode: {config.is_development()}")
+```
 
 ### 56. How do you implement ETL pipelines in Python?
 
