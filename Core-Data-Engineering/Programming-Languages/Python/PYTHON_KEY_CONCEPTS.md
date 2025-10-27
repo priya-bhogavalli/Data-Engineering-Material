@@ -260,7 +260,526 @@ host, port, database = db_connection  # Unpacking
 print(f"Connecting to {database} on {host}:{port}")
 # Output: Connecting to analytics_db on prod-server:5432
 
-# Tuples are great for returning multiple values from functions
+# Tuples are immutable - you can't change them after creation
+# Good for configuration that shouldn't change
+api_endpoints = (
+    ("users", "/api/v1/users"),
+    ("orders", "/api/v1/orders"),
+    ("products", "/api/v1/products")
+)
+
+for name, endpoint in api_endpoints:
+    print(f"{name.title()} API: {endpoint}")
+# Output:
+# Users API: /api/v1/users
+# Orders API: /api/v1/orders
+# Products API: /api/v1/products
+```
+
+### 🎯 Sets - Unique Collections
+
+**Think of sets like a bag of unique items - no duplicates allowed**
+
+```python
+# Remove duplicates from data
+raw_user_ids = [1, 2, 3, 2, 4, 1, 5, 3]
+unique_user_ids = set(raw_user_ids)
+
+print(f"Raw IDs: {raw_user_ids}")
+print(f"Unique IDs: {sorted(unique_user_ids)}")
+# Output:
+# Raw IDs: [1, 2, 3, 2, 4, 1, 5, 3]
+# Unique IDs: [1, 2, 3, 4, 5]
+
+# Set operations for data analysis
+active_users = {1, 2, 3, 4, 5}
+premium_users = {3, 4, 5, 6, 7}
+
+# Who is both active AND premium?
+both = active_users & premium_users
+print(f"Active premium users: {both}")
+# Output: Active premium users: {3, 4, 5}
+
+# Who is active but NOT premium?
+active_only = active_users - premium_users
+print(f"Active non-premium users: {active_only}")
+# Output: Active non-premium users: {1, 2}
+```
+
+---
+
+## 💼 Working with Data
+
+### 📊 List Comprehensions - Elegant Data Processing
+
+**Think of list comprehensions as a compact way to transform data**
+
+```python
+# Traditional way
+file_sizes_mb = [10, 250, 1500, 50, 3000]
+large_files = []
+for size in file_sizes_mb:
+    if size > 100:
+        large_files.append(size)
+
+# List comprehension way (more Pythonic)
+large_files = [size for size in file_sizes_mb if size > 100]
+print(f"Large files: {large_files}")
+# Output: Large files: [250, 1500, 3000]
+
+# Transform data while filtering
+file_info = [(size, "large" if size > 1000 else "medium") 
+             for size in file_sizes_mb if size > 100]
+print(f"File categories: {file_info}")
+# Output: File categories: [(250, 'medium'), (1500, 'large'), (3000, 'large')]
+```
+
+### 🔄 Working with JSON Data
+
+```python
+import json
+
+# Sample API response
+api_response = '''
+{
+    "users": [
+        {"id": 1, "name": "Alice", "department": "Engineering"},
+        {"id": 2, "name": "Bob", "department": "Sales"}
+    ],
+    "total_count": 2,
+    "status": "success"
+}
+'''
+
+# Parse JSON
+data = json.loads(api_response)
+
+# Extract information
+user_count = data["total_count"]
+engineering_users = [user["name"] for user in data["users"] 
+                    if user["department"] == "Engineering"]
+
+print(f"Total users: {user_count}")
+print(f"Engineering team: {engineering_users}")
+# Output:
+# Total users: 2
+# Engineering team: ['Alice']
+```
+
+---
+
+## 📁 File Operations
+
+### 📖 Reading Files Safely
+
+```python
+# Always use 'with' statement - it automatically closes files
+
+# Reading a CSV file
+try:
+    with open('sales_data.csv', 'r') as file:
+        lines = file.readlines()
+        print(f"Read {len(lines)} lines from file")
+        
+        # Process first few lines
+        for i, line in enumerate(lines[:3]):
+            print(f"Line {i+1}: {line.strip()}")
+except FileNotFoundError:
+    print("File not found - check the path")
+except Exception as e:
+    print(f"Error reading file: {e}")
+```
+
+### ✍️ Writing Files
+
+```python
+# Writing processed data
+processed_data = [
+    "user_id,name,processed_date",
+    "1,Alice,2024-01-15",
+    "2,Bob,2024-01-15"
+]
+
+with open('processed_users.csv', 'w') as file:
+    for line in processed_data:
+        file.write(line + '\n')
+        
+print("Data written successfully")
+```
+
+---
+
+## 🗄️ Database Connections
+
+### 🐘 PostgreSQL Example
+
+```python
+import psycopg2
+from contextlib import contextmanager
+
+@contextmanager
+def get_db_connection():
+    """Safe database connection with automatic cleanup"""
+    conn = None
+    try:
+        conn = psycopg2.connect(
+            host="localhost",
+            database="analytics",
+            user="data_engineer",
+            password="your_password"
+        )
+        yield conn
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise e
+    finally:
+        if conn:
+            conn.close()
+
+# Using the connection
+with get_db_connection() as conn:
+    cursor = conn.cursor()
+    
+    # Execute query
+    cursor.execute("SELECT COUNT(*) FROM users WHERE active = true")
+    active_users = cursor.fetchone()[0]
+    
+    print(f"Active users: {active_users}")
+```
+
+---
+
+## 🌐 API Integration
+
+### 📡 Making HTTP Requests
+
+```python
+import requests
+import json
+
+def fetch_user_data(user_id):
+    """Fetch user data from API with error handling"""
+    try:
+        response = requests.get(
+            f"https://api.example.com/users/{user_id}",
+            headers={"Authorization": "Bearer your_token"},
+            timeout=10
+        )
+        
+        response.raise_for_status()  # Raises exception for bad status codes
+        return response.json()
+        
+    except requests.exceptions.Timeout:
+        print(f"Timeout fetching user {user_id}")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching user {user_id}: {e}")
+        return None
+
+# Batch processing
+user_ids = [1, 2, 3, 4, 5]
+successful_fetches = 0
+
+for user_id in user_ids:
+    user_data = fetch_user_data(user_id)
+    if user_data:
+        successful_fetches += 1
+        print(f"Fetched data for user {user_id}: {user_data.get('name', 'Unknown')}")
+
+print(f"Successfully fetched {successful_fetches}/{len(user_ids)} users")
+```
+
+---
+
+## 🏗️ Object-Oriented Programming
+
+### 📦 Classes for Data Processing
+
+```python
+class DataProcessor:
+    """A reusable data processing class"""
+    
+    def __init__(self, source_name):
+        self.source_name = source_name
+        self.processed_count = 0
+        self.errors = []
+    
+    def process_record(self, record):
+        """Process a single record"""
+        try:
+            # Simulate processing
+            if 'id' not in record:
+                raise ValueError("Record missing required 'id' field")
+            
+            # Add processing timestamp
+            record['processed_at'] = '2024-01-15T10:30:00Z'
+            self.processed_count += 1
+            return record
+            
+        except Exception as e:
+            self.errors.append(f"Error processing record: {e}")
+            return None
+    
+    def get_summary(self):
+        """Get processing summary"""
+        return {
+            'source': self.source_name,
+            'processed': self.processed_count,
+            'errors': len(self.errors),
+            'success_rate': self.processed_count / (self.processed_count + len(self.errors)) if (self.processed_count + len(self.errors)) > 0 else 0
+        }
+
+# Using the class
+processor = DataProcessor("user_data")
+
+# Sample records
+records = [
+    {'id': 1, 'name': 'Alice'},
+    {'name': 'Bob'},  # Missing ID - will cause error
+    {'id': 3, 'name': 'Charlie'}
+]
+
+# Process records
+processed_records = []
+for record in records:
+    result = processor.process_record(record)
+    if result:
+        processed_records.append(result)
+
+# Get summary
+summary = processor.get_summary()
+print(f"Processing summary: {summary}")
+# Output: Processing summary: {'source': 'user_data', 'processed': 2, 'errors': 1, 'success_rate': 0.6666666666666666}
+```
+
+---
+
+## ⚠️ Error Handling
+
+### 🛡️ Robust Error Handling Patterns
+
+```python
+def safe_divide(a, b):
+    """Division with comprehensive error handling"""
+    try:
+        result = a / b
+        return {'success': True, 'result': result, 'error': None}
+    except ZeroDivisionError:
+        return {'success': False, 'result': None, 'error': 'Cannot divide by zero'}
+    except TypeError:
+        return {'success': False, 'result': None, 'error': 'Invalid input types'}
+    except Exception as e:
+        return {'success': False, 'result': None, 'error': f'Unexpected error: {e}'}
+
+# Testing different scenarios
+test_cases = [(10, 2), (10, 0), (10, 'invalid'), (None, 5)]
+
+for a, b in test_cases:
+    result = safe_divide(a, b)
+    if result['success']:
+        print(f"{a} ÷ {b} = {result['result']}")
+    else:
+        print(f"Error with {a} ÷ {b}: {result['error']}")
+
+# Output:
+# 10 ÷ 2 = 5.0
+# Error with 10 ÷ 0: Cannot divide by zero
+# Error with 10 ÷ invalid: Invalid input types
+# Error with None ÷ 5: Invalid input types
+```
+
+---
+
+## ✨ Best Practices
+
+### 🎯 Code Quality Guidelines
+
+```python
+# ✅ GOOD: Clear, descriptive names
+def calculate_monthly_revenue(sales_data, tax_rate=0.08):
+    """Calculate monthly revenue including tax"""
+    total_sales = sum(sale['amount'] for sale in sales_data)
+    revenue_with_tax = total_sales * (1 + tax_rate)
+    return round(revenue_with_tax, 2)
+
+# ❌ BAD: Unclear names and no documentation
+def calc(data, rate=0.08):
+    total = sum(x['amount'] for x in data)
+    return total * (1 + rate)
+
+# ✅ GOOD: Use constants for magic numbers
+MAX_RETRY_ATTEMPTS = 3
+DEFAULT_TIMEOUT_SECONDS = 30
+VALID_FILE_EXTENSIONS = ['.csv', '.json', '.parquet']
+
+def process_file(file_path):
+    """Process file with validation"""
+    # Check file extension
+    if not any(file_path.endswith(ext) for ext in VALID_FILE_EXTENSIONS):
+        raise ValueError(f"Unsupported file type. Supported: {VALID_FILE_EXTENSIONS}")
+    
+    # Process with retry logic
+    for attempt in range(MAX_RETRY_ATTEMPTS):
+        try:
+            # File processing logic here
+            return "Success"
+        except Exception as e:
+            if attempt == MAX_RETRY_ATTEMPTS - 1:
+                raise e
+            print(f"Attempt {attempt + 1} failed, retrying...")
+```
+
+### 🔧 Performance Tips
+
+```python
+# ✅ GOOD: Use generators for large datasets
+def process_large_dataset(file_path):
+    """Memory-efficient processing using generators"""
+    with open(file_path, 'r') as file:
+        for line_num, line in enumerate(file, 1):
+            # Process one line at a time
+            processed_line = line.strip().upper()
+            yield {'line_number': line_num, 'data': processed_line}
+
+# ✅ GOOD: Use list comprehensions for simple transformations
+user_ids = [1, 2, 3, 4, 5]
+user_urls = [f"https://api.example.com/users/{uid}" for uid in user_ids]
+
+# ✅ GOOD: Use enumerate instead of manual counters
+data_sources = ['PostgreSQL', 'MongoDB', 'Redis']
+for index, source in enumerate(data_sources):
+    print(f"{index + 1}. {source}")
+```
+
+---
+
+## 🎯 Interview Preparation
+
+### 🔥 Common Python Interview Questions
+
+#### **Q1: Explain the difference between lists and tuples**
+
+```python
+# Lists - mutable (can be changed)
+data_sources = ['PostgreSQL', 'MongoDB']
+data_sources.append('Redis')  # ✅ This works
+print(data_sources)  # ['PostgreSQL', 'MongoDB', 'Redis']
+
+# Tuples - immutable (cannot be changed)
+db_config = ('localhost', 5432, 'production')
+# db_config.append('new_item')  # ❌ This would cause an error
+
+# When to use each:
+# Lists: When data might change (user inputs, processing results)
+# Tuples: When data is fixed (coordinates, configuration, database connections)
+```
+
+#### **Q2: How do you handle missing values in a dictionary?**
+
+```python
+user_data = {'name': 'Alice', 'age': 30}
+
+# ❌ BAD: Can cause KeyError
+# email = user_data['email']  # KeyError if 'email' doesn't exist
+
+# ✅ GOOD: Safe approaches
+email = user_data.get('email', 'no-email@example.com')  # Default value
+department = user_data.get('department')  # Returns None if not found
+
+# ✅ GOOD: Check if key exists
+if 'phone' in user_data:
+    phone = user_data['phone']
+else:
+    phone = 'Phone not provided'
+
+print(f"Email: {email}, Department: {department}, Phone: {phone}")
+```
+
+#### **Q3: Write a function to remove duplicates while preserving order**
+
+```python
+def remove_duplicates_preserve_order(items):
+    """Remove duplicates while keeping original order"""
+    seen = set()
+    result = []
+    
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    
+    return result
+
+# Test the function
+data = [1, 2, 3, 2, 4, 1, 5, 3]
+clean_data = remove_duplicates_preserve_order(data)
+print(f"Original: {data}")
+print(f"Clean: {clean_data}")
+# Output:
+# Original: [1, 2, 3, 2, 4, 1, 5, 3]
+# Clean: [1, 2, 3, 4, 5]
+```
+
+#### **Q4: How do you efficiently process large files?**
+
+```python
+def process_large_file_efficiently(file_path, batch_size=1000):
+    """Process large files in batches to manage memory"""
+    batch = []
+    processed_count = 0
+    
+    with open(file_path, 'r') as file:
+        for line in file:
+            batch.append(line.strip())
+            
+            # Process when batch is full
+            if len(batch) >= batch_size:
+                # Process the batch
+                processed_count += len(batch)
+                print(f"Processed batch of {len(batch)} items. Total: {processed_count}")
+                batch = []  # Clear batch
+        
+        # Process remaining items
+        if batch:
+            processed_count += len(batch)
+            print(f"Processed final batch of {len(batch)} items. Total: {processed_count}")
+    
+    return processed_count
+```
+
+### 🎯 **Key Takeaways for Interviews**
+
+1. **Always handle errors gracefully** - Use try/except blocks
+2. **Write readable code** - Clear variable names and comments
+3. **Consider memory efficiency** - Use generators for large datasets
+4. **Know when to use each data type** - Lists vs tuples vs sets vs dictionaries
+5. **Practice common patterns** - List comprehensions, file handling, API calls
+
+---
+
+## 🚀 Next Steps
+
+### 📚 **Continue Learning**
+- **[Python Interview Questions](./PYTHON_INTERVIEW_QUESTIONS.md)** - Practice with real interview questions
+- **[Python Quick Reference](./PYTHON_QUICK_REFERENCE.md)** - Handy cheat sheet
+- **[Pandas vs Spark](./PANDAS_VS_SPARK_INTERVIEW_QUESTIONS.md)** - When to use each tool
+
+### 🛠️ **Practice Projects**
+1. **CSV Data Processor** - Read, clean, and transform CSV files
+2. **API Data Pipeline** - Fetch data from REST APIs and store in database
+3. **Log File Analyzer** - Parse and analyze application logs
+4. **Database ETL Script** - Extract, transform, and load data between systems
+
+### 📖 **Advanced Topics**
+- **Async Programming** - For handling multiple API calls efficiently
+- **Data Classes** - Modern way to create classes for data
+- **Type Hints** - Make your code more maintainable
+- **Testing** - Write unit tests for your data processing functions
+
+---
+
+**Remember**: Python is a tool to solve problems. Focus on understanding the concepts, and the syntax will come naturally with practice! 🐍✨ great for returning multiple values from functions
 def get_file_info(filename):
     # Simulate getting file information
     size_mb = 150
