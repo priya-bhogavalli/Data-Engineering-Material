@@ -11,6 +11,21 @@
 8. [Concurrency & Parallelism](#concurrency--parallelism)
 9. [Error Handling](#error-handling)
 10. [File & I/O Operations](#file--io-operations)
+11. [Modules & Packages](#modules--packages)
+12. [Regular Expressions](#regular-expressions)
+13. [Database Operations](#database-operations)
+14. [Web Development](#web-development)
+15. [Testing](#testing)
+16. [Performance & Optimization](#performance--optimization)
+17. [Networking](#networking)
+18. [GUI Development](#gui-development)
+19. [Scientific Computing](#scientific-computing)
+20. [Machine Learning Basics](#machine-learning-basics)
+21. [Web Scraping](#web-scraping)
+22. [API Development](#api-development)
+23. [Security](#security)
+24. [Deployment & DevOps](#deployment--devops)
+25. [Best Practices](#best-practices)
 
 ---
 
@@ -144,14 +159,145 @@ vip_members = {1, 2, 3, 3, 4}  # Automatically becomes {1, 2, 3, 4}
 print(2 in vip_members)        # Quick membership check: True
 ```
 
+### Collections Module
+
+#### Deque (Double-ended Queue)
+**One-liner**: Fast append/pop from both ends - like a line where people can join front or back.
+
+**Concept**: Double-ended queue optimized for fast appends and pops from both ends. Better than lists for queue operations.
+
+**Analogy**: Like a subway car where people can enter and exit from both front and back doors efficiently.
+
+```python
+from collections import deque
+
+# Create a deque
+queue = deque([1, 2, 3])
+queue.appendleft(0)    # Add to front: [0, 1, 2, 3]
+queue.append(4)        # Add to back: [0, 1, 2, 3, 4]
+queue.popleft()        # Remove from front: [1, 2, 3, 4]
+queue.pop()            # Remove from back: [1, 2, 3]
+```
+
+#### Counter
+**One-liner**: Count occurrences of items automatically - like a vote counter.
+
+**Concept**: Dictionary subclass for counting hashable objects. Provides convenient methods for counting and most common items.
+
+**Analogy**: Like an automatic vote counting machine that tallies each ballot.
+
+```python
+from collections import Counter
+
+# Count letters in a word
+letters = Counter("hello world")
+print(letters)  # Counter({'l': 3, 'o': 2, 'h': 1, 'e': 1, ' ': 1, 'w': 1, 'r': 1, 'd': 1})
+print(letters.most_common(2))  # [('l', 3), ('o', 2)]
+
+# Count items in a list
+votes = Counter(['apple', 'banana', 'apple', 'orange', 'banana', 'apple'])
+print(votes.most_common(1))  # [('apple', 3)]
+```
+
+#### DefaultDict
+**One-liner**: Dictionary with default values for missing keys - no more KeyError exceptions.
+
+**Concept**: Dictionary subclass that calls a factory function to supply missing values instead of raising KeyError.
+
+**Analogy**: Like a vending machine that gives you a default snack if your selection is out of stock.
+
+```python
+from collections import defaultdict
+
+# Group items by first letter
+words = ['apple', 'banana', 'apricot', 'blueberry']
+grouped = defaultdict(list)  # Default to empty list
+
+for word in words:
+    grouped[word[0]].append(word)  # No need to check if key exists
+
+print(dict(grouped))  # {'a': ['apple', 'apricot'], 'b': ['banana', 'blueberry']}
+```
+
+#### OrderedDict
+**One-liner**: Dictionary that remembers insertion order - like a playlist that keeps track of song order.
+
+**Concept**: Dictionary subclass that maintains the order of key insertion. Useful when order matters.
+
+**Analogy**: Like a playlist where songs are played in the order they were added.
+
+```python
+from collections import OrderedDict
+
+# Regular dict (Python 3.7+ maintains order, but OrderedDict is explicit)
+playlist = OrderedDict()
+playlist['song1'] = 'Bohemian Rhapsody'
+playlist['song2'] = 'Stairway to Heaven'
+playlist['song3'] = 'Hotel California'
+
+# Move to end
+playlist.move_to_end('song1')  # Move song1 to the end
+print(list(playlist.keys()))  # ['song2', 'song3', 'song1']
+```
+
+#### NamedTuple
+**One-liner**: Tuple with named fields - like a lightweight class with named attributes.
+
+**Concept**: Factory function for creating tuple subclasses with named fields. More readable than regular tuples.
+
+**Analogy**: Like a form with labeled fields instead of just numbered boxes.
+
+```python
+from collections import namedtuple
+
+# Create a Person type
+Person = namedtuple('Person', ['name', 'age', 'city'])
+
+# Create instances
+alice = Person('Alice', 30, 'New York')
+bob = Person(name='Bob', age=25, city='London')  # Can use keywords
+
+# Access by name (more readable than alice[0])
+print(alice.name)  # Alice
+print(alice.age)   # 30
+
+# Still a tuple - immutable
+print(alice[0])    # Alice (still works with indexing)
+```
+
+#### ChainMap
+**One-liner**: Combine multiple dictionaries into one view - like a master key that opens multiple locks.
+
+**Concept**: Groups multiple dictionaries into a single view. Lookups search each dictionary in order.
+
+**Analogy**: Like a master directory that searches through multiple phone books to find a number.
+
+```python
+from collections import ChainMap
+
+# Multiple configuration sources
+defaults = {'color': 'blue', 'size': 'medium'}
+user_prefs = {'color': 'red'}
+cmd_args = {'size': 'large'}
+
+# Chain them (cmd_args has highest priority)
+config = ChainMap(cmd_args, user_prefs, defaults)
+print(config['color'])  # red (from user_prefs)
+print(config['size'])   # large (from cmd_args)
+print(dict(config))     # {'size': 'large', 'color': 'red'}
+```
+
 ---
 
 ## Control Flow
 
 ### If Statements
 **One-liner**: Execute different code based on conditions - if/elif/else for decision making.
+
 **Concept**: Conditional statements that execute different code blocks based on boolean expressions. Support if, elif, and else clauses.
+
 **Analogy**: Like a bouncer at a club - checking conditions before letting code through.
+
 ```python
 age = 18
 if age >= 18:
@@ -166,8 +312,11 @@ else:
 
 #### For Loops
 **One-liner**: Repeat code for each item in a sequence - for item in collection.
+
 **Concept**: Iterate over sequences (lists, strings, ranges) or any iterable object. Execute code block for each element.
+
 **Analogy**: Like an assembly line worker who processes each item in a conveyor belt.
+
 ```python
 items = [1, 2, 3, 4, 5]
 for item in items:
@@ -176,8 +325,11 @@ for item in items:
 
 #### While Loops
 **One-liner**: Repeat code while condition is true - while condition: do something.
+
 **Concept**: Repeatedly execute code block as long as a condition remains true. Useful when the number of iterations is unknown.
+
 **Analogy**: Like a security guard who keeps patrolling until their shift ends.
+
 ```python
 energy = 100
 while energy > 0:
@@ -187,8 +339,11 @@ while energy > 0:
 
 ### List Comprehensions
 **One-liner**: Create lists in one line with optional filtering - [expression for item in iterable if condition].
+
 **Concept**: Concise way to create lists by applying expressions to elements of iterables, optionally with filtering conditions.
+
 **Analogy**: Like a factory machine that transforms raw materials into finished products in one line.
+
 ```python
 # Transform all numbers to their squares
 numbers = [1, 2, 3, 4, 5]
@@ -204,8 +359,11 @@ even_squares = [x**2 for x in numbers if x % 2 == 0]  # [4, 16]
 
 ### Basic Functions
 **One-liner**: Reusable code blocks with inputs and outputs - def function_name(parameters).
+
 **Concept**: Reusable blocks of code that accept parameters and optionally return values. Promote code reusability and organization.
+
 **Analogy**: Like a recipe - you give it ingredients (parameters) and get a dish (return value).
+
 ```python
 def make_sandwich(bread, filling):
     return f"{bread} sandwich with {filling}"
@@ -215,8 +373,11 @@ lunch = make_sandwich("wheat", "turkey")
 
 ### Default Parameters
 **One-liner**: Function parameters with fallback values - def func(param="default").
+
 **Concept**: Function parameters can have default values. If no argument is provided, the default value is used.
+
 **Analogy**: Like a coffee shop with default options - if you don't specify, they use the standard.
+
 ```python
 def order_coffee(size="medium", milk="regular"):
     return f"{size} coffee with {milk} milk"
@@ -227,7 +388,9 @@ coffee2 = order_coffee("large", "almond")   # Custom order
 
 ### *args and **kwargs
 **One-liner**: Accept variable arguments - *args for positional, **kwargs for keyword arguments.
+
 **Concept**: *args accepts variable number of positional arguments as tuple. **kwargs accepts variable number of keyword arguments as dictionary.
+
 **Analogy**: 
 - `*args`: Like a buffet plate that can hold any number of items
 - `**kwargs`: Like a customizable pizza where you specify toppings by name
@@ -439,8 +602,11 @@ for stop in tour:
 
 ### Closures
 **One-liner**: Inner functions that remember variables from outer scope - persistent local state.
+
 **Concept**: Inner functions that capture and remember variables from their enclosing scope, even after the outer function returns.
+
 **Analogy**: Like a backpack that remembers what you put in it, even after you leave home.
+
 ```python
 def create_multiplier(factor):
     # The 'factor' is packed in the backpack
@@ -454,6 +620,63 @@ triple = create_multiplier(3)  # Backpack with factor=3
 
 print(double(5))  # 10 (uses the packed factor=2)
 print(triple(5))  # 15 (uses the packed factor=3)
+```
+
+### Itertools Module
+**One-liner**: Powerful iterator functions for efficient looping - like a Swiss Army knife for iterations.
+
+**Concept**: Module providing functions for creating iterators for efficient looping, combinations, and data processing.
+
+**Analogy**: Like a Swiss Army knife with different tools for slicing, combining, and manipulating data streams.
+
+```python
+import itertools
+
+# Chain multiple iterables
+list1 = [1, 2, 3]
+list2 = [4, 5, 6]
+chained = list(itertools.chain(list1, list2))  # [1, 2, 3, 4, 5, 6]
+
+# Cycle through values infinitely
+counter = itertools.cycle(['A', 'B', 'C'])
+print([next(counter) for _ in range(7)])  # ['A', 'B', 'C', 'A', 'B', 'C', 'A']
+
+# Combinations and permutations
+letters = ['A', 'B', 'C']
+combos = list(itertools.combinations(letters, 2))  # [('A', 'B'), ('A', 'C'), ('B', 'C')]
+perms = list(itertools.permutations(letters, 2))   # [('A', 'B'), ('A', 'C'), ('B', 'A'), ('B', 'C'), ('C', 'A'), ('C', 'B')]
+```
+
+### Functools Module
+**One-liner**: Function utilities for higher-order functions - tools to modify and enhance functions.
+
+**Concept**: Module providing utilities for working with higher-order functions and operations on callable objects.
+
+**Analogy**: Like a workshop with tools to modify, combine, and enhance your existing tools (functions).
+
+```python
+import functools
+
+# Partial functions - pre-fill some arguments
+def multiply(x, y):
+    return x * y
+
+double = functools.partial(multiply, 2)  # Pre-fill x=2
+print(double(5))  # 10 (equivalent to multiply(2, 5))
+
+# Reduce - apply function cumulatively
+numbers = [1, 2, 3, 4, 5]
+sum_all = functools.reduce(lambda x, y: x + y, numbers)  # 15
+product = functools.reduce(lambda x, y: x * y, numbers)  # 120
+
+# LRU Cache - memoization decorator
+@functools.lru_cache(maxsize=128)
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+
+print(fibonacci(10))  # Cached for efficiency
 ```
 
 ---
