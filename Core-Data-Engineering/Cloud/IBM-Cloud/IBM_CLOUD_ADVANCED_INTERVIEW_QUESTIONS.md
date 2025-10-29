@@ -1,4 +1,6 @@
-# ☁️ IBM Cloud Advanced Interview Questions (31-80)
+# ☁️ IBM Cloud Advanced Interview Questions - 50 Questions (31-80)
+
+**📝 Note**: This covers advanced topics (questions 31-80). For basic questions 1-30, see [IBM_CLOUD_INTERVIEW_QUESTIONS.md](./IBM_CLOUD_INTERVIEW_QUESTIONS.md).
 
 ### 31. How do you use IBM App Connect for integration?
 **Answer:**

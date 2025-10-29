@@ -1,4 +1,6 @@
-# ☁️ Alibaba Cloud Advanced Interview Questions (26-80)
+# ☁️ Alibaba Cloud Advanced Interview Questions - 55 Questions (26-80)
+
+**📝 Note**: This covers advanced topics (questions 26-80). For basic questions 1-25, see [ALIBABA_CLOUD_INTERVIEW_QUESTIONS.md](./ALIBABA_CLOUD_INTERVIEW_QUESTIONS.md).
 
 ### 26. What is MaxCompute and how do you use it for big data processing?
 **Answer:**

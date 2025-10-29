@@ -1,13 +1,11 @@
-# Azure Comprehensive Interview Questions for Data Engineers - 300 Questions
+# Azure Comprehensive Interview Questions for Data Engineers - 60 Questions
 
 ## 📋 Table of Contents
 
 1. [Basic Level Questions (1-50)](#basic-level-questions-1-50)
-2. [Intermediate Level Questions (51-100)](#intermediate-level-questions-51-100)
-3. [Advanced Level Questions (101-150)](#advanced-level-questions-101-150)
-4. [Architecture & Design Questions (151-200)](#architecture--design-questions-151-200)
-5. [Security & Compliance Questions (201-250)](#security--compliance-questions-201-250)
-6. [Performance & Optimization Questions (251-300)](#performance--optimization-questions-251-300)
+2. [Intermediate Level Questions (51-60)](#intermediate-level-questions-51-60)
+
+**📝 Note**: This file contains 60 foundational questions covering Azure data engineering concepts.
 
 ---
 
@@ -559,4 +557,7 @@ container_definition = {
 - **Hybrid Integration**: On-premises and cloud connectivity
 - **Compliance**: GDPR, HIPAA, SOC requirements
 
-This comprehensive collection covers all aspects of Azure data engineering from basic concepts to advanced enterprise patterns.
+This collection covers essential Azure data engineering concepts from basic to intermediate levels.
+
+**Current Status**: 60 comprehensive questions covering fundamental and intermediate Azure data engineering topics.
+**Future Expansion**: Additional questions may be added in future updates to cover advanced topics, architecture & design, security & compliance, and performance & optimization.

@@ -1,4 +1,4 @@
-# AWS Complete Interview Questions for Data Engineers - 320 Questions
+# AWS Complete Interview Questions for Data Engineers - 240 Questions
 
 ## 📋 Table of Contents
 
@@ -10,8 +10,8 @@
 6. [Security & Compliance Questions (151-180)](#security--compliance-questions-151-180)
 7. [Performance & Optimization Questions (181-210)](#performance--optimization-questions-181-210)
 8. [Scenario-Based Questions (211-240)](#scenario-based-questions-211-240)
-9. [Expert-Level Questions (241-280)](#expert-level-questions-241-280)
-10. [Enterprise Architecture Questions (281-320)](#enterprise-architecture-questions-281-320)
+
+**📝 Note**: Questions 241-320 are listed as topic placeholders for future expansion.
 
 ---
 
@@ -2774,13 +2774,459 @@ class AdvancedPartitionManager:
 ## Scenario-Based Questions (211-240)
 
 ### 211. You have a data pipeline that processes 1TB of data daily, but it's taking 8 hours to complete. How would you optimize it?
-**Answer**: Analyze bottlenecks, increase parallelism, optimize data formats, implement partitioning, and use appropriate instance types.
+**Answer**: 
+> **Think of optimizing a slow data pipeline like diagnosing why a factory assembly line is running slowly - you need to find the bottlenecks (which station is slowest), add more workers (parallelism), use better tools (optimize formats), organize materials better (partitioning), and upgrade equipment (better instances).**
+
+**Optimization Strategy** - *Like factory efficiency improvement*:
+
+**1. Bottleneck Analysis** - *Like timing each assembly station*:
+```python
+# CloudWatch metrics analysis
+import boto3
+from datetime import datetime, timedelta
+
+def analyze_pipeline_bottlenecks():
+    cloudwatch = boto3.client('cloudwatch')
+    
+    # Analyze Glue job metrics
+    glue_metrics = cloudwatch.get_metric_statistics(
+        Namespace='AWS/Glue',
+        MetricName='glue.driver.aggregate.numCompletedTasks',
+        StartTime=datetime.utcnow() - timedelta(hours=24),
+        EndTime=datetime.utcnow(),
+        Period=3600,
+        Statistics=['Average', 'Maximum']
+    )
+    
+    # Check S3 request patterns
+    s3_metrics = cloudwatch.get_metric_statistics(
+        Namespace='AWS/S3',
+        MetricName='NumberOfObjects',
+        Dimensions=[{'Name': 'BucketName', 'Value': 'data-pipeline-bucket'}],
+        StartTime=datetime.utcnow() - timedelta(hours=24),
+        EndTime=datetime.utcnow(),
+        Period=3600,
+        Statistics=['Average']
+    )
+```
+
+**2. Increase Parallelism** - *Like adding more assembly workers*:
+```python
+# Optimized Glue job configuration
+optimized_job_config = {
+    'Name': 'optimized-etl-job',
+    'Role': 'arn:aws:iam::account:role/GlueServiceRole',
+    'Command': {
+        'Name': 'glueetl',
+        'ScriptLocation': 's3://scripts/optimized_etl.py'
+    },
+    'DefaultArguments': {
+        '--job-language': 'python',
+        '--job-bookmark-option': 'job-bookmark-enable',
+        '--enable-metrics': '',
+        '--enable-continuous-cloudwatch-log': 'true',
+        # Optimization parameters
+        '--conf': 'spark.sql.adaptive.enabled=true',
+        '--conf': 'spark.sql.adaptive.coalescePartitions.enabled=true',
+        '--conf': 'spark.serializer=org.apache.spark.serializer.KryoSerializer'
+    },
+    'MaxRetries': 1,
+    'AllocatedCapacity': 20,  # Increased from default
+    'Timeout': 2880,  # 48 hours
+    'MaxConcurrentRuns': 3
+}
+```
+
+**3. Data Format Optimization** - *Like using better tools and materials*:
+```python
+# Convert to optimized formats
+def optimize_data_formats():
+    # Convert CSV to Parquet with compression
+    df = spark.read.csv('s3://input/large_csv_files/')
+    
+    df.write \
+        .mode('overwrite') \
+        .option('compression', 'snappy') \
+        .parquet('s3://optimized/parquet_files/')
+    
+    # Implement columnar storage benefits
+    df.createOrReplaceTempView('temp_table')
+    
+    # Only select needed columns
+    optimized_df = spark.sql("""
+        SELECT customer_id, transaction_date, amount, category
+        FROM temp_table 
+        WHERE transaction_date >= '2024-01-01'
+    """)
+```
+
+**4. Smart Partitioning** - *Like organizing materials efficiently*:
+```python
+# Implement intelligent partitioning
+def implement_smart_partitioning():
+    # Partition by date and high-cardinality columns
+    df.withColumn('year', year('transaction_date')) \
+      .withColumn('month', month('transaction_date')) \
+      .write \
+      .mode('append') \
+      .partitionBy('year', 'month', 'region') \
+      .parquet('s3://partitioned-data/')
+```
+
+**Expected Results**: *Like measuring factory improvements*
+- **Processing Time**: Reduced from 8 hours to 2-3 hours
+- **Cost Reduction**: 40-60% lower due to shorter runtime
+- **Reliability**: Better error handling and recovery
+- **Scalability**: Can handle 2-3TB with same timeframe
 
 ### 212. Your Redshift cluster is running out of storage and queries are getting slower. What's your approach?
-**Answer**: Implement compression, archive old data, optimize table design, consider scaling, and implement query optimization.
+**Answer**: 
+> **Think of a Redshift storage crisis like a overcrowded warehouse where workers can't find anything quickly - you need to compress boxes (data compression), move old inventory to cheaper storage (archival), reorganize the layout (table optimization), add more space (scaling), and train workers to find things faster (query optimization).**
+
+**Immediate Actions** - *Like emergency warehouse management*:
+
+**1. Storage Analysis** - *Like inventory audit*:
+```sql
+-- Analyze table sizes and usage
+SELECT 
+    schemaname,
+    tablename,
+    size_in_mb,
+    pct_used,
+    unsorted,
+    stats_off
+FROM svv_table_info 
+ORDER BY size_in_mb DESC;
+
+-- Check for unused tables
+SELECT 
+    schemaname,
+    tablename,
+    last_accessed
+FROM (
+    SELECT DISTINCT 
+        schemaname,
+        tablename,
+        MAX(starttime) as last_accessed
+    FROM stl_scan s
+    JOIN svv_table_info t ON s.tbl = t.table_id
+    GROUP BY schemaname, tablename
+) 
+WHERE last_accessed < CURRENT_DATE - 90;
+```
+
+**2. Implement Compression** - *Like vacuum-packing inventory*:
+```sql
+-- Analyze compression opportunities
+ANALYZE COMPRESSION table_name;
+
+-- Apply optimal compression
+CREATE TABLE optimized_table (
+    customer_id BIGINT ENCODE DELTA,
+    transaction_date DATE ENCODE DELTA32K,
+    amount DECIMAL(10,2) ENCODE DELTA,
+    description VARCHAR(500) ENCODE LZO,
+    category VARCHAR(50) ENCODE BYTEDICT
+)
+DISTKEY(customer_id)
+SORTKEY(transaction_date);
+
+-- Migrate data with compression
+INSERT INTO optimized_table 
+SELECT * FROM original_table;
+```
+
+**3. Data Archival Strategy** - *Like moving old inventory to cheaper storage*:
+```python
+# Automated archival process
+import boto3
+from datetime import datetime, timedelta
+
+def implement_data_archival():
+    redshift = boto3.client('redshift-data')
+    s3 = boto3.client('s3')
+    
+    # Unload old data to S3
+    unload_query = """
+    UNLOAD ('SELECT * FROM transactions WHERE transaction_date < \'2023-01-01\'') 
+    TO 's3://archive-bucket/historical-transactions/'
+    IAM_ROLE 'arn:aws:iam::account:role/RedshiftRole'
+    PARQUET
+    ALLOWOVERWRITE;
+    """
+    
+    # Execute unload
+    response = redshift.execute_statement(
+        ClusterIdentifier='my-cluster',
+        Database='analytics',
+        Sql=unload_query
+    )
+    
+    # Delete archived data from Redshift
+    delete_query = "DELETE FROM transactions WHERE transaction_date < '2023-01-01'"
+    
+    redshift.execute_statement(
+        ClusterIdentifier='my-cluster',
+        Database='analytics', 
+        Sql=delete_query
+    )
+    
+    # Create external table for archived data
+    external_table_query = """
+    CREATE EXTERNAL TABLE archived_transactions (
+        customer_id BIGINT,
+        transaction_date DATE,
+        amount DECIMAL(10,2)
+    )
+    STORED AS PARQUET
+    LOCATION 's3://archive-bucket/historical-transactions/'
+    """
+```
+
+**4. Query Optimization** - *Like training workers to be more efficient*:
+```sql
+-- Identify slow queries
+SELECT 
+    query,
+    total_exec_time,
+    avg_exec_time,
+    calls
+FROM stl_query_metrics 
+WHERE total_exec_time > 300000  -- 5 minutes
+ORDER BY total_exec_time DESC;
+
+-- Optimize common query patterns
+-- Before: Slow query
+SELECT customer_id, SUM(amount) 
+FROM transactions 
+WHERE transaction_date BETWEEN '2024-01-01' AND '2024-12-31'
+GROUP BY customer_id;
+
+-- After: Optimized query
+SELECT customer_id, SUM(amount)
+FROM transactions 
+WHERE transaction_date >= '2024-01-01' 
+  AND transaction_date < '2025-01-01'  -- Better for sort key
+GROUP BY customer_id;
+```
+
+**5. Scaling Strategy** - *Like expanding warehouse space*:
+```python
+# Implement elastic scaling
+def implement_elastic_scaling():
+    redshift = boto3.client('redshift')
+    
+    # Resize cluster during off-peak hours
+    redshift.modify_cluster(
+        ClusterIdentifier='my-cluster',
+        NodeType='dc2.8xlarge',  # Upgrade from dc2.large
+        NumberOfNodes=4,         # Scale from 2 to 4 nodes
+        ApplyImmediately=False   # Apply during maintenance window
+    )
+```
+
+**Expected Outcomes**: *Like measuring warehouse improvements*
+- **Storage Reduction**: 60-80% through compression and archival
+- **Query Performance**: 3-5x faster through optimization
+- **Cost Management**: Balanced performance vs cost
+- **Future Scalability**: Prepared for growth
 
 ### 213. A critical data pipeline failed at 2 AM. Walk me through your incident response process.
-**Answer**: Immediate assessment, stakeholder notification, root cause analysis, fix implementation, and post-incident review.
+**Answer**: 
+> **Think of a data pipeline failure like a hospital emergency - you need immediate triage (assess severity), alert the right medical team (stakeholders), diagnose the problem (root cause), perform surgery if needed (fix), and conduct a medical review (post-incident) to prevent future emergencies.**
+
+**Incident Response Timeline** - *Like emergency medical protocol*:
+
+**Minutes 0-5: Immediate Triage** - *Like emergency room assessment*:
+```python
+# Automated incident detection and initial response
+import boto3
+import json
+from datetime import datetime
+
+def incident_response_handler(event, context):
+    # Parse CloudWatch alarm
+    alarm_data = json.loads(event['Records'][0]['Sns']['Message'])
+    
+    incident = {
+        'timestamp': datetime.utcnow().isoformat(),
+        'severity': determine_severity(alarm_data),
+        'affected_pipeline': alarm_data['Dimensions']['PipelineName'],
+        'alarm_reason': alarm_data['NewStateReason']
+    }
+    
+    # Log incident
+    log_incident(incident)
+    
+    # Immediate assessment
+    health_check = perform_health_check(incident['affected_pipeline'])
+    
+    return {
+        'incident_id': generate_incident_id(),
+        'severity': incident['severity'],
+        'initial_assessment': health_check
+    }
+
+def determine_severity(alarm_data):
+    pipeline_name = alarm_data['Dimensions']['PipelineName']
+    
+    # Critical pipelines (customer-facing, revenue-impacting)
+    if pipeline_name in ['customer-analytics', 'billing-pipeline', 'fraud-detection']:
+        return 'CRITICAL'
+    # Important but not customer-facing
+    elif pipeline_name in ['internal-reporting', 'data-quality-checks']:
+        return 'HIGH'
+    else:
+        return 'MEDIUM'
+```
+
+**Minutes 5-15: Stakeholder Notification** - *Like calling the medical team*:
+```python
+def notify_stakeholders(incident):
+    sns = boto3.client('sns')
+    
+    # Escalation matrix based on severity
+    notification_groups = {
+        'CRITICAL': [
+            'arn:aws:sns:region:account:on-call-engineers',
+            'arn:aws:sns:region:account:data-team-leads',
+            'arn:aws:sns:region:account:business-stakeholders'
+        ],
+        'HIGH': [
+            'arn:aws:sns:region:account:on-call-engineers',
+            'arn:aws:sns:region:account:data-team-leads'
+        ],
+        'MEDIUM': [
+            'arn:aws:sns:region:account:on-call-engineers'
+        ]
+    }
+    
+    message = f"""
+    🚨 DATA PIPELINE INCIDENT - {incident['severity']}
+    
+    Pipeline: {incident['affected_pipeline']}
+    Time: {incident['timestamp']}
+    Issue: {incident['alarm_reason']}
+    
+    Incident ID: {incident['incident_id']}
+    
+    Investigation in progress...
+    """
+    
+    for topic_arn in notification_groups[incident['severity']]:
+        sns.publish(
+            TopicArn=topic_arn,
+            Subject=f"URGENT: Pipeline Failure - {incident['affected_pipeline']}",
+            Message=message
+        )
+```
+
+**Minutes 15-45: Root Cause Analysis** - *Like medical diagnosis*:
+```python
+def perform_root_cause_analysis(pipeline_name):
+    analysis_results = {}
+    
+    # Check CloudWatch logs
+    logs_client = boto3.client('logs')
+    
+    log_events = logs_client.filter_log_events(
+        logGroupName=f'/aws/glue/{pipeline_name}',
+        startTime=int((datetime.utcnow() - timedelta(hours=2)).timestamp() * 1000),
+        filterPattern='ERROR'
+    )
+    
+    analysis_results['error_logs'] = [event['message'] for event in log_events['events']]
+    
+    # Check resource utilization
+    cloudwatch = boto3.client('cloudwatch')
+    
+    cpu_metrics = cloudwatch.get_metric_statistics(
+        Namespace='AWS/Glue',
+        MetricName='glue.driver.aggregate.bytesRead',
+        Dimensions=[{'Name': 'JobName', 'Value': pipeline_name}],
+        StartTime=datetime.utcnow() - timedelta(hours=2),
+        EndTime=datetime.utcnow(),
+        Period=300,
+        Statistics=['Average', 'Maximum']
+    )
+    
+    # Check data source availability
+    s3_client = boto3.client('s3')
+    try:
+        s3_client.head_object(Bucket='source-bucket', Key='expected-file.csv')
+        analysis_results['data_source_status'] = 'Available'
+    except ClientError:
+        analysis_results['data_source_status'] = 'Missing'
+    
+    return analysis_results
+```
+
+**Minutes 45-120: Fix Implementation** - *Like performing surgery*:
+```python
+def implement_fix(incident, root_cause):
+    if root_cause['data_source_status'] == 'Missing':
+        # Data source issue - contact upstream team
+        notify_upstream_team(incident)
+        
+    elif 'OutOfMemoryError' in str(root_cause['error_logs']):
+        # Resource issue - increase job capacity
+        glue_client = boto3.client('glue')
+        
+        glue_client.update_job(
+            JobName=incident['affected_pipeline'],
+            JobUpdate={
+                'AllocatedCapacity': 20,  # Increased from 10
+                'MaxRetries': 3
+            }
+        )
+        
+        # Restart job
+        glue_client.start_job_run(JobName=incident['affected_pipeline'])
+        
+    elif 'AccessDenied' in str(root_cause['error_logs']):
+        # Permission issue - update IAM role
+        update_iam_permissions(incident['affected_pipeline'])
+```
+
+**Post-Incident: Medical Review** - *Like case study for future prevention*:
+```python
+def post_incident_review(incident):
+    review_document = {
+        'incident_summary': incident,
+        'timeline': get_incident_timeline(incident['incident_id']),
+        'root_cause': incident['root_cause'],
+        'resolution': incident['resolution'],
+        'lessons_learned': [
+            'Need better monitoring for upstream data dependencies',
+            'Implement automatic resource scaling for memory issues',
+            'Add data validation checks before processing'
+        ],
+        'action_items': [
+            {
+                'task': 'Implement upstream data monitoring',
+                'owner': 'data-engineering-team',
+                'due_date': '2024-02-15'
+            },
+            {
+                'task': 'Add auto-scaling to Glue jobs',
+                'owner': 'devops-team', 
+                'due_date': '2024-02-20'
+            }
+        ]
+    }
+    
+    # Store in incident database
+    store_incident_review(review_document)
+    
+    # Schedule follow-up meeting
+    schedule_post_mortem_meeting(incident['stakeholders'])
+```
+
+**Key Metrics**: *Like hospital performance indicators*
+- **MTTR (Mean Time To Recovery)**: Target < 2 hours
+- **MTTD (Mean Time To Detection)**: Target < 5 minutes  
+- **Communication Time**: Stakeholders notified within 10 minutes
+- **Prevention Rate**: 80% of similar incidents prevented by action items
 
 ### 214. You need to migrate 100TB of data from on-premises to AWS with minimal downtime. How do you approach this?
 **Answer**: Use AWS DataSync, Snowball family, or Direct Connect with phased migration and validation strategies.
@@ -2989,7 +3435,9 @@ class AdvancedPartitionManager:
 
 ---
 
-This comprehensive collection of 320 AWS interview questions covers all aspects of data engineering on AWS, from basic concepts to advanced enterprise architectural patterns, providing both theoretical understanding and practical implementation knowledge. The questions progress from fundamental concepts to complex enterprise scenarios, ensuring thorough preparation for data engineering interviews at any level.
+This comprehensive collection of 240 AWS interview questions covers all aspects of data engineering on AWS, from basic concepts to advanced architectural patterns, providing both theoretical understanding and practical implementation knowledge. The questions progress from fundamental concepts to complex scenarios, ensuring thorough preparation for data engineering interviews at any level.
+
+**Future Expansion**: Questions 241-320 are planned for future releases, covering expert-level and enterprise architecture topics.
 ### 256-300. Additional AWS Questions
 
 **256. Advanced serverless data architectures**
@@ -3042,9 +3490,10 @@ This comprehensive collection of 320 AWS interview questions covers all aspects 
 
 ## 🎯 **PHASE 1 COMPLETION ACHIEVED**
 
-### ✅ **AWS EXPANSION COMPLETED**
-- **Target Achieved**: 300 questions ✅
-- **Coverage**: All fundamental to advanced AWS concepts
-- **Focus Areas**: Data engineering, cloud architecture, security, performance, enterprise patterns
+### ✅ **AWS CORE COLLECTION COMPLETED**
+- **Current Status**: 240 comprehensive questions ✅
+- **Coverage**: Fundamental to advanced AWS concepts
+- **Focus Areas**: Data engineering, cloud architecture, security, performance, scenario-based solutions
+- **Future Expansion**: Additional 80 questions planned for expert and enterprise levels
 
-This comprehensive collection covers the complete spectrum of AWS knowledge from basic services to enterprise-scale implementations, preparing you for any data engineering interview or real-world cloud architecture challenge.
+This comprehensive collection covers the essential spectrum of AWS knowledge from basic services to advanced implementations, preparing you for most data engineering interviews and real-world cloud architecture challenges.

@@ -1,13 +1,11 @@
-# AWS Complete Interview Questions for Data Engineers - 300 Questions
+# AWS Complete Interview Questions for Data Engineers - 60 Questions
 
 ## 📋 Table of Contents
 
 1. [Basic Level Questions (1-50)](#basic-level-questions-1-50)
-2. [Intermediate Level Questions (51-100)](#intermediate-level-questions-51-100)
-3. [Advanced Level Questions (101-150)](#advanced-level-questions-101-150)
-4. [Architecture & Design Questions (151-200)](#architecture--design-questions-151-200)
-5. [Security & Compliance Questions (201-250)](#security--compliance-questions-201-250)
-6. [Performance & Optimization Questions (251-300)](#performance--optimization-questions-251-300)
+2. [Intermediate Level Questions (51-60)](#intermediate-level-questions-51-60)
+
+**📝 Note**: This file contains 60 foundational questions. For a more comprehensive collection with 240 detailed questions, see [AWS_INTERVIEW_QUESTIONS_COMPLETE_240.md](./AWS_INTERVIEW_QUESTIONS_COMPLETE_240.md).
 
 ---
 
@@ -337,4 +335,8 @@ GROUP BY region;
 - **OLTP vs OLAP**: Transactional vs analytical workloads
 - **CAP Theorem**: Consistency, Availability, Partition tolerance trade-offs
 
-This comprehensive collection covers all aspects of AWS data engineering from basic concepts to advanced enterprise patterns.
+This collection covers essential AWS data engineering concepts from basic to intermediate levels.
+
+**Current Status**: 60 comprehensive questions covering fundamental and intermediate AWS data engineering topics.
+**Note**: For a more comprehensive collection with 240 detailed questions, see [AWS_INTERVIEW_QUESTIONS_COMPLETE_240.md](./AWS_INTERVIEW_QUESTIONS_COMPLETE_240.md).
+**Future Expansion**: Additional questions may be added to this file in future updates.
