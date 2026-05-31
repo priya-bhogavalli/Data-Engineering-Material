@@ -1,4 +1,13 @@
-# Python
+# === SECRETS ===
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+credentials.*
+
+# === PYTHON ===
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,25 +28,63 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Virtual environments
+# === VIRTUAL ENVIRONMENTS ===
+.venv/
 venv/
 env/
 ENV/
+.python-version
 
-# IDE
+# === JUPYTER ===
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# === DATA ===
+*.csv
+*.parquet
+*.feather
+*.h5
+*.hdf5
+data/raw/
+data/processed/
+
+# === DATABASE ===
+*.db
+*.sqlite
+*.sqlite3
+
+# === LOGS ===
+logs/
+*.log
+*.log.*
+
+# === TESTING ===
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# === TYPE CHECKING ===
+.mypy_cache/
+
+# === IDE ===
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS
+# === OS ===
 .DS_Store
+._*
 Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
 
-# Logs
-*.log
-
-# Temporary files
+# === TEMP ===
 *.tmp
 *.temp
+*.bak
+*.orig
