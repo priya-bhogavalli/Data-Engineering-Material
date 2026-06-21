@@ -1,0 +1,96 @@
+# Databricks Asset Bundle config for the medallion lakehouse pipeline.
+#
+# Two deployable jobs are defined: the hand-written notebook pipeline (bronze -> silver
+# -> gold via notebooks 01-03) and the DLT pipeline (notebook 06) as an alternative.
+# Both are wired up so an interviewer can see the full deploy story, not just the code.
+
+bundle:
+  name: lakehouse-medallion
+
+variables:
+  catalog:
+    description: Unity Catalog catalog name for this environment
+    default: lakehouse_dev
+
+# ── Notebook-based pipeline (hand-written merge/streaming logic) ───────────────────────
+resources:
+  jobs:
+    medallion_pipeline:
+      name: "[${bundle.target}] Medallion Bronze-Silver-Gold"
+      tasks:
+        - task_key: bronze_ingest
+          notebook_task:
+            notebook_path: ./notebooks/01_autoloader_bronze.py
+            base_parameters:
+              target_table: "${var.catalog}.bronze.raw_orders"
+          new_cluster: &job_cluster
+            spark_version: 15.4.x-scala2.12
+            node_type_id: i3.xlarge
+            num_workers: 2
+            data_security_mode: SINGLE_USER
+
+        - task_key: silver_merge
+          depends_on:
+            - task_key: bronze_ingest
+          notebook_task:
+            notebook_path: ./notebooks/02_delta_merge_silver.py
+            base_parameters:
+              bronze_table: "${var.catalog}.bronze.raw_orders"
+              silver_table: "${var.catalog}.silver.orders"
+          new_cluster: *job_cluster
+
+        - task_key: gold_aggregates
+          depends_on:
+            - task_key: silver_merge
+          notebook_task:
+            notebook_path: ./notebooks/03_gold_aggregates.py
+            base_parameters:
+              silver_table: "${var.catalog}.silver.orders"
+              gold_schema: "${var.catalog}.gold"
+          new_cluster: *job_cluster
+
+      schedule:
+        quartz_cron_expression: "0 0 5 * * ?"   # 05:00 daily
+        timezone_id: "Europe/Berlin"
+        pause_status: PAUSED   # unpause once validated in each target
+
+    # ── DLT pipeline (declarative alternative, see notebook 06) ──────────────────────
+    dlt_medallion_pipeline:
+      name: "[${bundle.target}] DLT Medallion Pipeline"
+      pipeline_task:
+        pipeline_id: ${resources.pipelines.medallion_dlt.id}
+
+  pipelines:
+    medallion_dlt:
+      name: "[${bundle.target}] medallion-dlt"
+      catalog: ${var.catalog}
+      target: gold
+      libraries:
+        - notebook:
+            path: ./notebooks/06_dlt_pipeline.py
+      continuous: false
+      development: true
+
+# ── Per-environment targets ────────────────────────────────────────────────────────────
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      catalog: lakehouse_dev
+
+  staging:
+    mode: production
+    variables:
+      catalog: lakehouse_staging
+    workspace:
+      host: https://my-workspace-staging.cloud.databricks.com
+
+  prod:
+    mode: production
+    variables:
+      catalog: lakehouse
+    workspace:
+      host: https://my-workspace-prod.cloud.databricks.com
+    run_as:
+      service_principal_name: svc-lakehouse-pipeline
