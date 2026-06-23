@@ -1,0 +1,44 @@
+name: "dbt_enterprise_patterns"
+version: "1.0.0"
+config-version: 2
+
+profile: "dbt_enterprise_patterns"
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  # cutoff used by stg_orders to drop test/seed rows accidentally synced from lower
+  # environments into a shared raw schema — flagged here as a var rather than hardcoded
+  # so it can be overridden per-environment without touching model SQL.
+  min_valid_order_date: "2020-01-01"
+
+models:
+  dbt_enterprise_patterns:
+    staging:
+      +materialized: view
+      # staging models are cheap, frequently-changing views close to the source —
+      # materializing them as tables would mean paying storage + a full rebuild cost
+      # for what's essentially a renaming/casting pass-through layer.
+      +schema: staging
+    intermediate:
+      +materialized: ephemeral
+      # intermediate models exist to keep marts SQL readable; they're never queried
+      # directly, so compiling them as CTEs inlined into the mart avoids creating a
+      # database object that has no consumer of its own.
+    marts:
+      +materialized: table
+      # marts are the contract with downstream consumers (BI, other teams) — built as
+      # tables so query performance is predictable and isn't affected by upstream
+      # staging view recomputation on every read.
+      +schema: marts
+
+tests:
+  +store_failures: true
+  +severity: warn

@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: Order-grain fact table. One row per order_id.
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: order_amount
+        tests:
+          - not_null
+
+  - name: dim_customers
+    description: Customer dimension with derived lifetime value and churn segment.
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+      - name: segment
+        tests:
+          - accepted_values:
+              values: ["never_ordered", "active", "at_risk", "churned"]

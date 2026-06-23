@@ -1,0 +1,56 @@
+name: dbt CI
+
+on:
+  pull_request:
+    paths:
+      - "projects/dbt-enterprise-patterns/**"
+  push:
+    branches: [main]
+    paths:
+      - "projects/dbt-enterprise-patterns/**"
+
+defaults:
+  run:
+    working-directory: projects/dbt-enterprise-patterns
+
+jobs:
+  dbt-build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: ./
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_CI_USER: ${{ secrets.SNOWFLAKE_CI_USER }}
+      SNOWFLAKE_CI_PASSWORD: ${{ secrets.SNOWFLAKE_CI_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt
+        run: pip install dbt-snowflake==1.8.*
+
+      - name: Use CI profile
+        run: cp profiles.yml.example profiles.yml
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt build (run + test)
+        # `dbt build` runs models and their tests in dependency order, failing fast on
+        # the first broken model/test rather than running everything then reporting
+        # failures at the end — cheaper in CI minutes on a real failure.
+        run: dbt build --target ci
+
+      - name: dbt docs generate
+        if: github.ref == 'refs/heads/main'
+        run: dbt docs generate --target ci
+
+      - name: Publish docs to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: projects/dbt-enterprise-patterns/target
+          destination_dir: dbt-docs

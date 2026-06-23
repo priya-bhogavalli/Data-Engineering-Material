@@ -1,0 +1,40 @@
+# Copy to ~/.dbt/profiles.yml and fill in real credentials — never commit a real
+# profiles.yml. Targets a Snowflake warehouse, the same fact_orders/dim_customers
+# tables referenced in ../snowflake-cost-patterns, since this dbt project is what
+# actually builds them from raw sources.
+
+dbt_enterprise_patterns:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER
+      database: ANALYTICS_DEV
+      warehouse: etl_batch_wh
+      schema: dbt_dev          # overridden per-model via generate_schema_name macro
+      threads: 4
+
+    ci:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_CI_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_CI_PASSWORD') }}"
+      role: TRANSFORMER
+      database: ANALYTICS_CI
+      warehouse: etl_batch_wh
+      schema: "dbt_ci_{{ env_var('GITHUB_RUN_ID', 'local') }}"   # isolated per CI run
+      threads: 4
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_PROD_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PROD_PASSWORD') }}"
+      role: TRANSFORMER
+      database: ANALYTICS
+      warehouse: etl_batch_wh
+      schema: dbt_prod
+      threads: 8

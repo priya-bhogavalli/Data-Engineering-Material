@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order, cleaned and cast. Pre-launch/seed rows filtered out.
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+              severity: warn   # warn not error: late-arriving customer dim is expected
+      - name: status
+        tests:
+          - accepted_values:
+              values: ["pending", "completed", "cancelled", "refunded"]
+      - name: order_amount
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: false
+
+  - name: stg_customers
+    description: Customer master, one row per customer_id.
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_order_items
+    description: Line items, many rows per order_id.
+    columns:
+      - name: order_item_id
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id

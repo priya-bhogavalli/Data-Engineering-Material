@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Raw, untransformed tables loaded by the ingestion pipeline.
+    database: ANALYTICS_DEV
+    schema: raw
+    freshness:
+      warn_after: { count: 6, period: hour }
+      error_after: { count: 24, period: hour }
+    loaded_at_field: _loaded_at
+    tables:
+      - name: orders
+        description: One row per order event as landed by the ingestion job.
+        columns:
+          - name: order_id
+            tests:
+              - not_null
+      - name: customers
+        description: Customer master data, slowly-changing.
+        columns:
+          - name: customer_id
+            tests:
+              - not_null
+      - name: order_items
+        description: Line items belonging to an order. Many rows per order_id.
+        columns:
+          - name: order_item_id
+            tests:
+              - not_null
+              - unique
