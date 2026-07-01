@@ -1,5 +1,9 @@
 # Databricks Complete Interview Questions for Data Engineers
 
+> Looking for "tell me about a Databricks project" style questions instead of concept drills? See
+> [`DATABRICKS_REAL_PROJECT_INTERVIEW_QUESTIONS.md`](./DATABRICKS_REAL_PROJECT_INTERVIEW_QUESTIONS.md) —
+> grounded in a real Kafka/Flink → Databricks migration for maritime IoT telemetry.
+
 ## 📋 Table of Contents
 
 1. [Basic Level Questions (1-40)](#basic-level-questions-1-40)
